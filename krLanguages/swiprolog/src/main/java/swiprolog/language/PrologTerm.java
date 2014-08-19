@@ -1,0 +1,59 @@
+/**
+ * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
+ * 
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package swiprolog.language;
+
+import krTools.language.Substitution;
+import krTools.language.Term;
+
+/**
+ * Represents a Prolog term.
+ */
+public class PrologTerm extends PrologExpression implements Term {
+
+	/**
+	 * Creates a {@link PrologTerm} from a JPL term.
+	 * 
+	 * @param term A JPL term.
+	 */
+	public PrologTerm(jpl.Term term) {
+		super(term);
+	}
+	
+	public PrologTerm applySubst(Substitution substitution) {
+		jpl.Term term = JPLUtils.applySubst(((PrologSubstitution) substitution).getJPLSolution(), this.getTerm());
+		return new PrologTerm(term);
+	}
+	
+//	@Override
+//	public Parameter convert() {
+//		return JPLUtils.convert(super.getTerm());
+//	}
+	
+	
+	@Override
+	public int hashCode() {
+		return 0; // JPL does not implement Term.hashCode...
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return (obj instanceof PrologTerm)
+				&& this.getTerm().equals(((PrologTerm) obj).getTerm());
+	}
+
+}

@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.github.goalhub.krTools</groupId>
+    <artifactId>krLanguages</artifactId>
+    <version>0.1</version>
+  </parent>
+  
+  <groupId>com.github.goalhub.krTools.krLanguages</groupId>
+  <artifactId>swiprolog</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <name>swiprolog</name>
+  <url>http://maven.apache.org</url>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <antlr.version>3.2</antlr.version>
+  </properties>
+  
+  <dependencies>
+  	<dependency>
+  		<groupId>com.github.goalhub.krTools</groupId>
+  		<artifactId>krInterface</artifactId>
+  		<version>0.1-SNAPSHOT</version>
+  	</dependency>
+  
+  	<dependency>
+    	<groupId>jpl</groupId>
+    	<artifactId>jpl</artifactId>
+    	<version>3.1.4-alpha</version>
+  	</dependency>
+  	
+  	<dependency>
+    	<groupId>org.antlr</groupId>
+    	<artifactId>antlr-runtime</artifactId>
+    	<version>${antlr.version}</version>
+  	</dependency>
+  
+   	<dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+    	<plugin>
+  			<artifactId>maven-assembly-plugin</artifactId>
+  			<configuration>
+    			<descriptorRefs>
+      				<descriptorRef>jar-with-dependencies</descriptorRef>
+    			</descriptorRefs>
+  			</configuration>
+  			<executions>
+    			<execution>
+    				<id>make-assembly</id>
+      				<phase>package</phase>
+      				<goals>
+        				<goal>attached</goal>
+    				</goals>
+    			</execution>
+  			</executions>
+		</plugin>
+
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr3-maven-plugin</artifactId>
+        <version>${antlr.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>antlr</goal>
+            </goals>
+            <phase>generate-sources</phase>
+          </execution>
+        </executions>
+      </plugin>
+      
+    </plugins>
+    <pluginManagement>
+    	<plugins>
+    		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+    		<plugin>
+    			<groupId>org.eclipse.m2e</groupId>
+    			<artifactId>lifecycle-mapping</artifactId>
+    			<version>1.0.0</version>
+    			<configuration>
+    				<lifecycleMappingMetadata>
+    					<pluginExecutions>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>org.antlr</groupId>
+    								<artifactId>
+    									antlr3-maven-plugin
+    								</artifactId>
+    								<versionRange>${antlr.version}</versionRange>
+    								<goals>
+    									<goal>antlr</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<execute></execute>
+    							</action>
+    						</pluginExecution>
+    					</pluginExecutions>
+    				</lifecycleMappingMetadata>
+    			</configuration>
+    		</plugin>
+    	</plugins>
+    </pluginManagement>
+  </build>
+</project>
