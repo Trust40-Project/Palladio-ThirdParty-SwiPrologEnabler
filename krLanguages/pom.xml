@@ -13,9 +13,42 @@
   <version>0.1</version>
   <packaging>pom</packaging>
 
-  <name>krLanguages</name>
-  <url>http://maven.apache.org</url>
+  <name>KR Languages Support</name>
+  <url>https://github.com/goalhub/krTools/tree/master/krLanguages</url>
+  <description>Knowledge representation technologies that support the KR interface defined in the Knowledge Representation Tools project.</description>
 
+  <licenses>
+  	<license>
+    	<name>The GNU General Public License, Version 3.0</name>
+    	<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+  	</license>
+  </licenses>
+  
+  <developers>
+    <developer>
+      <name>Koen Hindriks</name>
+      <email>k.v.hindriks@gmail.com</email>
+      <organization>goalhub</organization>
+      <organizationUrl>https://github.com/koenhindriks</organizationUrl>
+    </developer>
+  </developers>
+  
+  <organization>
+  	<name>goalhub</name>
+  	<url>https://github.com/goalhub</url>
+  </organization>
+
+  <issueManagement>
+  	<url>https://github.com/goalhub/krTools/issues</url>
+  	<system>Github Issues</system>
+  </issueManagement>
+  
+  <scm>
+  	<connection>scm:git:git@github.com:goalhub/krTools.git</connection>
+  	<developerConnection>scm:git:git@github.com:goalhub/krTools.git</developerConnection>
+  	<url>https://github.com:goalhub/krTools</url>
+  </scm>
+  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -28,8 +61,9 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.11</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
+
 </project>
