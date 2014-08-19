@@ -20,45 +20,31 @@ package krTools.language;
 import java.util.Set;
 
 /**
- * An expression is any grammatically correct string of symbols of a knowledge
- * representation (KR) language. As KR languages are logical languages,
- * expressions typically refer to objects, or to propositions. For example, an
- * expression may be a constant 'a', term '1+2', or formula 'on(a,b),
- * clear(table)'. This class does not make any assumptions about the actual
- * syntax of terms or formulas, and the examples are provided only for purposes
- * of clarification.
+ * An expression is any grammatically correct string of symbols of a knowledge representation
+ * (KR) language. For example, an expression can be a constant {@code a}, term {@code 1+2}, or
+ * formula or statement {@code on(a,b), clear(table)}.
  * 
- * The assumptions that are made are the following: - an expression is part of a
- * specific KR language. - each expression has a 'main operator': this may
- * either be the expression itself (e.g. in case of a constant or positive
- * literal) or a function such as '+' or logical operator such as 'not'. - the
- * language contains variables (though even this is not really enforced; the
- * methods isClosed, isVar, getFreeVar, applySubst, and mgu only make sense if
- * variables are part of the language.
- */
-/**
- * TODO determines if two terms are equal.
+ * <p>The KR Interface has been designed to make minimal assumptions about the language elements
+ * that are present in a KR language and does not make assumptions about the syntax of expressions.
+ * The examples provided in the previous paragraph have only been provided for purposes of
+ * clarification.</p>
+ * 
+ * <p>The assumptions about expressions in the KR language that have been made are the following:
+ * <ul>
+ * 	<li>each expression has a 'main operator': this may either be the expression itself (e.g., in
+ * 	case of a constant or simple literal) or a functor (e.g., '+' or the logical operator 'not').</li>
+ *  <li>the language contains variables (though strictly speaking this is not actually enforced;
+ *  the methods {@link #isClosed}, {@link #isVar}, {@link #getFreeVar}, {@link #applySubst}, and
+ *  {@link #mgu}, however, only make sense if variables are present in the language.</p>
+ * </ul>
+ * </p>
+ *
  * <p>
- * Important implementation detail: {@link Expression}s and particularly
- * {@link Var}s are used in {@link Set}s and therefore must implement
- * hashCode and equals. The interface specifies these but since they are
- * already implemented by the default object they will not appear if you ask
- * Eclipse to add the missing function to a derived class.
- * 
- * @return true if all fields of Expression are literally equal, including
- *         the names of variables.
+ * <b>Important</b>: {@link Expression} and other language elements such as {@link Var}
+ * may be used in {@link Set}s and should implement {@link java.lang.Object#hashCode} and
+ * {@link java.lang.Object#equals}.
+ * </p>
  */
-//boolean equals(Object obj);
-/**
- * Calculates a hash code for this Expression.
- * 
- * @return An Integer with the following property: if two objects are equal
- *         to each other (using {@link #equals(Object)}), the hash code is
- *         the same.<br>
- *         It is not necessarily the case that two objects with the same
- *         hash code are equal.
- */
-//int hashCode();
 public interface Expression {
 
 	/**
@@ -83,9 +69,11 @@ public interface Expression {
 	Set<Var> getFreeVar();
 
 	/**
-	 * TODO 
-	 * @param substitution
-	 * @return
+	 * Applies a substitution to this expression by substituting variables in the expression
+	 * that are bound by the substitution with the term bound to the variable.
+	 *  
+	 * @param substitution A map that binds terms to variables.
+	 * @return An instantiated expression. 
 	 */
 	Expression applySubst(Substitution substitution);
 	

@@ -32,7 +32,7 @@ import krTools.KRInterface;
 public interface Substitution {
 
 	/**
-	 * Returns the set of {@link Variable}s bound by this {@link Substitution}.
+	 * Returns the set of {@link Var}s bound by this {@link Substitution}.
 	 * 
 	 * @return The variables in the domain of this substitution.
 	 */
@@ -81,14 +81,11 @@ public interface Substitution {
 	public boolean remove(Var var);
 
 	/**
-	 * Removes all {@link Binding}s in this {@link Substitution} that do not
-	 * bind any of the given {@link Var}s.
+	 * Removes all bindings in this {@link Substitution} that do not bind any of the given {@link Var}s.
 	 * 
 	 * @param variables
-	 *            A super-set of the variables that should be bound by this
-	 *            substitution after this call.
-	 * @return <code>true</code> if any binding was removed from this
-	 *         {@link Substitution}.
+	 *            A super-set of the variables that should be bound by this substitution after this call.
+	 * @return {@code true} if any binding was removed from this {@link Substitution}.
 	 */
 	public boolean retainAll(Collection<Var> variables);
 	

@@ -18,7 +18,7 @@
 package krTools.language;
 
 /**
- * Variables may occur in {@link DatabaseFormula}, {@Link Query}, and {@Link Update}.
+ * Variables may occur in {@link DatabaseFormula}, {@link Query}, and {@link Update}.
  * Any useful knowledge representation language has variables (only in the most simple
  * applications you can do without variables).
  */

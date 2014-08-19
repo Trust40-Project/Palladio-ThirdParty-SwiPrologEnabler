@@ -70,7 +70,7 @@ public interface KRInterface {
 	/**
 	 * Creates new database from the content provided.
 	 * 
-	 * @param content A list of {@Link DatabaseFormula}s that should be inserted in database.
+	 * @param content A list of {@link DatabaseFormula}s that should be inserted in database.
 	 * @return A database with the given content.
 	 * @throws KRDatabaseException If the database could not be created, or the content
 	 * 			provided could not be added.

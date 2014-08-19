@@ -18,7 +18,7 @@
 package krTools.language;
 
 /**
- * Terms may occur in {@link DatabaseFormula}, {@Link Query}, and {@Link Update}.
+ * Terms may occur in {@link DatabaseFormula}, {@link Query}, and {@link Update}.
  * 
  * <p>Make sure to also implement {@code @Override boolean equals(Object obj)} and
  * {@code @Override int hashCode()}, which will be needed to implement the method
@@ -30,8 +30,6 @@ public interface Term extends Expression {
 	 * Applies a substitution to the term, i.e., instantiates free variables that are
 	 * bound to a term in the substitution by that term (or, only renames in case the
 	 * substitution binds a variable to another one).
-	 * 
-	 * TODO: why is this not in Expression? Because we want a Term back here...
 	 */
 	Term applySubst(Substitution substitution);
 

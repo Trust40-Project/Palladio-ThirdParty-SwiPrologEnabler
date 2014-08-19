@@ -66,7 +66,7 @@ public class ParserException extends Exception implements SourceInfo {
 	 * Creates a new {@link ParserException} using the message and throwable.
 	 * 
 	 * @param msg Informative message about the exception.
-	 * @param Throwable cause.
+	 * @param e cause.
 	 */
 	public ParserException(String msg, Throwable e) {
 		super(msg, e);

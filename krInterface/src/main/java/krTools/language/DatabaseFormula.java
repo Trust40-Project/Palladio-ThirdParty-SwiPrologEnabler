@@ -17,6 +17,8 @@
 
 package krTools.language;
 
+import krTools.database.Database;
+
 /**
  * A database formula is an expression that can be inserted into a {@link Database}.
  * 
