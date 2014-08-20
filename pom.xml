@@ -4,7 +4,8 @@
 
   <groupId>com.github.goalhub</groupId>
   <artifactId>krTools</artifactId>
-  <version>0.1</version>
+  <!-- only modules are under version control -->
+  <version>-</version>
   <packaging>pom</packaging>
 
   <name>The Knowledge Representation Tools</name>
@@ -132,5 +133,4 @@
 		</plugin>
   	</plugins>
   </build>
-
 </project>
