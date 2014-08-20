@@ -124,8 +124,9 @@ public class KRInterfaceParser implements Parser {
 		}
 		if (term.isVar()) {
 			return new PrologVar((Variable) term.getTerm());
+		} else {
+			throw new ParserException(String.format("Expected a Prolog variable but found '%s'", term.toString()));
 		}
-		return null;
 	}
 	
 	/**
