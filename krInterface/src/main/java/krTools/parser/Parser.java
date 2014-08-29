@@ -41,14 +41,14 @@ public interface Parser {
 	 * @throws ParserException If parsing was interrupted.
 	 */
 	List<DatabaseFormula> parseDBFs() throws ParserException;
-		
+	
 	/**
 	 * Parses the input.
-	 * Returns the update found during parsing.
+	 * Returns the queries found during parsing.
 	 * 
 	 * @throws ParserException If parsing was interrupted.
 	 */
-	Update parseUpdate() throws ParserException;
+	List<Query> parseQueries() throws ParserException;
 	
 	/**
 	 * Parses the input.
@@ -57,6 +57,14 @@ public interface Parser {
 	 * @throws ParserException If parsing was interrupted.
 	 */
 	Query parseQuery() throws ParserException;
+		
+	/**
+	 * Parses the input.
+	 * Returns the update found during parsing.
+	 * 
+	 * @throws ParserException If parsing was interrupted.
+	 */
+	Update parseUpdate() throws ParserException;
 
 	/**
 	 * Parses the input.
@@ -73,6 +81,14 @@ public interface Parser {
 	 * @throws ParserException If parsing was interrupted.
 	 */
 	Term parseTerm() throws ParserException;
+	
+	/**
+	 * Parses the input.
+	 * Returns a list of terms obtained by parsing the input.
+	 * 
+	 * @throws ParserException If parsing was interrupted.
+	 */
+	List<Term> parseTerms() throws ParserException;
 	
 	/**
 	 * @return The list of all parsing errors that occurred while parsing.

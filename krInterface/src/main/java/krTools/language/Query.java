@@ -25,6 +25,10 @@ package krTools.language;
  * support the evaluation of a QueryExpression on a database. Typically, as a
  * result of the evaluation, a substitution - binding free variables in the
  * QueryExpression with terms - may be returned by the InferenceEngine.</p>
+ * 
+ * <p>Make sure to also implement {@link java.lang.Object#equals(Object)} and
+ * {@link java.lang.Object#hashCode()}, which are needed for implementing
+ * {@link Expression#mgu(Expression)}.</p>
  */
 
 public interface Query extends Expression {
@@ -35,18 +39,18 @@ public interface Query extends Expression {
 	 * substitution binds a variable to another one).
 	 */
 	Query applySubst(Substitution substitution);
+	
+	/**
+	 * @return {@code true} if this query also can be used as an {@link Update}
+	 * 		(after conversion using {@link #toUpdate()}), {@code false} otherwise.
+	 */
+	boolean isUpdate();
 
 	/**
 	 * Converts a {@link Query} to an {@link Update}.
 	 * 
-	 * TODO:
-	 * <p>All Mental Literals contain Queries. However goals are represented by
-	 * Updates. In order to convert a mental literal into a goal, as is
-	 * necessary when instantiating a module, a way to convert a Query into an
-	 * Update is needed.</p>
-	 * 
-	 * @return An Update with an empty delete list and an add list with the
-	 *         content of this {@link Query}.
+	 * @return A {@link Update} if this query can be converted to an update;
+	 * 			should return {@code null} otherwise.
 	 */
 	Update toUpdate();
 

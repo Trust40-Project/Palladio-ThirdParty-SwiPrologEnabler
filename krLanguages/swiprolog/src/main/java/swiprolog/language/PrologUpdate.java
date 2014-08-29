@@ -27,71 +27,40 @@ import krTools.language.Substitution;
 import krTools.language.Update;
 
 /**
- * <p>
- * Implements a GOAL Update object which basically is a STRIPS representation.
- * The STRIPS command is notated in Prolog style using a conjunct
- * (comma-separated list of arguments) of basicstrips or not(basicstrips)
- * objects. basicstrips objects are any legal PrologDBFormula object.
- * </p>
- * <p>
- * It is used both to represent a GOAL (a goal as in the goals section) and to
- * represent mental state change (eg insert and delete)
- * </p>
- * <p>
- * There may be still variables, to be instantiated before update is executed.
- * That is a runtime check required to be done by UpdateEngine. update actions
- * are not allowed to be built-in terms. The update action "true" does not have
- * any effect and is used to represent empty update actions.
- * </p>
- * 
- * <p>
- * All negative parts in the conjunction (the parts of form not(X)) are checked.
- * If of the form not(sent(X,Y)) or not(received(X,Y)) then the part is
- * considered a mailbox update and placed as sent(X,Y) or received(X,Y) in the
- * mailbox update. Otherwise it's placed in the normal delete list.
- * </p>
- * <p>
- * All positive parts in the conjunction are placed in the add list.
- * </p>
+ * See {@link Update}.
  */
 public class PrologUpdate extends PrologExpression implements Update {
 	
 	/**
-	 * Positive occurrences of database formulas in original term.
+	 * List of literals that occur positively in the term used to construct this update.
 	 */
-	private List<DatabaseFormula> positiveOccurrences = new ArrayList<DatabaseFormula>();
+	private List<DatabaseFormula> positiveLiterals = new ArrayList<DatabaseFormula>();
 	/**
-	 * Negative occurrences in original term, excluding those related to the
-	 * mailbox.
+	 * List of literals that occur negated in the term used to construct this update.
 	 */
-	private List<DatabaseFormula> negativeOccurrences = new ArrayList<DatabaseFormula>();
+	private List<DatabaseFormula> negativeLiterals = new ArrayList<DatabaseFormula>();
 
 	/**
-	 * DOC
+	 * Creates a Prolog {@link Update}.
 	 * 
-	 * @param conj
-	 *            A JPL Term that consists of a conjunction of positive and
-	 *            negative terms.
-	 * @param source
-	 *            The source code location of this action, if available;
-	 *            {@code null} otherwise.
+	 * <p>Analyzes the JPL term and separates the positive from the negative
+	 * literals to create add and delete lists.</p>
+	 * 
+	 * @param term A JPL term. Assumes that this term is a conjunction and can be
+	 * 			split into a list of conjuncts.
 	 */
-	public PrologUpdate(jpl.Term conj) {
-		// conj might be 1-element conjunction or even null.
-		super(conj);
+	public PrologUpdate(jpl.Term term) {
+		super(term);
 
-		List<jpl.Term> conjuncts = JPLUtils.getOperands(",", conj);
+		List<jpl.Term> conjuncts = JPLUtils.getOperands(",", term);
 
-		// Sort positive and negative literals. Using the fact that each literal
-		// is a
-		// database formula (checked by parser).
-		for (jpl.Term term : conjuncts) {
-			if (JPLUtils.getSignature(term).equals("not/1")) {
-				negativeOccurrences.add(new PrologDBFormula(term.arg(1)));
-			} else {
-				if (!JPLUtils.getSignature(term).equals("true/0")) {
-					positiveOccurrences.add(new PrologDBFormula(term));
-				}
+		// Sort positive and negative literals, assuming that each conjunct
+		// is a database formula (which should have been checked by the parser).
+		for (jpl.Term conjunct : conjuncts) {
+			if (JPLUtils.getSignature(conjunct).equals("not/1")) {
+				negativeLiterals.add(new PrologDBFormula(conjunct.arg(1)));
+			} else if (!JPLUtils.getSignature(conjunct).equals("true/0")) {
+				positiveLiterals.add(new PrologDBFormula(conjunct));
 			}
 		}
 	}
@@ -102,7 +71,7 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 * @return The positive literals that occur in this update.
 	 */
 	public List<DatabaseFormula> getAddList() {
-		return this.positiveOccurrences;
+		return this.positiveLiterals;
 	}
 
 	/**
@@ -111,13 +80,11 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 * @return The negative literals that occur in this update.
 	 */
 	public List<DatabaseFormula> getDeleteList() {
-		return this.negativeOccurrences;
+		return this.negativeLiterals;
 	}
 
 	/**
-	 * 
-	 * @return PrologUpdate with applied substitution. TODO returns null if
-	 *         original term was null !
+	 * @return Instantiated {@link PrologUpdate} with applied substitution.
 	 */
 	public PrologUpdate applySubst(Substitution substitution) {
 		Hashtable<String, jpl.Term> solution = ((PrologSubstitution) substitution)
@@ -125,31 +92,32 @@ public class PrologUpdate extends PrologExpression implements Update {
 
 		jpl.Term term = JPLUtils.applySubst(solution, this.getTerm());
 		PrologUpdate update = new PrologUpdate(term);
-		update.positiveOccurrences = new ArrayList<DatabaseFormula>();
-		update.negativeOccurrences = new ArrayList<DatabaseFormula>();
+		update.positiveLiterals = new ArrayList<DatabaseFormula>();
+		update.negativeLiterals = new ArrayList<DatabaseFormula>();
 
-		for (DatabaseFormula formula : this.positiveOccurrences) {
-			update.positiveOccurrences.add(formula.applySubst(substitution));
+		for (DatabaseFormula formula : this.positiveLiterals) {
+			update.positiveLiterals.add(formula.applySubst(substitution));
 		}
-		for (DatabaseFormula formula : this.negativeOccurrences) {
-			update.negativeOccurrences.add(formula.applySubst(substitution));
+		for (DatabaseFormula formula : this.negativeLiterals) {
+			update.negativeLiterals.add(formula.applySubst(substitution));
 		}
 
 		return update;
 	}
 
+	@Override
+	public boolean isQuery() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
 	/**
-	 * Converts this update into a query.
+	 * Converts this update into a query, simply using the JPL term of this {@link Update}.
+	 * Note that a conjunction of literals can also be used as a query.
 	 * 
-	 * @return Query based on the Prolog term that represents this update.
+	 * @return A {@link Query}.
 	 */
 	public Query toQuery() {
-		/*
-		 * We removed all checks, to avoid needless checking at runtime.
-		 * currently this is only database formula and not a query. We decided
-		 * that the compiler will check for all cases where the following cast
-		 * will be needed
-		 */
 		return new PrologQuery(this.getTerm());
 	}
 

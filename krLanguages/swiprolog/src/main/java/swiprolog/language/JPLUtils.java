@@ -157,6 +157,40 @@ public class JPLUtils {
 		throw new IllegalArgumentException("Term " + term + "unknown type "
 				+ term.getClass());
 	}
+	
+    /**
+     * Checks whether term can be used as query, i.e., that term is a well formed Prolog goal.
+     * <p>
+     * ISO requires rebuild of the term but in our case we do not allow
+     * variables and hence a real rebuild is not necessary.
+     * Instead, we simply return the original term after checking.
+     * </p>
+     * 
+     * @return  {@code true} if term is a Prolog goal according to ISO.
+     */
+    public static boolean isQuery(jpl.Term t) {
+        // 7.6.2.a use article 7.8.3
+        if (t.isVariable()) {
+        	// Variables cannot be used as goals
+            return false;  
+        }
+        // 7.6.2.b
+        String sig = JPLUtils.getSignature(t);
+        if (PrologOperators.goalProtected(t.name())) {
+        	// The use of operator in a goal is not supported.
+        	return false;
+        }
+        if (sig.equals(":-/2")) {
+        	return false;
+        }
+        if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
+        	isQuery( t.arg(1));
+        	isQuery( t.arg(2));
+        }
+        // 7.6.2.c
+        // no action required. 
+        return true;
+    }
 
 	/**
 	 * D-is-a-predication in ISO p.132-.
@@ -172,16 +206,16 @@ public class JPLUtils {
 			return false;
 		}
 		/*
-		 * furthermore, arguments must be a D-is-an-arglist see ISO p.132 but
-		 * all arguments are already PrologTerm hence a term. so we do no
-		 * further checks. TODO handle special D-is-a-predication cases. I see
+		 * Arguments must be a D-is-an-arglist see ISO p.132 but all arguments
+		 * must already be PrologTerm and no further checks are needed.
+		 * TODO handle special D-is-a-predication cases. E.g.,
 		 * dewey numbers, and other special cases.
 		 */
 		return PrologOperators.is_L_atom(term.name());
 	}
 
 	/**
-	 * method for computing the mgu (most general unifier). Tries to instantiate
+	 * Method for computing the mgu (most general unifier). Tries to instantiate
 	 * such that the outterm variables get assigned with otherterm objects.
 	 * Built as close as possible to JPL, with the idea that we try to get close
 	 * to JPL for efficiency reasons.
@@ -424,7 +458,6 @@ public class JPLUtils {
 	 *            A JPL term.
 	 * @return A hash code for the term.
 	 */
-	// TODO: needs careful review and checking...
 	public static int hashCode(jpl.Term term) {
 		if (term instanceof jpl.Compound) {
 			jpl.Compound compound = (jpl.Compound) term;

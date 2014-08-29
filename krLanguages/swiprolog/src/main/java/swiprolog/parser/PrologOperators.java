@@ -24,21 +24,15 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 
-import swiprolog.language.PrologTerm;
+import krTools.database.Database;
 
 /**
- * Built-in operators of Prolog that GOAL allows to be used in a GOAL program;
- * these operators are treated as reserved keywords by GOAL. Also contains
- * information about priorities and arity of the operators. This list does NOT
- * contain reserved/forbidden names as assert, retract, throw.
- * 
- * @see {@link PrologTerm#useNotAllowed} usenotallowed
- * 
- * @author W.Pasman 22oct09
- * @modified KH January 2010
- * @modified W.Pasman aug2010 added many SWI predefined operators. Trac #1123
- * @modified W.Pasman 16apr2012 #2092 SWI6.0.2 changes
- * @modified W.Pasman 44feb2013 #1783 added atom_chars and related.
+ * A list of built-in operators of Prolog that are supported; these operators should
+ * be treated as reserved keywords. The list also contains information about priorities
+ * and the arity of the operators. Note that this list does <b>not</b> include assert,
+ * retract, nor throw; these are explicitly excluded because the KR interface itself
+ * should be used to update content in a Prolog database (using, e.g.,
+ * {@link Database#delete(krTools.language.DatabaseFormula)}).
  */
 public final class PrologOperators {
 
@@ -62,8 +56,9 @@ public final class PrologOperators {
 	public static final Map<String, Integer> OP_PRIOS;
 
 	public static final Hashtable<String, PrologOperators.Fixity> OPERATOR_SPECS;
+
 	/**
-	 * Users are not allowed to use any of the protected ops.
+	 * Protected operators are not supported.
 	 */
 	public static final Set<String> PROTECTED_OPS;
 
@@ -785,30 +780,23 @@ public final class PrologOperators {
 	}
 
 	/**
-	 * built-in operators are already defined in prolog available for GOAL
-	 * users, and can not be overwritten by users in GOAL (though Prolog might
-	 * still allow overwrite, e.g. <tt>sin(3)</tt> can be asserted in Prolog but
-	 * we do not want this in GOAL. In this sense we are stricter than Prolog.
-	 * </p>
-	 * <p>
-	 * Note that a number of operators is protected and its use is not allowed
-	 * at all in a GOAL program. You need to separately check with goalProtected
-	 * for this, prologBuiltin will not return true on these.
+	 * Built-in operators are already defined in SWI Prolog, and one should not
+	 * try to redefine these by inserting or deleting these (even though SWI Prolog
+	 * allows redefining built-in operators, we do not consider this good practice).
 	 * </p>
 	 * 
-	 * @returns true if signature is built-in prolog function <em>and</em> is
-	 *          not a protected predicate. returns false in other cases.
+	 * @returns {@code true} if signature is built-in Prolog function <em>and</em> is
+	 *          not a protected predicate, {@code false} otherwise.
 	 */
 	public static boolean prologBuiltin(String signature) {
 		return OP_PRIOS.containsKey(signature);
 	}
 
 	/**
-	 * a number of prolog operators have special meaning and GOAL does not
-	 * accept them for use inside queries, databases etc. We do not allow those
-	 * names to be used, regardless even of their arity.
+	 * A number of Prolog operators have a special meaning and are not allowed
+	 * to occur within queries, databases etc.
 	 * 
-	 * @return true if label is protected operator, else false.
+	 * @return {@code true} if label is protected operator, {@code false} otherwise.
 	 */
 	public static boolean goalProtected(String name) {
 		return PROTECTED_OPS.contains(name);
@@ -818,8 +806,7 @@ public final class PrologOperators {
 	 * @param signature
 	 *            is funcname+"/"+#arguments, eg "member/2"
 	 * @return spec given signature, or null if no such signature. specification
-	 *         is fx, fy, xfy, xfx, etc. TODO: use enumerate class for this,
-	 *         makes things clearer, see also above.
+	 *         is fx, fy, xfy, xfx, etc.
 	 */
 	public static PrologOperators.Fixity getFixity(String signature) {
 		return OPERATOR_SPECS.get(signature);
@@ -828,7 +815,7 @@ public final class PrologOperators {
 	/**
 	 * @param signature
 	 *            is funcname+"/"+#arguments, e.g. "member/2"
-	 * @returns priority of given signature, or null if no such signature.
+	 * @returns priority of given signature, or {@code null} if no such signature.
 	 */
 	public static Integer getPriority(String signature) {
 		return OP_PRIOS.get(signature);
@@ -839,7 +826,7 @@ public final class PrologOperators {
 	 * which refers to a concrete atom (identifier), see clause 6.1.2b see also
 	 * ISO Prolog definition of Name in section 6.4.2.
 	 * 
-	 * @return true if label is predication.
+	 * @return {@code true} if label is predication.
 	 */
 	public static boolean is_L_atom(String name) {
 		// See ISO section 6.1.2b and 6.4.2 "Names"

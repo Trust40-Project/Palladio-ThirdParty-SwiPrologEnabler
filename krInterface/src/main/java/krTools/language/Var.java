@@ -21,6 +21,10 @@ package krTools.language;
  * Variables may occur in {@link DatabaseFormula}, {@link Query}, and {@link Update}.
  * Any useful knowledge representation language has variables (only in the most simple
  * applications you can do without variables).
+ * 
+ * <p>Make sure to also implement {@link java.lang.Object#equals(Object)} and
+ * {@link java.lang.Object#hashCode()}, which are needed for implementing
+ * {@link Expression#mgu(Expression)}.</p>
  */
 public interface Var extends Term {
 

@@ -67,15 +67,17 @@ public class KRInterfaceParser implements Parser {
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public List<SourceInfo> getErrors() {
 		List<SourceInfo> errors = new ArrayList<SourceInfo>();
 		errors.addAll(parser.getLexer().getErrors());
 		for (ParserException e : parser.getErrors())
-			errors.add((SourceInfo) e.getCause().getCause());
+			// bit hacky; either get deep down parser exception or get top level
+//			if (e.getCause().getCause() != null) {
+				errors.add((SourceInfo) e.getCause().getCause());
+//			} else {
+//				errors.add((SourceInfo) e);
+//			}
 		return errors;
 	}
 
@@ -95,12 +97,17 @@ public class KRInterfaceParser implements Parser {
 		return parser.ParsePrologProgram();
 	}
 
+	@Override
+	public List<Query> parseQueries() throws ParserException {
+		return parser.parsePrologGoalSection();
+	}
+
 	/**
-	 * {@inheritDoc}
+	 * We allow empty queries.
 	 */
 	@Override
 	public Query parseQuery() {
-		return parser.ParseQuery();
+		return parser.ParseQueryOrEmpty();
 	}
 
 	/**

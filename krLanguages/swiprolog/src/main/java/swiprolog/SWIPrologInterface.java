@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.antlr.runtime.ANTLRReaderStream;
 
@@ -35,11 +36,13 @@ import krTools.errors.exceptions.KRInitFailedException;
 import krTools.errors.exceptions.KRQueryFailedException;
 import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
+import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
 import swiprolog.database.SWIPrologDatabase;
+import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologSubstitution;
 import swiprolog.language.PrologTerm;
@@ -202,6 +205,22 @@ public final class SWIPrologInterface implements KRInterface {
 		}
 		
 		return substitution;
+	}
+
+	@Override
+	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs,
+			Set<Query> queries) {
+		Analyzer analyzer = new Analyzer(dbfs, queries);
+		analyzer.analyze();
+		return analyzer.getUndefined();
+	}
+
+	@Override
+	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
+			Set<Query> queries) {
+		Analyzer analyzer = new Analyzer(dbfs, queries);
+		analyzer.analyze();
+		return analyzer.getUnused();
 	}
 
 	/**

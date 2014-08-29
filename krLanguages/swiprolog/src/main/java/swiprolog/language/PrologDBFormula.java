@@ -19,59 +19,57 @@ package swiprolog.language;
 
 import java.util.Hashtable;
 
+import swiprolog.database.SWIPrologDatabase;
 import krTools.language.DatabaseFormula;
+import krTools.language.Query;
 import krTools.language.Substitution;
 
 /**
  * <p>
- * Represents all expressions that (may) have a truth value (after instantiating
- * variables with ground terms). Should not be used for expressions that do not
- * have a truth value.
- * </p>
+ * A Prolog database formula is an expression that can be inserted into a
+ * {@link SWIPrologDatabase}.</p>
+ * 
  * <p>
- * Performs no checks on whether Prolog term represents a term that can be
- * inserted into a Prolog database for efficiency reasons (this setup avoid
- * checks at run time, as a result e.g. from applying substitutions).
- * Responsibility to do these checks are delegated to the parser (to perform
- * checks at compile time only).
+ * Performs no checks whether a Prolog term can be inserted into a Prolog database
+ * for efficiency reasons (to avoid such checks at run time, e.g., when creating
+ * a new instantiated formula when applying a substitution). The responsibility to
+ * check this is delegated to the parser (which ensures that the check is only
+ * performed at compile time).
  * </p>
- * Technical note. I would really have liked to write
- * <tt>PrologDBFormula extends PrologTerm</tt>. However we need a constructor of
- * the form <tt>PrologDBFormula(PrologTerm x)</tt> which would require
- * constructor of PrologTerm which does not exist (since PrologTerm is abstract
- * class). Anyway the idea is that PrologTerm already exists so calling its
- * constructor kind of defeats the purpose. And it is not possible in Java to
- * cast from one subclass of PrologTerm to another. Eg we can not cast from
- * FuncTerm to PrologDBFormula because PrologTerm is abstract class. Having a
- * constructor new PrologTerm(other PrologTerm) would effectively clone the
- * PrologTerm which would be expensive. </p>
  */
 public class PrologDBFormula extends PrologExpression implements DatabaseFormula {
 
 	/**
-	 * Creates a Prolog formula that can be part of a Prolog database.
+	 * Creates a Prolog database formula that can be part of a Prolog database.
 	 * 
 	 * @param term A JPL term.
-	 * @param source
-	 *            The source code location of this action, if available;
-	 *            {@code null} otherwise.
 	 */
 	public PrologDBFormula(jpl.Term term) {
 		super(term);
-		/*
-		 * TODO CHECK should exclude all expressions that do not have a truth
-		 * value --> check builtIn()
-		 * TODO CHECK ISO manual what can be inserted
-		 * into Prolog database. Basically, P(X) can be inserted only if P is
-		 * not a built-in and P:-Q can be inserted if P is not a built-in and Q
-		 * *does not contain* protecteds.
-		 */
 	}
 
+	@Override
 	public PrologDBFormula applySubst(Substitution substitution) {
 		Hashtable<String, jpl.Term> jplSubstitution =
 				((PrologSubstitution) substitution).getJPLSolution();
 		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, this.getTerm()));
+	}
+	
+	@Override
+	public boolean isQuery() {
+		return JPLUtils.isQuery(getTerm());
+	}
+
+	/**
+	 * Converts this database formula into a query, simply using the JPL term of this
+	 * {@link DatabaseFormula}. Does not perform any check whether the JPL term can also
+	 * be used as a query. Use {@link #toQuery()} to perform this check. 
+	 * 
+	 * @return A {@link Query}.
+	 */
+	@Override
+	public Query toQuery() {
+		return new PrologQuery(this.getTerm());
 	}
 
 }

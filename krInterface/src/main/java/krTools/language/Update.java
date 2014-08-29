@@ -22,27 +22,23 @@ import java.util.List;
 /**
  * An update is an expression that can be used to update a database.
  * 
- * <p>Updates are
- * also used to represent goals, but goals are updates with empty delete and
- * mailbox update.</p>
+ * <p>It is assumed that an update is a conjunction of basic updates, where basic
+ * updates are, for example, either positive or negative literals, or a conditional
+ * effect in ADL.</p>
  * 
- * <p>It is assumed that an update is a conjunction of more basic updates. Basic
- * updates are either positive or negative literals (i.e. a formula), or
- * possibly another type of update such as a conditional effect in ADL. Updates
- * are related to DatabaseFormula as database formulas are assumed to be the
- * most basic updates possible (such as a positive literal). The UpdateEngine
- * should be able to handle an Update and should possess the know-how to update
- * a database with it. An update may have free variables as any other logical
- * expression.</p>
+ * <p>Updates are related to {@link DatabaseFormula} because we view updates here
+ * as an instruction to <i>insert</i> and to <i>delete</i> content from a database.
+ * As database formulas can be inserted into (and removed again from) a database,
+ * an update can be viewed as an instruction to insert or <i>add a list</i> to and
+ * remove or <i>delete a list</i> from a database.</p>
  * 
- * <p>See Trac #775. This is now a collection of positive and negative updates.
- * There is no separation anymore between beliefbase and mailbox updates. All
- * semantic checking is now left to the parser as we do not know at this point
- * what the context is (insert, delete, mailbox actions allowed, etc). This
- * separation is made when necessary, in InsertAction and DeleteAction.
- * InsertAction will insert positives and delete negatives. DeleteAction will
- * delete positives and insert negatives. We always first apply the delete and
- * then the insert.</p>
+ * <p>An update may have free variables as any other logical expression. Before applying
+ * an update to a database, however, these variables may need to have been instantiated (by
+ * applying a substitution).</p>
+ * 
+ * <p>Make sure to also implement {@link java.lang.Object#equals(Object)} and
+ * {@link java.lang.Object#hashCode()}, which are needed for implementing
+ * {@link Expression#mgu(Expression)}.</p>
  */
 public interface Update extends Expression {
 
@@ -71,17 +67,18 @@ public interface Update extends Expression {
 	 * substitution binds a variable to another one).
 	 */
 	Update applySubst(Substitution substitution);
+	
+	/**
+	 * @return {@code true} if this update also can be used as a {@link Query}
+	 * 		(after conversion using {@link #toQuery()}), {@code false} otherwise.
+	 */
+	boolean isQuery();
 
 	/**
 	 * Converts an update to a query.
 	 * 
-	 * <p>A goal in GOAL is inserted in a database, and is also queried on the
-	 * belief base. As goals are represented as updates, we need a method to
-	 * convert them to a query to be able to use a goal as a query.</p>
-	 * 
-	 * @return query formula that is result from converting update, using the
-	 *         add-list associated with the update only. Used for goals. See
-	 *         Goalbase.java.
+	 * @return A {@link Query} if this update can be converted to a query;
+	 * 			should return {@code null} otherwise.
 	 */
 	Query toQuery();
 

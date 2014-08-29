@@ -34,6 +34,13 @@ public class PrologTerm extends PrologExpression implements Term {
 		super(term);
 	}
 	
+	/**
+	 * A term is an anonymous variable if it is a variable and anonymous.
+	 */
+	public boolean isAnonymousVar() {
+		return getTerm().isVariable() && ((PrologVar)this).isAnonymous();
+	}
+	
 	public PrologTerm applySubst(Substitution substitution) {
 		jpl.Term term = JPLUtils.applySubst(((PrologSubstitution) substitution).getJPLSolution(), this.getTerm());
 		return new PrologTerm(term);

@@ -47,6 +47,16 @@ public class PrologVar extends PrologTerm implements Var {
 	public boolean isVar() {
 		return true;
 	}
+	
+	/**
+	 * An underscore is an anonymous Prolog variable.
+	 * Note that variables that *start* with _ are not anonymous.
+	 * 
+	 * @return {@code true} if variable is anonymous, {@code false} otherwise.
+	 */
+	public boolean isAnonymous() {
+		return super.getTerm().name().equals("_");
+	}
 
 	@Override
 	public boolean isClosed() {

@@ -24,18 +24,17 @@ import krTools.language.Substitution;
 import krTools.language.Update;
 
 /**
- * Implements the GOAL Query object for (SWI) prolog.
- * 
- * Performs no checks on whether Prolog term represents a term that can be
- * queried on a Prolog database for efficiency reasons (this setup avoid checks
- * at run time, as a result e.g. from applying substitutions). Responsibility to
- * do these checks are delegated to the parser/compiler (to perform checks at
- * compile time only).
+ * A Prolog query.
  */
 public class PrologQuery extends PrologExpression implements Query {
 
 	/**
-	 * DOC
+	 * Creates a Prolog query.
+	 * 
+	 * <p>Performs no checks whether the JPL term can be queried on a Prolog database
+	 * for efficiency reasons (to avoid checks at run time, e.g., as a result from applying
+	 * a substitution). These checks have been delegated to the parser (to perform checks at
+	 * compile time only).</p>
 	 * 
 	 * @param term A JPL term that can be used as a query.
 	 */
@@ -43,23 +42,26 @@ public class PrologQuery extends PrologExpression implements Query {
 		super(term);
 	}
 
+	@Override
+	public Query applySubst(Substitution s) {
+		Hashtable<String, jpl.Term> jplSubstitution = ((PrologSubstitution) s).getJPLSolution();
+		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, this.getTerm()));
+	}
+	
+	@Override
+	public boolean isUpdate() {
+		// TODO
+		return true;
+	}
+
 	/**
-	 * DOC
-	 * 
 	 * ASSUMES the inner prolog term of the query can also be parsed as an
 	 * update. If called on (a-)goal literals in the context of a module, this has
 	 * already been checked by the parser.
 	 */
+	@Override
 	public Update toUpdate() { 
 		return new PrologUpdate(this.getTerm());
-	}
-
-	/**
-	 * DOC
-	 */
-	public Query applySubst(Substitution s) {
-		Hashtable<String, jpl.Term> jplSubstitution = ((PrologSubstitution) s).getJPLSolution();
-		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, this.getTerm()));
 	}
 
 }

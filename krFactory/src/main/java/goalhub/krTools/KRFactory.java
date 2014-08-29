@@ -33,6 +33,11 @@ import krTools.errors.exceptions.KRInterfaceNotSupportedException;
  * </ul>
  */
 public class KRFactory {
+	
+	/**
+	 * Static strings for names of supported KR Languages.
+	 */
+	public static String SWI_PROLOG;
 
 	/**
 	 * A map of names to {@link KRInterface}s that are supported.
@@ -47,8 +52,9 @@ public class KRFactory {
 	static {
 		// Add SWI Prolog and set as default.
 		try {
-			KRFactory.addInterface(swiprolog.SWIPrologInterface.getInstance());
 			defaultInterface = swiprolog.SWIPrologInterface.getInstance();
+			KRFactory.addInterface(defaultInterface);
+			SWI_PROLOG = defaultInterface.getName();
 		} catch (KRInitFailedException e) {
 			// TODO
 			System.out.println("Failed to initialize the SWI Prolog interface because " + e.getMessage());

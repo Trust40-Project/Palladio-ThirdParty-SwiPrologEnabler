@@ -20,8 +20,8 @@ package krTools.language;
 /**
  * Terms may occur in {@link DatabaseFormula}, {@link Query}, and {@link Update}.
  * 
- * <p>Make sure to also implement {@code @Override boolean equals(Object obj)} and
- * {@code @Override int hashCode()}, which will be needed to implement the method
+ * <p>Make sure to also implement {@link java.lang.Object#equals(Object)} and
+ * {@link java.lang.Object#hashCode()}, which are needed for implementing
  * {@link Expression#mgu(Expression)}.</p>
  */
 public interface Term extends Expression {

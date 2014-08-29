@@ -18,20 +18,20 @@
 grammar Prolog;
  
 /*
+ * This is an ANTLR 3 grammar for the Prolog language.
  *
- * This is a (antlr3.2) grammar for the Prolog language.
- *
- * We have followed the ISO/IEC 13211-1 International Standard for Prolog in most cases, but not always.
+ * <p>We have followed the ISO/IEC 13211-1 International Standard for Prolog in most cases, but not always.
  * Existing Prolog implementations do not completely conform to the Standard, and, in practice, some
  * compromises have to be made (see below). Other reasons for deviating have been more pragmatically
  * motivated: we wanted to keep our grammar simple (and accordingly choose simple solutions to resolve
  * certain issues) and we did not want our grammar to support certain options that quickly lead to
- * unreadable code (e.g. using graphic tokens as predicate names). For a list of deviations, please see
+ * unreadable code (e.g., using graphic tokens as predicate names). For a list of deviations, please see
  * the end of this file. For those who would like to conform more closely to the Standard, this grammar
- * may provide a starting point.
+ * may provide a starting point.</p>
  *
- * All references below of the form "6.3.4" refer to clauses of the International Standard for Prolog.
- * compile with java org.antlr.Tool Prolog.g
+ * <p>All references below of the form "6.3.4" refer to clauses of the International Standard for Prolog.</p>
+ *
+ * <p>Compile with ANTLR v3.2 from the command line using: java org.antlr.Tool Prolog.g.</p>
  */
 
 options {
@@ -43,6 +43,7 @@ options {
 
     import krTools.errors.exceptions.ParserException;
     import krTools.language.DatabaseFormula;
+    import krTools.language.Query;
     import krTools.language.Term;
 	
 	import swiprolog.language.PrologDBFormula;
@@ -61,8 +62,9 @@ options {
 }
 
 @lexer::members {
+
     /**
-     * The list of errors that occurred when parsing.
+     * The list of errors that were found during parsing.
      */
     private ArrayList<ParserException> errors;
     
@@ -72,7 +74,12 @@ options {
     
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-        ParserException newErr = new ParserException(tokenNames.toString(), e);
+    	ParserException newErr;
+    	if (tokenNames != null) { 
+        	newErr = new ParserException(tokenNames.toString(), e);
+        } else {
+        	newErr = new ParserException("Sorry, cannot make anything out of this", e);
+        }
         errors.add(newErr);
     }
     
@@ -81,14 +88,14 @@ options {
     }
     
     /**
-     * @return true iff this parser encountered an error while parsing
+     * @return {@code true} iff the parser found a syntax error.
      */
     public boolean hasErrors() {
         return !this.errors.isEmpty();
     }
     
     /**
-     * @return the last error encountered while parsing
+     * @return the last error generated while parsing.
      */
     public ParserException getLastError() {
         if(!this.hasErrors()) {
@@ -111,7 +118,12 @@ options {
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-        ParserException newErr = new ParserException(tokenNames.toString(), e);
+    	ParserException newErr;
+    	if (tokenNames != null) { 
+        	newErr = new ParserException(tokenNames.toString(), e);
+        } else {
+        	newErr = new ParserException("Sorry, cannot make anything out of this", e);
+        }
         errors.add(newErr);
     }
     
@@ -120,14 +132,14 @@ options {
     }
     
     /**
-     * @return true iff this parser encountered an error while parsing
+     * @return {@code true} iff the parser found a syntax error.
      */
     public boolean hasErrors() {
         return !this.errors.isEmpty();
     }
     
     /**
-     * @return the last error encountered while parsing
+     * @return the last error generated while parsing.
      */
     public ParserException getLastError() {
         if(!this.hasErrors()) {
@@ -137,13 +149,9 @@ options {
         }
     }
 
-  // disable standard error handling by ANTLR; be strict ; see the definitive antlr ref manual, p.252
-  // TODO: Implement more advanced error handling. One idea would be to be strict wrt embedded language and
-  // return control to outer grammar parser upon an error, but, in case the outer grammar cannot continue
-  // parsing without errors either, consume one CHARACTER (+ additionally all 'white characters'), and return
-  // control to the embedded grammar again...
+  // Disable standard error handling by ANTLR; be strict ; see the definitive ANTLR ref manual, p.252.
   protected void mismatch(IntStream input, int ttype, BitSet follow) throws RecognitionException {
-  	throw new MismatchedTokenException(ttype, input); 
+  	throw new MismatchedTokenException(ttype, input);
   }
 
   /**
@@ -163,8 +171,8 @@ options {
   public PrologLexer getLexer() {
       return this.lexer;
   }
-        
-     /**
+  
+    /**
      * Parses a Prolog program. Assumes that the parser has been set up properly.
      *
      * @return ArrayList<DatabaseFormula>, or {@code null} if a parser error occurs.
@@ -181,9 +189,10 @@ options {
     }
     
     /**
-     * Check that all terms are proper to insert into database.
-     * @return ArrayList<DatabaseFormula> with checked formulas
-     * @throws ParserException if check fails.
+     * Check that all terms are formula that can be inserted into a Prolog database.
+     *
+     * @return ArrayList<DatabaseFormula> List of database formulas derived from input Prolog terms.
+     * @throws ParserException If an input Prolog term cannot be converted to a database formula.
      */
     private ArrayList<DatabaseFormula> toDBFormulaList(ArrayList<PrologTerm> prologTerms) 
         throws RecognitionException {
@@ -192,18 +201,17 @@ options {
             try {
 				DBFormulaList.add(DBFormula(t));
 			} catch (ParserException e) {
-				throw new RecognitionException();
+				RecognitionException err = new RecognitionException();
+    			err.initCause(e);
+				throw err;
 			}
         return DBFormulaList;
     }
     
     /**
-     * <p>
-     * Converts given {@Link PrologTerm} into a {@link DatabaseFormula}
-     * object made of it. Basic idea is that it checks that assert() will work
-     * (not throw exceptions). 
+     * <p>Converts given {@Link PrologTerm} into a {@link DatabaseFormula} object made of it.
+     * Basic idea is that it checks that assert() will work (not throw exceptions). 
      * This function checks only SINGLE formulas, not conjunctions. Use toDBFormulaList for that.
-     * BUT there is a lot more to it. // TODO EXPLAIN/DOC
      * </p>
      * <p>
      * Check ISO section 8.9.1.3. If term not of form "head:-body" then head is
@@ -228,13 +236,12 @@ options {
      * PrologOperators.goalProtected()
      * </p>
      * 
-     * @param conjunction
-     *            is a PrologTerm containing a conjunction
+     * @param conjunction is a PrologTerm containing a conjunction
      * @see PrologTerm#getConjuncts
      * @see PrologTerm#useNotAllowed useNotAllowed
      * @see toDBFormulaList
-     * @returns Query object made from conjunction
-     * @throws ParserException If prologTerm is not a valid clause.
+     * @returns DatabaseFormula object made from conjunction
+     * @throws ParserException If Prolog term is not a valid clause.
      */
     private DatabaseFormula DBFormula(PrologTerm term) throws ParserException {
         jpl.Term head, body;
@@ -249,21 +256,20 @@ options {
         
         if (head.isVariable()) {
             throw new ParserException(
-                "The head of a Prolog rule cannot be a variable." +
+                "The head of a Prolog rule cannot be a variable " +
                 term.toString());
         }
         
         if (!JPLUtils.isPredication(head)) {
             throw new ParserException( 
-                "The head of a Prolog formula should be a Prolog clause: " + 
-                term.toString());
+                "The head of a Prolog rule cannot be " + term.toString() + 
+                " but should be a Prolog clause");
         }
         
         String signature = JPLUtils.getSignature(head);
         if (PrologOperators.prologBuiltin(signature)) {
             throw new ParserException( 
-                "It is not allowed to redefine Prolog built-in predicates: " +
-                term.toString());
+                "Cannot redefine the Prolog built-in predicate " + term.toString());
         }
         
         // check for special directives, and refuse those.
@@ -281,7 +287,7 @@ options {
     }
 
 	/**
-	 * unquote a quoted string. The enclosing quotes determine how quotes inside the string are handled.
+	 * Unquote a quoted string. The enclosing quotes determine how quotes inside the string are handled.
 	 */
 	private String unquote(String quotedstring) {
 		char quote = quotedstring.charAt(0);
@@ -291,7 +297,7 @@ options {
 	}
 	
 	/**
-	 * double quotes in quoted string indicate just that quote one time. eg, """" means '"'.  
+	 * Double quotes in quoted string indicate just that quote one time. eg, """" means '"'.  
 	 */
 	private String replaceQuotes(String string, char quote) {
 		return string.replaceAll(""+quote+quote,""+quote);
@@ -303,14 +309,40 @@ options {
 	private String unescape(String string) {
 		return string;
 	}
-    
-    /**
-     * Checks that prologTerm is well formed Prolog goal (not to be confused with a GOAL goal).
+	
+       /**
+         * Parse a section that should contain Prolog goals, i.e., queries.
+         *
+         * @return ArrayList<Query>, or {@code null} if a parser error occurs.
+         * @throws ParserException 
+         */
+        public ArrayList<Query> parsePrologGoalSection() throws ParserException { 
+            ArrayList<Query> goals = new ArrayList<Query>();
+            
+            try {
+                ArrayList<PrologTerm> prologTerms = prologtext();
+
+                for (PrologTerm t: prologTerms) {
+                	// check that each term is a valid Prolog goal / query
+                    goals.add(new PrologQuery(toGoal(t.getTerm())));
+                }
+                return goals;
+            } catch (RecognitionException e) {
+                reportError(e);
+                return null;
+            }
+        }
+	
+	/**
+     * Checks that term is a well formed Prolog goal.
+     * <p>
      * ISO requires rebuild of the term but in our case we do not allow
      * variables and hence a real rebuild is not necessary.
-     * Therefore we in fact return the original prologTerm after checking.
-     * @return  the term "rewritten" as a prolog goal according to ISO.
-     * @throws InvalidSemanticsException if t is not a well formed prolog goal.
+     * Instead, we simply return the original term after checking.
+     * </p>
+     * 
+     * @return the term "rewritten" as a Prolog goal according to ISO.
+     * @throws ParserException If t is not a well formed Prolog goal.
      */
     private jpl.Term toGoal(jpl.Term t) throws ParserException {
         // 7.6.2.a use article 7.8.3
@@ -321,7 +353,7 @@ options {
         // 7.6.2.b
         String sig = JPLUtils.getSignature(t);
         if (PrologOperators.goalProtected(t.name())) {
-            throw new ParserException( 
+            throw new ParserException(
                  "The use of predicate " + t.toString() + ": " + 
                  t.toString() + " is not supported");
         }
@@ -448,7 +480,7 @@ options {
     * @returns Query object made from conjunction
     * @throws ParserException if prologTerm is not a good Query.
     */
-    private PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
+    public PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
         return new PrologQuery(toGoal(conjunction.getTerm()));
     }
      
