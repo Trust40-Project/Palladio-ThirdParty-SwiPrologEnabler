@@ -23,8 +23,6 @@
     <developer>
       <name>Koen Hindriks</name>
       <email>k.v.hindriks@gmail.com</email>
-      <organization>goalhub</organization>
-      <organizationUrl>https://github.com/koenhindriks</organizationUrl>
     </developer>
   </developers>
   
@@ -41,7 +39,6 @@
   <scm>
   	<connection>scm:git:git@github.com:goalhub/krTools.git</connection>
   	<developerConnection>scm:git:git@github.com:goalhub/krTools.git</developerConnection>
-  	<url>https://github.com:goalhub/krTools</url>
   </scm>
     
   <properties>
