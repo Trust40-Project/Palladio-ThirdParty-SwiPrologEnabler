@@ -24,68 +24,108 @@ import jpl.JPL;
  *
  */
 public final class SwiInstaller {
-	public final static String JARpath = "";
-	public final static String SWIpath = "";
 
-	static {
-		String JARpathT = "";
-		// final Bundle bundle = Activator.getDefault().getBundle();
-		// final URL found1 = FileLocator.find(bundle, new Path("lib"), null);
-		// final String found2 = FileLocator.resolve(found1).toString()
-		// .replaceAll("\\s", "%20");
-		// final URI found3 = new URI("aap");
-		// JARpathT = new File(found3).getPath();
-		// JARpath = JARpathT;
-		// String SWIpathT = JARpath + File.separator;
-		// final String os = System.getProperty("os.name").toLowerCase(); //
-		// System-dependent
-		// if (os.contains("win")) {
-		// if (System.getProperty("os.version").contains("64")) {
-		// SWIpathT += "win64";
-		// } else {
-		// SWIpathT += "win32";
-		// }
-		// } else if (os.contains("mac")) {
-		// SWIpathT += "mac";
-		// } else {
-		// SWIpathT += "linux";
-		// }
-		// SWIpath = SWIpathT;
+	static SupportedSystem system = SupportedSystem.getSystem();
+	static File SwiPath;
+
+	/**
+	 * initialize SWI prolog for use. Unzips dlls and connects them to the
+	 * system.
+	 * 
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 * @throws ZipException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws SecurityException
+	 * @throws NoSuchFieldException
+	 */
+	public static void init() throws ZipException, URISyntaxException,
+			IOException, NoSuchFieldException, SecurityException,
+			IllegalArgumentException, IllegalAccessException {
+		System.out.println("swi path=" + SwiPath);
+		makeSwiPath();
+		preLoadDependencies();
+		addFolderToLibraryPath(SwiPath.getAbsolutePath());
+
+		/*
+		 * Let JPL know which SWI_HOME_DIR we're using; this negates the need
+		 * for a SWI_HOME_DIR environment var
+		 */
+		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath,
+				"--quiet", "--nosignals" });
+
 	}
 
-	public static void initializePrologLink() throws Exception {
-		// Dirty system-dependent stuff...
-		addFolderToLibraryPath(SWIpath);
-		if (SWIpath.endsWith("linux")) {
-			System.load(SWIpath + File.separator + "libncurses.so.5");
-			System.load(SWIpath + File.separator + "libreadline.so.6");
-			System.load(SWIpath + File.separator + "libswipl.so.6.0.2");
-			System.load(SWIpath + File.separator + "libjpl.so");
-			System.load(SWIpath + File.separator + "libforeign.so");
-		} else if (SWIpath.endsWith("mac")) {
-			System.load(SWIpath + File.separator + "libncurses.5.4.dylib");
-			System.load(SWIpath + File.separator + "libreadline.6.1.dylib");
-			System.load(SWIpath + File.separator + "libswipl.dylib");
-			System.load(SWIpath + File.separator + "libjpl.dylib");
-			System.load(SWIpath + File.separator + "libforeign.jnilib");
-		} else if (SWIpath.endsWith("win32")) {
-			System.load(SWIpath + File.separator + "pthreadVC.dll");
-			System.load(SWIpath + File.separator + "swipl.dll");
-			System.load(SWIpath + File.separator + "jpl.dll");
-			System.load(SWIpath + File.separator + "foreign.dll");
-		} else if (SWIpath.endsWith("win64")) {
-			System.load(SWIpath + File.separator + "pthreadVC2.dll");
-			System.load(SWIpath + File.separator + "swipl.dll");
-			System.load(SWIpath + File.separator + "jpl.dll");
-			System.load(SWIpath + File.separator + "foreign.dll");
+	public static void makeSwiPath() throws RuntimeException {
+		File basedir;
+		try {
+			basedir = unzipToTmp(system + ".zip");
+		} catch (URISyntaxException | IOException e) {
+			throw new RuntimeException("failed to install SWI: ", e);
 		}
-		JPL.setDefaultInitArgs(new String[] {
-				// Let JPL know which SWI_HOME_DIR we're using;
-				// this negates the need for a SWI_HOME_DIR environment var
-				"pl", "--home=" + SWIpath, "--quiet", "--nosignals" });
+		SwiPath = new File(basedir, system.toString());
 	}
 
-	private static void addFolderToLibraryPath(final String s) throws Exception {
+	/**
+	 * Pre-loads all dynamic load libraries for the selected system.
+	 */
+	private static void preLoadDependencies() {
+
+		// Dirty system-dependent stuff...
+		switch (system) {
+		case linux:
+			load("libncurses.so.5");
+			load("libreadline.so.6");
+			load("libswipl.so.6.0.2");
+			load("libjpl.so");
+			load("libforeign.so");
+			break;
+		case mac:
+			load("libncurses.5.4.dylib");
+			load("libreadline.6.1.dylib");
+			load("libswipl.dylib");
+			load("libjpl.dylib");
+			load("libforeign.jnilib");
+			break;
+		case win32:
+			load("pthreadVC.dll");
+			load("swipl.dll");
+			load("jpl.dll");
+			load("foreign.dll");
+			break;
+		case win64:
+			load("pthreadVC2.dll");
+			load("swipl.dll");
+			load("jpl.dll");
+			load("foreign.dll");
+			break;
+		}
+
+	}
+
+	/**
+	 * pre-loads a system dynamic library.
+	 * 
+	 * @param libname
+	 */
+	private static void load(String libname) {
+		System.load(new File(SwiPath, libname).getAbsolutePath());
+	}
+
+	/**
+	 * Adds given folder to java.library.path
+	 * 
+	 * @param s
+	 *            the path to be added (as string)
+	 * @throws SecurityException
+	 * @throws NoSuchFieldException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 */
+	private static void addFolderToLibraryPath(final String s)
+			throws NoSuchFieldException, SecurityException,
+			IllegalArgumentException, IllegalAccessException {
 		final Field field = ClassLoader.class.getDeclaredField("usr_paths");
 		field.setAccessible(true);
 		final String[] paths = (String[]) field.get(null);
@@ -107,11 +147,12 @@ public final class SwiInstaller {
 	 * Unzip a given zip file to /tmp.
 	 * 
 	 * @param zipfilename
+	 * @return temp directory where swi files are contained.
 	 * @throws URISyntaxException
 	 * @throws IOException
 	 * @throws ZipException
 	 */
-	private static void unzipToTmp(String zipfilename)
+	private static File unzipToTmp(String zipfilename)
 			throws URISyntaxException, ZipException, IOException {
 
 		File base = File.createTempFile("swilibs",
@@ -123,7 +164,7 @@ public final class SwiInstaller {
 			throw new IOException("Can't create tmp directory for SWI at "
 					+ base);
 		}
-		base.deleteOnExit();
+		deleteOnExit(base);
 
 		System.out.println("unzipping SWI prolog libraries to " + base);
 
@@ -148,9 +189,18 @@ public final class SwiInstaller {
 								new FileOutputStream(fileInDir)));
 			}
 
-			fileInDir.deleteOnExit();
+			deleteOnExit(fileInDir);
 		}
 		zipFile.close();
+
+		return base;
+	}
+
+	/**
+	 * Central deleteOnExit, convenient for debugging.
+	 */
+	private static void deleteOnExit(File file) {
+		file.deleteOnExit();
 	}
 
 	/**
@@ -173,8 +223,10 @@ public final class SwiInstaller {
 	}
 
 	public static void main(String[] args) throws ZipException,
-			URISyntaxException, IOException {
-		unzipToTmp("mac.zip");
+			URISyntaxException, IOException, NoSuchFieldException,
+			SecurityException, IllegalArgumentException, IllegalAccessException {
+		init();
+		System.out.println("done!");
 	}
 
 }
