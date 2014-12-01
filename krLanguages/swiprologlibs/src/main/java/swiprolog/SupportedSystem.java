@@ -1,5 +1,11 @@
 package swiprolog;
 
+/**
+ * Determines the system we are running on.
+ * 
+ * @author W.Pasman 1dec14
+ *
+ */
 enum SupportedSystem {
 	/* ! these are matching the filenames in lib directory */
 	win32, win64, mac, linux;

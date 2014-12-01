@@ -10,6 +10,12 @@ import org.junit.Test;
 
 import swiprolog.SwiInstaller;
 
+/**
+ * A few basic tests to see if SwiInstaller is working as expected
+ * 
+ * @author W.Pasman 1dec14
+ *
+ */
 public class BasicQueries {
 
 	static {

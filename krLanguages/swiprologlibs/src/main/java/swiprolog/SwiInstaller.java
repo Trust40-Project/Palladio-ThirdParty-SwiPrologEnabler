@@ -18,7 +18,7 @@ import jpl.JPL;
 
 /**
  * 
- * call init() to install the libraries and prepare SWI for use.
+ * call init() once to install the libraries and prepare SWI for use.
  * 
  * @author W.Pasman 1dec2014
  *
@@ -27,10 +27,24 @@ public final class SwiInstaller {
 
 	static SupportedSystem system = SupportedSystem.getSystem();
 	static File SwiPath;
+	private static boolean initialized = false;
+
+	/**
+	 * This is a utility class. Just call init() once.
+	 */
+	private SwiInstaller() {
+	}
 
 	/**
 	 * initialize SWI prolog for use. Unzips dlls and connects them to the
-	 * system.
+	 * system. This static function needs to be called once, to get SWI hooked
+	 * up to the java system.
+	 * 
+	 * This call will unzip required system dynamic link libraries to a temp
+	 * folder, pre-load them, and set the paths such that SWI can find its
+	 * files.
+	 * 
+	 * The temp folder will be removed automatically if the JVM exits normally.
 	 * 
 	 * @throws IOException
 	 * @throws URISyntaxException
@@ -40,8 +54,11 @@ public final class SwiInstaller {
 	 * @throws SecurityException
 	 * @throws NoSuchFieldException
 	 */
-	public static void init() {
-		System.out.println("swi path=" + SwiPath);
+	public synchronized static void init() {
+		if (initialized) {
+			return;
+		}
+
 		makeSwiPath();
 		preLoadDependencies();
 		try {
@@ -59,9 +76,10 @@ public final class SwiInstaller {
 		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath,
 				"--quiet", "--nosignals" });
 
+		initialized = true;
 	}
 
-	public static void makeSwiPath() throws RuntimeException {
+	private static void makeSwiPath() throws RuntimeException {
 		File basedir;
 		try {
 			basedir = unzipToTmp(system + ".zip");
@@ -216,7 +234,7 @@ public final class SwiInstaller {
 	 *            the {@link OutputStream}
 	 * @throws IOException
 	 */
-	public static final void copyInputStream(InputStream in, OutputStream out)
+	private static final void copyInputStream(InputStream in, OutputStream out)
 			throws IOException {
 		byte[] buffer = new byte[1024];
 		int len;
@@ -224,13 +242,6 @@ public final class SwiInstaller {
 			out.write(buffer, 0, len);
 		in.close();
 		out.close();
-	}
-
-	public static void main(String[] args) throws ZipException,
-			URISyntaxException, IOException, NoSuchFieldException,
-			SecurityException, IllegalArgumentException, IllegalAccessException {
-		init();
-		System.out.println("done!");
 	}
 
 }
