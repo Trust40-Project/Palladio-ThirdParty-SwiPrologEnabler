@@ -115,6 +115,20 @@ public final class KRtools {
 	 */
 	private static void unzipToTmp(String zipfilename)
 			throws URISyntaxException, ZipException, IOException {
+
+		File base = File.createTempFile("swilibs",
+				Long.toString(System.currentTimeMillis()));
+		if (!base.delete()) {
+			throw new IOException("Could not delete temp file: " + base);
+		}
+		if (!base.mkdir()) {
+			throw new IOException("Can't create tmp directory for SWI at "
+					+ base);
+		}
+		base.deleteOnExit();
+
+		System.out.println("unzipping to " + base);
+
 		URL sourceDirUrl = ClassLoader.getSystemResource("swiprolog/lib/"
 				+ zipfilename);
 		File sourceFile = new File(sourceDirUrl.toURI());
@@ -123,18 +137,20 @@ public final class KRtools {
 		Enumeration<? extends ZipEntry> entries = zipFile.entries();
 		while (entries.hasMoreElements()) {
 			ZipEntry entry = (ZipEntry) entries.nextElement();
+			File fileInDir = new File(base, entry.getName());
+
 			if (entry.isDirectory()) {
 				// Assume directories are stored parents first then children.
 				System.err.println("Extracting directory: " + entry.getName());
-				// This is not robust, just for demonstration purposes.
-				(new File(entry.getName())).mkdir();
-				continue;
+				fileInDir.mkdir();
+			} else {
+				System.err.println("Extracting file: " + entry.getName());
+				copyInputStream(zipFile.getInputStream(entry),
+						new BufferedOutputStream(
+								new FileOutputStream(fileInDir)));
 			}
-			System.err.println("Extracting file: " + entry.getName());
-			copyInputStream(
-					zipFile.getInputStream(entry),
-					new BufferedOutputStream(new FileOutputStream(entry
-							.getName())));
+
+			fileInDir.deleteOnExit();
 		}
 		zipFile.close();
 	}
