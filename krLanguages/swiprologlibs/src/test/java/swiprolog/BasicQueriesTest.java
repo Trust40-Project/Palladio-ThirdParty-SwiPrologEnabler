@@ -1,3 +1,5 @@
+package swiprolog;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -8,21 +10,16 @@ import jpl.Query;
 
 import org.junit.Test;
 
-import swiprolog.SwiInstaller;
-
 /**
  * A few basic tests to see if SwiInstaller is working as expected
  * 
  * @author W.Pasman 1dec14
  *
  */
-public class BasicQueries {
+public class BasicQueriesTest {
 
 	static {
 		SwiInstaller.init();
-	}
-
-	public BasicQueries() {
 	}
 
 	@Test
@@ -49,6 +46,6 @@ public class BasicQueries {
 		assertTrue(solution.containsKey("X"));
 		Object result = solution.get("X");
 		assertTrue(result instanceof jpl.Integer);
-		assertEquals(2, ((jpl.Integer) result).value());
+		assertEquals(2, ((jpl.Integer) result).intValue());
 	}
 }

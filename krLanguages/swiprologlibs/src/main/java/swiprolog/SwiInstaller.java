@@ -46,13 +46,6 @@ public final class SwiInstaller {
 	 * 
 	 * The temp folder will be removed automatically if the JVM exits normally.
 	 * 
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 * @throws ZipException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws SecurityException
-	 * @throws NoSuchFieldException
 	 */
 	public synchronized static void init() {
 		if (initialized) {
