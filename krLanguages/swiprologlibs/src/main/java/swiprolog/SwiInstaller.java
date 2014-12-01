@@ -18,14 +18,12 @@ import jpl.JPL;
 
 /**
  * 
- * After creating KRTools, you may want to call
- * KRFactory.add(SWIPrologLanguage.getInstance());
+ * call init() to install the libraries and prepare SWI for use.
  * 
- * @author Vincent
- * @author W.Pasman
+ * @author W.Pasman 1dec2014
  *
  */
-public final class KRtools {
+public final class SwiInstaller {
 	public final static String JARpath = "";
 	public final static String SWIpath = "";
 
@@ -127,7 +125,7 @@ public final class KRtools {
 		}
 		base.deleteOnExit();
 
-		System.out.println("unzipping to " + base);
+		System.out.println("unzipping SWI prolog libraries to " + base);
 
 		URL sourceDirUrl = ClassLoader.getSystemResource("swiprolog/lib/"
 				+ zipfilename);
@@ -141,10 +139,10 @@ public final class KRtools {
 
 			if (entry.isDirectory()) {
 				// Assume directories are stored parents first then children.
-				System.err.println("Extracting directory: " + entry.getName());
+				// System.err.println("Extracting dir: " + entry.getName());
 				fileInDir.mkdir();
 			} else {
-				System.err.println("Extracting file: " + entry.getName());
+				// System.err.println("Extracting file: " + entry.getName());
 				copyInputStream(zipFile.getInputStream(entry),
 						new BufferedOutputStream(
 								new FileOutputStream(fileInDir)));
