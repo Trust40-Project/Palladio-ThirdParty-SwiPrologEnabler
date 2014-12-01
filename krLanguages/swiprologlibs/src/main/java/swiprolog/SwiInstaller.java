@@ -40,13 +40,17 @@ public final class SwiInstaller {
 	 * @throws SecurityException
 	 * @throws NoSuchFieldException
 	 */
-	public static void init() throws ZipException, URISyntaxException,
-			IOException, NoSuchFieldException, SecurityException,
-			IllegalArgumentException, IllegalAccessException {
+	public static void init() {
 		System.out.println("swi path=" + SwiPath);
 		makeSwiPath();
 		preLoadDependencies();
-		addFolderToLibraryPath(SwiPath.getAbsolutePath());
+		try {
+			addFolderToLibraryPath(SwiPath.getAbsolutePath());
+		} catch (NoSuchFieldException | SecurityException
+				| IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("Failed to initialize SWI Prolog",
+					e);
+		}
 
 		/*
 		 * Let JPL know which SWI_HOME_DIR we're using; this negates the need
