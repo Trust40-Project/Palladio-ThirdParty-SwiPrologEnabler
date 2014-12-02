@@ -86,20 +86,19 @@ public class PrologUpdate extends PrologExpression implements Update {
 	/**
 	 * @return Instantiated {@link PrologUpdate} with applied substitution.
 	 */
-	public PrologUpdate applySubst(Substitution substitution) {
-		Hashtable<String, jpl.Term> solution = ((PrologSubstitution) substitution)
-				.getJPLSolution();
+	public PrologUpdate applySubst(Substitution s) {
+		Hashtable<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
 
-		jpl.Term term = JPLUtils.applySubst(solution, this.getTerm());
+		jpl.Term term = JPLUtils.applySubst(jplSubstitution, this.getTerm());
 		PrologUpdate update = new PrologUpdate(term);
 		update.positiveLiterals = new ArrayList<DatabaseFormula>();
 		update.negativeLiterals = new ArrayList<DatabaseFormula>();
 
 		for (DatabaseFormula formula : this.positiveLiterals) {
-			update.positiveLiterals.add(formula.applySubst(substitution));
+			update.positiveLiterals.add(formula.applySubst(s));
 		}
 		for (DatabaseFormula formula : this.negativeLiterals) {
-			update.negativeLiterals.add(formula.applySubst(substitution));
+			update.negativeLiterals.add(formula.applySubst(s));
 		}
 
 		return update;

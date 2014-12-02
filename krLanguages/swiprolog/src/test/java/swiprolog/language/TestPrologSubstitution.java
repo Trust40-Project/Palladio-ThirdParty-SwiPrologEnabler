@@ -36,32 +36,26 @@ public class TestPrologSubstitution {
 	@Test
 	public void testToString() {
 		Hashtable<String, Term> solution = new Hashtable<String, Term>();
-		PrologSubstitution substitution1 = new PrologSubstitution(solution);
-
+		PrologSubstitution substitution1 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals("[]", substitution1.toString());
-
+		
 		jpl.Variable var = new jpl.Variable("X");
 		jpl.Term term = new jpl.Atom("a");
 		solution.put(var.name(), term);
-		PrologSubstitution substitution2 = new PrologSubstitution(solution);
-
+		PrologSubstitution substitution2 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals("[X/a]", substitution2.toString());
-
+		
 		jpl.Variable var1 = new jpl.Variable("Y");
 		jpl.Term term1 = new jpl.Atom("b");
 		solution.put(var1.name(), term1);
-
-		PrologSubstitution substitution3 = new PrologSubstitution(solution);
-
+		PrologSubstitution substitution3 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals("[Y/b, X/a]", substitution3.toString());
-
+		
 		jpl.Variable var2 = new jpl.Variable("Z");
 		jpl.Variable var3 = new jpl.Variable("V");
 		solution.put(var2.name(), var3);
-
-		PrologSubstitution substitution4 = new PrologSubstitution(solution);
-
-		assertEquals("[Z/V, Y/b, X/a]", substitution4.toString());
+		PrologSubstitution substitution4 = PrologSubstitution.getSubstitutionOrNull(solution);
+		assertEquals("[X/a, Y/b, Z/V]", substitution4.toString());
 	}
 
 }
