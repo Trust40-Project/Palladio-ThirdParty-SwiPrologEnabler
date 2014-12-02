@@ -4,7 +4,7 @@
 
 	<groupId>com.github.goalhub.krTools</groupId>
 	<artifactId>swiprologinterface</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<name>SWI Prolog enabler</name>
 	<description>Enables SWI Prolog from java through a maven plugin</description>
 

@@ -14,7 +14,7 @@ enum SupportedSystem {
 		final String os = System.getProperty("os.name").toLowerCase();
 
 		if (os.contains("win")) {
-			if (System.getProperty("os.version").contains("64")) {
+			if (System.getProperty("os.arch").contains("64")) {
 				return win64;
 			} else {
 				return win32;
