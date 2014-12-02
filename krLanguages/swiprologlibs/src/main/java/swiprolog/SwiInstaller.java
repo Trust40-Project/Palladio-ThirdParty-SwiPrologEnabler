@@ -1,6 +1,6 @@
 package swiprolog;
 
-import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,11 +8,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import jpl.JPL;
 
@@ -170,6 +168,8 @@ public final class SwiInstaller {
 	private static File unzipToTmp(String zipfilename)
 			throws URISyntaxException, ZipException, IOException {
 
+		byte[] buffer = new byte[2048];
+
 		File base = File.createTempFile("swilibs",
 				Long.toString(System.currentTimeMillis()));
 		if (!base.delete()) {
@@ -183,14 +183,13 @@ public final class SwiInstaller {
 
 		System.out.println("unzipping SWI prolog libraries to " + base);
 
-		URL sourceDirUrl = ClassLoader.getSystemResource("swiprolog/lib/"
-				+ zipfilename);
-		File sourceFile = new File(sourceDirUrl.toURI());
-		ZipFile zipFile = new ZipFile(sourceFile);
+		InputStream fis = ClassLoader
+				.getSystemResourceAsStream("swiprolog/lib/" + zipfilename);
+		BufferedInputStream bis = new BufferedInputStream(fis);
+		ZipInputStream zis = new ZipInputStream(bis);
 
-		Enumeration<? extends ZipEntry> entries = zipFile.entries();
-		while (entries.hasMoreElements()) {
-			ZipEntry entry = (ZipEntry) entries.nextElement();
+		ZipEntry entry = null;
+		while ((entry = zis.getNextEntry()) != null) {
 			File fileInDir = new File(base, entry.getName());
 
 			if (entry.isDirectory()) {
@@ -198,15 +197,21 @@ public final class SwiInstaller {
 				// System.err.println("Extracting dir: " + entry.getName());
 				fileInDir.mkdir();
 			} else {
-				// System.err.println("Extracting file: " + entry.getName());
-				copyInputStream(zipFile.getInputStream(entry),
-						new BufferedOutputStream(
-								new FileOutputStream(fileInDir)));
+				FileOutputStream fOutput = new FileOutputStream(fileInDir);
+				int count = 0;
+				while ((count = zis.read(buffer)) > 0) {
+					// write 'count' bytes to the file output stream
+					fOutput.write(buffer, 0, count);
+				}
+				fOutput.close();
 			}
 
 			deleteOnExit(fileInDir);
+			zis.closeEntry();
+
 		}
-		zipFile.close();
+		zis.close();
+		fis.close();
 
 		return base;
 	}
