@@ -17,6 +17,8 @@
 
 package swiprolog.language;
 
+import java.util.Hashtable;
+
 import krTools.language.Substitution;
 import krTools.language.Term;
 
@@ -41,8 +43,9 @@ public class PrologTerm extends PrologExpression implements Term {
 		return getTerm().isVariable() && ((PrologVar)this).isAnonymous();
 	}
 	
-	public PrologTerm applySubst(Substitution substitution) {
-		jpl.Term term = JPLUtils.applySubst(((PrologSubstitution) substitution).getJPLSolution(), this.getTerm());
+	public PrologTerm applySubst(Substitution s) {
+		Hashtable<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+		jpl.Term term = JPLUtils.applySubst(jplSubstitution, this.getTerm());
 		return new PrologTerm(term);
 	}
 	

@@ -50,8 +50,8 @@ public class PrologDBFormula extends PrologExpression implements DatabaseFormula
 
 	@Override
 	public PrologDBFormula applySubst(Substitution substitution) {
-		Hashtable<String, jpl.Term> jplSubstitution =
-				((PrologSubstitution) substitution).getJPLSolution();
+		Hashtable<String, jpl.Term> jplSubstitution = (substitution == null) ? null :
+			((PrologSubstitution) substitution).getJPLSolution();
 		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, this.getTerm()));
 	}
 	
