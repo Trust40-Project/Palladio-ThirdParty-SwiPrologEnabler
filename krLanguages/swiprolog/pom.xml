@@ -6,7 +6,7 @@
 
 	<groupId>com.github.goalhub.krTools.krLanguages</groupId>
 	<artifactId>swiprolog</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>SWI Prolog KR Interface</name>
@@ -66,12 +66,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>jpl</groupId>
-			<artifactId>jpl</artifactId>
-			<version>3.1.4-alpha</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr-runtime</artifactId>
 			<version>${antlr.version}</version>
@@ -84,11 +78,10 @@
 			<scope>test</scope>
 		</dependency>
 
-
 		<dependency>
 			<groupId>com.github.goalhub.krTools</groupId>
 			<artifactId>swiprologinterface</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 		</dependency>
 
 
