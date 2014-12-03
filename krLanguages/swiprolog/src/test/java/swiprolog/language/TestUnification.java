@@ -29,7 +29,6 @@ import krTools.language.Var;
 
 import org.junit.Test;
 
-import swiprolog.SWIPrologInterface;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
@@ -46,7 +45,7 @@ public class TestUnification {
 	 */
 	public Substitution getSubstitution(PrologVar var, jpl.Term term) throws KRInitFailedException {
 		Substitution unifier = swiprolog.SWIPrologInterface.getInstance().getSubstitution(new HashMap<Var, Term>());
-		unifier.addBinding(var, new PrologTerm(term));
+		unifier.addBinding(var, new PrologTerm(term, null));
 		return unifier;
 	}
 	

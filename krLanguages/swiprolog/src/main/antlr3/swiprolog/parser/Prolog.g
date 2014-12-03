@@ -45,6 +45,7 @@ options {
     import krTools.language.DatabaseFormula;
     import krTools.language.Query;
     import krTools.language.Term;
+    import krTools.parser.SourceInfo;
 	
 	import swiprolog.language.PrologDBFormula;
 	import swiprolog.language.PrologQuery;
@@ -69,14 +70,28 @@ options {
     private ArrayList<ParserException> errors;
     
     public void initialize() {
-        this.errors = new ArrayList<ParserException>();
+        errors = new ArrayList<ParserException>();
     }
     
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
+    	SourceInfoObject info = new SourceInfoObject(e.line, e.charPositionInLine);
     	ParserException newErr;
-    	if (tokenNames != null) { 
-        	newErr = new ParserException(tokenNames.toString(), e);
+    	if (e instanceof MismatchedTokenException && e.token != null) {
+           	newErr = new ParserException("Found " + e.token.getText() + " where I was expecting "
+           		+ PrologParser.tokenNames[((MismatchedTokenException)e).expecting], info);
+        } else if (e instanceof MissingTokenException) {
+          	newErr = new ParserException(PrologParser.tokenNames[((MissingTokenException)e).expecting] + " is missing here", info);
+        } else if (e instanceof NoViableAltException) { 
+           	newErr = new ParserException("Cannot use " + Character.toString((char)e.input.LA(1)) + " here", info);
+        } else if (e instanceof UnwantedTokenException && e.token != null) {
+    		newErr = new ParserException("Syntax error on '" + e.token.getText() + "', delete this", info);
+    	} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
+        	ParserException cause = ((ParserException)e.getCause());
+        	if (cause.hasSourceInfo()) {
+        		info = new SourceInfoObject(cause.getLineNumber(), cause.getCharacterPosition());
+        	}
+            newErr = new ParserException(e.getCause().getMessage(), info);
         } else {
         	newErr = new ParserException("Sorry, cannot make anything out of this", e);
         }
@@ -113,18 +128,34 @@ options {
     ArrayList<ParserException> errors;
   
     public void initialize() {
-       errors = new ArrayList<ParserException>();
+		errors = new ArrayList<ParserException>();
     }
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	ParserException newErr;
-    	if (tokenNames != null) { 
-        	newErr = new ParserException(tokenNames.toString(), e);
-        } else {
-        	newErr = new ParserException("Sorry, cannot make anything out of this", e);
+    	SourceInfoObject info = new SourceInfoObject(e.line, e.charPositionInLine);
+    	ParserException newErr = null;
+    	// if e.token.getText() == null lexer should have produced error
+    	if (e.token.getText() != null) {
+    		if (e instanceof MismatchedTokenException) {
+           		newErr = new ParserException("Found " + e.token.getText() + " where I was expecting " + tokenNames[((MismatchedTokenException)e).expecting], info);
+        	} else if (e instanceof MissingTokenException && e.token.getText() != null) {
+          		newErr = new ParserException(tokenNames[((MissingTokenException)e).expecting] + " is missing here", info);
+        	} else if (e instanceof NoViableAltException && e.token.getText() != null) { 
+           		newErr = new ParserException("Cannot use " + e.token.getText() + " here", info);
+        	} else if (e instanceof UnwantedTokenException && e.token.getText() != null) {
+    			newErr = new ParserException("Syntax error on '" + e.token.getText() + "', delete this", info);
+    		} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
+        		ParserException cause = ((ParserException)e.getCause());
+        		if (cause.hasSourceInfo()) {
+        			info = new SourceInfoObject(cause.getLineNumber(), cause.getCharacterPosition());
+        		}
+            	newErr = new ParserException(e.getCause().getMessage(), info);
+        	} else {
+        		newErr = new ParserException("Sorry, cannot make anything out of this", e);
+        	}
+        	errors.add(newErr);
         }
-        errors.add(newErr);
     }
     
     public ArrayList<ParserException> getErrors() {
@@ -176,13 +207,19 @@ options {
      * Parses a Prolog program. Assumes that the parser has been set up properly.
      *
      * @return ArrayList<DatabaseFormula>, or {@code null} if a parser error occurs.
-     */   
-    public ArrayList<DatabaseFormula> ParsePrologProgram()  {
-        try {
-            ArrayList<PrologTerm> prologTerms = prologtextWithImports();
-            // embedded parser does not check if these are correct database objects.
-            return toDBFormulaList(prologTerms);
-        } catch (RecognitionException e) {
+     */
+	public ArrayList<DatabaseFormula> parsePrologProgram(SourceInfo info) throws ParserException {
+		try {
+			ArrayList<PrologTerm> prologTerms = prologtextWithImports();
+
+            // Parser does not check if Prolog terms are correct database objects, do this next
+            ArrayList<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>();
+            for (PrologTerm t: prologTerms) {
+            	PrologTerm updatedSourceInfo = new PrologTerm(t.getTerm(), combineSourceInfo(info, t.getSourceInfo()));
+				dbfs.add(DBFormula(updatedSourceInfo));
+			}
+            return dbfs;
+		} catch (RecognitionException e) {
           reportError(e);
           return null;
         }
@@ -256,20 +293,22 @@ options {
         
         if (head.isVariable()) {
             throw new ParserException(
-                "The head of a Prolog rule cannot be a variable " +
-                term.toString());
+                "The head of a Prolog rule cannot be a variable " + term.toString(),
+                term.getSourceInfo());
         }
         
         if (!JPLUtils.isPredication(head)) {
             throw new ParserException( 
                 "The head of a Prolog rule cannot be " + term.toString() + 
-                " but should be a Prolog clause");
+                " but should be a Prolog clause",
+                term.getSourceInfo());
         }
         
         String signature = JPLUtils.getSignature(head);
         if (PrologOperators.prologBuiltin(signature)) {
             throw new ParserException( 
-                "Cannot redefine the Prolog built-in predicate " + term.toString());
+                "Cannot redefine the Prolog built-in predicate " + term.toString(),
+                term.getSourceInfo());
         }
         
         // check for special directives, and refuse those.
@@ -278,13 +317,46 @@ options {
             throw new ParserException( 
                 "Some predicates, like " + head.toString() + ", are protected " +
                 "and are not allowed in the head of a Prolog clause: " +
-                term.toString());
+                term.toString(),
+                term.getSourceInfo());
         }
         
         toGoal(body); // try to convert, it will throw if it fails.
         
-        return new PrologDBFormula(term.getTerm());
+        return new PrologDBFormula(term.getTerm(), term.getSourceInfo());
     }
+    
+    /**
+     * Extract source info from token.
+     *
+     * @return Source info object.
+     */
+    private SourceInfo getSourceInfo(Token token) {
+    	return new SourceInfoObject(token.getLine(), token.getCharPositionInLine());
+    }
+    
+    /**
+     * Update position in source info object info1 with relative position info from info2.
+     */
+    private SourceInfoObject combineSourceInfo(SourceInfo info1, SourceInfo info2) {
+    	int lineNr, charPos;
+    	 
+    	if (info2 != null) {
+			lineNr = info1.getLineNumber() + info2.getLineNumber() -1;
+			if (info2.getLineNumber() > 1) {
+				charPos = info2.getCharacterPosition();
+			} else {
+				charPos = info1.getCharacterPosition() + info2.getCharacterPosition();
+			}
+		} else {
+			lineNr = info1.getLineNumber();
+			charPos = info1.getCharacterPosition();
+		}
+		SourceInfoObject sourceInfo = new SourceInfoObject(lineNr, charPos);
+		sourceInfo.setSource(info1.getSource());
+		sourceInfo.setMessage(info1.getMessage());
+		return sourceInfo;
+	}
 
 	/**
 	 * Unquote a quoted string. The enclosing quotes determine how quotes inside the string are handled.
@@ -316,7 +388,7 @@ options {
          * @return ArrayList<Query>, or {@code null} if a parser error occurs.
          * @throws ParserException 
          */
-        public ArrayList<Query> parsePrologGoalSection() throws ParserException { 
+        public ArrayList<Query> parsePrologGoalSection(SourceInfo info) throws ParserException { 
             ArrayList<Query> goals = new ArrayList<Query>();
             
             try {
@@ -324,7 +396,7 @@ options {
 
                 for (PrologTerm t: prologTerms) {
                 	// check that each term is a valid Prolog goal / query
-                    goals.add(new PrologQuery(toGoal(t.getTerm())));
+                    goals.add(new PrologQuery(toGoal(t.getTerm()), combineSourceInfo(info, t.getSourceInfo())));
                 }
                 return goals;
             } catch (RecognitionException e) {
@@ -357,6 +429,9 @@ options {
                  "The use of predicate " + t.toString() + ": " + 
                  t.toString() + " is not supported");
         }
+        if (sig.equals(":-/2")) {
+        	throw new ParserException("Cannot use a clause " + t.toString() + " as a goal");
+        }
         if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
             toGoal( t.arg(1));
             toGoal( t.arg(2));
@@ -371,9 +446,9 @@ options {
    *
    * @return PrologUpdate, or {@code null} in case of a parser error.
    */
-  public PrologUpdate ParseGOALUpdate() {
+  public PrologUpdate ParseGOALUpdate(SourceInfo info) {
     try {
-		return conj2Update(term1000());
+		return conj2Update(term1000(), info);
     } catch(RecognitionException e) {
         reportError(e);
         return null;
@@ -389,9 +464,9 @@ options {
   * Parse a Prolog conjunction and check it's a proper update.
   * @return PrologUpdate, or null if parser error occurs.
   */
-  public PrologUpdate ParseUpdate() {
+  public PrologUpdate ParseUpdate(SourceInfo info) {
     try {
-      return conj2Update(term1000());
+      return conj2Update(term1000(), info);
      } catch(RecognitionException e) {
         	reportError(e);
             return null;
@@ -406,15 +481,16 @@ options {
   /**
    * Parses a (possibly empty) Prolog conjunction and checks whether it's a valid update.
    *
+   * @param A source info object.
    * @return PrologUpdate, or {@code null} if parser error occurs.
    */
-  public PrologUpdate ParseUpdateOrEmpty()  {
+  public PrologUpdate ParseUpdateOrEmpty(SourceInfo info)  {
     try {
-		PrologTerm conj = maybeemptyconjunct();
+		PrologTerm conj = possiblyEmptyConjunct();
 		if (conj.toString().equals("true")) {
-			return new PrologUpdate(conj.getTerm());
+			return new PrologUpdate(conj.getTerm(), info);
 		} else {
-			return conj2Update(conj);
+			return conj2Update(conj, info);
 		}
 	} catch(RecognitionException e) {
 		reportError(e);
@@ -441,9 +517,9 @@ options {
         
         for (jpl.Term term : terms) {
             if (JPLUtils.getSignature(term).equals("not/1")) {
-                DBFormula(new PrologTerm(term.arg(1)));
+                DBFormula(new PrologTerm(term.arg(1), conjunct.getSourceInfo()));
             } else {
-                DBFormula(new PrologTerm(term));
+                DBFormula(new PrologTerm(term, conjunct.getSourceInfo()));
             }
         }
         return conjunct.getTerm();
@@ -458,14 +534,14 @@ options {
      * @throws ParserException if term is no good Update.
      * @see #checkDBFormula
      */
-    private PrologUpdate conj2Update(PrologTerm conjunct) throws ParserException {
-        PrologUpdate update;
-    
-        update = new PrologUpdate(basicUpdateCheck(conjunct));
+    private PrologUpdate conj2Update(PrologTerm conjunct, SourceInfo info) throws ParserException {
+		SourceInfoObject sourceInfo = combineSourceInfo(info, conjunct.getSourceInfo());
+		
+		PrologUpdate update = new PrologUpdate(basicUpdateCheck(conjunct), sourceInfo);
 
         return update;
     }
-      
+
     /**
     * <p>
     * Checks that conjunction is a Prolog query and returns {@link PrologQuery} object made of it.
@@ -480,59 +556,62 @@ options {
     * @returns Query object made from conjunction
     * @throws ParserException if prologTerm is not a good Query.
     */
-    public PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
-        return new PrologQuery(toGoal(conjunction.getTerm()));
+    public PrologQuery toQuery(PrologTerm conjunction, SourceInfo info) throws ParserException {
+        return new PrologQuery(toGoal(conjunction.getTerm()), combineSourceInfo(info, conjunction.getSourceInfo()));
     }
      
    /**
     * Parses a query.
-    * @return query, or null if error occurs
+    *
+    * @return A {@link PrologQuery}, or {@code null} if an error occurred.
     */   
-    public PrologQuery ParseQuery() {
-      try {
-        return toQuery(term1100());
-      } catch(RecognitionException e) {
+    public PrologQuery ParseQuery(SourceInfo info) {
+		try {
+			return toQuery(term1100(), info);
+		} catch(RecognitionException e) {
         	reportError(e);
             return null;
         } catch (ParserException e) {
-          RecognitionException err = new RecognitionException();
-    	  err.initCause(e);
-          reportError(err);
-          return null;
-        }  
-    }
+			RecognitionException err = new RecognitionException();
+			err.initCause(e);
+			reportError(err);
+			return null;
+        }
+	}
     
    /**
-    * try parse a query which may be an empty statement
-    * @return query, or null if error occurs
+    * Parses a (possibly empty) query.
+    *
+    * @return A {@link PrologQuery}, or {@code null} if an error occurred.
     */
-    public PrologQuery ParseQueryOrEmpty() {
-      try {
-        return toQuery(maybeemptyconjunct());
-      } catch(RecognitionException e) {
-        	reportError(e);
-            return null;
-        } catch (ParserException e) {
+    public PrologQuery ParseQueryOrEmpty(SourceInfo info) {
+		try {
+			return toQuery(possiblyEmptyDisjunct(), info);
+		} catch(RecognitionException e) {
+			reportError(e);
+			return null;
+		} catch (ParserException e) {
           RecognitionException err = new RecognitionException();
     	  err.initCause(e);
           reportError(err);
           return null;
-        }   
+        }
     }
     
    /**
     * Parse a set of parameters.
-    * @return list of Terms
+    *
+    * @return A list of {@link Term}s.
     */
-    public List<Term> ParsePrologTerms() {
+    public List<Term> ParsePrologTerms(SourceInfo info) {
       try {
         PrologTerm t = term1000();
         ArrayList<Term> terms = new ArrayList<Term>();
         for (jpl.Term term : JPLUtils.getOperands(",", t.getTerm())) {
           if (term instanceof jpl.Variable) {
-            terms.add(new PrologVar((jpl.Variable)term));
+            terms.add(new PrologVar((jpl.Variable)term, info));
           } else {
-            terms.add(new PrologTerm(term));
+            terms.add(new PrologTerm(term, info));
           }
         }
         return terms;
@@ -546,9 +625,9 @@ options {
     * try parse a term
     * @return term, or null if error occurs
    */   
-    public Term ParseTerm() {
+    public PrologTerm ParseTerm() {
        try {
-            return  term0();
+            return term0();
        } catch (RecognitionException e) {
             reportError(e);
             return null;
@@ -557,18 +636,10 @@ options {
 }
 
 @rulecatch {
-//	catch (ParserException e) {
-//		RecognitionException err = new RecognitionException();
-//    		err.initCause(e);
-//            reportError(err);
-//		recover(input,new RecognitionException());
-//	}
 	catch (RecognitionException e) {
 		throw e;
 	}
 }
-/* TODO
-*/
 
 /*---------------------------------------------------------------------
  * PARSER RULES
@@ -623,7 +694,7 @@ directive returns [PrologTerm term] // 6.2.1.1
   :
      ':-' t = term1200 ENDTOKEN
      { jpl.Term[] args = { t.getTerm() };
-       term = new PrologTerm(new jpl.Compound(":-", args));
+       term = new PrologTerm(new jpl.Compound(":-", args), t.getSourceInfo());
      }
   ;
 
@@ -641,10 +712,16 @@ arglist returns [ArrayList<PrologTerm> arguments] // 6.3.3
       { arguments = argList; }
   ;
 
-maybeemptyconjunct returns [PrologTerm conjunct]
+possiblyEmptyConjunct returns [PrologTerm conjunct]
   :
         conj = term1000?
-     { conjunct = (conj != null)? conj : new PrologTerm(new jpl.Atom("true")); } // TODO?
+     { conjunct = (conj != null)? conj : new PrologTerm(new jpl.Atom("true"), null); }
+  ;
+  
+possiblyEmptyDisjunct returns [PrologTerm conjunct]
+  :
+        conj = term1100?
+     { conjunct = (conj != null)? conj : new PrologTerm(new jpl.Atom("true"), null); }
   ;
   
 expression returns [PrologTerm term] // 6.3.3.1
@@ -656,7 +733,7 @@ listterm returns [PrologTerm term] // 6.3.5
   :
         '[' i = items? ']'
       { if (i==null) {
-           term = new PrologTerm(new jpl.Atom("[]"));
+           term = new PrologTerm(new jpl.Atom("[]"), null);
         } else {
            term=i;
         }
@@ -668,24 +745,24 @@ items returns [PrologTerm term] // 6.3.5 ; we use the prolog "." functor to buil
   	  { int index = this.cs.index(); }
         l = expression
       { jpl.Term[] args = { l.getTerm() };
-        term = new PrologTerm(new jpl.Compound(".", args)); }
+        term = new PrologTerm(new jpl.Compound(".", args), l.getSourceInfo()); }
       (
         (',' r=items) 
         | ('|' (
               r=listterm  
             | (
                 r1 = VARIABLE 
-              { r = new PrologVar(new jpl.Variable(r1.getText())); }
+              { r = new PrologVar(new jpl.Variable(r1.getText()), getSourceInfo(r1)); }
               )
             )
         )
        )?
        { if (r==null) {
            jpl.Term[] args1 = { l.getTerm(), new jpl.Atom("[]") };
-           term = new PrologTerm(new jpl.Compound(".", args1));
+           term = new PrologTerm(new jpl.Compound(".", args1), l.getSourceInfo());
        } else {
            jpl.Term[] args2 = { l.getTerm(), r.getTerm() };
-           term = new PrologTerm(new jpl.Compound(".", args2));
+           term = new PrologTerm(new jpl.Compound(".", args2), l.getSourceInfo());
        }
     }
   ;
@@ -701,7 +778,7 @@ prefixoperator returns [PrologTerm term]
     '=:=' | '=\\=' | '<' | '=<' | '>' | '>=' | '+' | '/\\' | '\\/' | '*' | '/' | '//' | 'rem' |
     'mod' | '<<' | '>>' | '**' | '^'  ) '(' e1=expression ',' e2=expression ')'
     { jpl.Term[] args = { e1.getTerm(), e2.getTerm() };
-      term = new PrologTerm(new jpl.Compound(f.getText(), args)); }
+      term = new PrologTerm(new jpl.Compound(f.getText(), args), getSourceInfo(f)); }
   ;
 
 /* 
@@ -718,33 +795,33 @@ term0 returns [PrologTerm term]
         // using the '-/1' operator these are covered here as well; see term200 below). 
     {
       if (tk.getText().matches("[0-9]+") || tk.getText().matches("0[box].*")) {
-        term = new PrologTerm(new jpl.Integer(Integer.valueOf(tk.getText()))); // int, octal, hex, etc.
+        term = new PrologTerm(new jpl.Integer(Integer.valueOf(tk.getText())), getSourceInfo(tk)); // int, octal, hex, etc.
       } else { // float
-        term = new PrologTerm(new jpl.Float(Double.valueOf(tk.getText()))); // float
+        term = new PrologTerm(new jpl.Float(Double.valueOf(tk.getText())), getSourceInfo(tk)); // float
       }
     }
     | tk = NAME ( '(' a=arglist ')' )? // 6.3.1.3 and 6.3.3;
     { if (a==null) {
-         term = new PrologTerm(new jpl.Atom(tk.getText()));
+         term = new PrologTerm(new jpl.Atom(tk.getText()), getSourceInfo(tk));
       } else { 
          List<jpl.Term> terms = new ArrayList<jpl.Term>();
          for (PrologTerm pterm: a) {
             terms.add(pterm.getTerm());
          }
-         term = new PrologTerm(new jpl.Compound(tk.getText(), terms.toArray(new jpl.Term[0])));
+         term = new PrologTerm(new jpl.Compound(tk.getText(), terms.toArray(new jpl.Term[0])), getSourceInfo(tk));
       } 
     } 
     | tk = VARIABLE // 6.3.2
-    { term = new PrologVar(new jpl.Variable(tk.getText())); }
+    { term = new PrologVar(new jpl.Variable(tk.getText()), getSourceInfo(tk)); }
     | tk = STRING // Compare 6.4.2.1
       { String str = tk.getText();
-        term = new PrologTerm(new jpl.Atom(unquote(str)));
+        term = new PrologTerm(new jpl.Atom(unquote(str)), getSourceInfo(tk));
       } 
     | '(' t = term1200 ')' // 6.3.4.1
     { term = t; }
     | '{' t = term1200 '}' // 6.3.6
     { jpl.Term[] args = { t.getTerm() };
-      term = new PrologTerm(new jpl.Compound("{}", args)); } 
+      term = new PrologTerm(new jpl.Compound("{}", args), t.getSourceInfo()); } 
     | t = listterm
     { term = t; }
     | t = prefixoperator
@@ -760,7 +837,7 @@ term50 returns [PrologTerm term]
          term = t1;
       } else {
          jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-         term = new PrologTerm(new jpl.Compound(":", args));
+         term = new PrologTerm(new jpl.Compound(":", args), t1.getSourceInfo());
       }
     }
   ;
@@ -773,7 +850,7 @@ term100 returns [PrologTerm term]
          term = t1;
       } else {
          jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-         term = new PrologTerm(new jpl.Compound("@", args));
+         term = new PrologTerm(new jpl.Compound("@", args), t1.getSourceInfo());
       }
     } 
   ;
@@ -783,16 +860,16 @@ term200 returns [PrologTerm term]
       (
         (op='-' | op='\\' ) t=term200 
       { jpl.Term[] args = { t.getTerm() };
-        term = new PrologTerm(new jpl.Compound(op.getText(), args));
+        term = new PrologTerm(new jpl.Compound(op.getText(), args), t.getSourceInfo());
         if (op.getText().equals("-")) {
           // minus sign, check special case of numeric constant. See ISO 6.3.1.2 footnote
           // Note, we interpret this footnote RECURSIVELY, eg --1 == 1.
           // Note that this notation is not SWI prolog compatible, SWI seems to fail ISO 
           // compliance here.
             if (t.getTerm().isFloat()) {
-               term = new PrologTerm(new jpl.Float(-1 * ((PrologTerm)t).getTerm().floatValue()));
+               term = new PrologTerm(new jpl.Float(-1 * ((PrologTerm)t).getTerm().floatValue()), t.getSourceInfo());
             } else { // integer
-               term = new PrologTerm(new jpl.Integer(-1 * ((PrologTerm) t).getTerm().intValue()));
+               term = new PrologTerm(new jpl.Integer(-1 * ((PrologTerm) t).getTerm().intValue()), t.getSourceInfo());
             }
         }
       }
@@ -802,7 +879,7 @@ term200 returns [PrologTerm term]
            term = t1;
         } else {
            jpl.Term[] args = { t1.getTerm(), t2.getTerm() }; 
-           term = new PrologTerm(new jpl.Compound(op.getText(), args));
+           term = new PrologTerm(new jpl.Compound(op.getText(), args), getSourceInfo(op));
         }
       }
     )
@@ -817,7 +894,7 @@ term400 returns [PrologTerm term]
       (op='*'  | op='/' | op='//' | op='rem' | op='mod' | op='rdiv' | op='<<' | op='>>') 
       t1 = term200
     { jpl.Term[] args = { t.getTerm(), t1.getTerm() };
-      t = new PrologTerm(new jpl.Compound(op.getText(), args)); }
+      t = new PrologTerm(new jpl.Compound(op.getText(), args), getSourceInfo(op)); }
     )*
     { term = t; }
   ;
@@ -830,7 +907,7 @@ term500 returns [PrologTerm term] // Operators +, -, /\, and \/ are left-associa
       op=('+' | '-' | '/\\' | '\\/' | 'xor' | '><') 
       t1 = term400
     { jpl.Term[] args = { t.getTerm(), t1.getTerm() };
-      t = new PrologTerm(new jpl.Compound(op.getText(), args)); }
+      t = new PrologTerm(new jpl.Compound(op.getText(), args), getSourceInfo(op)); }
     )*
     { term = t; }   
   ;
@@ -846,19 +923,19 @@ term700 returns [PrologTerm term]
          term = t1;
       } else {
          jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-         term = new PrologTerm(new jpl.Compound(op.getText(), args));
+         term = new PrologTerm(new jpl.Compound(op.getText(), args), getSourceInfo(op));
       }
     }
   ;
 
 term900 returns [PrologTerm term] // CHECK UNKNOWN OPERATOR, NOT IN TABLE ON ISO-SPEC p.13 ?
-  : 
+  :
     (
       t = term700
     { term = t; }
     | '\\+' t = term900
     { jpl.Term[] args = { t.getTerm() };
-      term = new PrologTerm(new jpl.Compound("\\+", args)); }
+      term = new PrologTerm(new jpl.Compound("\\+", args), t.getSourceInfo()); }
     )
   ;
 
@@ -870,7 +947,7 @@ term1000 returns [PrologTerm term]
          term = t1;
       } else {
          jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-         term = new PrologTerm(new jpl.Compound(",", args));
+         term = new PrologTerm(new jpl.Compound(",", args), t1.getSourceInfo());
       }
     }
   ;
@@ -886,7 +963,7 @@ term1050 returns [PrologTerm term]
          term=t1;
       } else {
          jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-         term = new PrologTerm(new jpl.Compound(op.getText(), args));
+         term = new PrologTerm(new jpl.Compound(op.getText(), args), t1.getSourceInfo());
       }
     }
   ;
@@ -899,7 +976,7 @@ term1100 returns [PrologTerm term]
          term = t1;
       } else { 
          jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-         term = new PrologTerm(new jpl.Compound(";", args));
+         term = new PrologTerm(new jpl.Compound(";", args), t1.getSourceInfo());
       }
     }
   ;
@@ -912,7 +989,7 @@ term1105 returns [PrologTerm term]
          term=t1;
       } else { 
          jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-         term = new PrologTerm(new jpl.Compound("|", args));
+         term = new PrologTerm(new jpl.Compound("|", args), t1.getSourceInfo());
       }
     }
   ; 
@@ -926,12 +1003,12 @@ term1200 returns [PrologTerm term]
          term=t1;
       } else {
          jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-         term = new PrologTerm(new jpl.Compound(op.getText(), args));
+         term = new PrologTerm(new jpl.Compound(op.getText(), args), t1.getSourceInfo());
       }
     }
     | '?-' t = term1105
     { jpl.Term[] args = { t.getTerm() };
-      term = new PrologTerm(new jpl.Compound("?-", args)); }
+      term = new PrologTerm(new jpl.Compound("?-", args), t.getSourceInfo()); }
     )
   ;
 

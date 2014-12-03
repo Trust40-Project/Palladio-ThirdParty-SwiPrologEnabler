@@ -23,6 +23,7 @@ import swiprolog.database.SWIPrologDatabase;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
+import krTools.parser.SourceInfo;
 
 /**
  * <p>
@@ -38,21 +39,22 @@ import krTools.language.Substitution;
  * </p>
  */
 public class PrologDBFormula extends PrologExpression implements DatabaseFormula {
-
+	
 	/**
 	 * Creates a Prolog database formula that can be part of a Prolog database.
 	 * 
 	 * @param term A JPL term.
+	 * @param info A source info object.
 	 */
-	public PrologDBFormula(jpl.Term term) {
-		super(term);
+	public PrologDBFormula(jpl.Term term, SourceInfo info) {
+		super(term,info);
 	}
 
 	@Override
 	public PrologDBFormula applySubst(Substitution substitution) {
-		Hashtable<String, jpl.Term> jplSubstitution = (substitution == null) ? null :
-			((PrologSubstitution) substitution).getJPLSolution();
-		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, this.getTerm()));
+		Hashtable<String, jpl.Term> jplSubstitution =
+				((PrologSubstitution) substitution).getJPLSolution();
+		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, this.getTerm()), getSourceInfo());
 	}
 	
 	@Override
@@ -69,7 +71,7 @@ public class PrologDBFormula extends PrologExpression implements DatabaseFormula
 	 */
 	@Override
 	public Query toQuery() {
-		return new PrologQuery(this.getTerm());
+		return new PrologQuery(this.getTerm(), getSourceInfo());
 	}
 
 }

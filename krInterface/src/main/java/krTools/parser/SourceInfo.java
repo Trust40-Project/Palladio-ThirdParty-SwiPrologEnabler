@@ -41,6 +41,7 @@ public interface SourceInfo {
 	 * @return The index of the character in the line that this info is about.
 	 */
 	public int getCharacterPosition();
+
 	/**
 	 * @return An info message.
 	 */

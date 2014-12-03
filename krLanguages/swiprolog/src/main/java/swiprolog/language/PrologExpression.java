@@ -24,24 +24,32 @@ import java.util.Set;
 import krTools.language.Expression;
 import krTools.language.Substitution;
 import krTools.language.Var;
+import krTools.parser.SourceInfo;
 import swiprolog.parser.PrologOperators;
 
 /**
  * DOC
  */
 public abstract class PrologExpression implements Expression {
+
 	/**
 	 * A JPL term representing a Prolog expression.
 	 */
-	private jpl.Term term;
+	private final jpl.Term term;
+	
+	/**
+	 * Information about the source used to construct this expression.
+	 */
+	private final SourceInfo info;
 
 	/**
 	 * Creates a Prolog expression.
 	 * 
 	 * @term A JPL term.
 	 */
-	public PrologExpression(jpl.Term term) {
+	public PrologExpression(jpl.Term term, SourceInfo info) {
 		this.term = term;
+		this.info = info;
 	}
 
 	/**
@@ -51,6 +59,13 @@ public abstract class PrologExpression implements Expression {
 	 */
 	public jpl.Term getTerm() {
 		return this.term;
+	}
+	
+	/**
+	 * @return A {@link SourceInfo} object with information about the source used to construct this expression.
+	 */
+	public SourceInfo getSourceInfo() {
+		return info;
 	}
 
 	/**
@@ -75,7 +90,7 @@ public abstract class PrologExpression implements Expression {
 
 		// Build VariableTerm from jpl.Variable.
 		for (jpl.Variable var : jplvars) {
-			variables.add(new PrologVar(var));
+			variables.add(new PrologVar(var, getSourceInfo()));
 		}
 
 		return variables;
@@ -101,7 +116,7 @@ public abstract class PrologExpression implements Expression {
 	public Substitution mgu(Expression expression) {
 		jpl.Term otherterm = ((PrologExpression) expression).getTerm();
 
-		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(this.getTerm(), otherterm));
+		return new PrologSubstitution(JPLUtils.mgu(this.getTerm(), otherterm));
 	}
 
 	/**
@@ -235,7 +250,7 @@ public abstract class PrologExpression implements Expression {
 	 */
 	private String maybeBracketed(int argument) {
 		jpl.Term arg = term.arg(argument);
-		PrologExpression argexpression = new PrologTerm(arg);
+		PrologExpression argexpression = new PrologTerm(arg, null);
 		int argprio = JPLUtils.getPriority(arg);
 		int ourprio = JPLUtils.getPriority(term);
 
@@ -295,7 +310,7 @@ public abstract class PrologExpression implements Expression {
 			return "(" + arg + ")";
 		}
 
-		PrologExpression expression = new PrologTerm(arg);
+		PrologExpression expression = new PrologTerm(arg, null);
 		return expression.toString();
 	}
 

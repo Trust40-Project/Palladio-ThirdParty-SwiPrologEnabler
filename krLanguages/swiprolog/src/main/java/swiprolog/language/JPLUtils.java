@@ -139,7 +139,7 @@ public class JPLUtils {
 		}
 		// Case: Variable
 		if (term.isVariable()) {
-			Term value = (solution == null) ? null : ((Term) solution.get(term.name()));
+			Term value = (Term) solution.get(term.name());
 			if (value == null) {
 				return term;
 			}

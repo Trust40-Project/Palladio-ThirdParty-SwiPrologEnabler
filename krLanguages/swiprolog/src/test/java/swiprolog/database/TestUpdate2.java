@@ -4,6 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import jpl.Atom;
+import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.errors.exceptions.KRDatabaseException;
 import krTools.errors.exceptions.KRQueryFailedException;
@@ -13,7 +14,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import swiprolog.SWIPrologInterface;
 import swiprolog.language.PrologDBFormula;
 
 /**
@@ -30,7 +30,7 @@ import swiprolog.language.PrologDBFormula;
 public class TestUpdate2 {
 
 	// components enabling us to run the tests...
-	private SWIPrologInterface language;
+	private KRInterface language;
 
 	// basic knowledge
 	private Atom k1 = new Atom("aap");
@@ -60,12 +60,12 @@ public class TestUpdate2 {
 	/**
 	 * Make standard kb and bb where KB holds two knowledge items
 	 * 
-	 * @throws KRDatabaseException
+	 * @throws KRDatabaseException 
 	 */
 	private void fillKB() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory = new LinkedHashSet<DatabaseFormula>();
-		kbtheory.add(new PrologDBFormula(k1));
-		kbtheory.add(new PrologDBFormula(k2));
+		kbtheory.add(new PrologDBFormula(k1, null));
+		kbtheory.add(new PrologDBFormula(k2, null));
 		knowledgebase = language.getDatabase(kbtheory);
 
 		beliefbase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
@@ -75,12 +75,12 @@ public class TestUpdate2 {
 	/**
 	 * alternative fill for KB.
 	 * 
-	 * @throws KRDatabaseException
+	 * @throws KRDatabaseException 
 	 */
 	private void fillKB2() throws KRDatabaseException {
 
 		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<DatabaseFormula>();
-		kbtheory2.add(new PrologDBFormula(k3));
+		kbtheory2.add(new PrologDBFormula(k3, null));
 		knowledgebase = language.getDatabase(kbtheory2);
 
 		beliefbase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
@@ -91,11 +91,11 @@ public class TestUpdate2 {
 	 * 
 	 * @throws KRInitFailedException
 	 */
-	// @Test
-	// public void testInitialBeliefs() throws KRInitFailedException {
-	// assertEquals(2, beliefbase.getAllSentences().length);
-	// assertEquals(0, knowledgebase.getAllSentences().length);
-	// }
+//	@Test
+//	public void testInitialBeliefs() throws KRInitFailedException {
+//		assertEquals(2, beliefbase.getAllSentences().length);
+//		assertEquals(0, knowledgebase.getAllSentences().length);
+//	}
 
 	/**
 	 * Test that the knowledge made it into the BB
@@ -103,25 +103,24 @@ public class TestUpdate2 {
 	 * @throws KRQueryFailedException
 	 * @throws KRInitFailedException
 	 */
-	// TODO FIXME
-	// @Test
-	// public void testInitialQuery1() throws KRQueryFailedException,
-	// KRInitFailedException {
-	// PrologQuery query = new PrologQuery(k1);
-	// Set<Substitution> sol = beliefbase.query(query);
-	// assertEquals(1, sol.size());
-	// }
+// TODO FIXME
+//	@Test
+//	public void testInitialQuery1() throws KRQueryFailedException,
+//			KRInitFailedException {
+//		PrologQuery query = new PrologQuery(k1);
+//		Set<Substitution> sol = beliefbase.query(query);
+//		assertEquals(1, sol.size());
+//	}
 
 	/**
 	 * Delete all databases. Just a smoke test, as we can't do anything with
 	 * deleted databases.
 	 * 
 	 * @throws KRQueryFailedException
-	 * @throws KRDatabaseException
+	 * @throws KRDatabaseException 
 	 */
 	@Test
-	public void testDeleteAll() throws KRQueryFailedException,
-			KRDatabaseException {
+	public void testDeleteAll() throws KRQueryFailedException, KRDatabaseException {
 		beliefbase.destroy();
 		beliefbase = null;
 		knowledgebase.destroy();
@@ -133,24 +132,23 @@ public class TestUpdate2 {
 	 * the new Kb content.
 	 * 
 	 * @throws KRQueryFailedException
-	 * @throws KRDatabaseException
+	 * @throws KRDatabaseException 
 	 */
 	@Test
-	public void testRecreateKbAndBb() throws KRQueryFailedException,
-			KRDatabaseException {
+	public void testRecreateKbAndBb() throws KRQueryFailedException, KRDatabaseException {
 		beliefbase.destroy();
 		knowledgebase.destroy();
 
 		// ok, now we can recreate the KB. But this time different.
 		fillKB2();
 
-		// assertEquals(1, beliefbase.getAllSentences().length);
-		// assertEquals(0, knowledgebase.getAllSentences().length);
+//		assertEquals(1, beliefbase.getAllSentences().length);
+//		assertEquals(0, knowledgebase.getAllSentences().length);
 
-		// TODO FIXME
-		// PrologQuery query = new PrologQuery(k3);
-		// Set<Substitution> sol = beliefbase.query(query);
-		// assertEquals(1, sol.size());
+// TODO FIXME
+//		PrologQuery query = new PrologQuery(k3);
+//		Set<Substitution> sol = beliefbase.query(query);
+//		assertEquals(1, sol.size());
 
 	}
 }

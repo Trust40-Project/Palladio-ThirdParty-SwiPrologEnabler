@@ -74,7 +74,7 @@ public class TestUpdate {
 
 	@Test
 	public void testInitialQuery1() throws KRQueryFailedException {
-		PrologQuery query = new PrologQuery(new jpl.Atom("true"));
+		PrologQuery query = new PrologQuery(new jpl.Atom("true"), null);
 		Set<Substitution> sol = beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
@@ -88,10 +88,10 @@ public class TestUpdate {
 	 */
 	@Test
 	public void testInsertFormula() throws KRQueryFailedException, KRDatabaseException {
-		DatabaseFormula formula = new PrologDBFormula(aap);
+		DatabaseFormula formula = new PrologDBFormula(aap, null);
 		beliefbase.insert(formula);
 
-		PrologQuery query = new PrologQuery(aap);
+		PrologQuery query = new PrologQuery(aap, null);
 		Set<Substitution> sol = beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
@@ -106,7 +106,7 @@ public class TestUpdate {
 	@Test
 	public void testUpdate() throws KRQueryFailedException, KRDatabaseException {
 		Update update = new PrologUpdate(new jpl.Compound(",",
-						new Term[] {new jpl.Compound("not", new Term[] { aap }), beer }));
+						new Term[] {new jpl.Compound("not", new Term[] { aap }), beer }), null);
 		beliefbase.insert(update);
 
 //		assertEquals(1, beliefbase.getAllSentences().length);
@@ -117,7 +117,7 @@ public class TestUpdate {
 //		Set<Substitution> sol = beliefbase.query(query);
 //		assertEquals(sol.size(), 0);
 
-		PrologQuery query2 = new PrologQuery(beer);
+		PrologQuery query2 = new PrologQuery(beer, null);
 		Set<Substitution> sol2 = beliefbase.query(query2);
 		assertEquals(1, sol2.size());
 	}
@@ -150,13 +150,13 @@ public class TestUpdate {
 	 */
 	@Test
 	public void testUseNewBeliefbase() throws KRQueryFailedException, KRDatabaseException {
-		DatabaseFormula formula = new PrologDBFormula(kat);
+		DatabaseFormula formula = new PrologDBFormula(kat, null);
 		beliefbase.insert(formula);
 
 //		assertEquals(1, beliefbase.getAllSentences().length);
 //		assertEquals(0, knowledgebase.getAllSentences().length);
 
-		PrologQuery query = new PrologQuery(kat);
+		PrologQuery query = new PrologQuery(kat, null);
 		Set<Substitution> sol = beliefbase.query(query);
 		assertEquals(1, sol.size());
 

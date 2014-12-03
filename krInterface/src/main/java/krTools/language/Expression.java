@@ -19,6 +19,8 @@ package krTools.language;
 
 import java.util.Set;
 
+import krTools.parser.SourceInfo;
+
 /**
  * An expression is any grammatically correct string of symbols of a knowledge representation
  * (KR) language. For example, an expression can be a constant {@code a}, term {@code 1+2}, or
@@ -83,5 +85,10 @@ public interface Expression {
 	 *         (unifies), or null if unification is impossible.
 	 */
 	Substitution mgu(Expression expression);
+	
+	/**
+	 * @return A {@link SourceInfo} object with information about the source used to construct this {@link Expression}.
+	 */
+	SourceInfo getSourceInfo();
 
 }

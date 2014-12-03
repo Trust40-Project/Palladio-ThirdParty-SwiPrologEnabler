@@ -38,57 +38,64 @@ public interface Parser {
 	 * Parses the input.
 	 * Returns the (database) formulas found during parsing.
 	 * 
+	 * @param info A source info object.
 	 * @throws ParserException If parsing was interrupted.
 	 */
-	List<DatabaseFormula> parseDBFs() throws ParserException;
+	List<DatabaseFormula> parseDBFs(SourceInfo info) throws ParserException;
 	
 	/**
 	 * Parses the input.
 	 * Returns the queries found during parsing.
 	 * 
+	 * @param info A source info object.
 	 * @throws ParserException If parsing was interrupted.
 	 */
-	List<Query> parseQueries() throws ParserException;
+	List<Query> parseQueries(SourceInfo info) throws ParserException;
 	
 	/**
 	 * Parses the input.
 	 * Returns the query found during parsing.
 	 * 
+	 * @param info A source info object.
 	 * @throws ParserException If parsing was interrupted.
 	 */
-	Query parseQuery() throws ParserException;
+	Query parseQuery(SourceInfo info) throws ParserException;
 		
 	/**
 	 * Parses the input.
 	 * Returns the update found during parsing.
 	 * 
+	 * @param info A source info object.
 	 * @throws ParserException If parsing was interrupted.
 	 */
-	Update parseUpdate() throws ParserException;
+	Update parseUpdate(SourceInfo info) throws ParserException;
 
 	/**
 	 * Parses the input.
 	 * Returns a variable obtained by parsing the input.
 	 * 
+	 * @param info A source info object.
 	 * @throws ParserException If parsing was interrupted.
 	 */
-	Var parseVar() throws ParserException;
+	Var parseVar(SourceInfo info) throws ParserException;
 	
 	/**
 	 * Parses the input.
 	 * Returns a term obtained by parsing the input.
 	 * 
+	 * @param info A source info object.
 	 * @throws ParserException If parsing was interrupted.
 	 */
-	Term parseTerm() throws ParserException;
+	Term parseTerm(SourceInfo info) throws ParserException;
 	
 	/**
 	 * Parses the input.
 	 * Returns a list of terms obtained by parsing the input.
 	 * 
+	 * @param info A source info object.
 	 * @throws ParserException If parsing was interrupted.
 	 */
-	List<Term> parseTerms() throws ParserException;
+	List<Term> parseTerms(SourceInfo info) throws ParserException;
 	
 	/**
 	 * @return The list of all parsing errors that occurred while parsing.

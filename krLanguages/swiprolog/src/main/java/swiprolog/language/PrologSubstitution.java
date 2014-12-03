@@ -17,7 +17,6 @@
 
 package swiprolog.language;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
@@ -34,12 +33,6 @@ import krTools.language.Var;
  * substitution may be empty.
  */
 public class PrologSubstitution implements Substitution {
-	
-	/**
-	 * Create empty JPL substitution.
-	 */
-	private Hashtable<String, jpl.Term> jplSubstitution = new Hashtable<String, jpl.Term>();
-
 	/**
 	 * TODO: Check!!!
 	 * 
@@ -50,7 +43,11 @@ public class PrologSubstitution implements Substitution {
 	 * fail #2211. Using String brings us closest to what JPL is doing
 	 * internally.
 	 */
-	// private Map<String, jpl.Term> substitution = new LinkedHashMap<String, jpl.Term>();
+	
+	/**
+	 * Create empty JPL substitution.
+	 */
+	private Hashtable<String, jpl.Term> jplSubstitution = new Hashtable<String, jpl.Term>();
 
 	/**
 	 * Creates an empty {@link Substitution}.
@@ -73,50 +70,41 @@ public class PrologSubstitution implements Substitution {
 	 * 
 	 * @param solutions JPL substitution.
 	 */
-	private PrologSubstitution(Hashtable<String, jpl.Term> solution) {
+	public PrologSubstitution(Hashtable<String, jpl.Term> solution) {
 		this.jplSubstitution = solution;
 	}
 	
-	public static PrologSubstitution getSubstitutionOrNull(Hashtable<String, jpl.Term> solution) {
-		if(solution == null){
-			return null;
-		} else {
-			return new PrologSubstitution(solution);
-		}
-	}
-	
 	/**
-	 * Returns JPL substitution.
-	 * 
-	 * @return
+	 * @return A JPL substitution. 
 	 */
 	public Hashtable<String, jpl.Term> getJPLSolution() {
-		return this.jplSubstitution;
+		return jplSubstitution;
 	}
 
 	/**
-	 * Returns the set of {@link Var}iables bound by this
-	 * {@link PrologSubstitution}.
+	 * Returns the set of {@link Var}iables bound by this {@link PrologSubstitution}.
+	 * 
+	 * <p>Source information, if available, is lost.</p>
 	 * 
 	 * @return The variables in the domain of this substitution.
 	 */
 	public Set<Var> getVariables() {
-		ArrayList<String> jplvarnames = new ArrayList<String>(jplSubstitution.keySet());
 		Set<Var> variables = new LinkedHashSet<Var>();
 		
 		// Build VariableTerm from jpl.Variable.
-		for (String varname : jplvarnames) {
+		for (String varname : jplSubstitution.keySet()) {
 			jpl.Variable var = new Variable(varname);
-			variables.add(new PrologVar(var));
+			variables.add(new PrologVar(var, null));
 		}
 		
 		return variables;
 	}
+	
 
 	public Term get(Var variable) {
 		jpl.Variable jplvar = (jpl.Variable)((PrologVar)variable).getTerm();
 		if (jplSubstitution.containsKey(jplvar.name())) {
-			return new PrologTerm((jpl.Term)jplSubstitution.get(jplvar.name()));
+			return new PrologTerm(jplSubstitution.get(jplvar.name()), null);
 		} else {
 			return null;
 		}
@@ -133,12 +121,18 @@ public class PrologSubstitution implements Substitution {
 	}
 	
 	/**
+	 * Combines two substitutions, if possible.
 	 * 
+	 * @return Substitution that combines this and given substitution, or {@code null} if bindings of substitutions conflict.
 	 */
 	public Substitution combine(Substitution substitution) {
 		Hashtable<String, jpl.Term> combined = new Hashtable<String, jpl.Term>();
 		combined = JPLUtils.combineSubstitutions(jplSubstitution, ((PrologSubstitution)substitution).getJPLSolution());
-		return new PrologSubstitution(combined);
+		if (combined != null) {
+			return new PrologSubstitution(combined);
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -147,8 +141,8 @@ public class PrologSubstitution implements Substitution {
 	public boolean remove(Var variable) {
 		jpl.Variable var = (jpl.Variable)((PrologVar)variable).getTerm();
 
-		if (this.jplSubstitution.containsKey(var.name())) {
-			return this.jplSubstitution.remove(var.name()) != null;
+		if (this.jplSubstitution.containsKey(var)) {
+			return this.jplSubstitution.remove(var) != null;
 		}
 		return false;
 	}
@@ -163,7 +157,7 @@ public class PrologSubstitution implements Substitution {
 		for (Var var : variables) {
 			jpl.Variable v = (jpl.Variable)((PrologVar)var).getTerm();
 			if (!vars.contains(v)) {
-				this.jplSubstitution.remove(v.name());
+				this.jplSubstitution.remove(v);
 				removed = true;
 			}
 		}
@@ -187,19 +181,19 @@ public class PrologSubstitution implements Substitution {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public String toString() {	
-		Set<String> variables = this.jplSubstitution.keySet();
+		Set variables = this.jplSubstitution.keySet();
 		
 		StringBuilder builder = new StringBuilder();
 
 		builder.append("[");
 		boolean addComma = false;
 		
-		for (String varname : variables) {
+		for (Object var : variables) {
 			if (addComma) {
 				builder.append(", ");
 			}
-			builder.append(varname).append("/");
-			PrologTerm term = new PrologTerm(this.jplSubstitution.get(varname));
+			builder.append(var.toString()).append("/");
+			PrologTerm term = new PrologTerm(this.jplSubstitution.get(var),null);
 			builder.append(term.toString());
 			addComma = true;
 		}

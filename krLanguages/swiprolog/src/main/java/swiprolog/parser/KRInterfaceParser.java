@@ -68,61 +68,30 @@ public class KRInterfaceParser implements Parser {
 	}
 
 	@Override
-	public List<SourceInfo> getErrors() {
-		List<SourceInfo> errors = new ArrayList<SourceInfo>();
-		errors.addAll(parser.getLexer().getErrors());
-		for (ParserException e : parser.getErrors())
-			// bit hacky; either get deep down parser exception or get top level
-//			if (e.getCause().getCause() != null) {
-				errors.add((SourceInfo) e.getCause().getCause());
-//			} else {
-//				errors.add((SourceInfo) e);
-//			}
-		return errors;
+	public Update parseUpdate(SourceInfo info) {
+		return parser.ParseUpdateOrEmpty(info);
+	}
+
+	@Override
+	public List<DatabaseFormula> parseDBFs(SourceInfo info) throws ParserException {
+		return parser.parsePrologProgram(info);
+	}
+
+	@Override
+	public List<Query> parseQueries(SourceInfo info) throws ParserException {
+		return parser.parsePrologGoalSection(info);
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Allows empty queries.
 	 */
 	@Override
-	public Update parseUpdate() {
-		return parser.ParseUpdateOrEmpty();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public List<DatabaseFormula> parseDBFs() {
-		return parser.ParsePrologProgram();
+	public Query parseQuery(SourceInfo info) {
+		return parser.ParseQueryOrEmpty(info);
 	}
 
 	@Override
-	public List<Query> parseQueries() throws ParserException {
-		return parser.parsePrologGoalSection();
-	}
-
-	/**
-	 * We allow empty queries.
-	 */
-	@Override
-	public Query parseQuery() {
-		return parser.ParseQueryOrEmpty();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Term parseTerm() {
-		return parser.ParseTerm();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Var parseVar() throws ParserException {
+	public Var parseVar(SourceInfo info) throws ParserException {
 		PrologTerm term;
 		try {
 			term = parser.term0();
@@ -130,24 +99,50 @@ public class KRInterfaceParser implements Parser {
 			throw new ParserException(e.getMessage(), e);
 		}
 		if (term.isVar()) {
-			return new PrologVar((Variable) term.getTerm());
+			return new PrologVar((Variable) term.getTerm(), info);
 		} else {
 			throw new ParserException(String.format("Expected a Prolog variable but found '%s'", term.toString()));
 		}
 	}
+
+	@Override
+	public Term parseTerm(SourceInfo info) {
+		return new PrologTerm((jpl.Term)parser.ParseTerm().getTerm(), info);
+	}
+
+	@Override
+	public List<Term> parseTerms(SourceInfo info) {
+		return parser.ParsePrologTerms(info);
+	}
 	
+	@Override
+	public List<SourceInfo> getErrors() {
+		List<SourceInfo> errors = new ArrayList<SourceInfo>();
+		List<ParserException> exceptions = new ArrayList<ParserException>();
+		exceptions.addAll(parser.getLexer().getErrors());
+		exceptions.addAll(parser.getErrors());
+		for (ParserException e : exceptions) {
+			if (!e.hasSourceInfo()) {
+				// try to recover source info from cause
+				if (e.getCause() instanceof RecognitionException) {
+					int line = ((RecognitionException)e.getCause()).line;
+					int charPos = ((RecognitionException)e.getCause()).charPositionInLine;
+					SourceInfoObject info = new SourceInfoObject(line, charPos);
+					info.setMessage(e.getMessage());
+					errors.add(info);
+				}
+			} else {
+				errors.add(e);
+			}
+		}
+
+		return errors;
+	}
 	/**
 	 * 
 	 */
 	public String[] getTokenNames() {
 		return parser.getTokenNames();
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	public List<Term> parseTerms() {
-		return parser.ParsePrologTerms();
 	}
 
 }

@@ -19,13 +19,13 @@ package swiprolog;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import org.antlr.runtime.ANTLRReaderStream;
 
 import krTools.KRInterface;
 import krTools.database.Database;
@@ -39,14 +39,10 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
-
-import org.antlr.runtime.ANTLRReaderStream;
-
 import swiprolog.database.SWIPrologDatabase;
 import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologSubstitution;
-import swiprolog.language.PrologTerm;
 import swiprolog.parser.KRInterfaceParser;
 
 /**
@@ -54,9 +50,6 @@ import swiprolog.parser.KRInterfaceParser;
  */
 public final class SWIPrologInterface implements KRInterface {
 
-	static {
-		SwiInstaller.init();
-	}
 	/**
 	 * use this for Singleton Design Pattern but this is not really a singleton
 	 * as {@link #reset()} erases all internal fields. In fact this is now more
@@ -88,9 +81,8 @@ public final class SWIPrologInterface implements KRInterface {
 
 		// Initialize inference engine.
 		try {
-			SWIPrologDatabase.rawquery(JPLUtils.createCompound(
-					"set_prolog_flag", new jpl.Atom("debug_on_error"),
-					new jpl.Atom("false")));
+			SWIPrologDatabase.rawquery(JPLUtils.createCompound("set_prolog_flag",
+					new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
 		} catch (KRQueryFailedException e) {
 			throw new KRInitFailedException(e.getMessage(), e);
 		}
@@ -120,7 +112,7 @@ public final class SWIPrologInterface implements KRInterface {
 	}
 
 	/**
-	 * @return The name of this KR interface.
+	 * @return The name of this KR interface. 
 	 */
 	public final String getName() {
 		return "swiprolog";
@@ -144,7 +136,7 @@ public final class SWIPrologInterface implements KRInterface {
 	protected SWIPrologDatabase getDatabase(String id) {
 		return databases.get(id);
 	}
-
+	
 	public Database getDatabase(Collection<DatabaseFormula> theory)
 			throws KRDatabaseException {
 
@@ -158,7 +150,7 @@ public final class SWIPrologInterface implements KRInterface {
 		// Return new database.
 		return database;
 	}
-
+	
 	/**
 	 * 
 	 * @param db
@@ -166,7 +158,7 @@ public final class SWIPrologInterface implements KRInterface {
 	public void removeDatabase(SWIPrologDatabase db) {
 		databases.remove(db.getName());
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -187,14 +179,14 @@ public final class SWIPrologInterface implements KRInterface {
 	 * existence_error is produced.
 	 */
 	public void initialize() throws KRInitFailedException {
-
+		
 	}
 
 	/**
-	 * @throws KRDatabaseException
+	 * @throws KRDatabaseException 
 	 * 
 	 */
-	public void release() throws KRDatabaseException {
+	public void release() throws KRDatabaseException  {
 		for (SWIPrologDatabase db : databases.values()) {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
@@ -208,12 +200,13 @@ public final class SWIPrologInterface implements KRInterface {
 		for (Var var : map.keySet()) {
 			substitution.addBinding(var, map.get(var));
 		}
-
+		
 		return substitution;
 	}
 
 	@Override
-	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries) {
+	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs,
+			Set<Query> queries) {
 		Analyzer analyzer = new Analyzer(dbfs, queries);
 		analyzer.analyze();
 		return analyzer.getUndefined();
@@ -226,19 +219,7 @@ public final class SWIPrologInterface implements KRInterface {
 		analyzer.analyze();
 		return analyzer.getUnused();
 	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public PrologTerm makeList(List<Term> termList) {
-		List<jpl.Term> terms = new ArrayList<jpl.Term>();
-		for (Term t : termList) {
-			terms.add(((PrologTerm) t).getTerm());
-		}
-
-		return new PrologTerm(JPLUtils.termsToList(terms));
-	}
-
+	
 	/**
 	 * @return The name of this {@link SWIPrologInterface}.
 	 */

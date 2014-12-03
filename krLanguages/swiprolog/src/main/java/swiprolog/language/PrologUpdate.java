@@ -25,6 +25,7 @@ import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
+import krTools.parser.SourceInfo;
 
 /**
  * See {@link Update}.
@@ -48,9 +49,10 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 * 
 	 * @param term A JPL term. Assumes that this term is a conjunction and can be
 	 * 			split into a list of conjuncts.
+	 * @param info A source info object.
 	 */
-	public PrologUpdate(jpl.Term term) {
-		super(term);
+	public PrologUpdate(jpl.Term term, SourceInfo info) {
+		super(term, info);
 
 		List<jpl.Term> conjuncts = JPLUtils.getOperands(",", term);
 
@@ -58,9 +60,9 @@ public class PrologUpdate extends PrologExpression implements Update {
 		// is a database formula (which should have been checked by the parser).
 		for (jpl.Term conjunct : conjuncts) {
 			if (JPLUtils.getSignature(conjunct).equals("not/1")) {
-				negativeLiterals.add(new PrologDBFormula(conjunct.arg(1)));
+				negativeLiterals.add(new PrologDBFormula(conjunct.arg(1), info));
 			} else if (!JPLUtils.getSignature(conjunct).equals("true/0")) {
-				positiveLiterals.add(new PrologDBFormula(conjunct));
+				positiveLiterals.add(new PrologDBFormula(conjunct, info));
 			}
 		}
 	}
@@ -86,19 +88,20 @@ public class PrologUpdate extends PrologExpression implements Update {
 	/**
 	 * @return Instantiated {@link PrologUpdate} with applied substitution.
 	 */
-	public PrologUpdate applySubst(Substitution s) {
-		Hashtable<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+	public PrologUpdate applySubst(Substitution substitution) {
+		Hashtable<String, jpl.Term> solution = ((PrologSubstitution) substitution)
+				.getJPLSolution();
 
-		jpl.Term term = JPLUtils.applySubst(jplSubstitution, this.getTerm());
-		PrologUpdate update = new PrologUpdate(term);
+		jpl.Term term = JPLUtils.applySubst(solution, this.getTerm());
+		PrologUpdate update = new PrologUpdate(term, getSourceInfo());
 		update.positiveLiterals = new ArrayList<DatabaseFormula>();
 		update.negativeLiterals = new ArrayList<DatabaseFormula>();
 
 		for (DatabaseFormula formula : this.positiveLiterals) {
-			update.positiveLiterals.add(formula.applySubst(s));
+			update.positiveLiterals.add(formula.applySubst(substitution));
 		}
 		for (DatabaseFormula formula : this.negativeLiterals) {
-			update.negativeLiterals.add(formula.applySubst(s));
+			update.negativeLiterals.add(formula.applySubst(substitution));
 		}
 
 		return update;
@@ -117,7 +120,7 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 * @return A {@link Query}.
 	 */
 	public Query toQuery() {
-		return new PrologQuery(this.getTerm());
+		return new PrologQuery(this.getTerm(), getSourceInfo());
 	}
 
 }

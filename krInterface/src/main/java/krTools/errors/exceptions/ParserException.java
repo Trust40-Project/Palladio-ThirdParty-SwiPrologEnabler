@@ -31,15 +31,12 @@ import krTools.parser.SourceInfo;
  */
 public class ParserException extends Exception implements SourceInfo {
 
-	private static final long serialVersionUID = -5723578552183767160L;
+	private static final long serialVersionUID = 8224464835000074458L;
 
 	/**
 	 * The source of this error. Will not be printed when null.
 	 */
-	private File source = null;
-	
-	private int linenr = -1;
-	private int position = -1;
+	private SourceInfo info = null;
 
 	/**
 	 * Creates a new {@link ParserException} using the message provided.
@@ -55,11 +52,11 @@ public class ParserException extends Exception implements SourceInfo {
 	 * position, and source that are provided.
 	 * 
 	 * @param msg Informative message about the exception.
-	 * @param source The source that was being parsed.
+	 * @param info The source that was being parsed.
 	 */
-	public ParserException(String msg, File source) {
+	public ParserException(String msg, SourceInfo info) {
 		super(msg);
-		this.source = source;
+		this.info = info;
 	}
 	
 	/**
@@ -71,34 +68,47 @@ public class ParserException extends Exception implements SourceInfo {
 	public ParserException(String msg, Throwable e) {
 		super(msg, e);
 	}
-
+	
 	/**
-	 * @return The source of this exception.
+	 * @return {@code true} if source info is available, {@code false} otherwise.
 	 */
-	public File getSourceFile() {
-		return source;
+	public boolean hasSourceInfo() {
+		return info != null;
 	}
 
-	@Override
+	/**
+	 * @return The source of this exception, or {@code null} if no source is available.
+	 */
 	public File getSource() {
-		return source;
+		if (hasSourceInfo()) {
+			return info.getSource();
+		} else {
+			return null;
+		}
 	}
 
 	/**
-	 * @param source The source of this exception.
+	 * @return Line number where exception occurred, or {@code null} if no line nr is available.
 	 */
-	public void setSourceFile(File source) {
-		this.source = source;
-	}
-
 	@Override
 	public int getLineNumber() {
-		return linenr;
+		if (hasSourceInfo()) {
+			return info.getLineNumber();
+		} else {
+			return -1;
+		}
 	}
 
+	/**
+	 * @return Character position where exception occurred, or {@code null} if no position is available.
+	 */
 	@Override
 	public int getCharacterPosition() {
-		return position;
+		if (hasSourceInfo()) {
+			return info.getCharacterPosition();
+		} else {
+			return -1;
+		}
 	}
 
 }

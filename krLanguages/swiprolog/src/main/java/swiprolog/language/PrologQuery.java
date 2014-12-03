@@ -22,12 +22,13 @@ import java.util.Hashtable;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
+import krTools.parser.SourceInfo;
 
 /**
  * A Prolog query.
  */
 public class PrologQuery extends PrologExpression implements Query {
-
+	
 	/**
 	 * Creates a Prolog query.
 	 * 
@@ -37,15 +38,16 @@ public class PrologQuery extends PrologExpression implements Query {
 	 * compile time only).</p>
 	 * 
 	 * @param term A JPL term that can be used as a query.
+	 * @param info A source info object.
 	 */
-	public PrologQuery(jpl.Term term) {
-		super(term);
+	public PrologQuery(jpl.Term term, SourceInfo info) {
+		super(term,info);
 	}
 
 	@Override
 	public Query applySubst(Substitution s) {
-		Hashtable<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
-		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, this.getTerm()));
+		Hashtable<String, jpl.Term> jplSubstitution = ((PrologSubstitution) s).getJPLSolution();
+		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, this.getTerm()), getSourceInfo());
 	}
 	
 	@Override
@@ -61,7 +63,7 @@ public class PrologQuery extends PrologExpression implements Query {
 	 */
 	@Override
 	public Update toUpdate() { 
-		return new PrologUpdate(this.getTerm());
+		return new PrologUpdate(this.getTerm(), getSourceInfo());
 	}
 
 }

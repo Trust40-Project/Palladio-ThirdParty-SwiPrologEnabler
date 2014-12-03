@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import krTools.language.Var;
+import krTools.parser.SourceInfo;
 
 /**
  * A Prolog variable.
@@ -31,9 +32,10 @@ public class PrologVar extends PrologTerm implements Var {
 	 * Creates a variable.
 	 * 
 	 * @param var A JPL variable.
+	 * @param info A source info object.
 	 */
-	public PrologVar(jpl.Variable var) {
-		super(var);
+	public PrologVar(jpl.Variable var, SourceInfo info) {
+		super(var, info);
 	}
 	
 	/**

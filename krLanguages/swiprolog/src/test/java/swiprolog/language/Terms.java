@@ -34,8 +34,8 @@ public class Terms {
 
 	@Test
 	public void equality() {
-		Term var1 = new PrologVar(new jpl.Variable("X"));
-		Term var2 = new PrologVar(new jpl.Variable("X"));
+		Term var1 = new PrologVar(new jpl.Variable("X"), null);
+		Term var2 = new PrologVar(new jpl.Variable("X"), null);
 		assertEquals(true, var1.equals(var2));
 	}
 }
