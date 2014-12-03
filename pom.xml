@@ -52,7 +52,6 @@
     <module>krInterface</module>
     <module>krFactory</module>
     <module>krLanguages</module>
-    <module>adapters</module>
   </modules>
   
   <repositories>
