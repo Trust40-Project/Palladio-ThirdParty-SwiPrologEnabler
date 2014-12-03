@@ -115,8 +115,7 @@ public abstract class PrologExpression implements Expression {
 	 */
 	public Substitution mgu(Expression expression) {
 		jpl.Term otherterm = ((PrologExpression) expression).getTerm();
-
-		return new PrologSubstitution(JPLUtils.mgu(this.getTerm(), otherterm));
+		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(this.getTerm(), otherterm));
 	}
 
 	/**

@@ -50,6 +50,10 @@ import swiprolog.parser.KRInterfaceParser;
  */
 public final class SWIPrologInterface implements KRInterface {
 
+	static {
+		SwiInstaller.init();
+	}
+	
 	/**
 	 * use this for Singleton Design Pattern but this is not really a singleton
 	 * as {@link #reset()} erases all internal fields. In fact this is now more

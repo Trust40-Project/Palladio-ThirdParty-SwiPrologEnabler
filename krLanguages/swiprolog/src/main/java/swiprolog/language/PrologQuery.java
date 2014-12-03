@@ -46,7 +46,7 @@ public class PrologQuery extends PrologExpression implements Query {
 
 	@Override
 	public Query applySubst(Substitution s) {
-		Hashtable<String, jpl.Term> jplSubstitution = ((PrologSubstitution) s).getJPLSolution();
+		Hashtable<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
 		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, this.getTerm()), getSourceInfo());
 	}
 	

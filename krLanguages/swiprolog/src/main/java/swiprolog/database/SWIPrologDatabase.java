@@ -298,7 +298,7 @@ public class SWIPrologDatabase implements Database {
 		// Convert to PrologSubstitution.
 		LinkedHashSet<PrologSubstitution> substitutions = new LinkedHashSet<PrologSubstitution>();
 		for (int i=0; i < solutions.length; i++) {
-			substitutions.add(new PrologSubstitution(solutions[i]));
+			substitutions.add(PrologSubstitution.getSubstitutionOrNull(solutions[i]));
 		}
 
 		return substitutions;

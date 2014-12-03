@@ -25,39 +25,43 @@ import jpl.Term;
 
 import org.junit.Test;
 
+import swiprolog.SwiInstaller;
 import swiprolog.language.PrologSubstitution;
 
 public class TestPrologSubstitution {
+	static {
+		SwiInstaller.init();
+	}
 
 	@Test
 	public void testToString() {
 		Hashtable<String, Term> solution = new Hashtable<String, Term>();
-		PrologSubstitution substitution1 = new PrologSubstitution(solution);
-		
-		assertEquals("[]", substitution1.toString());
+		PrologSubstitution substitution1 = PrologSubstitution.getSubstitutionOrNull(solution);
+		assertTrue(substitution1.getJPLSolution().isEmpty());
 		
 		jpl.Variable var = new jpl.Variable("X");
 		jpl.Term term = new jpl.Atom("a");
 		solution.put(var.name(), term);
-		PrologSubstitution substitution2 = new PrologSubstitution(solution);
-		
-		assertEquals("[X/a]", substitution2.toString());
+		PrologSubstitution substitution2 = PrologSubstitution.getSubstitutionOrNull(solution);
+		assertEquals(1,substitution2.getJPLSolution().size());
+		assertEquals(term,substitution2.getJPLSolution().get(var.name()));
 		
 		jpl.Variable var1 = new jpl.Variable("Y");
 		jpl.Term term1 = new jpl.Atom("b");
 		solution.put(var1.name(), term1);
-		
-		PrologSubstitution substitution3 = new PrologSubstitution(solution);
-		
-		assertEquals("[Y/b, X/a]", substitution3.toString());
+		PrologSubstitution substitution3 = PrologSubstitution.getSubstitutionOrNull(solution);
+		assertEquals(2,substitution3.getJPLSolution().size());
+		assertEquals(term,substitution3.getJPLSolution().get(var.name()));
+		assertEquals(term1,substitution3.getJPLSolution().get(var1.name()));
 		
 		jpl.Variable var2 = new jpl.Variable("Z");
 		jpl.Variable var3 = new jpl.Variable("V");
 		solution.put(var2.name(), var3);
-		
-		PrologSubstitution substitution4 = new PrologSubstitution(solution);
-		
-		assertEquals("[Z/V, Y/b, X/a]", substitution4.toString());
+		PrologSubstitution substitution4 = PrologSubstitution.getSubstitutionOrNull(solution);
+		assertEquals(3,substitution4.getJPLSolution().size());
+		assertEquals(term,substitution4.getJPLSolution().get(var.name()));
+		assertEquals(term1,substitution4.getJPLSolution().get(var1.name()));
+		assertEquals(var3,substitution4.getJPLSolution().get(var2.name()));
 	}
 
 }

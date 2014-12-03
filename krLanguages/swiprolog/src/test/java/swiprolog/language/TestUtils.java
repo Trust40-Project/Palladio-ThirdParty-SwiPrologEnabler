@@ -22,9 +22,13 @@ import krTools.errors.exceptions.KRQueryFailedException;
 
 import org.junit.Test;
 
+import swiprolog.SwiInstaller;
 import swiprolog.database.SWIPrologDatabase;
 
 public class TestUtils {
+	static {
+		SwiInstaller.init();
+	}
 
 	@Test
 	public void testJPLAtom() throws KRQueryFailedException {

@@ -70,8 +70,16 @@ public class PrologSubstitution implements Substitution {
 	 * 
 	 * @param solutions JPL substitution.
 	 */
-	public PrologSubstitution(Hashtable<String, jpl.Term> solution) {
+	private PrologSubstitution(Hashtable<String, jpl.Term> solution) {
 		this.jplSubstitution = solution;
+	}
+	
+	public static PrologSubstitution getSubstitutionOrNull(Hashtable<String, jpl.Term> solution) {
+		if(solution == null){
+			return null;
+		} else {
+			return new PrologSubstitution(solution);
+		}
 	}
 	
 	/**
@@ -140,9 +148,8 @@ public class PrologSubstitution implements Substitution {
 	 */
 	public boolean remove(Var variable) {
 		jpl.Variable var = (jpl.Variable)((PrologVar)variable).getTerm();
-
-		if (this.jplSubstitution.containsKey(var)) {
-			return this.jplSubstitution.remove(var) != null;
+		if (this.jplSubstitution.containsKey(var.name())) {
+			return this.jplSubstitution.remove(var.name()) != null;
 		}
 		return false;
 	}
@@ -153,15 +160,13 @@ public class PrologSubstitution implements Substitution {
 	public boolean retainAll(Collection<Var> variables) {
 		Set<String> vars = this.jplSubstitution.keySet();
 		boolean removed = false;
-		
 		for (Var var : variables) {
 			jpl.Variable v = (jpl.Variable)((PrologVar)var).getTerm();
 			if (!vars.contains(v)) {
-				this.jplSubstitution.remove(v);
+				this.jplSubstitution.remove(v.name());
 				removed = true;
 			}
 		}
-
 		return removed;
 	}
 
@@ -181,18 +186,18 @@ public class PrologSubstitution implements Substitution {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public String toString() {	
-		Set variables = this.jplSubstitution.keySet();
+		Set<String> variables = this.jplSubstitution.keySet();
 		
 		StringBuilder builder = new StringBuilder();
 
 		builder.append("[");
 		boolean addComma = false;
 		
-		for (Object var : variables) {
+		for (String var : variables) {
 			if (addComma) {
 				builder.append(", ");
 			}
-			builder.append(var.toString()).append("/");
+			builder.append(var).append("/");
 			PrologTerm term = new PrologTerm(this.jplSubstitution.get(var),null);
 			builder.append(term.toString());
 			addComma = true;

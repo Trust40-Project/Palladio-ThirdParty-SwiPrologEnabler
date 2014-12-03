@@ -10,9 +10,16 @@ import krTools.language.Update;
 import krTools.parser.Parser;
 
 import org.antlr.runtime.ANTLRReaderStream;
+import org.junit.Before;
 import org.junit.Test;
 
+import swiprolog.SwiInstaller;
+
 public class TestKRInterfaceParser {
+	@Before
+	public void before() {
+		SwiInstaller.init();
+	}
 
 	@Test
 	public void testParseUpdate() throws IOException, ParserException {
