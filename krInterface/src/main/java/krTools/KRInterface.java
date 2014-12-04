@@ -72,7 +72,8 @@ public interface KRInterface {
 	/**
 	 * Creates new database from the content provided.
 	 * 
-	 * @param content A list of {@link DatabaseFormula}s that should be inserted in database.
+	 * @param content A list of {@link DatabaseFormula}s that should be inserted in database;
+	 * 	possibly null.
 	 * @return A database with the given content.
 	 * @throws KRDatabaseException If the database could not be created, or the content
 	 * 			provided could not be added.
@@ -91,7 +92,9 @@ public interface KRInterface {
 	Parser getParser(Reader source) throws ParserException;
 
 	/**
-	 * Creates a substitution from a map of variables to terms. 
+	 * Creates a substitution from a map of variables to terms.
+	 * 
+	 * @param map The Var to Term mapping; possibly null.
 	 * 
 	 * @return A substitution which binds all variables in the map to the associated terms.
 	 */
