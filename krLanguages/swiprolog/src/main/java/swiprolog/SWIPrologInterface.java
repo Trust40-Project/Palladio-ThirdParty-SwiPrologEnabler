@@ -49,7 +49,6 @@ import swiprolog.parser.KRInterfaceParser;
  * Implementation of {@link KRInterface} for SWI Prolog.
  */
 public final class SWIPrologInterface implements KRInterface {
-
 	static {
 		SwiInstaller.init();
 	}
@@ -69,7 +68,6 @@ public final class SWIPrologInterface implements KRInterface {
 	 * from the map.
 	 */
 	private Map<String, SWIPrologDatabase> databases = new HashMap<String, SWIPrologDatabase>();
-
 	/**
 	 * Properties
 	 */
@@ -82,7 +80,6 @@ public final class SWIPrologInterface implements KRInterface {
 	 *             If failed to create inference engine or database.
 	 */
 	private SWIPrologInterface() throws KRInitFailedException {
-
 		// Initialize inference engine.
 		try {
 			SWIPrologDatabase.rawquery(JPLUtils.createCompound("set_prolog_flag",
@@ -143,7 +140,6 @@ public final class SWIPrologInterface implements KRInterface {
 	
 	public Database getDatabase(Collection<DatabaseFormula> theory)
 			throws KRDatabaseException {
-
 		// Create new database of given type, content;
 		// use name as base name for name of database.
 		SWIPrologDatabase database = new SWIPrologDatabase(theory);
@@ -181,6 +177,7 @@ public final class SWIPrologInterface implements KRInterface {
 	 * reference. A SWI Prolog database assumes that all predicates that are
 	 * queried have been either asserted or dynamically declared, otherwise an
 	 * existence_error is produced.
+	 * FIXME: does nothing?!
 	 */
 	public void initialize() throws KRInitFailedException {
 		
@@ -188,23 +185,22 @@ public final class SWIPrologInterface implements KRInterface {
 
 	/**
 	 * @throws KRDatabaseException 
-	 * 
 	 */
 	public void release() throws KRDatabaseException  {
 		for (SWIPrologDatabase db : databases.values()) {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
 		}
-
 		databases = new HashMap<String, SWIPrologDatabase>();
 	}
 
 	public Substitution getSubstitution(Map<Var, Term> map) {
 		PrologSubstitution substitution = new PrologSubstitution();
-		for (Var var : map.keySet()) {
-			substitution.addBinding(var, map.get(var));
-		}
-		
+		if(map != null){
+			for (Var var : map.keySet()) {
+				substitution.addBinding(var, map.get(var));
+			}
+		}		
 		return substitution;
 	}
 
