@@ -200,7 +200,7 @@ public class SWIPrologDatabase implements Database {
 	 *            The database the term should be inserted into.
 	 * @throws KRDatabaseException 
 	 */
-	protected void insert(jpl.Term formula) throws KRDatabaseException {
+	public void insert(jpl.Term formula) throws KRDatabaseException {
 		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
 				formula);
 		try {
@@ -253,7 +253,7 @@ public class SWIPrologDatabase implements Database {
 	 *            The database the term should be deleted from.
 	 * @throws KRDatabaseException 
 	 */
-	private void delete(jpl.Term formula) throws KRDatabaseException {
+	public void delete(jpl.Term formula) throws KRDatabaseException {
 		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
 				formula);
 		try {
