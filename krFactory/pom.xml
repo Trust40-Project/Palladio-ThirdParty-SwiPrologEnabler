@@ -7,7 +7,7 @@
 	<groupId>com.github.goalhub.krTools</groupId>
 	<artifactId>krFactory</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 
 	<name>Knowledge Representation Factory</name>
 	<url>https://github.com/goalhub/krTools/tree/master/krFactory</url>
@@ -66,12 +66,6 @@
 	</distributionManagement>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.github.goalhub.krTools</groupId>
-			<artifactId>krInterface</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-
 		<dependency>
 			<groupId>com.github.goalhub.krTools.krLanguages</groupId>
 			<artifactId>swiprolog</artifactId>
