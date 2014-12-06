@@ -1,16 +1,16 @@
 /**
  * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import swiprolog.parser.PrologOperators;
 import jpl.Compound;
 import jpl.Term;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.parser.SourceInfo;
+import swiprolog.parser.PrologOperators;
 
 /**
  * Analyzer to identify unused and undefined predicates.
@@ -41,23 +41,23 @@ public class Analyzer {
 	/**
 	 * Map of definitions.
 	 */
-	private Map<String, List<PrologDBFormula>> definitions = new LinkedHashMap<String, List<PrologDBFormula>>();
+	private final Map<String, List<PrologDBFormula>> definitions = new LinkedHashMap<String, List<PrologDBFormula>>();
 	/**
 	 * Map of queries.
 	 */
-	private Map<String, List<PrologQuery>> used = new LinkedHashMap<String, List<PrologQuery>>();
-	
+	private final Map<String, List<PrologQuery>> used = new LinkedHashMap<String, List<PrologQuery>>();
+
 	/**
 	 * Input
 	 */
-	private Set<DatabaseFormula> dbfs;
-	private Set<Query> queries;
-	
+	private final Set<DatabaseFormula> dbfs;
+	private final Set<Query> queries;
+
 	/**
 	 * Output
 	 */
-	private Set<String> undefined = new HashSet<>();
-	private Set<String> unused = new HashSet<>();
+	private final Set<String> undefined = new HashSet<>();
+	private final Set<String> unused = new HashSet<>();
 
 	/**
 	 * Creates an analyzer.
@@ -66,40 +66,41 @@ public class Analyzer {
 		this.dbfs = dbfs;
 		this.queries = queries;
 	}
-	
+
 	public void analyze() {
-		for (DatabaseFormula dbf : dbfs) {
+		for (DatabaseFormula dbf : this.dbfs) {
 			addDefinition(dbf);
 		}
-		for (Query query : queries) {
+		for (Query query : this.queries) {
 			addQuery(query);
 		}
-		undefined.addAll(used.keySet());
-		undefined.removeAll(definitions.keySet());
-		unused.addAll(definitions.keySet());
-		unused.removeAll(used.keySet());
+		this.undefined.addAll(this.used.keySet());
+		this.undefined.removeAll(this.definitions.keySet());
+		this.unused.addAll(this.definitions.keySet());
+		this.unused.removeAll(this.used.keySet());
 	}
-	
+
 	public Set<Query> getUndefined() {
 		Set<Query> undefined = new HashSet<>();
 		for (String undf : this.undefined) {
-			undefined.addAll(used.get(undf));
+			undefined.addAll(this.used.get(undf));
 		}
-		
+
 		return undefined;
 	}
-	
+
 	public Set<DatabaseFormula> getUnused() {
 		Set<DatabaseFormula> unused = new HashSet<>();
 		for (String df : this.unused) {
-			unused.addAll(definitions.get(df));
+			unused.addAll(this.definitions.get(df));
 		}
-		
+
 		return unused;
 	}
 
 	/**
-	 * Assumes the given DatabaseFormula is either a single term, or the :-/2 function.
+	 * Assumes the given DatabaseFormula is either a single term, or the :-/2
+	 * function.
 	 */
 	private void addDefinition(DatabaseFormula formula) {
 		PrologDBFormula plFormula = (PrologDBFormula) formula;
@@ -120,13 +121,13 @@ public class Analyzer {
 		}
 		// Add a new definition node
 		List<PrologDBFormula> formulas;
-		if (definitions.containsKey(headSig)) {
-			formulas = definitions.get(headSig);
+		if (this.definitions.containsKey(headSig)) {
+			formulas = this.definitions.get(headSig);
 		} else {
-			formulas = new ArrayList<>();			
+			formulas = new ArrayList<>();
 		}
 		formulas.add(new PrologDBFormula(headTerm, formula.getSourceInfo()));
-		definitions.put(headSig, formulas);
+		this.definitions.put(headSig, formulas);
 	}
 
 	/**
@@ -142,7 +143,8 @@ public class Analyzer {
 	public void addQuery(DatabaseFormula formula) {
 		// we may assume the formula is a single term, so we can just
 		// as well handle the inner term as a general term.
-		this.addQuery(((PrologDBFormula) formula).getTerm(), formula.getSourceInfo());
+		this.addQuery(((PrologDBFormula) formula).getTerm(),
+				formula.getSourceInfo());
 	}
 
 	private void addQuery(jpl.Term plTerm, SourceInfo info) {
@@ -182,13 +184,13 @@ public class Analyzer {
 			// but needs to be added as a query node
 			// Add a new definition node
 			List<PrologQuery> formulas;
-			if (used.containsKey(termSig)) {
-				formulas = used.get(termSig);
+			if (this.used.containsKey(termSig)) {
+				formulas = this.used.get(termSig);
 			} else {
-				formulas = new ArrayList<>();			
+				formulas = new ArrayList<>();
 			}
 			formulas.add(new PrologQuery(plTerm, info));
-			used.put(termSig, formulas);
+			this.used.put(termSig, formulas);
 		}
 	}
 

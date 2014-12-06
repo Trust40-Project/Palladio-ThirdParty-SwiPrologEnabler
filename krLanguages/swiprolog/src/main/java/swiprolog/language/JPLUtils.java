@@ -1,16 +1,16 @@
 /**
  * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -30,7 +30,7 @@ import swiprolog.parser.PrologOperators;
 
 /**
  * Utility class for JPL objects.
- * 
+ *
  * DOC
  */
 public class JPLUtils {
@@ -46,7 +46,7 @@ public class JPLUtils {
 	 * The signatures of integers and floats are defined here as "<value>/0" and
 	 * the signature of a variable "X" is defined as "X/0".
 	 * </p>
-	 * 
+	 *
 	 * @return The signature of the term.
 	 */
 	public static String getSignature(jpl.Term term) {
@@ -62,8 +62,8 @@ public class JPLUtils {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @return The F-ixity of the term: returns NOT_OPERATOR for non-operator
 	 *         terms.
 	 * @see PrologOperators.Fixity for a list of f-ixities.
@@ -79,7 +79,7 @@ public class JPLUtils {
 
 	/**
 	 * Returns the priority of the main operator of the term.
-	 * 
+	 *
 	 * @return The priority of the term's operator. Default is 0.
 	 */
 	public static int getPriority(jpl.Term term) {
@@ -92,7 +92,7 @@ public class JPLUtils {
 
 	/**
 	 * Returns the (free) variables that occur in the term.
-	 * 
+	 *
 	 * @param term
 	 *            The term whose variables are returned.
 	 * @return The variables that occur in the term.
@@ -120,7 +120,7 @@ public class JPLUtils {
 	 * <p>
 	 * There is a {jpl.Term#getSubst} function but it seems to do something
 	 * else.
-	 * 
+	 *
 	 * @param solution
 	 *            is a map String,{@link jpl.Term} pairs. String is the name of
 	 *            the var to be substitued with Term. indicating that all
@@ -139,7 +139,8 @@ public class JPLUtils {
 		}
 		// Case: Variable
 		if (term.isVariable()) {
-			Term value = (solution == null) ? null : ((Term) solution.get(term.name()));
+			Term value = (solution == null) ? null : ((Term) solution.get(term
+					.name()));
 			if (value == null) {
 				return term;
 			}
@@ -157,40 +158,41 @@ public class JPLUtils {
 		throw new IllegalArgumentException("Term " + term + "unknown type "
 				+ term.getClass());
 	}
-	
-    /**
-     * Checks whether term can be used as query, i.e., that term is a well formed Prolog goal.
-     * <p>
-     * ISO requires rebuild of the term but in our case we do not allow
-     * variables and hence a real rebuild is not necessary.
-     * Instead, we simply return the original term after checking.
-     * </p>
-     * 
-     * @return  {@code true} if term is a Prolog goal according to ISO.
-     */
-    public static boolean isQuery(jpl.Term t) {
-        // 7.6.2.a use article 7.8.3
-        if (t.isVariable()) {
-        	// Variables cannot be used as goals
-            return false;  
-        }
-        // 7.6.2.b
-        String sig = JPLUtils.getSignature(t);
-        if (PrologOperators.goalProtected(t.name())) {
-        	// The use of operator in a goal is not supported.
-        	return false;
-        }
-        if (sig.equals(":-/2")) {
-        	return false;
-        }
-        if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
-        	isQuery( t.arg(1));
-        	isQuery( t.arg(2));
-        }
-        // 7.6.2.c
-        // no action required. 
-        return true;
-    }
+
+	/**
+	 * Checks whether term can be used as query, i.e., that term is a well
+	 * formed Prolog goal.
+	 * <p>
+	 * ISO requires rebuild of the term but in our case we do not allow
+	 * variables and hence a real rebuild is not necessary. Instead, we simply
+	 * return the original term after checking.
+	 * </p>
+	 * 
+	 * @return {@code true} if term is a Prolog goal according to ISO.
+	 */
+	public static boolean isQuery(jpl.Term t) {
+		// 7.6.2.a use article 7.8.3
+		if (t.isVariable()) {
+			// Variables cannot be used as goals
+			return false;
+		}
+		// 7.6.2.b
+		String sig = JPLUtils.getSignature(t);
+		if (PrologOperators.goalProtected(t.name())) {
+			// The use of operator in a goal is not supported.
+			return false;
+		}
+		if (sig.equals(":-/2")) {
+			return false;
+		}
+		if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
+			isQuery(t.arg(1));
+			isQuery(t.arg(2));
+		}
+		// 7.6.2.c
+		// no action required.
+		return true;
+	}
 
 	/**
 	 * D-is-a-predication in ISO p.132-.
@@ -207,9 +209,9 @@ public class JPLUtils {
 		}
 		/*
 		 * Arguments must be a D-is-an-arglist see ISO p.132 but all arguments
-		 * must already be PrologTerm and no further checks are needed.
-		 * TODO handle special D-is-a-predication cases. E.g.,
-		 * dewey numbers, and other special cases.
+		 * must already be PrologTerm and no further checks are needed. TODO
+		 * handle special D-is-a-predication cases. E.g., dewey numbers, and
+		 * other special cases.
 		 */
 		return PrologOperators.is_L_atom(term.name());
 	}
@@ -225,7 +227,7 @@ public class JPLUtils {
 	 * <p>
 	 * The map that we return contains String as key objects, because
 	 * jpl.Variable can not be used for key (as it does not implement hashCode).
-	 * 
+	 *
 	 * @param thisterm
 	 *            is the term that we want to assign variables so that it
 	 *            matches the other term
@@ -279,7 +281,7 @@ public class JPLUtils {
 	 * <p>
 	 * The map that we return contains String as key objects, because
 	 * jpl.Variable can not be used for key (as it does not implement hashCode).
-	 * 
+	 *
 	 * @param thisterm
 	 * @return
 	 */
@@ -313,7 +315,7 @@ public class JPLUtils {
 	 * <p>
 	 * The map that we return contains String as key objects, because
 	 * jpl.Variable can not be used for key (as it does not implement hashCode).
-	 * 
+	 *
 	 * @param subst
 	 * @param newsubst
 	 * @return combined subst, or null if they can not be combined (variable
@@ -360,7 +362,7 @@ public class JPLUtils {
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
 				} else { // fail: two different bindings for one and the same
-							// variable.
+					// variable.
 					combination = null;
 					break;
 				}
@@ -384,7 +386,7 @@ public class JPLUtils {
 	 * form ','(e0,','(e1,','(e2...((...,en)))...) returns the list of conjuncts
 	 * e0, e1, e2, etc.
 	 * </p>
-	 * 
+	 *
 	 * @param operator
 	 *            The binary operator.
 	 * @param term
@@ -407,7 +409,7 @@ public class JPLUtils {
 	/**
 	 * Returns a (possibly empty) Prolog list with the given terms as elements
 	 * of the list.
-	 * 
+	 *
 	 * @param terms
 	 *            The elements to be included in the list.
 	 * @return A Prolog list using the "." and "[]" list constructors.
@@ -424,7 +426,7 @@ public class JPLUtils {
 
 	/**
 	 * Returns a (possibly empty) conjunct containing the given terms.
-	 * 
+	 *
 	 * @param newterm
 	 * @return possibly empty conjunct containing the given terms
 	 */
@@ -442,7 +444,7 @@ public class JPLUtils {
 
 	/**
 	 * Creates a JPL compound term.
-	 * 
+	 *
 	 * @param operator
 	 * @param args
 	 * @return
@@ -453,7 +455,7 @@ public class JPLUtils {
 
 	/**
 	 * Returns a hash code for the JPL term.
-	 * 
+	 *
 	 * @param term
 	 *            A JPL term.
 	 * @return A hash code for the term.
@@ -487,7 +489,7 @@ public class JPLUtils {
 
 	/**
 	 * Checks whether two JPL terms are equal.
-	 * 
+	 *
 	 * @param term1
 	 *            A JPL term.
 	 * @param term2
@@ -500,33 +502,42 @@ public class JPLUtils {
 		assert (term1 != null);
 		assert (term2 != null);
 
-		if (term1 == term2)
+		if (term1 == term2) {
 			return true;
-		if (term1.getClass() != term2.getClass())
+		}
+		if (term1.getClass() != term2.getClass()) {
 			return false;
+		}
 		if (term1 instanceof jpl.Compound) {
 			jpl.Compound compound1 = (jpl.Compound) term1;
 			jpl.Compound compound2 = (jpl.Compound) term2;
-			if (!compound1.name().equals(compound2.name()))
+			if (!compound1.name().equals(compound2.name())) {
 				return false;
-			if (compound1.arity() != compound2.arity())
+			}
+			if (compound1.arity() != compound2.arity()) {
 				return false;
+			}
 			for (int i = 1; i <= compound1.arity(); i++) {
-				if (!equals(compound1.arg(i), compound2.arg(i)))
+				if (!equals(compound1.arg(i), compound2.arg(i))) {
 					return false;
+				}
 			}
 			return true;
 		}
-		if (term1 instanceof jpl.Atom)
-			return ((jpl.Atom) term1).name().equals(((jpl.Atom) term2));
-		if (term1 instanceof jpl.Variable)
-			return ((jpl.Variable) term1).name().equals(((jpl.Variable) term2));
-		if (term1 instanceof jpl.Integer)
+		if (term1 instanceof jpl.Atom) {
+			return ((jpl.Atom) term1).name().equals((term2));
+		}
+		if (term1 instanceof jpl.Variable) {
+			return ((jpl.Variable) term1).name().equals((term2));
+		}
+		if (term1 instanceof jpl.Integer) {
 			return ((jpl.Integer) term1).intValue() == ((jpl.Integer) term2)
 					.intValue();
-		if (term1 instanceof jpl.Float)
+		}
+		if (term1 instanceof jpl.Float) {
 			return ((jpl.Float) term1).floatValue() == ((jpl.Float) term2)
 					.floatValue();
+		}
 		// we're not using anything else.
 		throw new UnsupportedOperationException("Equals for JPL terms " + term1
 				+ " and " + term2 + " is not defined.");

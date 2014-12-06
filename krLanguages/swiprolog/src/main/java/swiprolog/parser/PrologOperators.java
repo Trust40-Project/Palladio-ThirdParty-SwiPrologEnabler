@@ -1,17 +1,17 @@
 /**
  * GOAL interpreter that facilitates developing and executing GOAL multi-agent
  * programs. Copyright (C) 2011 K.V. Hindriks, W. Pasman
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,11 +27,12 @@ import java.util.Set;
 import krTools.database.Database;
 
 /**
- * A list of built-in operators of Prolog that are supported; these operators should
- * be treated as reserved keywords. The list also contains information about priorities
- * and the arity of the operators. Note that this list does <b>not</b> include assert,
- * retract, nor throw; these are explicitly excluded because the KR interface itself
- * should be used to update content in a Prolog database (using, e.g.,
+ * A list of built-in operators of Prolog that are supported; these operators
+ * should be treated as reserved keywords. The list also contains information
+ * about priorities and the arity of the operators. Note that this list does
+ * <b>not</b> include assert, retract, nor throw; these are explicitly excluded
+ * because the KR interface itself should be used to update content in a Prolog
+ * database (using, e.g.,
  * {@link Database#delete(krTools.language.DatabaseFormula)}).
  */
 public final class PrologOperators {
@@ -781,12 +782,13 @@ public final class PrologOperators {
 
 	/**
 	 * Built-in operators are already defined in SWI Prolog, and one should not
-	 * try to redefine these by inserting or deleting these (even though SWI Prolog
-	 * allows redefining built-in operators, we do not consider this good practice).
-	 * </p>
-	 * 
-	 * @returns {@code true} if signature is built-in Prolog function <em>and</em> is
-	 *          not a protected predicate, {@code false} otherwise.
+	 * try to redefine these by inserting or deleting these (even though SWI
+	 * Prolog allows redefining built-in operators, we do not consider this good
+	 * practice). </p>
+	 *
+	 * @returns {@code true} if signature is built-in Prolog function
+	 *          <em>and</em> is not a protected predicate, {@code false}
+	 *          otherwise.
 	 */
 	public static boolean prologBuiltin(String signature) {
 		return OP_PRIOS.containsKey(signature);
@@ -795,8 +797,9 @@ public final class PrologOperators {
 	/**
 	 * A number of Prolog operators have a special meaning and are not allowed
 	 * to occur within queries, databases etc.
-	 * 
-	 * @return {@code true} if label is protected operator, {@code false} otherwise.
+	 *
+	 * @return {@code true} if label is protected operator, {@code false}
+	 *         otherwise.
 	 */
 	public static boolean goalProtected(String name) {
 		return PROTECTED_OPS.contains(name);
@@ -815,7 +818,8 @@ public final class PrologOperators {
 	/**
 	 * @param signature
 	 *            is funcname+"/"+#arguments, e.g. "member/2"
-	 * @returns priority of given signature, or {@code null} if no such signature.
+	 * @returns priority of given signature, or {@code null} if no such
+	 *          signature.
 	 */
 	public static Integer getPriority(String signature) {
 		return OP_PRIOS.get(signature);
@@ -825,7 +829,7 @@ public final class PrologOperators {
 	 * Checks if given label is L-atom (see L-atom, ISO p.132 in sec.A.3.1).
 	 * which refers to a concrete atom (identifier), see clause 6.1.2b see also
 	 * ISO Prolog definition of Name in section 6.4.2.
-	 * 
+	 *
 	 * @return {@code true} if label is predication.
 	 */
 	public static boolean is_L_atom(String name) {

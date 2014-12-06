@@ -1,16 +1,16 @@
 /**
  * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -45,7 +45,7 @@ import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologSubstitution;
 
 /**
- * 
+ *
  */
 public class SWIPrologDatabase implements Database {
 
@@ -53,7 +53,7 @@ public class SWIPrologDatabase implements Database {
 	 * Name of this database; used to name a SWI-Prolog module that implements
 	 * the database.
 	 */
-	private jpl.Atom name;
+	private final jpl.Atom name;
 	/**
 	 * Static int for representing unique number to be able to generate unique
 	 * database names.
@@ -74,64 +74,66 @@ public class SWIPrologDatabase implements Database {
 		}
 		// Name consists of (lower case) database type post-fixed with unique
 		// number.
-		this.name = new jpl.Atom("db"+ number);
+		this.name = new jpl.Atom("db" + number);
 
-			// FIXME: SWI Prolog needs access to various libaries at runtime and
-			// loads these
-			// dynamically; if many agents try to do this at the same time this
-			// gives access
-			// errors ('No permission to load'). We can now decide to fix this
-			// by loading these
-			// libraries upfront when we need them (that implies work to check
-			// whether we need
-			// a library of course). Benefit is that we ONLY need to synchronize
-			// creating of
-			// databases (this code) and NOT all calls to rawquery... We should
-			// check whether
-			// this impacts performance or not.
-			// FOr now, solved this issue by adding synchronized modifier to
-			// rawquery.
+		// FIXME: SWI Prolog needs access to various libaries at runtime and
+		// loads these
+		// dynamically; if many agents try to do this at the same time this
+		// gives access
+		// errors ('No permission to load'). We can now decide to fix this
+		// by loading these
+		// libraries upfront when we need them (that implies work to check
+		// whether we need
+		// a library of course). Benefit is that we ONLY need to synchronize
+		// creating of
+		// databases (this code) and NOT all calls to rawquery... We should
+		// check whether
+		// this impacts performance or not.
+		// FOr now, solved this issue by adding synchronized modifier to
+		// rawquery.
 
-			// EXAMPLE BELOW: only loads lists.pl but no other libraries.
-			// jpl.Term loadlists = JPLUtils.createCompound("ensure_loaded", new
-			// jpl.Atom("c:/program files/pl/library/lists.pl"));
-			// SWIQuery.rawquery(JPLUtils.createCompound(":", this.name,
-			// loadlists));
-			// }
+		// EXAMPLE BELOW: only loads lists.pl but no other libraries.
+		// jpl.Term loadlists = JPLUtils.createCompound("ensure_loaded", new
+		// jpl.Atom("c:/program files/pl/library/lists.pl"));
+		// SWIQuery.rawquery(JPLUtils.createCompound(":", this.name,
+		// loadlists));
+		// }
 	}
 
+	@Override
 	public String getName() {
-		return name.name();
+		return this.name.name();
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public jpl.Atom getJPLName() {
 		return this.name;
 	}
-	
+
 	/**
 	 * Removes a database from the list of databases maintained by SWI Prolog.
-	 * 
+	 *
 	 * TRAC #2027 there seems no factory pattern dealing with instance deletion.
-	 * 
+	 *
 	 * @param database
 	 *            The database that has been deleted.
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
+	@Override
 	public void destroy() throws KRDatabaseException {
 		eraseContent();
 		cleanUp();
 	}
-
 
 	/**
 	 * Performs given query on the database. As databases are implemented as
 	 * modules in SWI Prolog, a query is constructed that contains a reference
 	 * to the corresponding module.
 	 */
+	@Override
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
 		Set<Substitution> substSet = new LinkedHashSet<Substitution>();
 
@@ -141,8 +143,8 @@ public class SWIPrologDatabase implements Database {
 		// db_query
 		// as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		substSet.addAll(rawquery(JPLUtils.createCompound(",",
-				new jpl.Atom("true"), db_query)));
+		substSet.addAll(rawquery(JPLUtils.createCompound(",", new jpl.Atom(
+				"true"), db_query)));
 		return substSet;
 	}
 
@@ -155,12 +157,13 @@ public class SWIPrologDatabase implements Database {
 	 * <tt>insert(&lt;database label>:&lt;formula>)</tt>
 	 * </p>
 	 * ASSUMES formula can be argument of assert (fact, rules). <br>
-	 * 
+	 *
 	 * @param formula
 	 *            is the PrologTerm to be inserted into database. appropriate
 	 *            database label will be prefixed to your formula
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
+	@Override
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
 		insert(((PrologDBFormula) formula).getTerm());
 	}
@@ -169,15 +172,16 @@ public class SWIPrologDatabase implements Database {
 	 * Inserts positive literals that are part of the update into the database
 	 * and retracts the negative literals. CHECK maybe it is faster to compile
 	 * to a single large JPL call before
-	 * 
+	 *
 	 * @param update
 	 *            The basic databaseformula, not(databaseformula) or
 	 *            comma-separated list of dtabase formulas. comma-separated as
 	 *            usual in Prolog: (t1,(t2,(t3,(t4...,(..,tn)))))
 	 * @param database
 	 *            The database into which the update has been inserted.
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
+	@Override
 	public void insert(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getDeleteList()) {
 			delete((formula));
@@ -193,12 +197,12 @@ public class SWIPrologDatabase implements Database {
 	 * <p>
 	 * Prefix notation is used below to construct the assert term.
 	 * </p>
-	 * 
+	 *
 	 * @param formula
 	 *            The JPL term to be inserted.
 	 * @param database
 	 *            The database the term should be inserted into.
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
 	public void insert(jpl.Term formula) throws KRDatabaseException {
 		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
@@ -212,6 +216,7 @@ public class SWIPrologDatabase implements Database {
 
 	// ***************** delete methods ****************/
 
+	@Override
 	public void delete(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getAddList()) {
 			delete((formula));
@@ -228,14 +233,15 @@ public class SWIPrologDatabase implements Database {
 	 * label of the database: the SWI prolog query will look like <br>
 	 * <tt>retract(&lt;database label>:&lt;formula>)</tt>
 	 * </p>
-	 * 
+	 *
 	 * @param formula
 	 *            is the DatabaseFormula to be retracted from SWI. ASSUMES
 	 *            formula can be argument of retract (fact, rules). CHECK rules
 	 *            need to be converted into string correctly! toString may be
 	 *            insufficient for SWI queries
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
+	@Override
 	public void delete(DatabaseFormula formula) throws KRDatabaseException {
 		delete(((PrologDBFormula) formula).getTerm());
 	}
@@ -246,12 +252,12 @@ public class SWIPrologDatabase implements Database {
 	 * <p>
 	 * Prefix notation is used below to construct the retract term.
 	 * </p>
-	 * 
+	 *
 	 * @param formula
 	 *            The JPL term to be deleted.
 	 * @param database
 	 *            The database the term should be deleted from.
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
 	public void delete(jpl.Term formula) throws KRDatabaseException {
 		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
@@ -262,8 +268,7 @@ public class SWIPrologDatabase implements Database {
 			throw new KRDatabaseException(e.getMessage(), e);
 		}
 	}
-	
-	
+
 	/**
 	 * <p>
 	 * A call to SWI Prolog that converts the solutions obtained into
@@ -273,40 +278,44 @@ public class SWIPrologDatabase implements Database {
 	 * WARNING. this is for internal use in KR implementation only. There is a
 	 * known issue with floats (TRAC #726).
 	 * </p>
-	 * 
-	 * @param query A JPL query.
+	 *
+	 * @param query
+	 *            A JPL query.
 	 * @return A set of substitutions, empty set if there are no solutions, and
-	 * 			a set with the empty substitution if the query succeeds but does
-	 * 			not return any bindings of variables.
-	 * @throws KRQueryFailedException 
+	 *         a set with the empty substitution if the query succeeds but does
+	 *         not return any bindings of variables.
+	 * @throws KRQueryFailedException
 	 */
 	@SuppressWarnings("unchecked")
-	public static synchronized Set<PrologSubstitution> rawquery(jpl.Term query) throws KRQueryFailedException {
-		
+	public static synchronized Set<PrologSubstitution> rawquery(jpl.Term query)
+			throws KRQueryFailedException {
+
 		// Create JPL query.
 		jpl.Query jplQuery = new jpl.Query(query);
-		
+
 		// Get all solutions.
 		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions;
 		try {
 			solutions = jplQuery.allSolutions();
 		} catch (Throwable e) {
-			throw new KRQueryFailedException(handleRawqueryException(jplQuery, e), e);
+			throw new KRQueryFailedException(handleRawqueryException(jplQuery,
+					e), e);
 		}
-				
+
 		// Convert to PrologSubstitution.
 		LinkedHashSet<PrologSubstitution> substitutions = new LinkedHashSet<PrologSubstitution>();
-		for (int i=0; i < solutions.length; i++) {
-			substitutions.add(PrologSubstitution.getSubstitutionOrNull(solutions[i]));
+		for (Hashtable solution : solutions) {
+			substitutions.add(PrologSubstitution
+					.getSubstitutionOrNull(solution));
 		}
 
 		return substitutions;
 	}
-	
+
 	/**
 	 * Converts exception into more readable warning message.
-	 *  
+	 * 
 	 * @param query
 	 * @param e
 	 * @return
@@ -323,22 +332,21 @@ public class SWIPrologDatabase implements Database {
 				// JPL existence error. ASSUMES modules are queried.
 				int start = i + 29;
 				int end = mess.indexOf(")", start); // should be there
-				warning = "Query " + query
+				warning = "Query "
+						+ query
 						+ " failed because predicate has not been implemented: "
 						+ mess.substring(start, end).replace(',', '/');
 			}
 		}
 		return warning;
 	}
-	
-	
-	
+
 	/**
 	 * Read a file generated by SWI Prolog.
-	 * 
+	 *
 	 * @param lFilename
 	 *            is the name of the file to be read
-	 * @throws KRException 
+	 * @throws KRException
 	 */
 	private List<String> readTempFile(String lFilename) throws KRException {
 		String lLine;
@@ -391,8 +399,9 @@ public class SWIPrologDatabase implements Database {
 	 * workaround: After resetting do not re-use this database but make a new
 	 * one.
 	 * </p>
-	 * <p>  
-	 * @throws KRDatabaseException 
+	 * <p>
+	 * 
+	 * @throws KRDatabaseException
 	 */
 	protected void eraseContent() throws KRDatabaseException {
 		// String deleteone =
@@ -435,9 +444,9 @@ public class SWIPrologDatabase implements Database {
 		}
 	}
 
-	/** 
+	/**
 	 * Frees memory used by database upon deletion of the database.
-	 * 
+	 *
 	 * @throws KRDatabaseException
 	 */
 	protected void cleanUp() throws KRDatabaseException {
@@ -445,7 +454,8 @@ public class SWIPrologDatabase implements Database {
 		try {
 			SWIPrologInterface.getInstance().removeDatabase(this);
 		} catch (KRInitFailedException e) {
-			throw new KRDatabaseException("Clean up before initialization: " + e.getMessage(), e);
+			throw new KRDatabaseException("Clean up before initialization: "
+					+ e.getMessage(), e);
 		}
 	}
 
@@ -453,7 +463,8 @@ public class SWIPrologDatabase implements Database {
 		try {
 			rawquery(new jpl.Atom("statistics"));
 		} catch (Exception e) {
-			// TODO new Warning("Cannot retrieve statistics: " + e.getMessage(), e);
+			// TODO new Warning("Cannot retrieve statistics: " + e.getMessage(),
+			// e);
 		}
 	}
 

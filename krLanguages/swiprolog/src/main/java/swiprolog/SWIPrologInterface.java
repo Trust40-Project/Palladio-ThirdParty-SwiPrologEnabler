@@ -1,16 +1,16 @@
 /**
  * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.antlr.runtime.ANTLRReaderStream;
-
 import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.errors.exceptions.KRDatabaseException;
@@ -39,6 +37,9 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
+
+import org.antlr.runtime.ANTLRReaderStream;
+
 import swiprolog.database.SWIPrologDatabase;
 import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
@@ -52,7 +53,7 @@ public final class SWIPrologInterface implements KRInterface {
 	static {
 		SwiInstaller.init();
 	}
-	
+
 	/**
 	 * use this for Singleton Design Pattern but this is not really a singleton
 	 * as {@link #reset()} erases all internal fields. In fact this is now more
@@ -71,19 +72,20 @@ public final class SWIPrologInterface implements KRInterface {
 	/**
 	 * Properties
 	 */
-	private Properties properties;
+	private final Properties properties;
 
 	/**
 	 * Creates new inference engine and empty set of databases.
-	 * 
+	 *
 	 * @throws KRInitFailedException
 	 *             If failed to create inference engine or database.
 	 */
 	private SWIPrologInterface() throws KRInitFailedException {
 		// Initialize inference engine.
 		try {
-			SWIPrologDatabase.rawquery(JPLUtils.createCompound("set_prolog_flag",
-					new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
+			SWIPrologDatabase.rawquery(JPLUtils.createCompound(
+					"set_prolog_flag", new jpl.Atom("debug_on_error"),
+					new jpl.Atom("false")));
 		} catch (KRQueryFailedException e) {
 			throw new KRInitFailedException(e.getMessage(), e);
 		}
@@ -94,13 +96,13 @@ public final class SWIPrologInterface implements KRInterface {
 		jpl.JPL.setDTMMode(false);
 
 		// TODO: This can be removed??
-		properties = new Properties();
-		properties.setProperty("EnableJPLQueryBugFix", "true");
+		this.properties = new Properties();
+		this.properties.setProperty("EnableJPLQueryBugFix", "true");
 	}
 
 	/**
 	 * Returns THE SWIPrologLanguage instance.
-	 * 
+	 *
 	 * @return The instance of {@link SWIPrologInterface}.
 	 * @throws KRInitFailedException
 	 */
@@ -113,8 +115,9 @@ public final class SWIPrologInterface implements KRInterface {
 	}
 
 	/**
-	 * @return The name of this KR interface. 
+	 * @return The name of this KR interface.
 	 */
+	@Override
 	public final String getName() {
 		return "swiprolog";
 	}
@@ -126,7 +129,7 @@ public final class SWIPrologInterface implements KRInterface {
 	 * all other types of databases an agent can have multiple databases that
 	 * are used for storing goals.
 	 * </p>
-	 * 
+	 *
 	 * @param agent
 	 *            The name of an agent.
 	 * @param type
@@ -135,9 +138,10 @@ public final class SWIPrologInterface implements KRInterface {
 	 *          {@code null} if no database of the given type exists.
 	 */
 	protected SWIPrologDatabase getDatabase(String id) {
-		return databases.get(id);
+		return this.databases.get(id);
 	}
-	
+
+	@Override
 	public Database getDatabase(Collection<DatabaseFormula> theory)
 			throws KRDatabaseException {
 		// Create new database of given type, content;
@@ -145,23 +149,24 @@ public final class SWIPrologInterface implements KRInterface {
 		SWIPrologDatabase database = new SWIPrologDatabase(theory);
 		// Add database to list of databases maintained by SWI Prolog and
 		// associated with name.
-		databases.put(database.getName(), database);
+		this.databases.put(database.getName(), database);
 
 		// Return new database.
 		return database;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param db
 	 */
 	public void removeDatabase(SWIPrologDatabase db) {
-		databases.remove(db.getName());
+		this.databases.remove(db.getName());
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public Parser getParser(Reader r) throws ParserException {
 		ANTLRReaderStream cs;
 		try {
@@ -176,37 +181,38 @@ public final class SWIPrologInterface implements KRInterface {
 	 * Computes predicates that need to be declared dynamically for later
 	 * reference. A SWI Prolog database assumes that all predicates that are
 	 * queried have been either asserted or dynamically declared, otherwise an
-	 * existence_error is produced.
-	 * FIXME: does nothing?!
+	 * existence_error is produced. FIXME: does nothing?!
 	 */
+	@Override
 	public void initialize() throws KRInitFailedException {
-		
+
 	}
 
 	/**
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
-	public void release() throws KRDatabaseException  {
-		for (SWIPrologDatabase db : databases.values()) {
+	@Override
+	public void release() throws KRDatabaseException {
+		for (SWIPrologDatabase db : this.databases.values()) {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
 		}
-		databases = new HashMap<String, SWIPrologDatabase>();
+		this.databases = new HashMap<String, SWIPrologDatabase>();
 	}
 
+	@Override
 	public Substitution getSubstitution(Map<Var, Term> map) {
 		PrologSubstitution substitution = new PrologSubstitution();
-		if(map != null){
+		if (map != null) {
 			for (Var var : map.keySet()) {
 				substitution.addBinding(var, map.get(var));
 			}
-		}		
+		}
 		return substitution;
 	}
 
 	@Override
-	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs,
-			Set<Query> queries) {
+	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries) {
 		Analyzer analyzer = new Analyzer(dbfs, queries);
 		analyzer.analyze();
 		return analyzer.getUndefined();
@@ -219,7 +225,7 @@ public final class SWIPrologInterface implements KRInterface {
 		analyzer.analyze();
 		return analyzer.getUnused();
 	}
-	
+
 	/**
 	 * @return The name of this {@link SWIPrologInterface}.
 	 */

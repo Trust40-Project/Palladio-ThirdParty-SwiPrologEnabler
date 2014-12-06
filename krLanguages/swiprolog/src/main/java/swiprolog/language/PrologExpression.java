@@ -1,16 +1,16 @@
 /**
  * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -36,7 +36,7 @@ public abstract class PrologExpression implements Expression {
 	 * A JPL term representing a Prolog expression.
 	 */
 	private final jpl.Term term;
-	
+
 	/**
 	 * Information about the source used to construct this expression.
 	 */
@@ -44,7 +44,7 @@ public abstract class PrologExpression implements Expression {
 
 	/**
 	 * Creates a Prolog expression.
-	 * 
+	 *
 	 * @term A JPL term.
 	 */
 	public PrologExpression(jpl.Term term, SourceInfo info) {
@@ -54,35 +54,39 @@ public abstract class PrologExpression implements Expression {
 
 	/**
 	 * Returns the JPL term.
-	 * 
+	 *
 	 * @return A {@link jpl.Term}.
 	 */
 	public jpl.Term getTerm() {
 		return this.term;
 	}
-	
+
 	/**
-	 * @return A {@link SourceInfo} object with information about the source used to construct this expression.
+	 * @return A {@link SourceInfo} object with information about the source
+	 *         used to construct this expression.
 	 */
+	@Override
 	public SourceInfo getSourceInfo() {
-		return info;
+		return this.info;
 	}
 
 	/**
 	 * Checks whether this expression is a variables.
-	 * 
+	 *
 	 * @return {@code true} if this expression is a variable; {@code false}
 	 *         otherwise.
 	 */
+	@Override
 	public boolean isVar() {
 		return this.getTerm().isVariable();
 	}
 
 	/**
 	 * Returns the (free) variables that occur in this expression.
-	 * 
+	 *
 	 * @return The (free) variables that occur in this expression.
 	 */
+	@Override
 	public Set<Var> getFreeVar() {
 		ArrayList<jpl.Variable> jplvars = new ArrayList<jpl.Variable>(
 				JPLUtils.getFreeVar(this.getTerm()));
@@ -99,9 +103,10 @@ public abstract class PrologExpression implements Expression {
 	/**
 	 * Checks whether this expression is closed, i.e., has no occurrences of
 	 * (free) variables.
-	 * 
+	 *
 	 * @return {@code true} if this expression is closed.
 	 */
+	@Override
 	public boolean isClosed() {
 		return JPLUtils.getFreeVar(this.getTerm()).isEmpty();
 	}
@@ -109,13 +114,15 @@ public abstract class PrologExpression implements Expression {
 	/**
 	 * Returns a most general unifier, if it exists, that unifies this and the
 	 * given expression.
-	 * 
+	 *
 	 * @return A unifier for this and the given expression, if it exists;
 	 *         {@code null} otherwise.
 	 */
+	@Override
 	public Substitution mgu(Expression expression) {
 		jpl.Term otherterm = ((PrologExpression) expression).getTerm();
-		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(this.getTerm(), otherterm));
+		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(
+				this.getTerm(), otherterm));
 	}
 
 	/**
@@ -125,48 +132,49 @@ public abstract class PrologExpression implements Expression {
 	 * mainoperator+"/"+arity so you do not have ot override this. Note that
 	 * signature of a variable is set to X/0.
 	 * </p>
-	 * 
+	 *
 	 * @return The signature of this Prolog expression.
 	 */
+	@Override
 	public String getSignature() {
 		return JPLUtils.getSignature(this.term);
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public boolean isEmpty() {
 		return this.getSignature().equals("true/0");
 	}
 
-
 	@Override
 	public String toString() {
-		if (term.isAtom()) {
-			return term.toString();
+		if (this.term.isAtom()) {
+			return this.term.toString();
 		}
 
-		if (term.isVariable()) {
-			return term.name();
+		if (this.term.isVariable()) {
+			return this.term.name();
 		}
 
-		if (term.isInteger()) {
-			return Integer.toString(term.intValue());
+		if (this.term.isInteger()) {
+			return Integer.toString(this.term.intValue());
 		}
 
-		if (term.isFloat()) {
-			return Float.toString(term.floatValue());
+		if (this.term.isFloat()) {
+			return Float.toString(this.term.floatValue());
 		}
 
-		if (term.isCompound()) {
+		if (this.term.isCompound()) {
 			/**
 			 * Special treatment of (non-empty) lists.
 			 */
-			if (term.name().equals(".") && term.arity() == 2) {
-				return "[" + term.arg(1) + tailToString(term.arg(2)) + "]";
+			if (this.term.name().equals(".") && this.term.arity() == 2) {
+				return "[" + this.term.arg(1) + tailToString(this.term.arg(2))
+						+ "]";
 			}
 
-			switch (JPLUtils.getFixity(term)) {
+			switch (JPLUtils.getFixity(this.term)) {
 			case FX:
 			case FY:
 				/*
@@ -175,23 +183,23 @@ public abstract class PrologExpression implements Expression {
 				 * brackets.
 				 */
 				// SWI bug workaround. Mantis 280
-				if (term.name().equals("-")) {
-					return term.name() + maybeBracketed(1);
+				if (this.term.name().equals("-")) {
+					return this.term.name() + maybeBracketed(1);
 				}
-				return term.name() + " " + maybeBracketed(1);
+				return this.term.name() + " " + maybeBracketed(1);
 			case XFX:
 			case XFY:
 			case YFX:
-				return maybeBracketed(1) + " " + term.name() + " "
-						+ maybeBracketed(2);
+				return maybeBracketed(1) + " " + this.term.name() + " "
+				+ maybeBracketed(2);
 			case XF:
-				return maybeBracketed(1) + " " + term.name() + " ";
+				return maybeBracketed(1) + " " + this.term.name() + " ";
 			default:
 				/**
 				 * Default: return functional notation (canonical form).
 				 */
-				String s = term.name() + "(" + maybeBracketedArgument(1);
-				for (int i = 2; i <= term.arity(); i++) {
+				String s = this.term.name() + "(" + maybeBracketedArgument(1);
+				for (int i = 2; i <= this.term.arity(); i++) {
 					s = s + "," + maybeBracketedArgument(i);
 				}
 				s = s + ")";
@@ -202,12 +210,12 @@ public abstract class PrologExpression implements Expression {
 		// Don't know what this is; throw.
 		throw new UnsupportedOperationException(
 				"No support for constructing String for JPL term of type "
-						+ term.getClass());
+						+ this.term.getClass());
 	}
 
 	/**
 	 * Support function for toString of a tail of a lists.
-	 * 
+	 *
 	 * @param term
 	 *            is a Prolog term that is part of a list.
 	 * @return given term t in pretty-printed list form but without "[" or "]"
@@ -243,15 +251,15 @@ public abstract class PrologExpression implements Expression {
 	 * around it, if the term has a principal functor whose priority is so high
 	 * that the term could not be re-input correctly. Use for operators. see ISO
 	 * p.45 part h 2.
-	 * 
+	 *
 	 * @param argument
 	 *            Either 1 or 2 to indicate JPL argument.
 	 */
 	private String maybeBracketed(int argument) {
-		jpl.Term arg = term.arg(argument);
+		jpl.Term arg = this.term.arg(argument);
 		PrologExpression argexpression = new PrologTerm(arg, null);
 		int argprio = JPLUtils.getPriority(arg);
-		int ourprio = JPLUtils.getPriority(term);
+		int ourprio = JPLUtils.getPriority(this.term);
 
 		if (argprio > ourprio) {
 			return "(" + argexpression.toString() + ")";
@@ -264,7 +272,7 @@ public abstract class PrologExpression implements Expression {
 			// were brackets.
 			// System.out.println("getting spec of "+label+"/"+arguments.size()+"="+GetSpec());
 			// System.out.println("prio of arg "+argumentnumber+" "+arg+" = "+argprio);
-			PrologOperators.Fixity spec = JPLUtils.getFixity(term);
+			PrologOperators.Fixity spec = JPLUtils.getFixity(this.term);
 			if (spec == null) {
 				return argexpression.toString(); // no spec, no op.
 			}
@@ -296,11 +304,11 @@ public abstract class PrologExpression implements Expression {
 	 * around term. Checks if argument[argument] needs bracketing for printing.
 	 * Arguments inside a predicate are priority 1000. All arguments higher than
 	 * that must have been bracketed.
-	 * 
+	 *
 	 * @return bracketed term if required, and without brackets if not needed.
 	 */
 	private String maybeBracketedArgument(int argument) {
-		jpl.Term arg = term.arg(argument);
+		jpl.Term arg = this.term.arg(argument);
 		int argprio = JPLUtils.getPriority(arg);
 
 		// prio of ','. If we encounter a ","(..) inside arglist we also need
@@ -320,17 +328,21 @@ public abstract class PrologExpression implements Expression {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		PrologExpression other = (PrologExpression) obj;
-		if (term == null) {
-			if (other.term != null)
+		if (this.term == null) {
+			if (other.term != null) {
 				return false;
+			}
 		} // JPL does not implement equals...
-		else if (!JPLUtils.equals(term, other.term))
+		else if (!JPLUtils.equals(this.term, other.term)) {
 			return false;
+		}
 		return true;
 	}
 

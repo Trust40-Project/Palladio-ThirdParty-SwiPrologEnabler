@@ -1,23 +1,21 @@
 /**
  * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package swiprolog.parser;
-
-
 
 import org.antlr.runtime.ClassicToken;
 
@@ -30,12 +28,13 @@ public class LinkedListToken extends ClassicToken {
 	}
 
 	public LinkedListToken getNext() {
-		return next;
+		return this.next;
 	}
 
 	public void setNext(LinkedListToken next) {
 		if (this == next) {
-			throw new IllegalArgumentException("Token stream loop detected ("+toString()+")");
+			throw new IllegalArgumentException("Token stream loop detected ("
+					+ toString() + ")");
 		}
 		this.next = next;
 		if (next != null) {
@@ -44,7 +43,7 @@ public class LinkedListToken extends ClassicToken {
 	}
 
 	public LinkedListToken getPrev() {
-		return prev;
+		return this.prev;
 	}
 
 	public void setPrev(LinkedListToken prev) {
@@ -59,41 +58,45 @@ public class LinkedListToken extends ClassicToken {
 
 	public void afterInsert(LinkedListToken insert) {
 		if (insert.getPrev() != null) {
-			throw new IllegalArgumentException("afterInsert("+insert+") : prev was not null");
+			throw new IllegalArgumentException("afterInsert(" + insert
+					+ ") : prev was not null");
 		}
 		if (insert.getNext() != null) {
-			throw new IllegalArgumentException("afterInsert("+insert+") : next was not null");
+			throw new IllegalArgumentException("afterInsert(" + insert
+					+ ") : next was not null");
 		}
-		insert.next = next;
+		insert.next = this.next;
 		insert.prev = this;
-		if (next != null) {
-			next.prev = insert;
+		if (this.next != null) {
+			this.next.prev = insert;
 		}
-		next = insert;
+		this.next = insert;
 	}
 
 	public void beforeInsert(LinkedListToken insert) {
 		if (insert.getPrev() != null) {
-			throw new IllegalArgumentException("beforeInsert("+insert+") : prev was not null");
+			throw new IllegalArgumentException("beforeInsert(" + insert
+					+ ") : prev was not null");
 		}
 		if (insert.getNext() != null) {
-			throw new IllegalArgumentException("beforeInsert("+insert+") : next was not null");
+			throw new IllegalArgumentException("beforeInsert(" + insert
+					+ ") : next was not null");
 		}
-		insert.prev = prev;
+		insert.prev = this.prev;
 		insert.next = this;
-		if (prev != null) {
-			prev.next = insert;
+		if (this.prev != null) {
+			this.prev.next = insert;
 		}
-		prev = insert;
+		this.prev = insert;
 	}
 
-	public void delete() { 
-		if (prev != null) {
-			prev.next = next;
+	public void delete() {
+		if (this.prev != null) {
+			this.prev.next = this.next;
 		}
-		if (next != null) {
-			next.prev = prev;
+		if (this.next != null) {
+			this.next.prev = this.prev;
 		}
-		next = prev = null;
+		this.next = this.prev = null;
 	}
 }

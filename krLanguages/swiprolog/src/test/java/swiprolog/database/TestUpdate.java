@@ -5,21 +5,24 @@ import static org.junit.Assert.assertEquals;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import jpl.Atom;
 import jpl.Term;
-import swiprolog.language.PrologDBFormula;
-import swiprolog.language.PrologQuery;
-import swiprolog.language.PrologUpdate;
 import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.errors.exceptions.KRDatabaseException;
 import krTools.errors.exceptions.KRInitFailedException;
 import krTools.errors.exceptions.KRQueryFailedException;
-import krTools.language.*;
+import krTools.language.DatabaseFormula;
+import krTools.language.Substitution;
+import krTools.language.Update;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import swiprolog.language.PrologDBFormula;
+import swiprolog.language.PrologQuery;
+import swiprolog.language.PrologUpdate;
 
 /**
  * Test the {@link UpdateEngine} BELIEFBASE part. Unfortunately we need also the
@@ -35,9 +38,9 @@ import krTools.language.*;
  * TODO we need to reach a good coverage in this test. Currently we do just a
  * bit of basic testing only. To create a good test, we should make a state
  * diagram of the UpdateEngine first.
- * 
+ *
  * @author W.Pasman 12mar2012
- * 
+ *
  */
 
 public class TestUpdate {
@@ -47,117 +50,120 @@ public class TestUpdate {
 	private Database beliefbase;
 	private Database knowledgebase;
 
-	private Atom aap = new jpl.Atom("aap");
-	private Atom beer = new jpl.Atom("beer");
-	private Atom kat = new jpl.Atom("kat");
+	private final Atom aap = new jpl.Atom("aap");
+	private final Atom beer = new jpl.Atom("beer");
+	private final Atom kat = new jpl.Atom("kat");
 
 	@Before
 	public void setUp() throws Exception {
-		language = swiprolog.SWIPrologInterface.getInstance();
+		this.language = swiprolog.SWIPrologInterface.getInstance();
 
-		knowledgebase = language.getDatabase(
-				new LinkedHashSet<DatabaseFormula>());
+		this.knowledgebase = this.language
+				.getDatabase(new LinkedHashSet<DatabaseFormula>());
 
-		beliefbase = language.getDatabase(
-				new LinkedHashSet<DatabaseFormula>());
+		this.beliefbase = this.language
+				.getDatabase(new LinkedHashSet<DatabaseFormula>());
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		if (beliefbase != null) {
-			beliefbase.destroy();
+		if (this.beliefbase != null) {
+			this.beliefbase.destroy();
 		}
-		if (knowledgebase != null) {
-			knowledgebase.destroy();
+		if (this.knowledgebase != null) {
+			this.knowledgebase.destroy();
 		}
 	}
 
 	@Test
 	public void testInitialQuery1() throws KRQueryFailedException {
 		PrologQuery query = new PrologQuery(new jpl.Atom("true"), null);
-		Set<Substitution> sol = beliefbase.query(query);
+		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
 
 	/**
 	 * Check that inserting 'aap' results in 'aap' query to become true and that
 	 * there is 1 sentence in beliefbase after the insert.
-	 * 
+	 *
 	 * @throws KRQueryFailedException
-	 * @throws KRInitFailedException 
+	 * @throws KRInitFailedException
 	 */
 	@Test
-	public void testInsertFormula() throws KRQueryFailedException, KRDatabaseException {
-		DatabaseFormula formula = new PrologDBFormula(aap, null);
-		beliefbase.insert(formula);
+	public void testInsertFormula() throws KRQueryFailedException,
+			KRDatabaseException {
+		DatabaseFormula formula = new PrologDBFormula(this.aap, null);
+		this.beliefbase.insert(formula);
 
-		PrologQuery query = new PrologQuery(aap, null);
-		Set<Substitution> sol = beliefbase.query(query);
+		PrologQuery query = new PrologQuery(this.aap, null);
+		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
 
 	/**
 	 * Check that after updating with (not(aap),beer) that there is 1 sentence
 	 * in beliefbase and that 'beer' is true now and 'aap' false.
-	 * 
+	 *
 	 * @throws KRQueryFailedException
-	 * @throws KRInitFailedException 
+	 * @throws KRInitFailedException
 	 */
 	@Test
 	public void testUpdate() throws KRQueryFailedException, KRDatabaseException {
-		Update update = new PrologUpdate(new jpl.Compound(",",
-						new Term[] {new jpl.Compound("not", new Term[] { aap }), beer }), null);
-		beliefbase.insert(update);
+		Update update = new PrologUpdate(new jpl.Compound(",", new Term[] {
+				new jpl.Compound("not", new Term[] { this.aap }), this.beer }),
+				null);
+		this.beliefbase.insert(update);
 
-//		assertEquals(1, beliefbase.getAllSentences().length);
-//		assertEquals(0, knowledgebase.getAllSentences().length);
+		// assertEquals(1, beliefbase.getAllSentences().length);
+		// assertEquals(0, knowledgebase.getAllSentences().length);
 
-// TODO FIXME
-//		PrologQuery query = new PrologQuery(aap);
-//		Set<Substitution> sol = beliefbase.query(query);
-//		assertEquals(sol.size(), 0);
+		// TODO FIXME
+		// PrologQuery query = new PrologQuery(aap);
+		// Set<Substitution> sol = beliefbase.query(query);
+		// assertEquals(sol.size(), 0);
 
-		PrologQuery query2 = new PrologQuery(beer, null);
-		Set<Substitution> sol2 = beliefbase.query(query2);
+		PrologQuery query2 = new PrologQuery(this.beer, null);
+		Set<Substitution> sol2 = this.beliefbase.query(query2);
 		assertEquals(1, sol2.size());
 	}
 
 	/**
 	 * Delete belief base; create new belief base. Check that there are no
 	 * predicates in new belief base.
-	 * 
+	 *
 	 * @throws KRQueryFailedException
 	 * @throws KRInitFailedException
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
 	@Test
 	public void testDeleteBeliefbase() throws KRQueryFailedException,
-			KRDatabaseException {
-		beliefbase.destroy();
-		beliefbase = language.getDatabase(
-				new LinkedHashSet<DatabaseFormula>());
+	KRDatabaseException {
+		this.beliefbase.destroy();
+		this.beliefbase = this.language
+				.getDatabase(new LinkedHashSet<DatabaseFormula>());
 
-//		assertEquals(0, beliefbase.getAllSentences().length);
+		// assertEquals(0, beliefbase.getAllSentences().length);
 	}
 
 	/**
 	 * After creation of new (empty) BB, check that the new BB also works by
 	 * inserting something and checking that it gets there.
-	 * 
+	 *
 	 * @throws KRQueryFailedException
 	 * @throws KRInitFailedException
-	 * @throws KRDatabaseException 
+	 * @throws KRDatabaseException
 	 */
 	@Test
-	public void testUseNewBeliefbase() throws KRQueryFailedException, KRDatabaseException {
-		DatabaseFormula formula = new PrologDBFormula(kat, null);
-		beliefbase.insert(formula);
+	public void testUseNewBeliefbase() throws KRQueryFailedException,
+			KRDatabaseException {
+		DatabaseFormula formula = new PrologDBFormula(this.kat, null);
+		this.beliefbase.insert(formula);
 
-//		assertEquals(1, beliefbase.getAllSentences().length);
-//		assertEquals(0, knowledgebase.getAllSentences().length);
+		// assertEquals(1, beliefbase.getAllSentences().length);
+		// assertEquals(0, knowledgebase.getAllSentences().length);
 
-		PrologQuery query = new PrologQuery(kat, null);
-		Set<Substitution> sol = beliefbase.query(query);
+		PrologQuery query = new PrologQuery(this.kat, null);
+		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
 
 	}
