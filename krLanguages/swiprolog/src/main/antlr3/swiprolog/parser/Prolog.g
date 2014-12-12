@@ -135,8 +135,7 @@ options {
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
     	SourceInfoObject info = new SourceInfoObject(e.line, e.charPositionInLine);
     	ParserException newErr = null;
-    	// if e.token.getText() == null lexer should have produced error
-    	if (e.token.getText() != null) {
+    	if (e.token != null && e.token.getText() != null) {
     		if (e instanceof MismatchedTokenException) {
            		newErr = new ParserException("Found " + e.token.getText() + " where I was expecting " + tokenNames[((MismatchedTokenException)e).expecting], info);
         	} else if (e instanceof MissingTokenException && e.token.getText() != null) {
@@ -150,12 +149,14 @@ options {
         		if (cause.hasSourceInfo()) {
         			info = new SourceInfoObject(cause.getLineNumber(), cause.getCharacterPosition());
         		}
-            	newErr = new ParserException(e.getCause().getMessage(), info);
+            	newErr = new ParserException(cause.getMessage(), info);
         	} else {
         		newErr = new ParserException("Sorry, cannot make anything out of this", e);
         	}
-        	errors.add(newErr);
+        } else {
+        	newErr = new ParserException("Sorry, cannot make anything out of this", e);
         }
+        errors.add(newErr);
     }
     
     public ArrayList<ParserException> getErrors() {
