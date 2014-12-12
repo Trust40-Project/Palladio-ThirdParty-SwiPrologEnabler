@@ -6,7 +6,7 @@
 
 	<groupId>com.github.goalhub.krTools.krLanguages</groupId>
 	<artifactId>swiprolog</artifactId>
-	<version>1.0.5</version>
+	<version>1.1.0</version>
 	<packaging>jar</packaging>
 
 	<name>SWI Prolog KR Interface</name>
@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>com.github.goalhub.krTools</groupId>
 			<artifactId>krInterface</artifactId>
-			<version>1.0.2</version>
+			<version>1.1.0</version>
 		</dependency>
 
 		<dependency>
@@ -83,8 +83,6 @@
 			<artifactId>swiprologinterface</artifactId>
 			<version>1.0.3</version>
 		</dependency>
-
-
 	</dependencies>
 
 	<build>
