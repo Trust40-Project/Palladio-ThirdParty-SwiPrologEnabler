@@ -145,14 +145,12 @@ public class PrologSubstitution implements Substitution {
 	 */
 	@Override
 	public Substitution combine(Substitution substitution) {
-		Hashtable<String, jpl.Term> combined = new Hashtable<String, jpl.Term>();
-		combined = JPLUtils.combineSubstitutions(this.jplSubstitution,
-				((PrologSubstitution) substitution).getJPLSolution());
-		if (combined != null) {
-			return new PrologSubstitution(combined);
-		} else {
-			return null;
+		Hashtable<String, jpl.Term> combined = null;
+		if (substitution != null) {
+			combined = JPLUtils.combineSubstitutions(this.jplSubstitution,
+					((PrologSubstitution) substitution).getJPLSolution());
 		}
+		return getSubstitutionOrNull(combined);
 	}
 
 	/**

@@ -40,7 +40,7 @@ import swiprolog.database.SWIPrologDatabase;
  * </p>
  */
 public class PrologDBFormula extends PrologExpression implements
-		DatabaseFormula {
+DatabaseFormula {
 
 	/**
 	 * Creates a Prolog database formula that can be part of a Prolog database.
@@ -56,10 +56,10 @@ public class PrologDBFormula extends PrologExpression implements
 
 	@Override
 	public PrologDBFormula applySubst(Substitution substitution) {
-		Hashtable<String, jpl.Term> jplSubstitution = ((PrologSubstitution) substitution)
-				.getJPLSolution();
+		Hashtable<String, jpl.Term> jplSubstitution = (substitution == null) ? null
+				: ((PrologSubstitution) substitution).getJPLSolution();
 		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution,
-				this.getTerm()), getSourceInfo());
+				getTerm()), getSourceInfo());
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class PrologDBFormula extends PrologExpression implements
 	 */
 	@Override
 	public Query toQuery() {
-		return new PrologQuery(this.getTerm(), getSourceInfo());
+		return new PrologQuery(getTerm(), getSourceInfo());
 	}
 
 }
