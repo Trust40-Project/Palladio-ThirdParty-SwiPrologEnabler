@@ -18,9 +18,9 @@ Dependency information
 <dependency>
  <groupId>com.github.goalhub.krTools.krLanguages</groupId>
  <artifactId>swiprolog</artifactId>
- <version>1.1.1</version>
+ <version>1.1.2-SNAPSHOT</version>
 </dependency>
-``
+```
 
 Release Procedure
 =============
@@ -45,7 +45,7 @@ Ensure your ~/.m2/settings.xml file is as follows:
 Then call:
 
 ```
-mvn versions:use-latest-versions && mvn deploy -DcreateChecksum=true
+mvn versions:use-latest-versions -DallowSnapshots=true && mvn deploy -DcreateChecksum=true
 ```
 
 Note that you must have a public name and e-mail address set on GitHub for this to work correctly (https://github.com/settings/profile)
