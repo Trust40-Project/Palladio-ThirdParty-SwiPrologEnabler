@@ -18,7 +18,7 @@ Dependency information
 <dependency>
 	<groupId>com.github.goalhub.krTools</groupId>
 	<artifactId>krFactory</artifactId>
-	<version>1.1.1</version>
+	<version>1.1.2</version>
 </dependency>
 ```
 
