@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.util.zip.ZipEntry;
@@ -15,16 +14,13 @@ import java.util.zip.ZipInputStream;
 import jpl.JPL;
 
 /**
- * 
  * call init() once to install the libraries and prepare SWI for use.
- * 
- * @author W.Pasman 1dec2014
  *
+ * @author W.Pasman 1dec2014
  */
 public final class SwiInstaller {
-
-	static SupportedSystem system = SupportedSystem.getSystem();
-	static File SwiPath;
+	private static SupportedSystem system = SupportedSystem.getSystem();
+	private static File SwiPath;
 	private static boolean initialized = false;
 
 	/**
@@ -37,13 +33,13 @@ public final class SwiInstaller {
 	 * initialize SWI prolog for use. Unzips dlls and connects them to the
 	 * system. This static function needs to be called once, to get SWI hooked
 	 * up to the java system.
-	 * 
+	 *
 	 * This call will unzip required system dynamic link libraries to a temp
 	 * folder, pre-load them, and set the paths such that SWI can find its
 	 * files.
-	 * 
+	 *
 	 * The temp folder will be removed automatically if the JVM exits normally.
-	 * 
+	 *
 	 */
 	public synchronized static void init() {
 		if (initialized) {
@@ -84,7 +80,6 @@ public final class SwiInstaller {
 	 * Pre-loads all dynamic load libraries for the selected system.
 	 */
 	private static void preLoadDependencies() {
-
 		// Dirty system-dependent stuff...
 		switch (system) {
 		case linux:
@@ -114,12 +109,11 @@ public final class SwiInstaller {
 			load("foreign.dll");
 			break;
 		}
-
 	}
 
 	/**
 	 * pre-loads a system dynamic library.
-	 * 
+	 *
 	 * @param libname
 	 */
 	private static void load(String libname) {
@@ -128,7 +122,7 @@ public final class SwiInstaller {
 
 	/**
 	 * Adds given folder to java.library.path
-	 * 
+	 *
 	 * @param s
 	 *            the path to be added (as string)
 	 * @throws SecurityException
@@ -158,7 +152,7 @@ public final class SwiInstaller {
 
 	/**
 	 * Unzip a given zip file to /tmp.
-	 * 
+	 *
 	 * @param zipfilename
 	 * @return temp directory where swi files are contained.
 	 * @throws URISyntaxException
@@ -167,9 +161,6 @@ public final class SwiInstaller {
 	 */
 	private static File unzipToTmp(String zipfilename)
 			throws URISyntaxException, ZipException, IOException {
-
-		byte[] buffer = new byte[2048];
-
 		File base = File.createTempFile("swilibs",
 				Long.toString(System.currentTimeMillis()));
 		if (!base.delete()) {
@@ -181,14 +172,16 @@ public final class SwiInstaller {
 		}
 		deleteOnExit(base);
 
-		System.out.println("unzipping SWI prolog libraries to " + base);
+		System.out.println("unzipping SWI prolog libraries (" + zipfilename
+				+ ") to " + base);
 
-		InputStream fis = ClassLoader
-				.getSystemResourceAsStream("swiprolog/lib/" + zipfilename);
+		InputStream fis = Thread.currentThread().getContextClassLoader()
+				.getResourceAsStream("swiprolog/" + zipfilename);
 		BufferedInputStream bis = new BufferedInputStream(fis);
 		ZipInputStream zis = new ZipInputStream(bis);
 
 		ZipEntry entry = null;
+		byte[] buffer = new byte[2048];
 		while ((entry = zis.getNextEntry()) != null) {
 			File fileInDir = new File(base, entry.getName());
 
@@ -208,7 +201,6 @@ public final class SwiInstaller {
 
 			deleteOnExit(fileInDir);
 			zis.closeEntry();
-
 		}
 		zis.close();
 		fis.close();
@@ -222,24 +214,4 @@ public final class SwiInstaller {
 	private static void deleteOnExit(File file) {
 		file.deleteOnExit();
 	}
-
-	/**
-	 * Copy all bytes from inputstream to output stream.
-	 * 
-	 * @param in
-	 *            the {@link InputStream}
-	 * @param out
-	 *            the {@link OutputStream}
-	 * @throws IOException
-	 */
-	private static final void copyInputStream(InputStream in, OutputStream out)
-			throws IOException {
-		byte[] buffer = new byte[1024];
-		int len;
-		while ((len = in.read(buffer)) >= 0)
-			out.write(buffer, 0, len);
-		in.close();
-		out.close();
-	}
-
 }
