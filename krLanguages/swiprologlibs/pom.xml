@@ -3,13 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.github.goalhub.krTools</groupId>
-	<artifactId>swiprologinterface</artifactId>
-	<version>1.1.0-SNAPSHOT</version>
+	<artifactId>swiPrologEnabler</artifactId>
+	<version>1.1.0</version>
 	<packaging>jar</packaging>
 	
-	<name>SWI Prolog enabler</name>
+	<name>SWI Prolog Enabler</name>
 	<url>https://github.com/goalhub/krTools/tree/master/krLanguages/swiprologlibs</url>
-	<description>Enables SWI Prolog from java through a maven plugin</description>
+	<description>Installs SWI Prolog libraries</description>
 
 	<licenses>
 		<license>
