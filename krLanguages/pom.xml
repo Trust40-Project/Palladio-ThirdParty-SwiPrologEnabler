@@ -54,6 +54,7 @@
   
   <modules>
   	<module>swiprolog</module>
+  	<module>swiprologlibs</module>
   </modules>
   
   <build>
