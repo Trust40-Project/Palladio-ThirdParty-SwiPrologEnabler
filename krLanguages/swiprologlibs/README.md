@@ -18,7 +18,7 @@ Dependency information
 <dependency>
  <groupId>com.github.goalhub.krTools</groupId>
  <artifactId>swiPrologEnabler</artifactId>
- <version>...</version>
+ <version>1.1.1</version>
 </dependency>
 ```	
 
