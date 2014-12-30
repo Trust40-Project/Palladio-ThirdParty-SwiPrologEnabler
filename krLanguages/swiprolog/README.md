@@ -18,7 +18,7 @@ Dependency information
 <dependency>
  <groupId>com.github.goalhub.krTools.krLanguages</groupId>
  <artifactId>swiprolog</artifactId>
- <version>1.1.2-SNAPSHOT</version>
+ <version>1.1.3</version>
 </dependency>
 ```
 
