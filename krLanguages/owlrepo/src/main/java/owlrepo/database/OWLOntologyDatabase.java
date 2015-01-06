@@ -21,6 +21,7 @@ import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryResult;
+import org.openrdf.repository.event.RepositoryConnectionListener;
 import org.openrdf.rio.helpers.StatementCollector;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -73,6 +74,9 @@ public class OWLOntologyDatabase implements Database {
 	
     private RDFRepositoryDatabase localdb;
     private RDFRepositoryDatabase shareddb;
+	private RepositoryConnectionListener local_listener;
+	private RepositoryConnectionListener shared_listener;
+
 
     private SWRLAPIRenderer renderer;
     
@@ -138,11 +142,14 @@ public class OWLOntologyDatabase implements Database {
 	     
 	      //set up RDF repository = triple store local + shared
 	      if (this.localdb == null){
-	    		this.localdb = new RDFRepositoryDatabase(name, owlontology, baseURI, repoUrl);
+	    	  local_listener = new RDFRepositoryConnectionListener(this, "local");
+	    		this.localdb = new RDFRepositoryDatabase(name, owlontology, baseURI, repoUrl, local_listener);
 	         
 	      if (repoUrl!=null){
 	    	  this.SHARED_MODE = true;
-	    	  this.shareddb = new RDFRepositoryDatabase(name, owlontology, baseURI, repoUrl);
+	    	  shared_listener = new RDFRepositoryConnectionListener(this, "shared");
+
+	    	  this.shareddb = new RDFRepositoryDatabase(name, owlontology, baseURI, repoUrl, shared_listener);
 	      }}
 		
     }
@@ -286,13 +293,27 @@ public class OWLOntologyDatabase implements Database {
 //			Iterator<Statement> stit= stc.getStatements().iterator();
 //			while(stit.hasNext())
 //				System.out.println(stit.next().toString());
-			localdb.insert(stc.getStatements());
+			insertLocal(stc.getStatements());
 		
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new KRDatabaseException(e.getMessage());
 		}
 	}
+	
+	public void insertLocal(Collection<Statement> statements){
+		System.out.println("Inserting into local");
+		if (localdb!=null & localdb.isOpen())
+			localdb.insert(statements);
+	}
+	
+	public void insertShared(Collection<Statement> statements){
+		System.out.println("Inserting into shared");
+//		if (shareddb!=null & shareddb.isOpen())
+//			shareddb.insert(statements);
+	}
+	
 
 	
 	public void insert(Update update) throws KRDatabaseException {

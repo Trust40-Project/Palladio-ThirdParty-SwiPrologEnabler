@@ -40,7 +40,6 @@ public class RDFRepositoryDatabase {
 	private RepositoryConnection conn;
 	private NotifyingRepositoryConnection nconn;
 	private NotifyingRepositoryWrapper nrepo ;
-	private RepositoryConnectionListener listener;
 	private String baseURI;
 	
 //	private OWLOntologyDatabase ontology;
@@ -48,7 +47,7 @@ public class RDFRepositoryDatabase {
 	private  String username = "admin";
 	private  String password = "admin";
 	
-	public RDFRepositoryDatabase(String name, OWLOntology ontology, String baseURI, String url) {
+	public RDFRepositoryDatabase(String name, OWLOntology ontology, String baseURI, String url, RepositoryConnectionListener listener) {
 		this.repo_url = url;
 
 		try{
@@ -103,8 +102,8 @@ public class RDFRepositoryDatabase {
 		
 		//wrap it in notifying connection
 		 nrepo = new NotifyingRepositoryWrapper(repo);
-		 listener = new RDFRepositoryConnectionListener();
-		nrepo.addRepositoryConnectionListener(listener);
+		 if (listener!=null)
+			 nrepo.addRepositoryConnectionListener(listener);
 		 nconn = nrepo.getConnection();
 
 		//add contents of file (ontology) to repo
@@ -123,6 +122,14 @@ public class RDFRepositoryDatabase {
 
 	}
 	
+	public boolean isOpen(){
+		try {
+			return nconn.isOpen();
+		} catch (RepositoryException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 	
 	public RepositoryResult<Statement> getTriples() throws RepositoryException{
 		return nconn.getStatements(null, null, null, false, null);
