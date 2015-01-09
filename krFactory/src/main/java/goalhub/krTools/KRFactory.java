@@ -38,6 +38,7 @@ public class KRFactory {
 	 * Static strings for names of supported KR Languages.
 	 */
 	public static String SWI_PROLOG;
+	public static String OWL_REPO;
 
 	/**
 	 * A map of names to {@link KRInterface}s that are supported.
@@ -48,6 +49,7 @@ public class KRFactory {
 	 * {@link KRFactory#getDefaultLanguage()}.
 	 */
 	private static KRInterface defaultInterface;
+	private static KRInterface owlInterface;
 
 	// Initialize KR interfaces map and default language interface.
 	static {
@@ -56,6 +58,11 @@ public class KRFactory {
 			defaultInterface = swiprolog.SWIPrologInterface.getInstance();
 			KRFactory.addInterface(defaultInterface);
 			SWI_PROLOG = defaultInterface.getName();
+			
+			owlInterface = owlrepo.OWLRepoInterface.getInstance();
+			KRFactory.addInterface(owlInterface);
+			OWL_REPO = owlInterface.getName();
+			
 		} catch (KRInitFailedException e) {
 			// TODO
 			System.out

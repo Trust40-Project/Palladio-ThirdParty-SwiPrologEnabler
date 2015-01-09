@@ -14,13 +14,13 @@
 
 <rdf:RDF xmlns="http://www.w3.org/2002/07/owl#"
      xml:base="http://www.w3.org/2002/07/owl"
-     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-     xmlns:owl="http://www.w3.org/2002/07/owl#"
-     xmlns:swrlb="http://www.w3.org/2003/11/swrlb#"
-     xmlns:swrl="http://www.w3.org/2003/11/swrl#"
-     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:onto="http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-     xmlns:onto="http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#">
+     xmlns:swrl="http://www.w3.org/2003/11/swrl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:swrlb="http://www.w3.org/2003/11/swrlb#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <Ontology rdf:about="http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10"/>
     
 
@@ -47,9 +47,9 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#belongsToTeam -->
 
     <ObjectProperty rdf:about="&onto;belongsToTeam">
-        <rdfs:domain rdf:resource="&onto;Agent"/>
+        <rdfs:domain rdf:resource="&onto;Actor"/>
         <rdfs:range rdf:resource="&onto;Team"/>
-        <rdfs:subPropertyOf rdf:resource="&onto;hasAgentProperty"/>
+        <rdfs:subPropertyOf rdf:resource="&onto;hasActorProperty"/>
     </ObjectProperty>
     
 
@@ -63,37 +63,19 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasActionEvent -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasActorEvent -->
 
-    <ObjectProperty rdf:about="&onto;hasActionEvent">
-        <inverseOf rdf:resource="&onto;hasActionTarget"/>
-        <rdfs:subPropertyOf rdf:resource="&onto;hasTaskProperty"/>
+    <ObjectProperty rdf:about="&onto;hasActorEvent">
+        <rdfs:range rdf:resource="&onto;ActorEvent"/>
+        <rdfs:subPropertyOf rdf:resource="&onto;hasActorProperty"/>
     </ObjectProperty>
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasActionTarget -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasActorProperty -->
 
-    <ObjectProperty rdf:about="&onto;hasActionTarget">
-        <rdfs:range rdf:resource="&onto;Action"/>
-        <rdfs:domain rdf:resource="&onto;ActionEvent"/>
-        <rdfs:subPropertyOf rdf:resource="&onto;hasEventTarget"/>
-    </ObjectProperty>
-    
-
-
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasAgentEvent -->
-
-    <ObjectProperty rdf:about="&onto;hasAgentEvent">
-        <rdfs:subPropertyOf rdf:resource="&onto;hasAgentProperty"/>
-    </ObjectProperty>
-    
-
-
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasAgentProperty -->
-
-    <ObjectProperty rdf:about="&onto;hasAgentProperty">
-        <rdfs:domain rdf:resource="&onto;Agent"/>
+    <ObjectProperty rdf:about="&onto;hasActorProperty">
+        <rdfs:domain rdf:resource="&onto;Actor"/>
     </ObjectProperty>
     
 
@@ -107,21 +89,12 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasEvent -->
-
-    <ObjectProperty rdf:about="&onto;hasEvent">
-        <rdfs:range rdf:resource="&onto;AgentEvent"/>
-        <rdfs:subPropertyOf rdf:resource="&onto;hasAgentProperty"/>
-    </ObjectProperty>
-    
-
-
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasEventActor -->
 
     <ObjectProperty rdf:about="&onto;hasEventActor">
-        <rdfs:range rdf:resource="&onto;Agent"/>
-        <rdfs:domain rdf:resource="&onto;AgentEvent"/>
-        <inverseOf rdf:resource="&onto;hasAgentEvent"/>
+        <rdfs:range rdf:resource="&onto;Actor"/>
+        <rdfs:domain rdf:resource="&onto;ActorEvent"/>
+        <inverseOf rdf:resource="&onto;hasActorEvent"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasEventProperty"/>
     </ObjectProperty>
     
@@ -130,7 +103,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasEventProperty -->
 
     <ObjectProperty rdf:about="&onto;hasEventProperty">
-        <rdfs:domain rdf:resource="&onto;AgentEvent"/>
+        <rdfs:domain rdf:resource="&onto;Event"/>
     </ObjectProperty>
     
 
@@ -138,8 +111,16 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasEventTarget -->
 
     <ObjectProperty rdf:about="&onto;hasEventTarget">
-        <rdfs:domain rdf:resource="&onto;AgentEvent"/>
+        <rdfs:domain rdf:resource="&onto;ActorEvent"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasEventProperty"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasFinished -->
+
+    <ObjectProperty rdf:about="&onto;hasFinished">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasTaskEvent"/>
     </ObjectProperty>
     
 
@@ -162,12 +143,20 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasMessageTarget -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasMessage -->
 
-    <ObjectProperty rdf:about="&onto;hasMessageTarget">
-        <rdfs:range rdf:resource="&onto;Agent"/>
+    <ObjectProperty rdf:about="&onto;hasMessage">
         <rdfs:domain rdf:resource="&onto;MessageEvent"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasEventTarget"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasMessageEvent -->
+
+    <ObjectProperty rdf:about="&onto;hasMessageEvent">
+        <rdfs:range rdf:resource="&onto;MessageEvent"/>
+        <rdfs:subPropertyOf rdf:resource="&onto;hasActorEvent"/>
     </ObjectProperty>
     
 
@@ -182,12 +171,20 @@
     
 
 
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasPlanned -->
+
+    <ObjectProperty rdf:about="&onto;hasPlanned">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasTaskEvent"/>
+    </ObjectProperty>
+    
+
+
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasRole -->
 
     <ObjectProperty rdf:about="&onto;hasRole">
-        <rdfs:domain rdf:resource="&onto;Agent"/>
+        <rdfs:domain rdf:resource="&onto;Actor"/>
         <rdfs:range rdf:resource="&onto;Role"/>
-        <rdfs:subPropertyOf rdf:resource="&onto;hasAgentProperty"/>
+        <rdfs:subPropertyOf rdf:resource="&onto;hasActorProperty"/>
     </ObjectProperty>
     
 
@@ -198,11 +195,21 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasSensingTarget -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasSensed -->
 
-    <ObjectProperty rdf:about="&onto;hasSensingTarget">
+    <ObjectProperty rdf:about="&onto;hasSensed">
+        <rdfs:range rdf:resource="&onto;Object"/>
         <rdfs:domain rdf:resource="&onto;SensingEvent"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasEventTarget"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasSensingEvent -->
+
+    <ObjectProperty rdf:about="&onto;hasSensingEvent">
+        <rdfs:range rdf:resource="&onto;SensingEvent"/>
+        <rdfs:subPropertyOf rdf:resource="&onto;hasActorEvent"/>
     </ObjectProperty>
     
 
@@ -210,14 +217,27 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasTask -->
 
     <ObjectProperty rdf:about="&onto;hasTask">
-        <rdfs:subPropertyOf rdf:resource="&onto;hasAgentProperty"/>
+        <rdfs:range rdf:resource="&onto;Task"/>
+        <rdfs:domain rdf:resource="&onto;TaskEvent"/>
+        <rdfs:subPropertyOf rdf:resource="&onto;hasEventTarget"/>
     </ObjectProperty>
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasTaskProperty -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasTaskEvent -->
 
-    <ObjectProperty rdf:about="&onto;hasTaskProperty"/>
+    <ObjectProperty rdf:about="&onto;hasTaskEvent">
+        <rdfs:range rdf:resource="&onto;TaskEvent"/>
+        <rdfs:subPropertyOf rdf:resource="&onto;hasActorEvent"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#isExecuting -->
+
+    <ObjectProperty rdf:about="&onto;isExecuting">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasTaskEvent"/>
+    </ObjectProperty>
     
 
 
@@ -285,7 +305,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#belongsToNTeam -->
 
     <DatatypeProperty rdf:about="&onto;belongsToNTeam">
-        <rdfs:domain rdf:resource="&onto;Agent"/>
+        <rdfs:domain rdf:resource="&onto;Actor"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasIdentity"/>
         <rdfs:range rdf:resource="&xsd;int"/>
     </DatatypeProperty>
@@ -295,6 +315,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasAge -->
 
     <DatatypeProperty rdf:about="&onto;hasAge">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:domain rdf:resource="&onto;Human"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasIdentity"/>
         <rdfs:range rdf:resource="&xsd;positiveInteger"/>
@@ -328,6 +349,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasID -->
 
     <DatatypeProperty rdf:about="&onto;hasID">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasIdentity"/>
     </DatatypeProperty>
     
@@ -380,6 +402,16 @@
     
 
 
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasPlannedTime -->
+
+    <DatatypeProperty rdf:about="&onto;hasPlannedTime">
+        <rdfs:domain rdf:resource="&onto;Task"/>
+        <rdfs:subPropertyOf rdf:resource="&onto;hasTime"/>
+        <rdfs:range rdf:resource="&xsd;dateTimeStamp"/>
+    </DatatypeProperty>
+    
+
+
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasPriority -->
 
     <DatatypeProperty rdf:about="&onto;hasPriority"/>
@@ -421,7 +453,9 @@
 
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#hasTime -->
 
-    <DatatypeProperty rdf:about="&onto;hasTime"/>
+    <DatatypeProperty rdf:about="&onto;hasTime">
+        <rdfs:domain rdf:resource="&onto;Event"/>
+    </DatatypeProperty>
     
 
 
@@ -443,13 +477,17 @@
 
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#latitude -->
 
-    <DatatypeProperty rdf:about="&onto;latitude"/>
+    <DatatypeProperty rdf:about="&onto;latitude">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasLocation"/>
+    </DatatypeProperty>
     
 
 
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#longitude -->
 
-    <DatatypeProperty rdf:about="&onto;longitude"/>
+    <DatatypeProperty rdf:about="&onto;longitude">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasLocation"/>
+    </DatatypeProperty>
     
 
 
@@ -459,6 +497,14 @@
         <rdfs:domain rdf:resource="&onto;MessageEvent"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasData"/>
         <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#showOnMap -->
+
+    <DatatypeProperty rdf:about="&onto;showOnMap">
+        <rdfs:range rdf:resource="&xsd;boolean"/>
     </DatatypeProperty>
     
 
@@ -482,18 +528,16 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Action -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Actor -->
 
-    <Class rdf:about="&onto;Action">
-        <rdfs:subClassOf rdf:resource="&onto;Event"/>
-    </Class>
+    <Class rdf:about="&onto;Actor"/>
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#ActionEvent -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#ActorEvent -->
 
-    <Class rdf:about="&onto;ActionEvent">
-        <rdfs:subClassOf rdf:resource="&onto;AgentEvent"/>
+    <Class rdf:about="&onto;ActorEvent">
+        <rdfs:subClassOf rdf:resource="&onto;Event"/>
     </Class>
     
 
@@ -502,20 +546,6 @@
 
     <Class rdf:about="&onto;Aerial_explorer">
         <rdfs:subClassOf rdf:resource="&onto;RobotRole"/>
-    </Class>
-    
-
-
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Agent -->
-
-    <Class rdf:about="&onto;Agent"/>
-    
-
-
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#AgentEvent -->
-
-    <Class rdf:about="&onto;AgentEvent">
-        <rdfs:subClassOf rdf:resource="&onto;Event"/>
     </Class>
     
 
@@ -531,7 +561,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Assess -->
 
     <Class rdf:about="&onto;Assess">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -624,14 +654,6 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#ControlTeam -->
-
-    <Class rdf:about="&onto;ControlTeam">
-        <rdfs:subClassOf rdf:resource="&onto;Team"/>
-    </Class>
-    
-
-
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Device -->
 
     <Class rdf:about="&onto;Device">
@@ -673,7 +695,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Explore_Detect -->
 
     <Class rdf:about="&onto;Explore_Detect">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -689,7 +711,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Extinguish -->
 
     <Class rdf:about="&onto;Extinguish">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -721,7 +743,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#FirefighterTeam -->
 
     <Class rdf:about="&onto;FirefighterTeam">
-        <rdfs:subClassOf rdf:resource="&onto;Team"/>
+        <rdfs:subClassOf rdf:resource="&onto;Infield_rescuersTeam"/>
     </Class>
     
 
@@ -742,10 +764,18 @@
     
 
 
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#GoArea -->
+
+    <Class rdf:about="&onto;GoArea">
+        <rdfs:subClassOf rdf:resource="&onto;Area"/>
+    </Class>
+    
+
+
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#GoHome -->
 
     <Class rdf:about="&onto;GoHome">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -793,7 +823,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Human -->
 
     <Class rdf:about="&onto;Human">
-        <rdfs:subClassOf rdf:resource="&onto;Agent"/>
+        <rdfs:subClassOf rdf:resource="&onto;Actor"/>
         <disjointWith rdf:resource="&onto;Robot"/>
     </Class>
     
@@ -843,6 +873,14 @@
 
     <Class rdf:about="&onto;Infield_rescuer">
         <rdfs:subClassOf rdf:resource="&onto;Role"/>
+    </Class>
+    
+
+
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Infield_rescuersTeam -->
+
+    <Class rdf:about="&onto;Infield_rescuersTeam">
+        <rdfs:subClassOf rdf:resource="&onto;Team"/>
     </Class>
     
 
@@ -912,7 +950,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Manipulate -->
 
     <Class rdf:about="&onto;Manipulate">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -920,7 +958,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Measure -->
 
     <Class rdf:about="&onto;Measure">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -928,7 +966,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#MessageEvent -->
 
     <Class rdf:about="&onto;MessageEvent">
-        <rdfs:subClassOf rdf:resource="&onto;AgentEvent"/>
+        <rdfs:subClassOf rdf:resource="&onto;ActorEvent"/>
     </Class>
     
 
@@ -944,7 +982,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Monitor -->
 
     <Class rdf:about="&onto;Monitor">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -952,7 +990,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Move -->
 
     <Class rdf:about="&onto;Move">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -965,10 +1003,18 @@
     
 
 
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#NoGoArea -->
+
+    <Class rdf:about="&onto;NoGoArea">
+        <rdfs:subClassOf rdf:resource="&onto;Area"/>
+    </Class>
+    
+
+
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Normalize -->
 
     <Class rdf:about="&onto;Normalize">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -995,6 +1041,14 @@
     
 
 
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#OperatorsTeam -->
+
+    <Class rdf:about="&onto;OperatorsTeam">
+        <rdfs:subClassOf rdf:resource="&onto;Team"/>
+    </Class>
+    
+
+
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Organisation -->
 
     <Class rdf:about="&onto;Organisation"/>
@@ -1012,7 +1066,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#ParamedicsTeam -->
 
     <Class rdf:about="&onto;ParamedicsTeam">
-        <rdfs:subClassOf rdf:resource="&onto;Team"/>
+        <rdfs:subClassOf rdf:resource="&onto;Infield_rescuersTeam"/>
     </Class>
     
 
@@ -1052,7 +1106,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Recharge -->
 
     <Class rdf:about="&onto;Recharge">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -1060,7 +1114,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Rescue -->
 
     <Class rdf:about="&onto;Rescue">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -1068,7 +1122,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Robot -->
 
     <Class rdf:about="&onto;Robot">
-        <rdfs:subClassOf rdf:resource="&onto;Agent"/>
+        <rdfs:subClassOf rdf:resource="&onto;Actor"/>
     </Class>
     
 
@@ -1132,7 +1186,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Search -->
 
     <Class rdf:about="&onto;Search">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -1140,7 +1194,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#SensingEvent -->
 
     <Class rdf:about="&onto;SensingEvent">
-        <rdfs:subClassOf rdf:resource="&onto;AgentEvent"/>
+        <rdfs:subClassOf rdf:resource="&onto;ActorEvent"/>
     </Class>
     
 
@@ -1204,7 +1258,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Stabilize -->
 
     <Class rdf:about="&onto;Stabilize">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -1225,18 +1279,26 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Subarea -->
-
-    <Class rdf:about="&onto;Subarea">
-        <rdfs:subClassOf rdf:resource="&onto;Area"/>
-    </Class>
-    
-
-
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Tablet -->
 
     <Class rdf:about="&onto;Tablet">
         <rdfs:subClassOf rdf:resource="&onto;Device"/>
+    </Class>
+    
+
+
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Task -->
+
+    <Class rdf:about="&onto;Task">
+        <rdfs:subClassOf rdf:resource="&onto;Organisation"/>
+    </Class>
+    
+
+
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#TaskEvent -->
+
+    <Class rdf:about="&onto;TaskEvent">
+        <rdfs:subClassOf rdf:resource="&onto;ActorEvent"/>
     </Class>
     
 
@@ -1308,7 +1370,7 @@
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Transport -->
 
     <Class rdf:about="&onto;Transport">
-        <rdfs:subClassOf rdf:resource="&onto;Action"/>
+        <rdfs:subClassOf rdf:resource="&onto;Task"/>
     </Class>
     
 
@@ -1346,10 +1408,10 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#UAVControlTeam -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#UAVOperatorTeam -->
 
-    <Class rdf:about="&onto;UAVControlTeam">
-        <rdfs:subClassOf rdf:resource="&onto;ControlTeam"/>
+    <Class rdf:about="&onto;UAVOperatorTeam">
+        <rdfs:subClassOf rdf:resource="&onto;OperatorsTeam"/>
     </Class>
     
 
@@ -1370,14 +1432,6 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#UAV_pilot -->
-
-    <Class rdf:about="&onto;UAV_pilot">
-        <rdfs:subClassOf rdf:resource="&onto;Robot_operator"/>
-    </Class>
-    
-
-
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#UGV -->
 
     <Class rdf:about="&onto;UGV">
@@ -1386,10 +1440,10 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#UGVControlTeam -->
+    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#UGVOperatorTeam -->
 
-    <Class rdf:about="&onto;UGVControlTeam">
-        <rdfs:subClassOf rdf:resource="&onto;ControlTeam"/>
+    <Class rdf:about="&onto;UGVOperatorTeam">
+        <rdfs:subClassOf rdf:resource="&onto;OperatorsTeam"/>
     </Class>
     
 
@@ -1442,26 +1496,10 @@
     
 
 
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Victim_search -->
-
-    <Class rdf:about="&onto;Victim_search">
-        <rdfs:subClassOf rdf:resource="&onto;RobotRole"/>
-    </Class>
-    
-
-
     <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#VideoCamera -->
 
     <Class rdf:about="&onto;VideoCamera">
         <rdfs:subClassOf rdf:resource="&onto;Sensor"/>
-    </Class>
-    
-
-
-    <!-- http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#Volcanic_eruption -->
-
-    <Class rdf:about="&onto;Volcanic_eruption">
-        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
     </Class>
     
 
@@ -1571,15 +1609,18 @@
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;Mission"/>
-            <rdf:Description rdf:about="&onto;Role"/>
-            <rdf:Description rdf:about="&onto;Team"/>
+            <rdf:Description rdf:about="&onto;BuildingPart"/>
+            <rdf:Description rdf:about="&onto;Device"/>
+            <rdf:Description rdf:about="&onto;Infrastructure"/>
+            <rdf:Description rdf:about="&onto;Unidentified"/>
+            <rdf:Description rdf:about="&onto;Vehicle"/>
+            <rdf:Description rdf:about="&onto;Victim"/>
         </members>
     </rdf:Description>
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;Agent"/>
+            <rdf:Description rdf:about="&onto;Actor"/>
             <rdf:Description rdf:about="&onto;Event"/>
             <rdf:Description rdf:about="&onto;Location"/>
             <rdf:Description rdf:about="&onto;Object"/>
@@ -1589,21 +1630,18 @@
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;Action"/>
-            <rdf:Description rdf:about="&onto;AgentEvent"/>
+            <rdf:Description rdf:about="&onto;ActorEvent"/>
             <rdf:Description rdf:about="&onto;Disaster"/>
             <rdf:Description rdf:about="&onto;Happening"/>
+            <rdf:Description rdf:about="&onto;Task"/>
         </members>
     </rdf:Description>
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;BuildingPart"/>
-            <rdf:Description rdf:about="&onto;Device"/>
-            <rdf:Description rdf:about="&onto;Infrastructure"/>
-            <rdf:Description rdf:about="&onto;Unidentified"/>
-            <rdf:Description rdf:about="&onto;Vehicle"/>
-            <rdf:Description rdf:about="&onto;Victim"/>
+            <rdf:Description rdf:about="&onto;Mission"/>
+            <rdf:Description rdf:about="&onto;Role"/>
+            <rdf:Description rdf:about="&onto;Team"/>
         </members>
     </rdf:Description>
     
@@ -1634,9 +1672,25 @@
     </rdf:Description>
     <rdf:Description>
         <rdf:type rdf:resource="&swrl;Imp"/>
-        <rdfs:label rdf:datatype="&xsd;string">r1</rdfs:label>
+        <rdfs:label rdf:datatype="&xsd;string">q1</rdfs:label>
         <rdfs:comment rdf:datatype="&xsd;string"></rdfs:comment>
         <swrl:head>
+            <rdf:Description>
+                <rdf:type rdf:resource="&swrl;AtomList"/>
+                <rdf:rest rdf:resource="&rdf;nil"/>
+                <rdf:first>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="&swrl;BuiltinAtom"/>
+                        <swrl:builtin rdf:resource="http://sqwrl.stanford.edu/ontologies/built-ins/3.4/sqwrl.owl#select"/>
+                        <swrl:arguments rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&owl;d"/>
+                            <rdf:Description rdf:about="&owl;x"/>
+                        </swrl:arguments>
+                    </rdf:Description>
+                </rdf:first>
+            </rdf:Description>
+        </swrl:head>
+        <swrl:body>
             <rdf:Description>
                 <rdf:type rdf:resource="&swrl;AtomList"/>
                 <rdf:rest rdf:resource="&rdf;nil"/>
@@ -1645,11 +1699,16 @@
                         <rdf:type rdf:resource="&swrl;DatavaluedPropertyAtom"/>
                         <swrl:propertyPredicate rdf:resource="&onto;hasNewAge"/>
                         <swrl:argument1 rdf:resource="&owl;d"/>
-                        <swrl:argument2 rdf:resource="&owl;newage"/>
+                        <swrl:argument2 rdf:resource="&owl;x"/>
                     </rdf:Description>
                 </rdf:first>
             </rdf:Description>
-        </swrl:head>
+        </swrl:body>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="&swrl;Imp"/>
+        <rdfs:label rdf:datatype="&xsd;string">r1</rdfs:label>
+        <rdfs:comment rdf:datatype="&xsd;string"></rdfs:comment>
         <swrl:body>
             <rdf:Description>
                 <rdf:type rdf:resource="&swrl;AtomList"/>
@@ -1692,12 +1751,7 @@
                 </rdf:rest>
             </rdf:Description>
         </swrl:body>
-    </rdf:Description>
-    <rdf:Description>
-        <rdf:type rdf:resource="&swrl;Imp"/>
-        <rdfs:label rdf:datatype="&xsd;string">q1</rdfs:label>
-        <rdfs:comment rdf:datatype="&xsd;string"></rdfs:comment>
-        <swrl:body>
+        <swrl:head>
             <rdf:Description>
                 <rdf:type rdf:resource="&swrl;AtomList"/>
                 <rdf:rest rdf:resource="&rdf;nil"/>
@@ -1706,23 +1760,7 @@
                         <rdf:type rdf:resource="&swrl;DatavaluedPropertyAtom"/>
                         <swrl:propertyPredicate rdf:resource="&onto;hasNewAge"/>
                         <swrl:argument1 rdf:resource="&owl;d"/>
-                        <swrl:argument2 rdf:resource="&owl;x"/>
-                    </rdf:Description>
-                </rdf:first>
-            </rdf:Description>
-        </swrl:body>
-        <swrl:head>
-            <rdf:Description>
-                <rdf:type rdf:resource="&swrl;AtomList"/>
-                <rdf:rest rdf:resource="&rdf;nil"/>
-                <rdf:first>
-                    <rdf:Description>
-                        <rdf:type rdf:resource="&swrl;BuiltinAtom"/>
-                        <swrl:builtin rdf:resource="http://sqwrl.stanford.edu/ontologies/built-ins/3.4/sqwrl.owl#select"/>
-                        <swrl:arguments rdf:parseType="Collection">
-                            <rdf:Description rdf:about="&owl;d"/>
-                            <rdf:Description rdf:about="&owl;x"/>
-                        </swrl:arguments>
+                        <swrl:argument2 rdf:resource="&owl;newage"/>
                     </rdf:Description>
                 </rdf:first>
             </rdf:Description>
@@ -1732,5 +1770,5 @@
 
 
 
-<!-- Generated by the OWL API (version 3.5.0) http://owlapi.sourceforge.net -->
+<!-- Generated by the OWL API (version 3.4.2) http://owlapi.sourceforge.net -->
 

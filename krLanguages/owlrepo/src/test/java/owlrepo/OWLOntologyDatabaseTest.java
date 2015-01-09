@@ -58,6 +58,7 @@ public class OWLOntologyDatabaseTest {
 			e.printStackTrace();
 		}finally{
 			try {
+				if (db!=null)
 				db.destroy();
 			} catch (KRDatabaseException e) {
 				e.printStackTrace();

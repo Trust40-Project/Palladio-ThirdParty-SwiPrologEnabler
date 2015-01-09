@@ -34,7 +34,7 @@ public class OWLRepoKRInterfaceTest {
 	public OWLRepoKRInterfaceTest() {
 		try {
 			
-			OWLRepoKRInterface interf = (OWLRepoKRInterface) KRFactory.getInterface("owlrepo");
+			OWLRepoKRInterface interf = (OWLRepoKRInterface) KRFactory.getInterface("owl_repo");
 			System.out.println("initializing "+interf.getName());
 			interf.initialize();
 			

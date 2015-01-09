@@ -54,5 +54,6 @@
   
   <modules>
   	<module>swiprolog</module>
+  	<module>owlrepo</module>
   </modules>
 </project>
