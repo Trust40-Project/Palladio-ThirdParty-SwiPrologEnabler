@@ -72,7 +72,7 @@ public class SWRLTranslator {
 		}
 		
 		SPARQLquery += "SELECT * WHERE {\n";
-		
+
 		Iterator<SWRLAtom> it = rule.getBody().iterator();
 		while (it.hasNext())
 		{
