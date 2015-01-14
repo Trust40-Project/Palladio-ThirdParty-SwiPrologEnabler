@@ -59,7 +59,7 @@ public class KRFactory {
 			KRFactory.addInterface(defaultInterface);
 			SWI_PROLOG = defaultInterface.getName();
 			
-			owlInterface = owlrepo.OWLRepoInterface.getInstance();
+		//	owlInterface = owlrepo.OWLRepoInterface.getInstance();
 			KRFactory.addInterface(owlInterface);
 			OWL_REPO = owlInterface.getName();
 			
