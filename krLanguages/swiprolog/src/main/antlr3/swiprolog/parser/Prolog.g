@@ -796,7 +796,8 @@ term0 returns [PrologTerm term]
         // using the '-/1' operator these are covered here as well; see term200 below). 
     {
       if (tk.getText().matches("[0-9]+") || tk.getText().matches("0[box].*")) {
-        term = new PrologTerm(new jpl.Integer(Integer.valueOf(tk.getText())), getSourceInfo(tk)); // int, octal, hex, etc.
+		Long val = Long.valueOf(tk.getText());
+        term = new PrologTerm(JPLUtils.createIntegerNumber(val), getSourceInfo(tk)); // int, octal, hex, etc.
       } else { // float
         term = new PrologTerm(new jpl.Float(Double.valueOf(tk.getText())), getSourceInfo(tk)); // float
       }
