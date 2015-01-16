@@ -7,7 +7,15 @@ import krTools.language.Term;
 
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
+import org.semanticweb.owlapi.model.SWRLDataPropertyAtom;
+import org.semanticweb.owlapi.model.SWRLDifferentIndividualsAtom;
+import org.semanticweb.owlapi.model.SWRLIndividualArgument;
+import org.semanticweb.owlapi.model.SWRLLiteralArgument;
+import org.semanticweb.owlapi.model.SWRLObjectPropertyAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
+import org.semanticweb.owlapi.model.SWRLSameIndividualAtom;
+import org.semanticweb.owlapi.model.SWRLUnaryAtom;
+import org.semanticweb.owlapi.model.SWRLVariable;
 
 public class SWRLTerm extends SWRLExpression implements Term {
 	
@@ -42,7 +50,46 @@ public class SWRLTerm extends SWRLExpression implements Term {
 	public SWRLArgument getArgument(){
 		return this.argument;
 	}
+	
+	public boolean isArgument(){
+		return (this.argument!=null);
+	}
+	
+	public boolean isVariable(){
+		return (this.argument instanceof SWRLVariable);
+	}
+	
+	public boolean isLiteral(){
+		return (this.argument instanceof SWRLLiteralArgument);
+	}
+	
+	public boolean isIndividual(){
+		return (this.argument instanceof SWRLIndividualArgument);
+	}
+	
+	public boolean isAtom(){
+		return (this.atom!=null);
+	}
+	
+	public boolean isClassAtom(){
+		return (this.atom instanceof SWRLUnaryAtom);
+	}
+	
+	public boolean isDataAtom(){
+		return (this.atom instanceof SWRLDataPropertyAtom);
+	}
+	
+	public boolean isObjectAtom(){
+		return (this.atom instanceof SWRLObjectPropertyAtom);
+	}
 
+	public boolean isDiffIndividualsAtom(){
+		return (this.atom instanceof SWRLDifferentIndividualsAtom);
+	}
+	
+	public boolean isSameIndividualAtom(){
+		return (this.atom instanceof SWRLSameIndividualAtom);
+	}
 	/**
 	 * Applies a substitution to the term, i.e., instantiates free variables that are
 	 * bound to a term in the substitution by that term (or, only renames in case the

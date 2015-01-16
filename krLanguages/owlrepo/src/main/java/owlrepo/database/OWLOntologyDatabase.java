@@ -12,6 +12,7 @@ import krTools.errors.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Update;
 
 import org.openrdf.model.Literal;
@@ -33,6 +34,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.SWRLArgument;
+import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.rio.RioRenderer;
@@ -42,13 +44,11 @@ import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.core.SWRLAPIRenderer;
 import org.swrlapi.core.SWRLRuleEngine;
 import org.swrlapi.sqwrl.SQWRLQueryEngine;
-import org.swrlapi.sqwrl.SQWRLResult;
-import org.swrlapi.sqwrl.exceptions.SQWRLException;
-import org.swrlapi.sqwrl.values.SQWRLResultValue;
 
 import owlrepo.language.SWRLDatabaseFormula;
 import owlrepo.language.SWRLQuery;
 import owlrepo.language.SWRLSubstitution;
+import owlrepo.language.SWRLTerm;
 import owlrepo.language.SWRLTranslator;
 
 import com.google.common.base.Optional;
@@ -300,6 +300,15 @@ public class OWLOntologyDatabase implements Database {
 			e.printStackTrace();
 			throw new KRDatabaseException(e.getMessage());
 		}
+	}
+	
+	public DatabaseFormula getDBFormula(Term term) throws KRDatabaseException{
+		SWRLTerm swt = (SWRLTerm)term;
+		Set<SWRLAtom> body = new HashSet<SWRLAtom>();
+		Set<SWRLAtom> head = new HashSet<SWRLAtom>();
+		body.add(swt.getAtom());
+		SWRLRule rule = owlfactory.getSWRLRule(body, head);
+		return new SWRLDatabaseFormula(rule);
 	}
 	
 	public void insertLocal(Collection<Statement> statements){
