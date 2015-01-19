@@ -3,6 +3,15 @@ SWI Prolog
 
 KR Implementation for GOAL, based on SWI Prolog.
 
+Issues
+======
+
+There is a minor issue with this language regarding the handling of 
+long (64 bit) integers. The JPL layer that is between our system and SWI Prolog
+does not convert these properly. Therefore, all transportation between
+SWI and GOAL will convert integers that do not fit into 32 bits to floating
+point format. 64 bit integers can be used but only inside SWI Prolog.
+
 
 Dependency information 
 =====================
