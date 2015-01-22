@@ -11,6 +11,10 @@ public class SQWRLParserSourceInfo implements SourceInfo {
 	private int charpos;
 	private String msg;
 	
+	public SQWRLParserSourceInfo(File f){
+		this(f, 0, 0, "");
+	}
+	
 	public SQWRLParserSourceInfo(File f, int line, int charpos, String msg){
 		this.file = f;
 		this.line = line;

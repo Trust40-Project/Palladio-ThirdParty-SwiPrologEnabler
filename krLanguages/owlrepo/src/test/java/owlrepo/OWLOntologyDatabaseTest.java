@@ -46,7 +46,7 @@ public class OWLOntologyDatabaseTest {
 		try {
 			System.out.println("\n\n*********************Test 1************************");
 
-			 db = new OWLOntologyDatabase("tradr", file, null);//"http://localhost:5820");
+			 db = new OWLOntologyDatabase("tradr", file);//"http://localhost:5820");
 			
 			 db.insert(getRule(
 					 //"onto:Human(?d) ^ onto:hasAge(?d, ?age) ^ swrlb:add(?newage, ?age, 1) -> onto:hasNewAge(?d, ?newage)"));
@@ -74,7 +74,7 @@ public class OWLOntologyDatabaseTest {
 		try {
 			System.out.println("\n\n*********************Test 2************************");
 
-			 db = new OWLOntologyDatabase("tradr", file, null);
+			 db = new OWLOntologyDatabase("tradr", file);
 			 db.insert(getRule("onto:Robot(?x) ^ onto:belongsToTeam(?x,?t) -> onto:RobotTeam(?t)"));
 			 
 			 //add a new fact to the triple store
@@ -105,7 +105,8 @@ public class OWLOntologyDatabaseTest {
 	public void test3() throws SQWRLException, SWRLParseException, KRDatabaseException{
 		try {
 			System.out.println("\n\n*********************Test 3************************");
-			 db = new OWLOntologyDatabase("tradr", file, "http://localhost:5820");
+			 db = new OWLOntologyDatabase("tradr", file);
+			 db.setupRepo("http://localhost:5820");
 			 db.insert(getRule("onto:Robot(?x) ^ onto:belongsToTeam(?x,?t) -> onto:RobotTeam(?t)"));
 
 			query("onto:RobotTeam(?x) -> sqwrl:select(?x)");

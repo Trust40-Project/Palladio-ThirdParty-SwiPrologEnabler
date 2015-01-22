@@ -2,8 +2,11 @@ package owlrepo;
 
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,8 +23,6 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.swrlapi.core.SWRLAPIFactory;
-import org.swrlapi.core.SWRLAPIOWLOntology;
 
 import owlrepo.database.OWLOntologyDatabase;
 import owlrepo.language.SWRLSubstitution;
@@ -64,7 +65,7 @@ public class OWLRepoKRInterface implements KRInterface {
 	public Database getDatabase(Collection<DatabaseFormula> content)
 			throws KRDatabaseException {
 		try {
-			database = new OWLOntologyDatabase("tradr",content);
+			database = new OWLOntologyDatabase("knowledge",content);
 		} catch (OWLOntologyCreationException e) {
 			e.printStackTrace();
 		}
@@ -78,7 +79,30 @@ public class OWLRepoKRInterface implements KRInterface {
 
 	public Parser getParser(Reader source) throws ParserException {
 		BufferedReader reader = new BufferedReader(source);
+		File owlfile = null;
+		try {
+			String firstline = reader.readLine();
+			if (firstline.endsWith(".owl")){
+				owlfile = new File(firstline);
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 		
+		
+		if (database == null)
+			try {
+				
+				if (owlfile==null){
+					database = (OWLOntologyDatabase) getDatabase(new HashSet<DatabaseFormula>());
+				}else {
+					database = new OWLOntologyDatabase("kb", owlfile);
+				}
+			} catch (KRDatabaseException e) {
+				e.printStackTrace();
+			} catch (OWLOntologyCreationException e) {
+				e.printStackTrace();
+			}
 		//create parser for this database onto and reader source
 		return new SQWRLParser(database.getSWRLOntology(), reader);
 	}
@@ -89,15 +113,13 @@ public class OWLRepoKRInterface implements KRInterface {
 	
 	
 	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries) {
-		// TODO Auto-generated method stub
-		return null;
+		return queries;
 	}
 	
 	
 	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
 			Set<Query> queries) {
-		// TODO Auto-generated method stub
-		return null;
+		return dbfs;
 	}
 	
 

@@ -26,7 +26,7 @@ public class SWRLTranslatorTest {
 	public SWRLTranslatorTest(){
 		try {
 		File file = new File("src/test/resources/tradrIndivrdf.owl");
-		  db = new OWLOntologyDatabase("myonto", file, null);
+		  db = new OWLOntologyDatabase("myonto", file);
 
 		}catch (OWLOntologyCreationException e) {
 			e.printStackTrace();

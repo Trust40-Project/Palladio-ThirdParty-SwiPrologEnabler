@@ -16,9 +16,8 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
-import org.semanticweb.owlapi.io.OWLParser;
-import org.semanticweb.owlapi.io.OWLParserFactory;
-import org.semanticweb.owlapi.io.OWLParserFactoryImpl;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.swrlapi.core.SWRLAPIOWLOntology;
@@ -39,7 +38,8 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	String currentLine = "";
 	int line = -1;
 	List<SourceInfo> errors;
-
+	SWRLAPIOWLOntology onto ;
+	
 	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology){
 		super(swrlapiOWLOntology);
 		errors = new ArrayList<SourceInfo>();
@@ -58,14 +58,18 @@ public class SQWRLParser extends SWRLParser implements Parser {
 		try {
 			//advance with the line
 			currentLine = reader.readLine();
+			System.out.println("Parsing: "+currentLine);
 			line++;
-			if (isSWRLRuleCorrectAndComplete(currentLine)) {
-				//parse the line
-				parse(currentLine, String.valueOf(line));
-			} else {
-				System.out.println("Incomplete rule: "+currentLine+" :: "+isSWRLRuleCorrectButPossiblyIncomplete(currentLine));
-				errors.add(new SQWRLParserSourceInfo(null, line, -1, "Incomplete rule: "+currentLine));
+			if (currentLine!=null){
+				rule = (SWRLRule) parse(currentLine, String.valueOf(line));
 			}
+//			if (isSWRLRuleCorrectAndComplete(currentLine)) {
+//				//parse the line
+//				parse(currentLine, String.valueOf(line));
+//			} else {
+//				System.out.println("Incomplete rule: "+currentLine+" :: "+isSWRLRuleCorrectButPossiblyIncomplete(currentLine));
+//				errors.add(new SQWRLParserSourceInfo(null, line, -1, "Incomplete rule: "+currentLine));
+//			}
 		} catch (SWRLParseException e) {
 			e.printStackTrace(); 
 			errors.add(new SQWRLParserSourceInfo(null, line, -1, e.getMessage()));
@@ -73,36 +77,39 @@ public class SQWRLParser extends SWRLParser implements Parser {
 			e.printStackTrace();
 			errors.add(new SQWRLParserSourceInfo(null, line, -1, e.getMessage()));
 		}
-		
-		} else
-			System.out.println("EOF - by Parser -- by Reader");
+		}
+//		 else
+//			System.out.println("EOF - by Parser -- by Reader");
 		return rule;
 	}
 	
-	public SWRLExpression parse(String line, String name) throws SWRLParseException{
-//		public SWRLRule parseSWRLRule(String ruleText, boolean interactiveParseOnly, String ruleName, String comment)
-				//		throws SWRLParseException
-		try{
-			SWRLRule rule =  parseRule(line, name);
-			return new SWRLExpression(rule);
-		}catch(SWRLParseException e){
-			//it's not a swrl rule or contains undefined iri-s
-			//use owl parser
-//			OWLParserFactory pf = new OWLParserFactoryImpl();
-//			OWLParser parser =  pf.createParser();
-//			parser.parse(null, null);
-			return null;
-		}
+//	public SWRLExpression parse(String line, String name) throws SWRLParseException{
+////		public SWRLRule parseSWRLRule(String ruleText, boolean interactiveParseOnly, String ruleName, String comment)
+//				//		throws SWRLParseException
+//		try{
+//			SWRLRule rule =  parseRule(line, name);
+//			return new SWRLExpression(rule);
+//		}catch(SWRLParseException e){
+//			//it's not a swrl rule or contains undefined iri-s
+//			//use owl parser
+////			OWLParserFactory pf = new OWLParserFactoryImpl();
+////			OWLParser parser =  pf.createParser();
+////			parser.parse(null, null);
+//			throw new SWRLParseException(e.getMessage());
+//		}
+//	}
+	public SWRLRule parse(String line, String name) throws SWRLParseException {
+		return parseRule(line, name);
 	}
 	
 	public SWRLRule parseRule(String line, String name) throws SWRLParseException{
 //		public SWRLRule parseSWRLRule(String ruleText, boolean interactiveParseOnly, String ruleName, String comment)
-				//		throws SWRLParseException
-		
+				//		throws SWRLParseException	
 		return parseSWRLRule(line, false, name, "nocomment");
 	}
 
-	public List<DatabaseFormula> parseDBFs() throws ParserException {
+	@Override
+	public List<DatabaseFormula> parseDBFs(SourceInfo info) throws ParserException {
 		//rule to list of dbformula
 			List<DatabaseFormula> dbfs = new LinkedList<DatabaseFormula>();
 			DatabaseFormula dbf;
@@ -115,51 +122,59 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	public DatabaseFormula parseDBF() throws ParserException {
 	//rule to list of dbformula
 		SWRLRule rule = parse();
+		if (rule!=null)
 		return new SWRLDatabaseFormula(rule);
+		else return null;
 	}
 
-	public Update parseUpdate() throws ParserException {
-	//rule to update
+	@Override
+	public Update parseUpdate(SourceInfo info) throws ParserException {
+		//rule to update
 		SWRLRule rule = parse();
 		return new SWRLUpdate(rule);
 	}
 	
 	
-	public List<Query> parseQueries() throws ParserException {
-		List<Query> queries = new LinkedList<Query>();
+	@Override
+	public List<Query> parseQueries(SourceInfo info) throws ParserException {
+			List<Query> queries = new LinkedList<Query>();
 		Query q;
-		while((q=parseQuery())!=null){
+		while((q=parseQuery(info))!=null){
 			queries.add(q);
 		}
 		return queries;
 	}
 
 
-	public Query parseQuery() throws ParserException {
-	//rule to query
+	@Override
+	public Query parseQuery(SourceInfo info) throws ParserException {
+		//rule to query
 		SWRLRule rule = parse();
 		return new SWRLQuery(rule);
 	}
 
 	
-	public List<Term> parseTerms() throws ParserException {
-		List<Term> terms = new LinkedList<Term>();
+	@Override
+	public List<Term> parseTerms(SourceInfo info) throws ParserException {
+			List<Term> terms = new LinkedList<Term>();
 		Term t;
-		while ((t=parseTerm())!=null){
+		while ((t=parseTerm(info))!=null){
 			terms.add(t);
 		}
 		return terms;
 	}
 
-	public Term parseTerm() throws ParserException {
-	//rule to term
+	@Override
+	public Term parseTerm(SourceInfo info) throws ParserException {
+		//rule to term
 		SWRLRule rule = parse();
 
 		return new SWRLTerm(rule);
 	}
 
-	public Var parseVar() throws ParserException {
-		//rule to var
+	@Override
+	public Var parseVar(SourceInfo info) throws ParserException {
+			//rule to var
 			SWRLRule rule = parse();
 			Set<SWRLVariable> vars = rule.getVariables();
 			return new SWRLVar(vars.iterator().next());
@@ -170,49 +185,8 @@ public class SQWRLParser extends SWRLParser implements Parser {
 		return errors;
 	}
 
-	@Override
-	public List<DatabaseFormula> parseDBFs(SourceInfo info)
-			throws ParserException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<Query> parseQueries(SourceInfo info) throws ParserException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Query parseQuery(SourceInfo info) throws ParserException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Update parseUpdate(SourceInfo info) throws ParserException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Var parseVar(SourceInfo info) throws ParserException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Term parseTerm(SourceInfo info) throws ParserException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<Term> parseTerms(SourceInfo info) throws ParserException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
+	
 	
 
 }

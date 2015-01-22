@@ -80,7 +80,7 @@ public class OWLOntologyDatabase implements Database {
 
     private SWRLAPIRenderer renderer;
     
-    public OWLOntologyDatabase(String name, File file, String repoUrl) throws OWLOntologyCreationException{
+    public OWLOntologyDatabase(String name, File file) throws OWLOntologyCreationException{
     	this.name = name;
 		
 		//create owl ontology and its manager
@@ -139,7 +139,9 @@ public class OWLOntologyDatabase implements Database {
 //  		consumer.statementWithResourceValue(subject, predicate, object);
   		//OWLRDFConsumer to get contents of repo
   	
-	     
+    }
+    
+    public void setupRepo(String repoUrl){
 	      //set up RDF repository = triple store local + shared
 	      if (this.localdb == null){
 	    	  local_listener = new RDFRepositoryConnectionListener(this, "local");
@@ -164,7 +166,7 @@ public class OWLOntologyDatabase implements Database {
     
     
 	public OWLOntologyDatabase(String name) throws OWLOntologyCreationException{
-		this(name, (File)null, (String)null);
+		this(name, (File)null);
 	}
 	
 	public OWLOntologyDatabase(String name, Collection<DatabaseFormula> content) throws OWLOntologyCreationException{
