@@ -78,9 +78,10 @@ public interface Expression {
 	Set<Var> getFreeVar();
 
 	/**
-	 * Applies a substitution to this expression by substituting variables in
-	 * the expression that are bound by the substitution with the term bound to
-	 * the variable.
+	 * Creates a new term by applying a substitution to this. This instantiates
+	 * free variables that are bound to a term in the substitution by that term
+	 * (or, only renames in case the substitution binds a variable to another
+	 * one).
 	 * 
 	 * @param substitution
 	 *            A map that binds terms to variables.
