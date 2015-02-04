@@ -42,7 +42,7 @@ public class KRFactory {
 	/**
 	 * A map of names to {@link KRInterface}s that are supported.
 	 */
-	private static Map<String, KRInterface> languages = new Hashtable<String, KRInterface>();
+	private static Map<String, KRInterface> languages = null;
 	/**
 	 * The default interface that get be obtained by
 	 * {@link KRFactory#getDefaultLanguage()}.
@@ -51,25 +51,39 @@ public class KRFactory {
 
 	// Initialize KR interfaces map and default language interface.
 	static {
-		// Add SWI Prolog and set as default.
-		try {
-			defaultInterface = swiprolog.SWIPrologInterface.getInstance();
-			KRFactory.addInterface(defaultInterface);
-			SWI_PROLOG = defaultInterface.getName();
-		} catch (KRInitFailedException e) {
-			// TODO
-			System.out
-					.println("Failed to initialize the SWI Prolog interface because "
-							+ e.getMessage());
-		} catch (KRException e) {
-			System.out.println(e.getMessage());
-		}
+		init();
 	}
 
 	/**
 	 * KRFactory is a utility class; constructor is hidden.
 	 */
 	private KRFactory() {
+	}
+
+	/**
+	 * Initialize the default values for the factory. Fails hard if SWI not
+	 * working.
+	 */
+	private static void init() {
+		if (languages == null) {
+			languages = new Hashtable<String, KRInterface>();
+			try {
+				defaultInterface = swiprolog.SWIPrologInterface.getInstance();
+			} catch (KRInitFailedException e1) {
+				throw new IllegalStateException(
+						"Failed to load the default SWI Prolog language", e1);
+			}
+
+			// Add SWI Prolog and set as default.
+			try {
+				KRFactory.addInterface(defaultInterface);
+			} catch (KRException e) {
+				throw new IllegalStateException(
+						"SWI Prolog could not initialize properly", e);
+			}
+			SWI_PROLOG = defaultInterface.getName();
+		}
+
 	}
 
 	/**
@@ -113,7 +127,7 @@ public class KRFactory {
 			languages.put(krInterface.getName().toLowerCase(), krInterface);
 		} else {
 			throw new KRException("Interface " + krInterface.getName()
-					+ " already present");
+					+ " is already present");
 		}
 	}
 
@@ -134,7 +148,7 @@ public class KRFactory {
 			throws KRInitFailedException {
 		if (defaultInterface == null) {
 			throw new KRInitFailedException(
-					"Something went wrong; could not locate default interface.");
+					"could not locate default interface.");
 		}
 		return defaultInterface;
 	}
