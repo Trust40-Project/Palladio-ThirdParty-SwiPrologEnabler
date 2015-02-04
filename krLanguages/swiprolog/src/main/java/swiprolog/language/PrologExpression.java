@@ -208,9 +208,8 @@ public abstract class PrologExpression implements Expression {
 		}
 
 		// Don't know what this is; throw.
-		throw new UnsupportedOperationException(
-				"No support for constructing String for JPL term of type "
-						+ this.term.getClass());
+		throw new UnsupportedOperationException("Unknown JPL term of type "
+				+ this.term.getClass());
 	}
 
 	/**

@@ -87,7 +87,8 @@ public final class SWIPrologInterface implements KRInterface {
 					"set_prolog_flag", new jpl.Atom("debug_on_error"),
 					new jpl.Atom("false")));
 		} catch (KRQueryFailedException e) {
-			throw new KRInitFailedException(e.getMessage(), e);
+			throw new KRInitFailedException(
+					"swi prolog says it can't set the run mode", e);
 		}
 		// See http://www.swi-prolog.org/packages/jpl/release_notes.html for
 		// explanation why Don't Tell Me Mode needs to be false. Setting this
@@ -130,15 +131,13 @@ public final class SWIPrologInterface implements KRInterface {
 	 * are used for storing goals.
 	 * </p>
 	 *
-	 * @param agent
-	 *            The name of an agent.
-	 * @param type
-	 *            The type that is requested.
+	 * @param name
+	 *            the owner name of the database
 	 * @returns The database associated with a given agent of a given type, or
 	 *          {@code null} if no database of the given type exists.
 	 */
-	protected SWIPrologDatabase getDatabase(String id) {
-		return this.databases.get(id);
+	protected SWIPrologDatabase getDatabase(String name) {
+		return this.databases.get(name);
 	}
 
 	@Override
@@ -172,7 +171,8 @@ public final class SWIPrologInterface implements KRInterface {
 		try {
 			cs = new ANTLRReaderStream(r);
 		} catch (IOException e) {
-			throw new ParserException(e.getMessage());
+			throw new ParserException("could not parse the data as SWI prolog",
+					e);
 		}
 		return new KRInterfaceParser(cs);
 	}

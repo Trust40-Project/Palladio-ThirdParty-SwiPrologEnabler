@@ -55,20 +55,14 @@ public class KRInterfaceParser implements Parser {
 	 *             If an exception occurred during parsing. See
 	 *             {@link ParserException}.
 	 */
-	public KRInterfaceParser(ANTLRReaderStream stream) throws ParserException {
-		try {
-			PrologLexer lexer = new PrologLexer(stream);
-			lexer.initialize();
-			LinkedListTokenSource linker = new LinkedListTokenSource(lexer);
-			LinkedListTokenStream tokenStream = new LinkedListTokenStream(
-					linker);
-			this.parser = new PrologParser(tokenStream);
-			this.parser.setInput(lexer, stream);
-			this.parser.initialize();
-		} catch (Exception e) {
-			throw new ParserException("Could not initialize "
-					+ "the Prolog parser", e);
-		}
+	public KRInterfaceParser(ANTLRReaderStream stream) {
+		PrologLexer lexer = new PrologLexer(stream);
+		lexer.initialize();
+		LinkedListTokenSource linker = new LinkedListTokenSource(lexer);
+		LinkedListTokenStream tokenStream = new LinkedListTokenStream(linker);
+		this.parser = new PrologParser(tokenStream);
+		this.parser.setInput(lexer, stream);
+		this.parser.initialize();
 	}
 
 	@Override
@@ -101,13 +95,14 @@ public class KRInterfaceParser implements Parser {
 		try {
 			term = this.parser.term0();
 		} catch (RecognitionException e) {
-			throw new ParserException(e.getMessage(), e);
+			throw new ParserException(
+					"data could not be parsed as a SWI term0", e);
 		}
 		if (term.isVar()) {
 			return new PrologVar((Variable) term.getTerm(), info);
 		} else {
 			throw new ParserException(String.format(
-					"Expected a Prolog variable but found '%s'",
+					"expected a SWI prolog variable but found '%s'",
 					term.toString()));
 		}
 	}
