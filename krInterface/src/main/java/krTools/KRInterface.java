@@ -126,4 +126,11 @@ public interface KRInterface {
 	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
 			Set<Query> queries);
 
+	/**
+	 * Check if terms in this KR implementation can be serialized.
+	 * 
+	 * @return true iff terms from this KR implementation can be serialized
+	 */
+	public boolean supportsSerialization();
+
 }

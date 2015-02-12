@@ -234,4 +234,9 @@ public final class SWIPrologInterface implements KRInterface {
 		return getName();
 	}
 
+	@Override
+	public boolean supportsSerialization() {
+		return false;
+	}
+
 }
