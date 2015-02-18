@@ -137,12 +137,6 @@ public class PrologSubstitution implements Substitution {
 		this.jplSubstitution.put(var.name(), ((PrologTerm) term).getTerm());
 	}
 
-	/**
-	 * Combines two substitutions, if possible.
-	 *
-	 * @return Substitution that combines this and given substitution, or
-	 *         {@code null} if bindings of substitutions conflict.
-	 */
 	@Override
 	public Substitution combine(Substitution substitution) {
 		Hashtable<String, jpl.Term> combined = null;
@@ -153,9 +147,6 @@ public class PrologSubstitution implements Substitution {
 		return getSubstitutionOrNull(combined);
 	}
 
-	/**
-	 * DOC Only used by ListallDoRule...
-	 */
 	@Override
 	public boolean remove(Var variable) {
 		jpl.Variable var = (jpl.Variable) ((PrologVar) variable).getTerm();
@@ -165,9 +156,6 @@ public class PrologSubstitution implements Substitution {
 		return false;
 	}
 
-	/**
-	 * DOC Only used by Macro...
-	 */
 	@Override
 	public boolean retainAll(Collection<Var> variables) {
 		Set<String> vars = this.jplSubstitution.keySet();
@@ -182,9 +170,6 @@ public class PrologSubstitution implements Substitution {
 		return removed;
 	}
 
-	/**
-	 * DOC
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public PrologSubstitution clone() {
