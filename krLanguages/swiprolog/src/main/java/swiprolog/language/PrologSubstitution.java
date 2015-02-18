@@ -18,6 +18,7 @@
 package swiprolog.language;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -157,13 +158,17 @@ public class PrologSubstitution implements Substitution {
 	}
 
 	@Override
-	public boolean retainAll(Collection<Var> variables) {
-		Set<String> vars = this.jplSubstitution.keySet();
+	public boolean retainAll(Collection<Var> varsToRetain) {
+		Set<String> varnamesToRetain = new HashSet<String>();
+		for (Var v : varsToRetain) {
+			varnamesToRetain.add(((PrologVar) v).getVariable().name());
+		}
+		Set<String> currentVars = new HashSet<String>(this.jplSubstitution.keySet());
+
 		boolean removed = false;
-		for (Var var : variables) {
-			jpl.Variable v = (jpl.Variable) ((PrologVar) var).getTerm();
-			if (!vars.contains(v)) {
-				this.jplSubstitution.remove(v.name());
+		for (String varname : currentVars) {
+			if (!varnamesToRetain.contains(varname)) {
+				this.jplSubstitution.remove(varname);
 				removed = true;
 			}
 		}
