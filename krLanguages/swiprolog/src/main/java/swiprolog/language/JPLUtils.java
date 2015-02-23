@@ -199,6 +199,12 @@ public class JPLUtils {
 	 * D-is-a-predication in ISO p.132-.
 	 */
 	public static boolean isPredication(jpl.Term term) {
+		// only compound has concrete implementation of name(). #3463
+		if (!(term instanceof jpl.Compound)) {
+			return false;
+		}
+		
+		// CHECK this seems nonsense, jpl.Term objects are not String objects?
 		if (term.equals("&")) {
 			return false;
 		}
@@ -208,6 +214,7 @@ public class JPLUtils {
 		if (term.equals("->")) {
 			return false;
 		}
+
 		/*
 		 * Arguments must be a D-is-an-arglist see ISO p.132 but all arguments
 		 * must already be PrologTerm and no further checks are needed. TODO
