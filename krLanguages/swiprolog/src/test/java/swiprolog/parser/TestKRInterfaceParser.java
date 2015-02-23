@@ -26,7 +26,7 @@ public class TestKRInterfaceParser {
 		StringReader reader = new StringReader("on(a,b), on(b,c), on(c,table)");
 		ANTLRReaderStream stream = new ANTLRReaderStream(reader);
 		Parser parser = new KRInterfaceParser(stream);
-		Update update = parser.parseUpdate(new SourceInfoObject(-1, -1));
+		Update update = parser.parseUpdate();
 
 		assertEquals(",/2", update.getSignature());
 
@@ -39,7 +39,7 @@ public class TestKRInterfaceParser {
 				"zone(ID, Name, X, Y, Neighbours)");
 		ANTLRReaderStream stream = new ANTLRReaderStream(reader);
 		KRInterfaceParser parser = new KRInterfaceParser(stream);
-		Update update = parser.parseUpdate(new SourceInfoObject(-1, -1));
+		Update update = parser.parseUpdate();
 
 		assertEquals("zone/5", update.getSignature());
 

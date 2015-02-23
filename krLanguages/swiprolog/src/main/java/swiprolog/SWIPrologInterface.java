@@ -37,6 +37,7 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
+import krTools.parser.SourceInfo;
 
 import org.antlr.runtime.ANTLRReaderStream;
 
@@ -166,10 +167,13 @@ public final class SWIPrologInterface implements KRInterface {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Parser getParser(Reader r) throws ParserException {
+	public Parser getParser(Reader r, SourceInfo info) throws ParserException {
 		ANTLRReaderStream cs;
 		try {
 			cs = new ANTLRReaderStream(r);
+			cs.setLine(info.getLineNumber());
+			cs.setCharPositionInLine(info.getCharacterPosition());
+			// TODO can't set name of source file? Is this bug in ANTLRStringStream?
 		} catch (IOException e) {
 			throw new ParserException("could not parse the data as SWI prolog",
 					e);

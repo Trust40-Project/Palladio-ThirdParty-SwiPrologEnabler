@@ -32,6 +32,7 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
+import krTools.parser.SourceInfo;
 
 /**
  * The knowledge representation (KR) interface.
@@ -94,11 +95,16 @@ public interface KRInterface {
 	 *
 	 * @param source
 	 *            The source that is to be parsed.
+	 * @param info
+	 *            the {@link SourceInfo}. This is needed as this parser will be
+	 *            used as subparser, and then it needs to be able to create
+	 *            correct source references and error messages with correct line
+	 *            numbers.
 	 * @throws ParserException
 	 *             If anything went wrong during initialization of the parser,
 	 *             e.g., due to a problem with the source.
 	 */
-	Parser getParser(Reader source) throws ParserException;
+	Parser getParser(Reader source, SourceInfo info) throws ParserException;
 
 	/**
 	 * Creates a substitution from a map of variables to terms.

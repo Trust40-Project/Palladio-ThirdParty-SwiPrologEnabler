@@ -66,31 +66,31 @@ public class KRInterfaceParser implements Parser {
 	}
 
 	@Override
-	public Update parseUpdate(SourceInfo info) {
-		return this.parser.ParseUpdateOrEmpty(info);
+	public Update parseUpdate() {
+		return this.parser.ParseUpdateOrEmpty();
 	}
 
 	@Override
-	public List<DatabaseFormula> parseDBFs(SourceInfo info)
+	public List<DatabaseFormula> parseDBFs()
 			throws ParserException {
-		return this.parser.parsePrologProgram(info);
+		return this.parser.parsePrologProgram();
 	}
 
 	@Override
-	public List<Query> parseQueries(SourceInfo info) throws ParserException {
-		return this.parser.parsePrologGoalSection(info);
+	public List<Query> parseQueries() throws ParserException {
+		return this.parser.parsePrologGoalSection();
 	}
 
 	/**
 	 * Allows empty queries.
 	 */
 	@Override
-	public Query parseQuery(SourceInfo info) {
-		return this.parser.ParseQueryOrEmpty(info);
+	public Query parseQuery() {
+		return this.parser.ParseQueryOrEmpty();
 	}
 
 	@Override
-	public Var parseVar(SourceInfo info) throws ParserException {
+	public Var parseVar() throws ParserException {
 		PrologTerm term;
 		try {
 			term = this.parser.term0();
@@ -99,7 +99,7 @@ public class KRInterfaceParser implements Parser {
 					"data could not be parsed as a SWI term0", e);
 		}
 		if (term.isVar()) {
-			return new PrologVar((Variable) term.getTerm(), info);
+			return new PrologVar((Variable) term.getTerm(), term.getSourceInfo());
 		} else {
 			throw new ParserException(String.format(
 					"expected a SWI prolog variable but found '%s'",
@@ -108,13 +108,14 @@ public class KRInterfaceParser implements Parser {
 	}
 
 	@Override
-	public Term parseTerm(SourceInfo info) {
-		return new PrologTerm(this.parser.ParseTerm().getTerm(), info);
+	public Term parseTerm() {
+		PrologTerm t = this.parser.ParseTerm();
+		return new PrologTerm(t.getTerm(), t.getSourceInfo());
 	}
 
 	@Override
-	public List<Term> parseTerms(SourceInfo info) {
-		return this.parser.ParsePrologTerms(info);
+	public List<Term> parseTerms() {
+		return this.parser.ParsePrologTerms();
 	}
 
 	@Override

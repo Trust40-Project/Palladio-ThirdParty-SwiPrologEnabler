@@ -209,14 +209,14 @@ options {
      *
      * @return ArrayList<DatabaseFormula>, or {@code null} if a parser error occurs.
      */
-	public ArrayList<DatabaseFormula> parsePrologProgram(SourceInfo info) throws ParserException {
+	public ArrayList<DatabaseFormula> parsePrologProgram() throws ParserException {
 		try {
 			ArrayList<PrologTerm> prologTerms = prologtextWithImports();
 
             // Parser does not check if Prolog terms are correct database objects, do this next
             ArrayList<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>();
             for (PrologTerm t: prologTerms) {
-            	PrologTerm updatedSourceInfo = new PrologTerm(t.getTerm(), combineSourceInfo(info, t.getSourceInfo()));
+            	PrologTerm updatedSourceInfo = new PrologTerm(t.getTerm(), t.getSourceInfo());
 				dbfs.add(DBFormula(updatedSourceInfo));
 			}
             return dbfs;
@@ -336,28 +336,6 @@ options {
     	return new SourceInfoObject(token.getLine(), token.getCharPositionInLine());
     }
     
-    /**
-     * Update position in source info object info1 with relative position info from info2.
-     */
-    private SourceInfoObject combineSourceInfo(SourceInfo info1, SourceInfo info2) {
-    	int lineNr, charPos;
-    	 
-    	if (info2 != null) {
-			lineNr = info1.getLineNumber() + info2.getLineNumber() -1;
-			if (info2.getLineNumber() > 1) {
-				charPos = info2.getCharacterPosition();
-			} else {
-				charPos = info1.getCharacterPosition() + info2.getCharacterPosition();
-			}
-		} else {
-			lineNr = info1.getLineNumber();
-			charPos = info1.getCharacterPosition();
-		}
-		SourceInfoObject sourceInfo = new SourceInfoObject(lineNr, charPos);
-		sourceInfo.setSource(info1.getSource());
-		sourceInfo.setMessage(info1.getMessage());
-		return sourceInfo;
-	}
 
 	/**
 	 * Unquote a quoted string. The enclosing quotes determine how quotes inside the string are handled.
@@ -389,7 +367,7 @@ options {
          * @return ArrayList<Query>, or {@code null} if a parser error occurs.
          * @throws ParserException 
          */
-        public ArrayList<Query> parsePrologGoalSection(SourceInfo info) throws ParserException { 
+        public ArrayList<Query> parsePrologGoalSection() throws ParserException { 
             ArrayList<Query> goals = new ArrayList<Query>();
             
             try {
@@ -397,7 +375,7 @@ options {
 
                 for (PrologTerm t: prologTerms) {
                 	// check that each term is a valid Prolog goal / query
-                    goals.add(new PrologQuery(toGoal(t.getTerm()), combineSourceInfo(info, t.getSourceInfo())));
+                    goals.add(new PrologQuery(toGoal(t.getTerm()), t.getSourceInfo()));
                 }
                 return goals;
             } catch (RecognitionException e) {
@@ -447,9 +425,9 @@ options {
    *
    * @return PrologUpdate, or {@code null} in case of a parser error.
    */
-  public PrologUpdate ParseGOALUpdate(SourceInfo info) {
+  public PrologUpdate ParseGOALUpdate() {
     try {
-		return conj2Update(term1000(), info);
+		return conj2Update(term1000());
     } catch(RecognitionException e) {
         reportError(e);
         return null;
@@ -465,9 +443,9 @@ options {
   * Parse a Prolog conjunction and check it's a proper update.
   * @return PrologUpdate, or null if parser error occurs.
   */
-  public PrologUpdate ParseUpdate(SourceInfo info) {
+  public PrologUpdate ParseUpdate() {
     try {
-      return conj2Update(term1000(), info);
+      return conj2Update(term1000());
      } catch(RecognitionException e) {
         	reportError(e);
             return null;
@@ -485,13 +463,13 @@ options {
    * @param A source info object.
    * @return PrologUpdate, or {@code null} if parser error occurs.
    */
-  public PrologUpdate ParseUpdateOrEmpty(SourceInfo info)  {
+  public PrologUpdate ParseUpdateOrEmpty()  {
     try {
 		PrologTerm conj = possiblyEmptyConjunct();
 		if (conj.toString().equals("true")) {
-			return new PrologUpdate(conj.getTerm(), info);
+			return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
 		} else {
-			return conj2Update(conj, info);
+			return conj2Update(conj);
 		}
 	} catch(RecognitionException e) {
 		reportError(e);
@@ -535,10 +513,8 @@ options {
      * @throws ParserException if term is no good Update.
      * @see #checkDBFormula
      */
-    private PrologUpdate conj2Update(PrologTerm conjunct, SourceInfo info) throws ParserException {
-		SourceInfoObject sourceInfo = combineSourceInfo(info, conjunct.getSourceInfo());
-		
-		PrologUpdate update = new PrologUpdate(basicUpdateCheck(conjunct), sourceInfo);
+    private PrologUpdate conj2Update(PrologTerm conjunct) throws ParserException {
+		PrologUpdate update = new PrologUpdate(basicUpdateCheck(conjunct), conjunct.getSourceInfo());
 
         return update;
     }
@@ -557,8 +533,8 @@ options {
     * @returns Query object made from conjunction
     * @throws ParserException if prologTerm is not a good Query.
     */
-    public PrologQuery toQuery(PrologTerm conjunction, SourceInfo info) throws ParserException {
-        return new PrologQuery(toGoal(conjunction.getTerm()), combineSourceInfo(info, conjunction.getSourceInfo()));
+    public PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
+        return new PrologQuery(toGoal(conjunction.getTerm()), conjunction.getSourceInfo());
     }
      
    /**
@@ -566,9 +542,9 @@ options {
     *
     * @return A {@link PrologQuery}, or {@code null} if an error occurred.
     */   
-    public PrologQuery ParseQuery(SourceInfo info) {
+    public PrologQuery ParseQuery() {
 		try {
-			return toQuery(term1100(), info);
+			return toQuery(term1100());
 		} catch(RecognitionException e) {
         	reportError(e);
             return null;
@@ -585,9 +561,9 @@ options {
     *
     * @return A {@link PrologQuery}, or {@code null} if an error occurred.
     */
-    public PrologQuery ParseQueryOrEmpty(SourceInfo info) {
+    public PrologQuery ParseQueryOrEmpty() {
 		try {
-			return toQuery(possiblyEmptyDisjunct(), info);
+			return toQuery(possiblyEmptyDisjunct());
 		} catch(RecognitionException e) {
 			reportError(e);
 			return null;
@@ -604,15 +580,15 @@ options {
     *
     * @return A list of {@link Term}s.
     */
-    public List<Term> ParsePrologTerms(SourceInfo info) {
+    public List<Term> ParsePrologTerms() {
       try {
         PrologTerm t = term1000();
         ArrayList<Term> terms = new ArrayList<Term>();
         for (jpl.Term term : JPLUtils.getOperands(",", t.getTerm())) {
           if (term instanceof jpl.Variable) {
-            terms.add(new PrologVar((jpl.Variable)term, info));
+            terms.add(new PrologVar((jpl.Variable)term, t.getSourceInfo()));
           } else {
-            terms.add(new PrologTerm(term, info));
+            terms.add(new PrologTerm(term, t.getSourceInfo()));
           }
         }
         return terms;
