@@ -25,6 +25,7 @@ public class TestKRInterfaceParser {
 	public void testParseUpdate() throws IOException, ParserException {
 		StringReader reader = new StringReader("on(a,b), on(b,c), on(c,table)");
 		ANTLRReaderStream stream = new ANTLRReaderStream(reader);
+		stream.name = "";
 		Parser parser = new KRInterfaceParser(stream);
 		Update update = parser.parseUpdate();
 
@@ -38,6 +39,7 @@ public class TestKRInterfaceParser {
 		StringReader reader = new StringReader(
 				"zone(ID, Name, X, Y, Neighbours)");
 		ANTLRReaderStream stream = new ANTLRReaderStream(reader);
+		stream.name = "";
 		KRInterfaceParser parser = new KRInterfaceParser(stream);
 		Update update = parser.parseUpdate();
 

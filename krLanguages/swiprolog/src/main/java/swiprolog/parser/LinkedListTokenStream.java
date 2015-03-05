@@ -323,7 +323,6 @@ public class LinkedListTokenStream implements TokenStream {
 
 	@Override
 	public String getSourceName() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.tokenSource.getSourceName();
 	}
 }
