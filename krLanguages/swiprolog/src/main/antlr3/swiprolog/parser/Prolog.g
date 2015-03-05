@@ -137,7 +137,6 @@ options {
     }
     
     public File getSource() {
-    	System.out.println(":" + getSourceName());
     	return new File(getSourceName());
     }
 
