@@ -46,6 +46,8 @@ options {
     import krTools.language.Query;
     import krTools.language.Term;
     import krTools.parser.SourceInfo;
+    
+    import java.io.File;
 	
 	import swiprolog.language.PrologDBFormula;
 	import swiprolog.language.PrologQuery;
@@ -73,9 +75,13 @@ options {
         errors = new ArrayList<ParserException>();
     }
     
+    public File getSource() {
+    	return new File(getSourceName());
+    }
+    
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	SourceInfoObject info = new SourceInfoObject(e.line, e.charPositionInLine);
+    	SourceInfoObject info = new SourceInfoObject(getSource(), e.line, e.charPositionInLine);
     	ParserException newErr;
     	if (e instanceof MismatchedTokenException && e.token != null) {
            	newErr = new ParserException("Found " + e.token.getText() + " where I was expecting "
@@ -89,7 +95,7 @@ options {
     	} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
         	ParserException cause = ((ParserException)e.getCause());
         	if (cause.hasSourceInfo()) {
-        		info = new SourceInfoObject(cause.getLineNumber(), cause.getCharacterPosition());
+        		info = new SourceInfoObject(getSource(), cause.getLineNumber(), cause.getCharacterPosition());
         	}
             newErr = new ParserException(e.getCause().getMessage(), info);
         } else {
@@ -124,16 +130,19 @@ options {
 @parser::members {
     private PrologLexer lexer;
     private CharStream cs;
-
-    ArrayList<ParserException> errors;
+	private ArrayList<ParserException> errors;
   
     public void initialize() {
 		errors = new ArrayList<ParserException>();
     }
+    
+    public File getSource() {
+    	return new File(getSourceName());
+    }
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	SourceInfoObject info = new SourceInfoObject(e.line, e.charPositionInLine);
+    	SourceInfoObject info = new SourceInfoObject(getSource(), e.line, e.charPositionInLine);
     	ParserException newErr = null;
     	if (e.token != null && e.token.getText() != null) {
     		if (e instanceof MismatchedTokenException) {
@@ -147,7 +156,7 @@ options {
     		} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
         		ParserException cause = ((ParserException)e.getCause());
         		if (cause.hasSourceInfo()) {
-        			info = new SourceInfoObject(cause.getLineNumber(), cause.getCharacterPosition());
+        			info = new SourceInfoObject(getSource(), cause.getLineNumber(), cause.getCharacterPosition());
         		}
             	newErr = new ParserException(cause.getMessage(), info);
         	} else {
@@ -333,7 +342,7 @@ options {
      * @return Source info object.
      */
     private SourceInfo getSourceInfo(Token token) {
-    	return new SourceInfoObject(token.getLine(), token.getCharPositionInLine());
+    	return new SourceInfoObject(getSource(), token.getLine(), token.getCharPositionInLine());
     }
     
 

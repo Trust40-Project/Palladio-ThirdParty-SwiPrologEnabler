@@ -6,12 +6,13 @@ import krTools.parser.SourceInfo;
 
 public class SourceInfoObject implements SourceInfo {
 
-	private File sourceFile = null;
+	private final File sourceFile;
 	private final int lineNr;
 	private final int charPos;
 	private String msg = new String();
 
-	public SourceInfoObject(int lineNr, int charPos) {
+	public SourceInfoObject(File file, int lineNr, int charPos) {
+		this.sourceFile = file;
 		this.lineNr = lineNr;
 		this.charPos = charPos;
 	}
@@ -19,10 +20,6 @@ public class SourceInfoObject implements SourceInfo {
 	@Override
 	public File getSource() {
 		return this.sourceFile;
-	}
-
-	public void setSource(File file) {
-		this.sourceFile = file;
 	}
 
 	@Override

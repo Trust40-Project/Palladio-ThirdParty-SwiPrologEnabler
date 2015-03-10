@@ -171,9 +171,9 @@ public final class SWIPrologInterface implements KRInterface {
 		ANTLRReaderStream cs;
 		try {
 			cs = new ANTLRReaderStream(r);
+			cs.name = info.getSource().getPath();
 			cs.setLine(info.getLineNumber());
 			cs.setCharPositionInLine(info.getCharacterPosition());
-			// TODO can't set name of source file? Is this bug in ANTLRStringStream?
 		} catch (IOException e) {
 			throw new ParserException("could not parse the data as SWI prolog",
 					e);

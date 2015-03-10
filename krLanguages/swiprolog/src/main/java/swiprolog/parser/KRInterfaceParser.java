@@ -44,7 +44,7 @@ public class KRInterfaceParser implements Parser {
 	/**
 	 * The ANTLR generated parser for Prolog.
 	 */
-	private PrologParser parser;
+	private final PrologParser parser;
 
 	/**
 	 * Creates a new KR interface parser that uses the given stream as input.
@@ -71,8 +71,7 @@ public class KRInterfaceParser implements Parser {
 	}
 
 	@Override
-	public List<DatabaseFormula> parseDBFs()
-			throws ParserException {
+	public List<DatabaseFormula> parseDBFs() throws ParserException {
 		return this.parser.parsePrologProgram();
 	}
 
@@ -99,7 +98,8 @@ public class KRInterfaceParser implements Parser {
 					"data could not be parsed as a SWI term0", e);
 		}
 		if (term.isVar()) {
-			return new PrologVar((Variable) term.getTerm(), term.getSourceInfo());
+			return new PrologVar((Variable) term.getTerm(),
+					term.getSourceInfo());
 		} else {
 			throw new ParserException(String.format(
 					"expected a SWI prolog variable but found '%s'",
@@ -130,7 +130,8 @@ public class KRInterfaceParser implements Parser {
 				if (e.getCause() instanceof RecognitionException) {
 					int line = ((RecognitionException) e.getCause()).line;
 					int charPos = ((RecognitionException) e.getCause()).charPositionInLine;
-					SourceInfoObject info = new SourceInfoObject(line, charPos);
+					SourceInfoObject info = new SourceInfoObject(
+							this.parser.getSource(), line, charPos);
 					info.setMessage(e.getMessage());
 					errors.add(info);
 				}
