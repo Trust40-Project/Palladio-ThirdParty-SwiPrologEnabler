@@ -18,7 +18,9 @@
 package swiprolog.language;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -98,20 +100,21 @@ public class JPLUtils {
 	 *            The term whose variables are returned.
 	 * @return The variables that occur in the term.
 	 */
-	public static Set<jpl.Variable> getFreeVar(jpl.Term term) {
-		Set<Variable> freeVars = new LinkedHashSet<Variable>();
+	public static Set<Variable> getFreeVar(Term term) {
+		SetWithoutHash<Variable> freeVars = new SetWithoutHash<Variable>();
 
 		if (term.isVariable()) {
 			freeVars.add((jpl.Variable) term);
 		}
 		if (term.isCompound()) {
-			for (jpl.Term argument : term.args()) {
+			for (Term argument : term.args()) {
 				freeVars.addAll(getFreeVar(argument));
 			}
 		}
 
 		return freeVars;
 	}
+
 
 	/**
 	 * Creates a new term, cloning the given term and substituting variables
@@ -203,7 +206,7 @@ public class JPLUtils {
 		if (!(term instanceof jpl.Compound)) {
 			return false;
 		}
-		
+
 		// CHECK this seems nonsense, jpl.Term objects are not String objects?
 		if (term.equals("&")) {
 			return false;

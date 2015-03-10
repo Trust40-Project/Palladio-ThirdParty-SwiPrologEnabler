@@ -22,15 +22,22 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+import jpl.Term;
+import jpl.Variable;
 import krTools.errors.exceptions.KRInitFailedException;
 import krTools.language.Substitution;
-import krTools.language.Term;
 import krTools.language.Var;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestUnification {
 
+	@Before
+	public void init() throws KRInitFailedException {
+		swiprolog.SWIPrologInterface.getInstance();
+	}
+	
 	/**
 	 * Returns a substitution built from given variable and term.
 	 *
@@ -42,7 +49,7 @@ public class TestUnification {
 	public Substitution getSubstitution(PrologVar var, jpl.Term term)
 			throws KRInitFailedException {
 		Substitution unifier = swiprolog.SWIPrologInterface.getInstance()
-				.getSubstitution(new HashMap<Var, Term>());
+				.getSubstitution(new HashMap<Var, krTools.language.Term>());
 		unifier.addBinding(var, new PrologTerm(term, null));
 		return unifier;
 	}
@@ -312,6 +319,30 @@ public class TestUnification {
 
 		assertEquals(unifier1, JPLUtils.mgu(fXY, fYX));
 		assertEquals(unifier2, JPLUtils.mgu(fYX, fXY));
+	}
+	
+	/**
+	 * Test case: unification of f(X) and f(g(X)) (occurs check should kick in). #3470
+	 */
+	@Test
+	public void test11Mgu() {
+
+		// Construct f(X, Y)
+		Variable x = new Variable("X");
+		Variable x1 = new Variable("X");
+		
+		assertEquals(x,x1);
+		
+		// f(x)
+		jpl.Term fX = new jpl.Compound("f", new Term[] { x });
+		
+		
+		// Construct f(g(X))
+		jpl.Term fgX = new jpl.Compound("f", new Term[] { new jpl.Compound("g", new Term[] { x1 }) });
+
+		Hashtable<String, Term> result = JPLUtils.mgu(fX, fgX);
+		
+		assertEquals(null,result);
 	}
 
 }
