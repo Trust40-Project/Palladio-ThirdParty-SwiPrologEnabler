@@ -345,4 +345,19 @@ public class TestUnification {
 		assertEquals(null,result);
 	}
 
+	/**
+	 * Test case: X should match with X. #3469
+	 */
+	@Test
+	public void test12Mgu() {
+
+		// Construct f(X, Y)
+		Variable x = new Variable("X");
+		Variable x1 = new Variable("X");
+		
+		Hashtable<String, Term> result = JPLUtils.mgu(x, x1);
+		
+		assertEquals(new Hashtable<String, jpl.Term>(),result);
+	}
+	
 }

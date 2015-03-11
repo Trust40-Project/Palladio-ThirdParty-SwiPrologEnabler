@@ -20,6 +20,7 @@ package swiprolog.language;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import jpl.Variable;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 
@@ -72,6 +73,21 @@ public class PrologVar extends PrologTerm implements Var {
 		LinkedHashSet<Var> set = new LinkedHashSet<Var>();
 		set.add(this);
 		return set;
+	}
+
+	@Override
+	public Var getVariant(Set<Var> usedNames) {
+		String name = getTerm().name();
+		SourceInfo theinfo = getSourceInfo();
+
+		int n=1;
+		Var newVar;
+		do {
+			newVar=  new PrologVar(new Variable(name+"_"+n), theinfo);
+			n++;
+		} while (usedNames.contains(newVar));
+		
+		return newVar;
 	}
 
 }

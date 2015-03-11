@@ -252,6 +252,10 @@ public class JPLUtils {
 			jpl.Term otherterm) {
 		Hashtable<String, Term> result = new Hashtable<String, jpl.Term>();
 
+		// terms are equal already. success.
+		if (thisterm.equals(otherterm)) {
+			return result;
+		}
 		// First term is a constant.
 		if (thisterm.isAtom() || thisterm.isInteger() || thisterm.isFloat()) {
 			if (thisterm.equals(otherterm)) {
