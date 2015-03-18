@@ -85,21 +85,17 @@ options {
     	ParserException newErr;
     	if (e instanceof MismatchedTokenException && e.token != null) {
            	newErr = new ParserException("Found " + e.token.getText() + " where I was expecting "
-           		+ PrologParser.tokenNames[((MismatchedTokenException)e).expecting], info);
+           		+ PrologParser.tokenNames[((MismatchedTokenException)e).expecting], info, e);
         } else if (e instanceof MissingTokenException) {
-          	newErr = new ParserException(PrologParser.tokenNames[((MissingTokenException)e).expecting] + " is missing here", info);
+          	newErr = new ParserException(PrologParser.tokenNames[((MissingTokenException)e).expecting] + " is missing here", info, e);
         } else if (e instanceof NoViableAltException) { 
-           	newErr = new ParserException("Cannot use " + Character.toString((char)e.input.LA(1)) + " here", info);
+           	newErr = new ParserException("Cannot use " + Character.toString((char)e.input.LA(1)) + " here", info, e);
         } else if (e instanceof UnwantedTokenException && e.token != null) {
-    		newErr = new ParserException("Syntax error on '" + e.token.getText() + "', delete this", info);
+    		newErr = new ParserException("Syntax error on '" + e.token.getText() + "', delete this", info, e);
     	} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
-        	ParserException cause = ((ParserException)e.getCause());
-        	if (cause.hasSourceInfo()) {
-        		info = new SourceInfoObject(getSource(), cause.getLineNumber(), cause.getCharacterPosition());
-        	}
-            newErr = new ParserException(e.getCause().getMessage(), info);
+        	newErr = (ParserException)e.getCause();
         } else {
-        	newErr = new ParserException("Sorry, cannot make anything out of this", e);
+        	newErr = new ParserException("Sorry, cannot make anything out of this", info, e);
         }
         errors.add(newErr);
     }
@@ -146,24 +142,20 @@ options {
     	ParserException newErr = null;
     	if (e.token != null && e.token.getText() != null) {
     		if (e instanceof MismatchedTokenException) {
-           		newErr = new ParserException("Found " + e.token.getText() + " where I was expecting " + tokenNames[((MismatchedTokenException)e).expecting], info);
+           		newErr = new ParserException("Found " + e.token.getText() + " where I was expecting " + tokenNames[((MismatchedTokenException)e).expecting], info, e);
         	} else if (e instanceof MissingTokenException && e.token.getText() != null) {
-          		newErr = new ParserException(tokenNames[((MissingTokenException)e).expecting] + " is missing here", info);
+          		newErr = new ParserException(tokenNames[((MissingTokenException)e).expecting] + " is missing here", info, e);
         	} else if (e instanceof NoViableAltException && e.token.getText() != null) { 
-           		newErr = new ParserException("Cannot use " + e.token.getText() + " here", info);
+           		newErr = new ParserException("Cannot use " + e.token.getText() + " here", info, e);
         	} else if (e instanceof UnwantedTokenException && e.token.getText() != null) {
-    			newErr = new ParserException("Syntax error on '" + e.token.getText() + "', delete this", info);
+    			newErr = new ParserException("Syntax error on '" + e.token.getText() + "', delete this", info, e);
     		} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
-        		ParserException cause = ((ParserException)e.getCause());
-        		if (cause.hasSourceInfo()) {
-        			info = new SourceInfoObject(getSource(), cause.getLineNumber(), cause.getCharacterPosition());
-        		}
-            	newErr = new ParserException(cause.getMessage(), info);
+            	newErr = (ParserException)e.getCause();
         	} else {
-        		newErr = new ParserException("Sorry, cannot make anything out of this", e);
+        		newErr = new ParserException("Sorry, cannot make anything out of this", info, e);
         	}
         } else {
-        	newErr = new ParserException("Sorry, cannot make anything out of this", e);
+        	newErr = new ParserException("Sorry, cannot make anything out of this", info, e);
         }
         errors.add(newErr);
     }

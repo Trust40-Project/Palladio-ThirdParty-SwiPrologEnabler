@@ -176,7 +176,7 @@ public final class SWIPrologInterface implements KRInterface {
 			cs.setCharPositionInLine(info.getCharacterPosition());
 		} catch (IOException e) {
 			throw new ParserException("could not parse the data as SWI prolog",
-					e);
+					info, e);
 		}
 		return new KRInterfaceParser(cs);
 	}

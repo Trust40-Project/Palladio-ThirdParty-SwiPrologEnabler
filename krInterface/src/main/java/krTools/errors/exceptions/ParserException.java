@@ -31,7 +31,6 @@ import krTools.parser.SourceInfo;
  * </p>
  */
 public class ParserException extends Exception implements SourceInfo {
-
 	private static final long serialVersionUID = 8224464835000074458L;
 
 	/**
@@ -40,18 +39,19 @@ public class ParserException extends Exception implements SourceInfo {
 	private SourceInfo info = null;
 
 	/**
-	 * Creates a new {@link ParserException} using the message provided.
+	 * Creates a new {@link ParserException} using the message provided. Do not
+	 * use this constructor if you can pass a SourceInfo.
 	 *
 	 * @param msg
 	 *            Informative message about the exception.
 	 */
 	public ParserException(String msg) {
-		super(msg);
+		this(msg, null, null);
 	}
 
 	/**
-	 * Creates a new {@link ParserException} using the message, input stream
-	 * position, and source that are provided.
+	 * Creates a new {@link ParserException} using the message, and source that
+	 * are provided.
 	 *
 	 * @param msg
 	 *            Informative message about the exception.
@@ -59,28 +59,23 @@ public class ParserException extends Exception implements SourceInfo {
 	 *            The source that was being parsed.
 	 */
 	public ParserException(String msg, SourceInfo info) {
-		super(msg);
-		this.info = info;
+		this(msg, info, null);
 	}
 
 	/**
-	 * Creates a new {@link ParserException} using the message and throwable.
+	 * Creates a new {@link ParserException} using the message, source, and
+	 * throwable that are provided.
 	 *
 	 * @param msg
 	 *            Informative message about the exception.
+	 * @param info
+	 *            The source that was being parsed.
 	 * @param e
 	 *            cause.
 	 */
-	public ParserException(String msg, Throwable e) {
+	public ParserException(String msg, SourceInfo info, Throwable e) {
 		super(msg, e);
-	}
-
-	/**
-	 * @return {@code true} if source info is available, {@code false}
-	 *         otherwise.
-	 */
-	public boolean hasSourceInfo() {
-		return this.info != null;
+		this.info = info;
 	}
 
 	/**
@@ -89,7 +84,7 @@ public class ParserException extends Exception implements SourceInfo {
 	 */
 	@Override
 	public File getSource() {
-		if (hasSourceInfo()) {
+		if (this.info != null) {
 			return this.info.getSource();
 		} else {
 			return null;
@@ -102,7 +97,7 @@ public class ParserException extends Exception implements SourceInfo {
 	 */
 	@Override
 	public int getLineNumber() {
-		if (hasSourceInfo()) {
+		if (this.info != null) {
 			return this.info.getLineNumber();
 		} else {
 			return -1;
@@ -115,11 +110,10 @@ public class ParserException extends Exception implements SourceInfo {
 	 */
 	@Override
 	public int getCharacterPosition() {
-		if (hasSourceInfo()) {
+		if (this.info != null) {
 			return this.info.getCharacterPosition();
 		} else {
 			return -1;
 		}
 	}
-
 }

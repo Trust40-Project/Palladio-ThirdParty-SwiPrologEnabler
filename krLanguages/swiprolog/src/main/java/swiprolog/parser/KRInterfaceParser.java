@@ -94,8 +94,10 @@ public class KRInterfaceParser implements Parser {
 		try {
 			term = this.parser.term0();
 		} catch (RecognitionException e) {
+			final SourceInfoObject source = new SourceInfoObject(
+					this.parser.getSource(), e.line, e.charPositionInLine);
 			throw new ParserException(
-					"data could not be parsed as a SWI term0", e);
+					"data could not be parsed as a SWI term0", source, e);
 		}
 		if (term.isVar()) {
 			return new PrologVar((Variable) term.getTerm(),
@@ -103,7 +105,7 @@ public class KRInterfaceParser implements Parser {
 		} else {
 			throw new ParserException(String.format(
 					"expected a SWI prolog variable but found '%s'",
-					term.toString()));
+					term.toString()), term.getSourceInfo());
 		}
 	}
 
@@ -125,21 +127,17 @@ public class KRInterfaceParser implements Parser {
 		exceptions.addAll(this.parser.getLexer().getErrors());
 		exceptions.addAll(this.parser.getErrors());
 		for (ParserException e : exceptions) {
-			if (!e.hasSourceInfo()) {
-				// try to recover source info from cause
-				if (e.getCause() instanceof RecognitionException) {
-					int line = ((RecognitionException) e.getCause()).line;
-					int charPos = ((RecognitionException) e.getCause()).charPositionInLine;
-					SourceInfoObject info = new SourceInfoObject(
-							this.parser.getSource(), line, charPos);
-					info.setMessage(e.getMessage());
-					errors.add(info);
-				}
+			if (e.getCause() instanceof RecognitionException) {
+				int line = ((RecognitionException) e.getCause()).line;
+				int charPos = ((RecognitionException) e.getCause()).charPositionInLine;
+				SourceInfoObject info = new SourceInfoObject(
+						this.parser.getSource(), line, charPos);
+				info.setMessage(e.getMessage());
+				errors.add(info);
 			} else {
 				errors.add(e);
 			}
 		}
-
 		return errors;
 	}
 
