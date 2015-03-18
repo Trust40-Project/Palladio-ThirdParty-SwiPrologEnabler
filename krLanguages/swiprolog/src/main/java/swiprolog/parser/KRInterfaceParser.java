@@ -122,23 +122,10 @@ public class KRInterfaceParser implements Parser {
 
 	@Override
 	public List<SourceInfo> getErrors() {
-		List<SourceInfo> errors = new ArrayList<SourceInfo>();
-		List<ParserException> exceptions = new ArrayList<ParserException>();
+		List<SourceInfo> exceptions = new ArrayList<SourceInfo>();
 		exceptions.addAll(this.parser.getLexer().getErrors());
 		exceptions.addAll(this.parser.getErrors());
-		for (ParserException e : exceptions) {
-			if (e.getCause() instanceof RecognitionException) {
-				int line = ((RecognitionException) e.getCause()).line;
-				int charPos = ((RecognitionException) e.getCause()).charPositionInLine;
-				SourceInfoObject info = new SourceInfoObject(
-						this.parser.getSource(), line, charPos);
-				info.setMessage(e.getMessage());
-				errors.add(info);
-			} else {
-				errors.add(e);
-			}
-		}
-		return errors;
+		return exceptions;
 	}
 
 	/**

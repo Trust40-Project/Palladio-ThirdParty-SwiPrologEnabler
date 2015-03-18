@@ -46,7 +46,7 @@ public class ParserException extends Exception implements SourceInfo {
 	 *            Informative message about the exception.
 	 */
 	public ParserException(String msg) {
-		this(msg, null, null);
+		this(msg, null);
 	}
 
 	/**

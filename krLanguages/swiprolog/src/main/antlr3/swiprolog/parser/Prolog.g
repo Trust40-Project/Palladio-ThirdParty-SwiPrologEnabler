@@ -81,17 +81,18 @@ options {
     
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	SourceInfoObject info = new SourceInfoObject(getSource(), e.line, e.charPositionInLine);
+    	SourceInfoObject info = new SourceInfoObject(getSource(), this.input.getLine(), this.input.getCharPositionInLine());
     	ParserException newErr;
-    	if (e instanceof MismatchedTokenException && e.token != null) {
-           	newErr = new ParserException("Found " + e.token.getText() + " where I was expecting "
+    	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
+    	if (e instanceof MismatchedTokenException) {
+           	newErr = new ParserException("Found " + found + " where I was expecting "
            		+ PrologParser.tokenNames[((MismatchedTokenException)e).expecting], info, e);
         } else if (e instanceof MissingTokenException) {
           	newErr = new ParserException(PrologParser.tokenNames[((MissingTokenException)e).expecting] + " is missing here", info, e);
         } else if (e instanceof NoViableAltException) { 
-           	newErr = new ParserException("Cannot use " + Character.toString((char)e.input.LA(1)) + " here", info, e);
-        } else if (e instanceof UnwantedTokenException && e.token != null) {
-    		newErr = new ParserException("Syntax error on '" + e.token.getText() + "', delete this", info, e);
+           	newErr = new ParserException("Cannot use " + found + " here", info, e);
+        } else if (e instanceof UnwantedTokenException) {
+    		newErr = new ParserException("Syntax error on '" + found + "', delete this", info, e);
     	} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
         	newErr = (ParserException)e.getCause();
         } else {
@@ -138,22 +139,19 @@ options {
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	SourceInfoObject info = new SourceInfoObject(getSource(), e.line, e.charPositionInLine);
+    	SourceInfoObject info = new SourceInfoObject(getSource(), this.cs.getLine(), this.cs.getCharPositionInLine());
     	ParserException newErr = null;
-    	if (e.token != null && e.token.getText() != null) {
-    		if (e instanceof MismatchedTokenException) {
-           		newErr = new ParserException("Found " + e.token.getText() + " where I was expecting " + tokenNames[((MismatchedTokenException)e).expecting], info, e);
-        	} else if (e instanceof MissingTokenException && e.token.getText() != null) {
-          		newErr = new ParserException(tokenNames[((MissingTokenException)e).expecting] + " is missing here", info, e);
-        	} else if (e instanceof NoViableAltException && e.token.getText() != null) { 
-           		newErr = new ParserException("Cannot use " + e.token.getText() + " here", info, e);
-        	} else if (e instanceof UnwantedTokenException && e.token.getText() != null) {
-    			newErr = new ParserException("Syntax error on '" + e.token.getText() + "', delete this", info, e);
-    		} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
-            	newErr = (ParserException)e.getCause();
-        	} else {
-        		newErr = new ParserException("Sorry, cannot make anything out of this", info, e);
-        	}
+    	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
+    	if (e instanceof MismatchedTokenException) {
+        	newErr = new ParserException("Found " + found + " but was expecting " + tokenNames[((MismatchedTokenException)e).expecting], info, e);
+        } else if (e instanceof MissingTokenException) {
+         	newErr = new ParserException(tokenNames[((MissingTokenException)e).expecting] + " is missing here", info, e);
+        } else if (e instanceof NoViableAltException) { 
+         	newErr = new ParserException("Cannot put " + found + " here", info, e);
+        } else if (e instanceof UnwantedTokenException) {
+    		newErr = new ParserException("Syntax error on '" + found + "', delete this", info, e);
+    	} else if (e.getCause() instanceof ParserException) { // embedded parser exception we should use
+           	newErr = (ParserException)e.getCause();
         } else {
         	newErr = new ParserException("Sorry, cannot make anything out of this", info, e);
         }
@@ -241,6 +239,8 @@ options {
 				DBFormulaList.add(DBFormula(t));
 			} catch (ParserException e) {
 				RecognitionException err = new RecognitionException();
+				err.line = e.getLineNumber();
+				err.charPositionInLine = e.getCharacterPosition();
     			err.initCause(e);
 				throw err;
 			}
@@ -434,6 +434,8 @@ options {
         return null;
 	} catch (ParserException e) {
         RecognitionException err = new RecognitionException();
+        err.line = e.getLineNumber();
+		err.charPositionInLine = e.getCharacterPosition();
     	err.initCause(e);
         reportError(err);
         return null;
@@ -452,6 +454,8 @@ options {
             return null;
     } catch (ParserException e) {
       RecognitionException err = new RecognitionException();
+      err.line = e.getLineNumber();
+	  err.charPositionInLine = e.getCharacterPosition();
    	  err.initCause(e);
       reportError(err);
       return null;
@@ -477,6 +481,8 @@ options {
 		return null;
 	} catch(ParserException e) {
 		RecognitionException err = new RecognitionException();
+		err.line = e.getLineNumber();
+		err.charPositionInLine = e.getCharacterPosition();
     	err.initCause(e);
         reportError(err);
 		return null;
@@ -551,6 +557,8 @@ options {
             return null;
         } catch (ParserException e) {
 			RecognitionException err = new RecognitionException();
+			err.line = e.getLineNumber();
+			err.charPositionInLine = e.getCharacterPosition();
 			err.initCause(e);
 			reportError(err);
 			return null;
@@ -570,6 +578,8 @@ options {
 			return null;
 		} catch (ParserException e) {
           RecognitionException err = new RecognitionException();
+          err.line = e.getLineNumber();
+		  err.charPositionInLine = e.getCharacterPosition();
     	  err.initCause(e);
           reportError(err);
           return null;
