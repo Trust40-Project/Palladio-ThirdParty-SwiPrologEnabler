@@ -81,8 +81,10 @@ options {
     
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	SourceInfoObject info = new SourceInfoObject(getSource(), this.input.getLine(), this.input.getCharPositionInLine());
-    	ParserException newErr;
+    	int start = this.input.index();
+        int end = (e.token == null || e.token.getText() == null) ? start : (start + e.token.getText().length());
+        SourceInfoObject info = new SourceInfoObject(getSource(), this.input.getLine(), this.input.getCharPositionInLine(), start, end);
+    	ParserException newErr = null;
     	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
     	if (e instanceof MismatchedTokenException) {
            	newErr = new ParserException("Found " + found + " where I was expecting "
@@ -139,7 +141,9 @@ options {
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	SourceInfoObject info = new SourceInfoObject(getSource(), this.cs.getLine(), this.cs.getCharPositionInLine());
+    	int start = this.cs.index();
+        int end = (e.token == null || e.token.getText() == null) ? start : (start + e.token.getText().length());
+        SourceInfoObject info = new SourceInfoObject(getSource(), this.cs.getLine(), this.cs.getCharPositionInLine(), start, end);
     	ParserException newErr = null;
     	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
     	if (e instanceof MismatchedTokenException) {
@@ -238,9 +242,7 @@ options {
             try {
 				DBFormulaList.add(DBFormula(t));
 			} catch (ParserException e) {
-				RecognitionException err = new RecognitionException();
-				err.line = e.getLineNumber();
-				err.charPositionInLine = e.getCharacterPosition();
+				RecognitionException err = new RecognitionException(this.cs);
     			err.initCause(e);
 				throw err;
 			}
@@ -334,7 +336,8 @@ options {
      * @return Source info object.
      */
     private SourceInfo getSourceInfo(Token token) {
-    	return new SourceInfoObject(getSource(), token.getLine(), token.getCharPositionInLine());
+    	return new SourceInfoObject(getSource(), token.getLine(), token.getCharPositionInLine(), token.getTokenIndex(), 
+        			(token.getText() == null) ? token.getTokenIndex() : (token.getTokenIndex() + token.getText().length()));
     }
     
 
@@ -433,9 +436,7 @@ options {
         reportError(e);
         return null;
 	} catch (ParserException e) {
-        RecognitionException err = new RecognitionException();
-        err.line = e.getLineNumber();
-		err.charPositionInLine = e.getCharacterPosition();
+       	RecognitionException err = new RecognitionException(this.cs);
     	err.initCause(e);
         reportError(err);
         return null;
@@ -453,9 +454,7 @@ options {
         	reportError(e);
             return null;
     } catch (ParserException e) {
-      RecognitionException err = new RecognitionException();
-      err.line = e.getLineNumber();
-	  err.charPositionInLine = e.getCharacterPosition();
+      RecognitionException err = new RecognitionException(this.cs);
    	  err.initCause(e);
       reportError(err);
       return null;
@@ -480,9 +479,7 @@ options {
 		reportError(e);
 		return null;
 	} catch(ParserException e) {
-		RecognitionException err = new RecognitionException();
-		err.line = e.getLineNumber();
-		err.charPositionInLine = e.getCharacterPosition();
+		RecognitionException err = new RecognitionException(this.cs);
     	err.initCause(e);
         reportError(err);
 		return null;
@@ -556,9 +553,7 @@ options {
         	reportError(e);
             return null;
         } catch (ParserException e) {
-			RecognitionException err = new RecognitionException();
-			err.line = e.getLineNumber();
-			err.charPositionInLine = e.getCharacterPosition();
+			RecognitionException err = new RecognitionException(this.cs);
 			err.initCause(e);
 			reportError(err);
 			return null;
@@ -577,9 +572,7 @@ options {
 			reportError(e);
 			return null;
 		} catch (ParserException e) {
-          RecognitionException err = new RecognitionException();
-          err.line = e.getLineNumber();
-		  err.charPositionInLine = e.getCharacterPosition();
+          RecognitionException err = new RecognitionException(this.cs);
     	  err.initCause(e);
           reportError(err);
           return null;

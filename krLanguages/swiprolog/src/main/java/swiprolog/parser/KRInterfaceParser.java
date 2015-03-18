@@ -94,8 +94,12 @@ public class KRInterfaceParser implements Parser {
 		try {
 			term = this.parser.term0();
 		} catch (RecognitionException e) {
+			int start = e.index;
+			int end = (e.token == null || e.token.getText() == null) ? start
+					: (start + e.token.getText().length());
 			final SourceInfoObject source = new SourceInfoObject(
-					this.parser.getSource(), e.line, e.charPositionInLine);
+					this.parser.getSource(), e.line, e.charPositionInLine,
+					start, end);
 			throw new ParserException(
 					"data could not be parsed as a SWI term0", source, e);
 		}

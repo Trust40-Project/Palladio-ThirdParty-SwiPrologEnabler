@@ -9,12 +9,17 @@ public class SourceInfoObject implements SourceInfo {
 	private final File sourceFile;
 	private final int lineNr;
 	private final int charPos;
+	private final int start;
+	private final int end;
 	private String msg = new String();
 
-	public SourceInfoObject(File file, int lineNr, int charPos) {
+	public SourceInfoObject(File file, int lineNr, int charPos, int start,
+			int end) {
 		this.sourceFile = file;
 		this.lineNr = lineNr;
 		this.charPos = charPos;
+		this.start = start;
+		this.end = end;
 	}
 
 	@Override
@@ -30,6 +35,16 @@ public class SourceInfoObject implements SourceInfo {
 	@Override
 	public int getCharacterPosition() {
 		return this.charPos;
+	}
+
+	@Override
+	public int getStartIndex() {
+		return this.start;
+	}
+
+	@Override
+	public int getStopIndex() {
+		return this.end;
 	}
 
 	@Override

@@ -116,4 +116,22 @@ public class ParserException extends Exception implements SourceInfo {
 			return -1;
 		}
 	}
+
+	@Override
+	public int getStartIndex() {
+		if (this.info != null) {
+			return this.info.getStartIndex();
+		} else {
+			return -1;
+		}
+	}
+
+	@Override
+	public int getStopIndex() {
+		if (this.info != null) {
+			return this.info.getStopIndex();
+		} else {
+			return -1;
+		}
+	}
 }
