@@ -50,12 +50,8 @@ public class TestTheParser {
 			System.out.println("parse failed");
 		} else {
 			for (PrologTerm t : results) {
-				try {
-					System.out.println(">" + t + " with main operator "
-							+ t.getSignature());
-				} catch (Exception e) {
-					System.out.println("print failed:" + e);
-				}
+				System.out.println(">" + t + " with main operator "
+						+ t.getSignature());
 			}
 		}
 	}

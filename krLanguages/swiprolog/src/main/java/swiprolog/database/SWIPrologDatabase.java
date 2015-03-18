@@ -416,9 +416,8 @@ public class SWIPrologDatabase implements Database {
 	public void showStatistics() {
 		try {
 			rawquery(new jpl.Atom("statistics"));
-		} catch (Exception e) {
-			// TODO new Warning("Cannot retrieve statistics: " + e.getMessage(),
-			// e);
+		} catch (RuntimeException | KRQueryFailedException e) {
+			System.out.println("Cannot retrieve statistics: " + e.getMessage());
 		}
 	}
 
