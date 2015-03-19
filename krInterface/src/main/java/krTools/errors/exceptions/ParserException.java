@@ -134,4 +134,9 @@ public class ParserException extends Exception implements SourceInfo {
 			return -1;
 		}
 	}
+	
+	/** public getter for Source Info */
+	public SourceInfo getSourceInfo() {
+		return info;
+	}
 }
