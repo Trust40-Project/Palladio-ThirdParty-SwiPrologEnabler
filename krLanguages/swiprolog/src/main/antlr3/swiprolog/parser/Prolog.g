@@ -325,7 +325,7 @@ options {
                 term.getSourceInfo());
         }
         
-        toGoal(body); // try to convert, it will throw if it fails.
+        toGoal(body, term.getSourceInfo()); // try to convert, it will throw if it fails.
         
         return new PrologDBFormula(term.getTerm(), term.getSourceInfo());
     }
@@ -379,7 +379,7 @@ options {
 
                 for (PrologTerm t: prologTerms) {
                 	// check that each term is a valid Prolog goal / query
-                    goals.add(new PrologQuery(toGoal(t.getTerm()), t.getSourceInfo()));
+                    goals.add(new PrologQuery(toGoal(t.getTerm(), t.getSourceInfo()), t.getSourceInfo()));
                 }
                 return goals;
             } catch (RecognitionException e) {
@@ -399,25 +399,25 @@ options {
      * @return the term "rewritten" as a Prolog goal according to ISO.
      * @throws ParserException If t is not a well formed Prolog goal.
      */
-    private jpl.Term toGoal(jpl.Term t) throws ParserException {
+    private jpl.Term toGoal(jpl.Term t, SourceInfo source) throws ParserException {
         // 7.6.2.a use article 7.8.3
         if (t.isVariable()) {
             throw new ParserException(
-                 "Variables cannot be used as goals: " + t.toString());
+                 "Variables cannot be used as goals: " + t.toString(), source);
         }
         // 7.6.2.b
         String sig = JPLUtils.getSignature(t);
         if (PrologOperators.goalProtected(t.name())) {
             throw new ParserException(
                  "The use of predicate " + t.toString() + ": " + 
-                 t.toString() + " is not supported");
+                 t.toString() + " is not supported", source);
         }
         if (sig.equals(":-/2")) {
-        	throw new ParserException("Cannot use a clause " + t.toString() + " as a goal");
+        	throw new ParserException("Cannot use a clause " + t.toString() + " as a goal", source);
         }
         if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
-            toGoal( t.arg(1));
-            toGoal( t.arg(2));
+            toGoal(t.arg(1), source);
+            toGoal(t.arg(2), source);
         }
         // 7.6.2.c
         // no action required. 
@@ -538,7 +538,7 @@ options {
     * @throws ParserException if prologTerm is not a good Query.
     */
     public PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
-        return new PrologQuery(toGoal(conjunction.getTerm()), conjunction.getSourceInfo());
+        return new PrologQuery(toGoal(conjunction.getTerm(), conjunction.getSourceInfo()), conjunction.getSourceInfo());
     }
      
    /**
