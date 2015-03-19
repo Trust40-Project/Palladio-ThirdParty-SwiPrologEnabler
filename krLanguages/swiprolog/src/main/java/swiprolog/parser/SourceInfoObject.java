@@ -11,7 +11,7 @@ public class SourceInfoObject implements SourceInfo {
 	private final int charPos;
 	private final int start;
 	private final int end;
-	private String msg = new String();
+	private final String msg = new String();
 
 	public SourceInfoObject(File file, int lineNr, int charPos, int start,
 			int end) {
@@ -52,10 +52,6 @@ public class SourceInfoObject implements SourceInfo {
 		return this.msg;
 	}
 
-	public void setMessage(String msg) {
-		this.msg = msg;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -70,4 +66,33 @@ public class SourceInfoObject implements SourceInfo {
 		return builder.toString();
 	}
 
+	@Override
+	public int hashCode() {
+		int hash = (31 * this.lineNr) << 16 + this.charPos;
+		if (this.sourceFile != null) {
+			hash += this.sourceFile.hashCode();
+		}
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == this) {
+			return true;
+		} else if (!(other instanceof SourceInfoObject)) {
+			return false;
+		}
+		SourceInfoObject that = (SourceInfoObject) other;
+		if (this.lineNr != that.lineNr) {
+			return false;
+		} else if (this.charPos != that.charPos) {
+			return false;
+		}
+		if (this.sourceFile == null) {
+			return that.sourceFile == null;
+		} else {
+			return this.sourceFile.getAbsoluteFile().equals(
+					that.sourceFile.getAbsoluteFile());
+		}
+	}
 }
