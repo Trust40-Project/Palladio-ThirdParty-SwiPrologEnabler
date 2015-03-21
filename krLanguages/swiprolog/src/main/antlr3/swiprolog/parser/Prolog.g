@@ -79,6 +79,14 @@ options {
     	return new File(getSourceName());
     }
     
+    private String getTokenName(String[] tokenNames, int i) {
+		if (i < 0 || i >= tokenNames.length) {
+			return "something valid";
+		} else {
+			return tokenNames[i];
+		}
+	}
+    
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
     	int start = this.input.index();
@@ -88,9 +96,9 @@ options {
     	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
     	if (e instanceof MismatchedTokenException) {
            	newErr = new ParserException("Found " + found + " where I was expecting "
-           		+ PrologParser.tokenNames[((MismatchedTokenException)e).expecting], info, e);
+           		+ getTokenName(PrologParser.tokenNames,((MismatchedTokenException)e).expecting), info, e);
         } else if (e instanceof MissingTokenException) {
-          	newErr = new ParserException(PrologParser.tokenNames[((MissingTokenException)e).expecting] + " is missing here", info, e);
+          	newErr = new ParserException(getTokenName(PrologParser.tokenNames,((MissingTokenException)e).expecting) + " is missing here", info, e);
         } else if (e instanceof NoViableAltException) { 
            	newErr = new ParserException("Cannot use " + found + " here", info, e);
         } else if (e instanceof UnwantedTokenException) {
@@ -138,6 +146,14 @@ options {
     public File getSource() {
     	return new File(getSourceName());
     }
+    
+    private String getTokenName(String[] tokenNames, int i) {
+		if (i < 0 || i >= tokenNames.length) {
+			return "something valid";
+		} else {
+			return tokenNames[i];
+		}
+	}
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
@@ -147,9 +163,9 @@ options {
     	ParserException newErr = null;
     	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
     	if (e instanceof MismatchedTokenException) {
-        	newErr = new ParserException("Found " + found + " but was expecting " + tokenNames[((MismatchedTokenException)e).expecting], info, e);
+        	newErr = new ParserException("Found " + found + " but was expecting " + getTokenName(tokenNames,((MismatchedTokenException)e).expecting), info, e);
         } else if (e instanceof MissingTokenException) {
-         	newErr = new ParserException(tokenNames[((MissingTokenException)e).expecting] + " is missing here", info, e);
+         	newErr = new ParserException(getTokenName(tokenNames,((MissingTokenException)e).expecting) + " is missing here", info, e);
         } else if (e instanceof NoViableAltException) { 
          	newErr = new ParserException("Cannot put " + found + " here", info, e);
         } else if (e instanceof UnwantedTokenException) {
