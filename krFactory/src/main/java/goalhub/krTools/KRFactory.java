@@ -33,7 +33,6 @@ import krTools.errors.exceptions.KRInterfaceNotSupportedException;
  * </ul>
  */
 public class KRFactory {
-
 	/**
 	 * Static strings for names of supported KR Languages.
 	 */
@@ -100,7 +99,7 @@ public class KRFactory {
 	 */
 	public static KRInterface getInterface(String name)
 			throws KRInterfaceNotSupportedException {
-		KRInterface krInterface = languages.get(name.toLowerCase());
+		KRInterface krInterface = languages.get(name);
 		if (krInterface == null) {
 			throw new KRInterfaceNotSupportedException(
 					"Could not find interface " + name
@@ -124,7 +123,7 @@ public class KRFactory {
 			throw new KRException("Cannot add null");
 		}
 		if (!languages.containsKey(krInterface.getName())) {
-			languages.put(krInterface.getName().toLowerCase(), krInterface);
+			languages.put(krInterface.getName(), krInterface);
 		} else {
 			throw new KRException("Interface " + krInterface.getName()
 					+ " is already present");
