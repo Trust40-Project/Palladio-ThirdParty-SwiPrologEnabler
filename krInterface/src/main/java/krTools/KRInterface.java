@@ -52,7 +52,7 @@ import krTools.parser.SourceInfo;
 public interface KRInterface {
 
 	/**
-	 * @return The name of the KR interface.
+	 * @return The name of the KR interface (no spaces or special chars allowed)
 	 */
 	String getName();
 
@@ -134,7 +134,7 @@ public interface KRInterface {
 
 	/**
 	 * Check if terms in this KR implementation can be serialized.
-	 * 
+	 *
 	 * @return true iff terms from this KR implementation can be serialized
 	 */
 	public boolean supportsSerialization();

@@ -116,12 +116,9 @@ public final class SWIPrologInterface implements KRInterface {
 		return SWIPrologInterface.instance;
 	}
 
-	/**
-	 * @return The name of this KR interface.
-	 */
 	@Override
 	public final String getName() {
-		return "SWI Prolog";
+		return "SWIProlog";
 	}
 
 	/**

@@ -99,12 +99,12 @@ public class KRFactory {
 	 */
 	public static KRInterface getInterface(String name)
 			throws KRInterfaceNotSupportedException {
-		KRInterface krInterface = languages.get(name);
+		KRInterface krInterface = languages.get(name.toLowerCase());
 		if (krInterface == null) {
 			throw new KRInterfaceNotSupportedException(
 					"Could not find interface " + name
-							+ "; the following interfaces are available: "
-							+ languages.keySet());
+					+ "; the following interfaces are available: "
+					+ languages.keySet());
 		}
 		return krInterface;
 	}
@@ -122,11 +122,11 @@ public class KRFactory {
 		if (krInterface == null) {
 			throw new KRException("Cannot add null");
 		}
-		if (!languages.containsKey(krInterface.getName())) {
-			languages.put(krInterface.getName(), krInterface);
+		final String name = krInterface.getName().toLowerCase();
+		if (!languages.containsKey(name)) {
+			languages.put(name, krInterface);
 		} else {
-			throw new KRException("Interface " + krInterface.getName()
-					+ " is already present");
+			throw new KRException("Interface " + name + " is already present");
 		}
 	}
 
