@@ -127,13 +127,15 @@ public class KRInterfaceParser implements Parser {
 
 	@Override
 	public List<SourceInfo> getErrors() {
+		// Get all (syntax)errors from the lexer or the parser
 		List<SourceInfo> exceptions = new ArrayList<SourceInfo>();
 		exceptions.addAll(this.parser.getLexer().getErrors());
 		exceptions.addAll(this.parser.getErrors());
 
+		// Check if we processed the whole stream we were given
 		final int index = this.stream.index();
 		final int size = this.stream.size();
-		if (index > 0 && size > 0 && Math.abs(size - index) > 1) {
+		if (size - index > 0) {
 			final SourceInfoObject error = new SourceInfoObject(
 					this.parser.getSource(), this.parser.getLexer().getLine(),
 					this.parser.getLexer().getCharPositionInLine(), index,
@@ -142,6 +144,7 @@ public class KRInterfaceParser implements Parser {
 					error));
 		}
 
+		// Return
 		return exceptions;
 	}
 
