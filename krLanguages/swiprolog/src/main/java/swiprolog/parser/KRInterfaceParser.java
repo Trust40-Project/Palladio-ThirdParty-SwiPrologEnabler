@@ -31,6 +31,7 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
 import org.antlr.runtime.ANTLRReaderStream;
+import org.antlr.runtime.IntStream;
 import org.antlr.runtime.RecognitionException;
 
 import swiprolog.language.PrologTerm;
@@ -40,7 +41,7 @@ import swiprolog.language.PrologVar;
  * Implementation of KR interface parser for SWI Prolog.
  */
 public class KRInterfaceParser implements Parser {
-
+	private final IntStream stream;
 	/**
 	 * The ANTLR generated parser for Prolog.
 	 */
@@ -56,6 +57,7 @@ public class KRInterfaceParser implements Parser {
 	 *             {@link ParserException}.
 	 */
 	public KRInterfaceParser(ANTLRReaderStream stream) {
+		this.stream = stream;
 		PrologLexer lexer = new PrologLexer(stream);
 		lexer.initialize();
 		LinkedListTokenSource linker = new LinkedListTokenSource(lexer);
@@ -115,8 +117,7 @@ public class KRInterfaceParser implements Parser {
 
 	@Override
 	public Term parseTerm() {
-		PrologTerm t = this.parser.ParseTerm();
-		return new PrologTerm(t.getTerm(), t.getSourceInfo());
+		return this.parser.ParseTerm();
 	}
 
 	@Override
@@ -129,14 +130,22 @@ public class KRInterfaceParser implements Parser {
 		List<SourceInfo> exceptions = new ArrayList<SourceInfo>();
 		exceptions.addAll(this.parser.getLexer().getErrors());
 		exceptions.addAll(this.parser.getErrors());
+
+		final int index = this.stream.index();
+		final int size = this.stream.size();
+		if (index > 0 && size > 0 && Math.abs(size - index) > 1) {
+			final SourceInfoObject error = new SourceInfoObject(
+					this.parser.getSource(), this.parser.getLexer().getLine(),
+					this.parser.getLexer().getCharPositionInLine(), index,
+					size - 1);
+			exceptions.add(new ParserException("Unrecognized spurious input",
+					error));
+		}
+
 		return exceptions;
 	}
 
-	/**
-	 *
-	 */
 	public String[] getTokenNames() {
 		return this.parser.getTokenNames();
 	}
-
 }
