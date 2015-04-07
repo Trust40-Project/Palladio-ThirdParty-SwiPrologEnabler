@@ -135,7 +135,7 @@ public class KRInterfaceParser implements Parser {
 		// Check if we processed the whole stream we were given
 		final int index = this.stream.index();
 		final int size = this.stream.size();
-		if (size - index > 0) {
+		if (size - index > 1) {
 			final SourceInfoObject error = new SourceInfoObject(
 					this.parser.getSource(), this.parser.getLexer().getLine(),
 					this.parser.getLexer().getCharPositionInLine(), index,
