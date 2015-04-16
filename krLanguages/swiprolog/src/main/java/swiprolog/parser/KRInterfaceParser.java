@@ -31,6 +31,7 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
 import org.antlr.runtime.ANTLRReaderStream;
+import org.antlr.runtime.IntStream;
 import org.antlr.runtime.RecognitionException;
 
 import swiprolog.language.PrologTerm;
@@ -40,11 +41,11 @@ import swiprolog.language.PrologVar;
  * Implementation of KR interface parser for SWI Prolog.
  */
 public class KRInterfaceParser implements Parser {
-
+	private final IntStream stream;
 	/**
 	 * The ANTLR generated parser for Prolog.
 	 */
-	private PrologParser parser;
+	private final PrologParser parser;
 
 	/**
 	 * Creates a new KR interface parser that uses the given stream as input.
@@ -55,102 +56,99 @@ public class KRInterfaceParser implements Parser {
 	 *             If an exception occurred during parsing. See
 	 *             {@link ParserException}.
 	 */
-	public KRInterfaceParser(ANTLRReaderStream stream) throws ParserException {
-		try {
-			PrologLexer lexer = new PrologLexer(stream);
-			lexer.initialize();
-			LinkedListTokenSource linker = new LinkedListTokenSource(lexer);
-			LinkedListTokenStream tokenStream = new LinkedListTokenStream(
-					linker);
-			this.parser = new PrologParser(tokenStream);
-			this.parser.setInput(lexer, stream);
-			this.parser.initialize();
-		} catch (Exception e) {
-			throw new ParserException("Could not initialize "
-					+ "the Prolog parser", e);
-		}
+	public KRInterfaceParser(ANTLRReaderStream stream) {
+		this.stream = stream;
+		PrologLexer lexer = new PrologLexer(stream);
+		lexer.initialize();
+		LinkedListTokenSource linker = new LinkedListTokenSource(lexer);
+		LinkedListTokenStream tokenStream = new LinkedListTokenStream(linker);
+		this.parser = new PrologParser(tokenStream);
+		this.parser.setInput(lexer, stream);
+		this.parser.initialize();
 	}
 
 	@Override
-	public Update parseUpdate(SourceInfo info) {
-		return this.parser.ParseUpdateOrEmpty(info);
+	public Update parseUpdate() {
+		return this.parser.ParseUpdateOrEmpty();
 	}
 
 	@Override
-	public List<DatabaseFormula> parseDBFs(SourceInfo info)
-			throws ParserException {
-		return this.parser.parsePrologProgram(info);
+	public List<DatabaseFormula> parseDBFs() throws ParserException {
+		return this.parser.parsePrologProgram();
 	}
 
 	@Override
-	public List<Query> parseQueries(SourceInfo info) throws ParserException {
-		return this.parser.parsePrologGoalSection(info);
+	public List<Query> parseQueries() throws ParserException {
+		return this.parser.parsePrologGoalSection();
 	}
 
 	/**
 	 * Allows empty queries.
 	 */
 	@Override
-	public Query parseQuery(SourceInfo info) {
-		return this.parser.ParseQueryOrEmpty(info);
+	public Query parseQuery() {
+		return this.parser.ParseQueryOrEmpty();
 	}
 
 	@Override
-	public Var parseVar(SourceInfo info) throws ParserException {
+	public Var parseVar() throws ParserException {
 		PrologTerm term;
 		try {
 			term = this.parser.term0();
 		} catch (RecognitionException e) {
-			throw new ParserException(e.getMessage(), e);
+			int start = e.index;
+			int end = (e.token == null || e.token.getText() == null) ? start
+					: (start + e.token.getText().length());
+			final SourceInfoObject source = new SourceInfoObject(
+					this.parser.getSource(), e.line, e.charPositionInLine,
+					start, end);
+			throw new ParserException(
+					"data could not be parsed as a SWI term0", source, e);
 		}
 		if (term.isVar()) {
-			return new PrologVar((Variable) term.getTerm(), info);
+			return new PrologVar((Variable) term.getTerm(),
+					term.getSourceInfo());
 		} else {
 			throw new ParserException(String.format(
-					"Expected a Prolog variable but found '%s'",
-					term.toString()));
+					"expected a SWI prolog variable but found '%s'",
+					term.toString()), term.getSourceInfo());
 		}
 	}
 
 	@Override
-	public Term parseTerm(SourceInfo info) {
-		return new PrologTerm(this.parser.ParseTerm().getTerm(), info);
+	public Term parseTerm() {
+		return this.parser.ParseTerm();
 	}
 
 	@Override
-	public List<Term> parseTerms(SourceInfo info) {
-		return this.parser.ParsePrologTerms(info);
+	public List<Term> parseTerms() {
+		return this.parser.ParsePrologTerms();
 	}
 
 	@Override
 	public List<SourceInfo> getErrors() {
-		List<SourceInfo> errors = new ArrayList<SourceInfo>();
-		List<ParserException> exceptions = new ArrayList<ParserException>();
+		// Get all (syntax)errors from the lexer or the parser
+		List<SourceInfo> exceptions = new ArrayList<SourceInfo>();
 		exceptions.addAll(this.parser.getLexer().getErrors());
 		exceptions.addAll(this.parser.getErrors());
-		for (ParserException e : exceptions) {
-			if (!e.hasSourceInfo()) {
-				// try to recover source info from cause
-				if (e.getCause() instanceof RecognitionException) {
-					int line = ((RecognitionException) e.getCause()).line;
-					int charPos = ((RecognitionException) e.getCause()).charPositionInLine;
-					SourceInfoObject info = new SourceInfoObject(line, charPos);
-					info.setMessage(e.getMessage());
-					errors.add(info);
-				}
-			} else {
-				errors.add(e);
-			}
+
+		// Check if we processed the whole stream we were given
+		final int index = this.stream.index();
+		final int size = this.stream.size();
+		if (size - index > 0) {
+			final SourceInfoObject error = new SourceInfoObject(
+					this.parser.getSource(), this.parser.getLexer().getLine(),
+					this.parser.getLexer().getCharPositionInLine(), index,
+					size - 1);
+			exceptions.add(new ParserException("Unrecognized spurious input",
+					error));
 		}
 
-		return errors;
+		// Return
+		return exceptions;
 	}
 
-	/**
-	 *
-	 */
 	public String[] getTokenNames() {
 		return this.parser.getTokenNames();
 	}
-
 }

@@ -6,23 +6,25 @@ import krTools.parser.SourceInfo;
 
 public class SourceInfoObject implements SourceInfo {
 
-	private File sourceFile = null;
+	private final File sourceFile;
 	private final int lineNr;
 	private final int charPos;
-	private String msg = new String();
+	private final int start;
+	private final int end;
+	private final String msg = new String();
 
-	public SourceInfoObject(int lineNr, int charPos) {
+	public SourceInfoObject(File file, int lineNr, int charPos, int start,
+			int end) {
+		this.sourceFile = file;
 		this.lineNr = lineNr;
 		this.charPos = charPos;
+		this.start = start;
+		this.end = end;
 	}
 
 	@Override
 	public File getSource() {
 		return this.sourceFile;
-	}
-
-	public void setSource(File file) {
-		this.sourceFile = file;
 	}
 
 	@Override
@@ -36,12 +38,18 @@ public class SourceInfoObject implements SourceInfo {
 	}
 
 	@Override
-	public String getMessage() {
-		return this.msg;
+	public int getStartIndex() {
+		return this.start;
 	}
 
-	public void setMessage(String msg) {
-		this.msg = msg;
+	@Override
+	public int getStopIndex() {
+		return this.end;
+	}
+
+	@Override
+	public String getMessage() {
+		return this.msg;
 	}
 
 	@Override
@@ -58,4 +66,33 @@ public class SourceInfoObject implements SourceInfo {
 		return builder.toString();
 	}
 
+	@Override
+	public int hashCode() {
+		int hash = (31 * this.lineNr) << 16 + this.charPos;
+		if (this.sourceFile != null) {
+			hash += this.sourceFile.hashCode();
+		}
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == this) {
+			return true;
+		} else if (!(other instanceof SourceInfoObject)) {
+			return false;
+		}
+		SourceInfoObject that = (SourceInfoObject) other;
+		if (this.lineNr != that.lineNr) {
+			return false;
+		} else if (this.charPos != that.charPos) {
+			return false;
+		}
+		if (this.sourceFile == null) {
+			return that.sourceFile == null;
+		} else {
+			return this.sourceFile.getAbsoluteFile().equals(
+					that.sourceFile.getAbsoluteFile());
+		}
+	}
 }

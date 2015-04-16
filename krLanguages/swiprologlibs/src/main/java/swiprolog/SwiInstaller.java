@@ -40,6 +40,10 @@ public final class SwiInstaller {
 	 *
 	 * The temp folder will be removed automatically if the JVM exits normally.
 	 *
+	 * @throws IllegalStateException
+	 *             , NoSuchFieldException, IllegalAccessException,
+	 *             SecurityException if initialization failed. These are runtime
+	 *             exceptions and therefore not declared.
 	 */
 	public synchronized static void init() {
 		if (initialized) {
@@ -50,8 +54,7 @@ public final class SwiInstaller {
 		preLoadDependencies();
 		try {
 			addFolderToLibraryPath(SwiPath.getAbsolutePath());
-		} catch (NoSuchFieldException | SecurityException
-				| IllegalArgumentException | IllegalAccessException e) {
+		} catch (NoSuchFieldException | IllegalAccessException e) {
 			throw new IllegalStateException("Failed to initialize SWI Prolog",
 					e);
 		}

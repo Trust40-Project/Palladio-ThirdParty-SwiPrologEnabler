@@ -97,6 +97,12 @@ public interface Substitution {
 	 */
 	public boolean retainAll(Collection<Var> variables);
 
+	/**
+	 * create a copy of this substitution. The copy contains the same
+	 * substitutions as this. Modification of the copy should leave this
+	 * unaffected. The copy can be shallow - the terms referenced in this can be
+	 * referenced in the copy.
+	 */
 	public Substitution clone();
 
 }

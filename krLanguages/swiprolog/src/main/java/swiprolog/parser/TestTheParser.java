@@ -36,7 +36,9 @@ public class TestTheParser {
 		java.net.URL u = TestTheParser.class.getClassLoader().getResource(
 				"goal/kr/language/prolog/" + args[0]);
 
-		PrologLexer lex = new PrologLexer(new ANTLRFileStream(u.getFile()));
+		ANTLRFileStream stream = new ANTLRFileStream(u.getFile());
+		stream.name = u.getFile();
+		PrologLexer lex = new PrologLexer(stream);
 		CommonTokenStream tokens = new CommonTokenStream(lex);
 
 		PrologParser parser = new PrologParser(tokens);
@@ -48,12 +50,8 @@ public class TestTheParser {
 			System.out.println("parse failed");
 		} else {
 			for (PrologTerm t : results) {
-				try {
-					System.out.println(">" + t + " with main operator "
-							+ t.getSignature());
-				} catch (Exception e) {
-					System.out.println("print failed:" + e);
-				}
+				System.out.println(">" + t + " with main operator "
+						+ t.getSignature());
 			}
 		}
 	}

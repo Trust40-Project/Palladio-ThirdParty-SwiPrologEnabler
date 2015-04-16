@@ -33,7 +33,6 @@ import krTools.errors.exceptions.KRInterfaceNotSupportedException;
  * </ul>
  */
 public class KRFactory {
-
 	/**
 	 * Static strings for names of supported KR Languages.
 	 */
@@ -43,7 +42,7 @@ public class KRFactory {
 	/**
 	 * A map of names to {@link KRInterface}s that are supported.
 	 */
-	private static Map<String, KRInterface> languages = new Hashtable<String, KRInterface>();
+	private static Map<String, KRInterface> languages = null;
 	/**
 	 * The default interface that get be obtained by
 	 * {@link KRFactory#getDefaultLanguage()}.
@@ -53,30 +52,44 @@ public class KRFactory {
 
 	// Initialize KR interfaces map and default language interface.
 	static {
-		// Add SWI Prolog and set as default.
-		try {
-			defaultInterface = swiprolog.SWIPrologInterface.getInstance();
-			KRFactory.addInterface(defaultInterface);
-			SWI_PROLOG = defaultInterface.getName();
-			
-			owlInterface = owlrepo.OWLRepoKRInterface.getInstance();
-			KRFactory.addInterface(owlInterface);
-			OWL_REPO = owlInterface.getName();
-						
-		} catch (KRInitFailedException e) {
-			// TODO
-			System.out
-					.println("Failed to initialize the SWI Prolog interface because "
-							+ e.getMessage());
-		} catch (KRException e) {
-			System.out.println(e.getMessage());
-		}
+		init();
 	}
 
 	/**
 	 * KRFactory is a utility class; constructor is hidden.
 	 */
 	private KRFactory() {
+	}
+
+	/**
+	 * Initialize the default values for the factory. Fails hard if SWI not
+	 * working.
+	 */
+	private static void init() {
+		if (languages == null) {
+			languages = new Hashtable<String, KRInterface>();
+			try {
+				defaultInterface = swiprolog.SWIPrologInterface.getInstance();
+				
+				owlInterface = owlrepo.OWLRepoKRInterface.getInstance();
+			} catch (KRInitFailedException e1) {
+				throw new IllegalStateException(
+						"Failed to load the default SWI Prolog language", e1);
+			}
+
+			// Add SWI Prolog and set as default.
+			try {
+				KRFactory.addInterface(defaultInterface);
+				KRFactory.addInterface(owlInterface);
+			} catch (KRException e) {
+				throw new IllegalStateException(
+						"SWI Prolog could not initialize properly", e);
+			}
+			
+			SWI_PROLOG = defaultInterface.getName();
+			OWL_REPO = owlInterface.getName();
+		}
+
 	}
 
 	/**
@@ -97,8 +110,8 @@ public class KRFactory {
 		if (krInterface == null) {
 			throw new KRInterfaceNotSupportedException(
 					"Could not find interface " + name
-							+ "; the following interfaces are available: "
-							+ languages.keySet());
+					+ "; the following interfaces are available: "
+					+ languages.keySet());
 		}
 		return krInterface;
 	}
@@ -116,11 +129,11 @@ public class KRFactory {
 		if (krInterface == null) {
 			throw new KRException("Cannot add null");
 		}
-		if (!languages.containsKey(krInterface.getName())) {
-			languages.put(krInterface.getName().toLowerCase(), krInterface);
+		final String name = krInterface.getName().toLowerCase();
+		if (!languages.containsKey(name)) {
+			languages.put(name, krInterface);
 		} else {
-			throw new KRException("Interface " + krInterface.getName()
-					+ " already present");
+			throw new KRException("Interface " + name + " is already present");
 		}
 	}
 
@@ -141,7 +154,7 @@ public class KRFactory {
 			throws KRInitFailedException {
 		if (defaultInterface == null) {
 			throw new KRInitFailedException(
-					"Something went wrong; could not locate default interface.");
+					"could not locate default interface.");
 		}
 		return defaultInterface;
 	}

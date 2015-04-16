@@ -21,30 +21,39 @@ import java.io.File;
 
 /**
  * Information about a specific position in the source. Provides the position in
- * terms of a line and character position number.
+ * terms of a line and character position number, as well as its index in a
+ * file.
  */
 public interface SourceInfo {
 
 	/**
 	 * @return The source that this info is associated with.
-	 *
-	 *         TODO: change File to Reader?
 	 */
 	public File getSource();
 
 	/**
-	 * @return The line number of the line that this info is about.
+	 * @return The first line number of the line that this info is about.
 	 */
 	public int getLineNumber();
 
 	/**
-	 * @return The index of the character in the line that this info is about.
+	 * @return The first index of the character(s) in the line that this info is
+	 *         about.
 	 */
 	public int getCharacterPosition();
 
 	/**
-	 * @return An info message.
+	 * @return The position of the first character that this info is about.
+	 */
+	public int getStartIndex();
+
+	/**
+	 * @return The position of the last character that this info is about.
+	 */
+	public int getStopIndex();
+
+	/**
+	 * @return The info message.
 	 */
 	public String getMessage();
-
 }

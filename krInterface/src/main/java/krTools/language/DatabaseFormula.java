@@ -48,11 +48,7 @@ import krTools.database.Database;
  */
 public interface DatabaseFormula extends Expression {
 
-	/**
-	 * Applies a substitution to the term, i.e., instantiates free variables
-	 * that are bound to a term in the substitution by that term (or, only
-	 * renames in case the substitution binds a variable to another one).
-	 */
+
 	@Override
 	DatabaseFormula applySubst(Substitution substitution);
 
