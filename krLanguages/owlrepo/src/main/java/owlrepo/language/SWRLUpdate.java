@@ -1,5 +1,6 @@
 package owlrepo.language;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import krTools.language.DatabaseFormula;
@@ -22,22 +23,22 @@ public class SWRLUpdate extends SWRLExpression implements Update {
 	 * substitution binds a variable to another one).
 	 */
 	public Update applySubst(Substitution substitution){
-		return null;
+		return this;
 	}
 
 	public List<DatabaseFormula> getAddList() {
 		// TODO Auto-generated method stub
-		return null;
+		return new LinkedList<DatabaseFormula>();
 	}
 
 	public List<DatabaseFormula> getDeleteList() {
 		// TODO Auto-generated method stub
-		return null;
+		return new LinkedList<DatabaseFormula>();
 	}
 
 	public Query toQuery() {
 		// TODO Auto-generated method stub
-		return null;
+		return new SWRLQuery(this.getRule());
 	}
 
 	//@Override

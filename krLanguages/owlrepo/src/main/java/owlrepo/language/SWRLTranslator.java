@@ -100,23 +100,48 @@ public class SWRLTranslator {
 				IRI pred = builtin.getPredicate();
 				String operator = "";
 				SWRLDataFactory df = new OWLDataFactoryImpl();
-				
+				List<SWRLDArgument> args= builtin.getArguments();
+
 				String prefix = prefixManager.getShortForm(pred);//getPrefixIRI(pred).;
 				String op = prefix.substring(prefix.indexOf(":")+1,prefix.length());
 				if (op == "swrlb"){
 					//swrl built-ins
-				switch(op){
+					switch(op){
+					//for comparison
 					case ("equal"): operator = "="; break;
 					case ("notequal"): operator = "!="; break;
 					case ("lessThan"): operator = "<"; break;
 					case ("lessThanOrEqual"): operator = "<="; break;
 					case ("greaterThan"): operator = ">"; break;
 					case ("greaterThanOrEqual"): operator = ">="; break;	
+					//mathematical operations
+					case ("add"): operator = "+"; break;
+					case ("subtract"): operator = "-"; break;
+					case ("multiply"): operator = "*"; break;
+					case ("divide"): operator = "/"; break;
+					//more math: mod pow floor ceiling abs sin cos tan
+					//booleanNot
+					//string ops: 
+					//date, time, duration 
+					//URIs
+					//lists - not supported by Pellet
+
+					}
+					if (args.size() == 2)
+						SPARQLfilter += "\nFILTER ("+ translate(args.get(0)) + operator + translate(args.get(1)) +")\n";
+					else if (args.size() == 3)
+						SPARQLfilter += "\nBIND ("+ translate(args.get(1)) + operator + translate(args.get(2)) +" AS " + translate(args.get(0)) +")\n";
+
 				}
-				List<SWRLDArgument> args= builtin.getArguments();
-				SPARQLfilter += "\nFILTER("+ translate(args.get(0)) + operator + translate(args.get(1)) +")\n";
+				else if (op.equalsIgnoreCase("owl")){
+					if (op.equalsIgnoreCase("sameAs")){
+						SPARQLfilter += "\nFILTER ( sameTerm("+ translate(args.get(0))+", "+ translate(args.get(1)) +")\n";
+					}else if (op.equalsIgnoreCase("differentFrom")){
+						SPARQLfilter += "\nFILTER ( !sameTerm("+ translate(args.get(0)) + ", " + translate(args.get(1)) +")\n";
+						
+					}
 				}
-				else if (op == "sqwrl"){
+				/*else if (op == "sqwrl"){
 					//sqwrl operators
 					switch(op){
 					case ("limit"): break;
@@ -133,7 +158,7 @@ public class SWRLTranslator {
 					case ("contains"): break;
 					
 					}
-				}
+				}*/
 			}
 			
 		}

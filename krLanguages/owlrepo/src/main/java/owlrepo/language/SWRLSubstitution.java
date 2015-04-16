@@ -98,6 +98,10 @@ public class SWRLSubstitution implements Substitution {
 		substitutions.put(var, atom);
 		variables = substitutions.keySet();
 	}
+	
+	public SWRLArgument getSWRLArgument(SWRLVariable var){
+		return substitutions.get(var);
+	}
 
 	//@Override
 	public Set<Var> getVariables() {

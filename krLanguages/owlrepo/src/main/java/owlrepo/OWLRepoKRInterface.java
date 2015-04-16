@@ -32,6 +32,8 @@ public class OWLRepoKRInterface implements KRInterface {
 
 	private static OWLRepoKRInterface instance = null;
 	OWLOntologyDatabase database = null;
+	File owlfile = null;
+	String repoUrl = null;
 
 
 	private OWLRepoKRInterface() throws KRInitFailedException {
@@ -79,34 +81,52 @@ public class OWLRepoKRInterface implements KRInterface {
 
 	public Parser getParser(Reader source) throws ParserException {
 		BufferedReader reader = new BufferedReader(source);
-		File owlfile = null;
+		String owlfilename = "";
 		try {
+			reader.mark(100);
 			String firstline = reader.readLine();
-			if (firstline.endsWith(".owl")){
-				owlfile = new File(firstline);
-			}
-		} catch (IOException e1) {
+			if (firstline!=null && firstline.endsWith(".owl")){
+				this.owlfile = new File(firstline);
+				owlfilename = firstline.substring(0,firstline.length()-4);
+			}else
+				reader.reset();
+		} catch (Exception e1) {
 			e1.printStackTrace();
 		}
 		
 		
-		if (database == null)
+		if (database == null){
 			try {
 				
 				if (owlfile==null){
 					database = (OWLOntologyDatabase) getDatabase(new HashSet<DatabaseFormula>());
 				}else {
-					database = new OWLOntologyDatabase("kb", owlfile);
+					database = new OWLOntologyDatabase(owlfilename, owlfile);
 				}
 			} catch (KRDatabaseException e) {
 				e.printStackTrace();
 			} catch (OWLOntologyCreationException e) {
 				e.printStackTrace();
 			}
+		
+		} 
+		
 		//create parser for this database onto and reader source
 		return new SQWRLParser(database.getSWRLOntology(), reader);
 	}
+	
+	public File getOwlFile(){
+		return this.owlfile;
+	}
+	
+	public String getRepoUrl(){
+		return this.repoUrl;
+	}
 
+	public OWLOntologyDatabase getDatabase(){
+		return this.database;
+	}
+	
 	public Substitution getSubstitution(Map<Var, Term> map) {
 		return new SWRLSubstitution(map);
 	}

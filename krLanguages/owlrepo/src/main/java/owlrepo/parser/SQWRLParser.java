@@ -16,16 +16,14 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.parser.SWRLParseException;
 import org.swrlapi.parser.SWRLParser;
+import org.swrlapi.parser.SWRLParserSupport;
 
 import owlrepo.language.SWRLDatabaseFormula;
-import owlrepo.language.SWRLExpression;
 import owlrepo.language.SWRLQuery;
 import owlrepo.language.SWRLTerm;
 import owlrepo.language.SWRLUpdate;
@@ -39,10 +37,12 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	int line = -1;
 	List<SourceInfo> errors;
 	SWRLAPIOWLOntology onto ;
+	SWRLParserSupport swrlParserSupport;
 	
 	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology){
 		super(swrlapiOWLOntology);
 		errors = new ArrayList<SourceInfo>();
+		this.swrlParserSupport = new SWRLParserSupport(swrlapiOWLOntology);
 	}
 	
 	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, BufferedReader reader) {
@@ -50,19 +50,20 @@ public class SQWRLParser extends SWRLParser implements Parser {
 		this.reader = reader;
 	}
 	
-	private SWRLRule parse(){
+	private SWRLRule parse(int line, int pos){
 		SWRLRule rule =  null;
 		//until end of file
 		if (currentLine != null){
 
-		try {
-			//advance with the line
-			currentLine = reader.readLine();
-			System.out.println("Parsing: "+currentLine);
+		try { 
+			//currentLine = reader.readLine();
+			//System.out.println("Parsing: "+currentLine);
+			while ((currentLine = reader.readLine()) != null){
+			    System.out.println("<"+currentLine+">");
 			line++;
-			if (currentLine!=null){
+		//	if (currentLine!=null){
 				rule = (SWRLRule) parse(currentLine, String.valueOf(line));
-			}
+			
 //			if (isSWRLRuleCorrectAndComplete(currentLine)) {
 //				//parse the line
 //				parse(currentLine, String.valueOf(line));
@@ -70,6 +71,8 @@ public class SQWRLParser extends SWRLParser implements Parser {
 //				System.out.println("Incomplete rule: "+currentLine+" :: "+isSWRLRuleCorrectButPossiblyIncomplete(currentLine));
 //				errors.add(new SQWRLParserSourceInfo(null, line, -1, "Incomplete rule: "+currentLine));
 //			}
+				break;
+			}
 		} catch (SWRLParseException e) {
 			e.printStackTrace(); 
 			errors.add(new SQWRLParserSourceInfo(null, line, -1, e.getMessage()));
@@ -113,15 +116,15 @@ public class SQWRLParser extends SWRLParser implements Parser {
 		//rule to list of dbformula
 			List<DatabaseFormula> dbfs = new LinkedList<DatabaseFormula>();
 			DatabaseFormula dbf;
-			while((dbf = parseDBF()) != null){
+			while((dbf = parseDBF(info)) != null){
 				dbfs.add(dbf);
 			}
 			return dbfs;
 		}
 	
-	public DatabaseFormula parseDBF() throws ParserException {
+	public DatabaseFormula parseDBF(SourceInfo info) throws ParserException {
 	//rule to list of dbformula
-		SWRLRule rule = parse();
+		SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
 		if (rule!=null)
 		return new SWRLDatabaseFormula(rule);
 		else return null;
@@ -130,8 +133,10 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	@Override
 	public Update parseUpdate(SourceInfo info) throws ParserException {
 		//rule to update
-		SWRLRule rule = parse();
-		return new SWRLUpdate(rule);
+		SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
+		if (rule!=null)
+			return new SWRLUpdate(rule);
+		return null;
 	}
 	
 	
@@ -149,33 +154,53 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	@Override
 	public Query parseQuery(SourceInfo info) throws ParserException {
 		//rule to query
-		SWRLRule rule = parse();
-		return new SWRLQuery(rule);
+		SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
+		if (rule!=null)
+			return new SWRLQuery(rule);
+		return null;
 	}
 
 	
 	@Override
 	public List<Term> parseTerms(SourceInfo info) throws ParserException {
-			List<Term> terms = new LinkedList<Term>();
-		Term t;
-		while ((t=parseTerm(info))!=null){
-			terms.add(t);
+		List<Term> terms = new LinkedList<Term>();
+		try {
+			String line = reader.readLine();
+			String[] termstrings = line.split(",");
+			for (String term: termstrings)
+				terms.add(parseTerm(term));
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ParserException(e.getMessage());
 		}
 		return terms;
+	}
+	
+	private Term parseTerm(String termstring) throws SWRLParseException{
+		Term term = null;
+		if (termstring.startsWith("?")) {
+			//variable
+		//	swrlParserSupport.checkThatSWRLVariableNameIsValid(termstring);
+			SWRLVariable var = swrlParserSupport.getSWRLVariable(termstring);
+			term = new SWRLVar(var);
+		}
+		System.out.println(term);
+		return term;
 	}
 
 	@Override
 	public Term parseTerm(SourceInfo info) throws ParserException {
 		//rule to term
-		SWRLRule rule = parse();
-
-		return new SWRLTerm(rule);
+			SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
+			if (rule!=null)
+				return new SWRLTerm(rule);
+		return null;
 	}
 
 	@Override
 	public Var parseVar(SourceInfo info) throws ParserException {
 			//rule to var
-			SWRLRule rule = parse();
+			SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
 			Set<SWRLVariable> vars = rule.getVariables();
 			return new SWRLVar(vars.iterator().next());
 	}

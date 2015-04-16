@@ -67,8 +67,8 @@ public class OWLOntologyDatabase implements Database {
   private  OWLReasoner reasoner;
     
    private SWRLAPIOWLOntology swrlontology;
-   private SWRLRuleEngine ruleEngine;
-   private SQWRLQueryEngine queryEngine;
+ //  private SWRLRuleEngine ruleEngine;
+ //  private SQWRLQueryEngine queryEngine;
  // private SWRLAPIFactory swrlfactory;
 //  private SWRLDataFactory swrldfactory;
 	
@@ -107,7 +107,6 @@ public class OWLOntologyDatabase implements Database {
 	      //create swrl ontology
 	      swrlontology = SWRLAPIFactory.createOntology(owlontology, prefixManager);
 	      SWRLAPIFactory.updatePrefixManager(owlontology, prefixManager);
-	      //and our factory
 	      renderer = SWRLAPIFactory.createSWRLAPIRenderer(swrlontology);  
 
 	      //create owlapi reasoner pellet
@@ -144,11 +143,14 @@ public class OWLOntologyDatabase implements Database {
     public void setupRepo(String repoUrl){
 	      //set up RDF repository = triple store local + shared
 	      if (this.localdb == null){
+	      	System.out.println("Setting up local repo");
 	    	  local_listener = new RDFRepositoryConnectionListener(this, "local");
 	    		this.localdb = new RDFRepositoryDatabase(name, owlontology, baseURI, repoUrl, local_listener);
 	         
 	      if (repoUrl!=null){
 	    	  this.SHARED_MODE = true;
+	    	  System.out.println("Setting up shared repo");
+
 	    	  shared_listener = new RDFRepositoryConnectionListener(this, "shared");
 
 	    	  this.shareddb = new RDFRepositoryDatabase(name, owlontology, baseURI, repoUrl, shared_listener);
@@ -176,6 +178,12 @@ public class OWLOntologyDatabase implements Database {
 			SWRLDatabaseFormula formula = (SWRLDatabaseFormula)(iterator.next());
 			manager.addAxiom(owlontology, formula.getRule());
 		}
+	}
+	public OWLOntologyDatabase(String name, File owlfile, String repourl) throws OWLOntologyCreationException{
+		//first set it up the onto with the file
+		this(name, owlfile);
+		//then start the repo
+		setupRepo(repourl);
 	}
 	
 	public OWLOntologyManager getOntologyManager(){
@@ -280,8 +288,8 @@ public class OWLOntologyDatabase implements Database {
 			
 			String ruletext = form.toString();
 					//renderer.renderSWRLRule(rule);
-			System.out.println("Inserting to db: "+ruletext);
-			swrlontology.createSWRLRule("rulename", ruletext);
+			//System.out.println("Inserting to db: "+ruletext);
+			 rule = swrlontology.createSWRLRule("rulename", ruletext);
 			
 			manager.addAxiom(owlontology, rule);
 			
@@ -314,13 +322,13 @@ public class OWLOntologyDatabase implements Database {
 	}
 	
 	public void insertLocal(Collection<Statement> statements){
-		System.out.println("Inserting into local");
+		//System.out.println("Inserting into local");
 		if (localdb!=null & localdb.isOpen())
 			localdb.insert(statements);
 	}
 	
 	public void insertShared(Collection<Statement> statements){
-		System.out.println("Inserting into shared");
+	//	System.out.println("Inserting into shared");
 //		if (shareddb!=null & shareddb.isOpen())
 //			shareddb.insert(statements);
 	}

@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 
+import krTools.language.Var;
+
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -14,6 +16,7 @@ import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.parser.SWRLParseException;
 
+import owlrepo.language.SWRLExpression;
 import owlrepo.language.SWRLTranslator;
 import owlrepo.parser.SQWRLParser;
 
@@ -60,7 +63,6 @@ if (file.exists() && file.canRead()){
 		try {
 			System.out.println("SWRL Rule:::: "+ text);
 			 r = parser.parseRule(text, "rule1");
-			 
 		} catch (SWRLParseException e) {
 			e.printStackTrace();
 		}
@@ -72,6 +74,13 @@ if (file.exists() && file.canRead()){
 
 		SWRLTranslator transl = new SWRLTranslator(swrlapiOnto,r);
 		System.out.println("SPARQL translation::::: \n"+transl.translateToSPARQL());
+		
+		SWRLExpression exp = new SWRLExpression(r);
+		System.out.println("SWRL expression: "+exp.toString());
+		System.out.println("Free vars:");
+		for (Var v: exp.getFreeVar()){
+			System.out.print(v+", ");
+		}
 
 	
 	}

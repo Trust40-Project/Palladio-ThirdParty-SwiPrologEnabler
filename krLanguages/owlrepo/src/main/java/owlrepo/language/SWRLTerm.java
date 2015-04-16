@@ -4,6 +4,7 @@ import java.util.Set;
 
 import krTools.language.Substitution;
 import krTools.language.Term;
+import krTools.language.Var;
 
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
@@ -90,14 +91,28 @@ public class SWRLTerm extends SWRLExpression implements Term {
 	public boolean isSameIndividualAtom(){
 		return (this.atom instanceof SWRLSameIndividualAtom);
 	}
+	
+
 	/**
 	 * Applies a substitution to the term, i.e., instantiates free variables that are
 	 * bound to a term in the substitution by that term (or, only renames in case the
 	 * substitution binds a variable to another one).
 	 */
 	public Term applySubst(Substitution substitution){
-		return null;
+		SWRLSubstitution subst = (SWRLSubstitution)substitution;
+		if (this.isVariable() ){
+			return new SWRLTerm(subst.getSWRLArgument((SWRLVariable)this.argument));
+		}
+		else if (this.isTerm()){
+			for (SWRLArgument arg: this.atom.getAllArguments()){
+				SWRLExpression exp = new SWRLExpression(arg);
+					
+				
+				}
+		}
+		return this;
 	}
+	
 
 	@Override 
 	public String toString(){

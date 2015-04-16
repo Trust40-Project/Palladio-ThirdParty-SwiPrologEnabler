@@ -83,14 +83,14 @@ public class RDFRepositoryDatabase {
 			 //create Stardog Sesame Repository with SL reasoning
 			 repo = new StardogRepository(ConnectionConfiguration
 	                                         .to(name)
-	                                         .reasoning(ReasoningType.SL)
+	                                         .reasoning(true)
 	                                         .credentials(username, password));
 			 
 		} else{
 			  //create Stardog Sesame Repository with SL reasoning
 			repo = new StardogRepository(ConnectionConfiguration
 					.to(name)
-					.reasoning(ReasoningType.SL)
+					.reasoning(true)
 					.server(repo_url)
 					);
 		}
@@ -210,7 +210,7 @@ public class RDFRepositoryDatabase {
 	
 	public void shutdown(){
 		try {
-			conn.close();
+		//	conn.close();
 			nconn.close();
 			repo.shutDown();
 			//nrepo.shutDown();
