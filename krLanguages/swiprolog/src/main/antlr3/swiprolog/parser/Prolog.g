@@ -93,8 +93,8 @@ options {
     
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	int start = this.start + this.input.index();
-        int end = (e.token == null || e.token.getText() == null) ? start : (start + e.token.getText().length());
+    	int end = this.start + this.input.index();
+        int start = (e.token == null || e.token.getText() == null) ? end : (end - e.token.getText().length());
         SourceInfo info = new SourceInfoObject(getSource(), this.input.getLine(), this.input.getCharPositionInLine(), start, end);
     	ParserException newErr = null;
     	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
@@ -113,6 +113,10 @@ options {
         	newErr = new ParserException("Sorry, cannot make anything out of this", info, e);
         }
         errors.add(newErr);
+    }
+    
+    @Override
+    public void emitErrorMessage(String msg) {
     }
     
     public List<ParserException> getErrors() {
@@ -180,6 +184,10 @@ options {
         	newErr = new ParserException("Sorry, cannot make anything out of this", info, e);
         }
         errors.add(newErr);
+    }
+    
+    @Override
+    public void emitErrorMessage(String msg) {
     }
     
     public List<ParserException> getErrors() {
@@ -356,8 +364,8 @@ options {
      * @return Source info object.
      */
     private SourceInfo getSourceInfo(Token token) {
-        int start = this.start + this.cs.index();
-        int end = (token == null || token.getText() == null) ? start : (start + token.getText().length());
+        int end = this.start + this.cs.index();
+        int start = (token == null || token.getText() == null) ? end : (end - token.getText().length());
         return new SourceInfoObject(getSource(), this.cs.getLine(), this.cs.getCharPositionInLine(), start, end);
     }
     
@@ -743,7 +751,6 @@ listterm returns [PrologTerm term] // 6.3.5
 
 items returns [PrologTerm term] // 6.3.5 ; we use the prolog "." functor to build items list.
   :
-  	  { int index = this.cs.index(); }
         l = expression
       { jpl.Term[] args = { l.getTerm() };
         term = new PrologTerm(new jpl.Compound(".", args), l.getSourceInfo()); }
@@ -789,7 +796,6 @@ prefixoperator returns [PrologTerm term]
  */
 term0 returns [PrologTerm term]
   :
-  	{ int index = this.cs.index(); }
       (
         tk = NUMBER  
         // 6.3.1.1 (The Standard supports negative numbers explicitly; 
