@@ -17,6 +17,8 @@
 
 package swiprolog.parser;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +33,6 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
 import org.antlr.runtime.ANTLRReaderStream;
-import org.antlr.runtime.IntStream;
 import org.antlr.runtime.RecognitionException;
 
 import swiprolog.language.PrologTerm;
@@ -41,7 +42,8 @@ import swiprolog.language.PrologVar;
  * Implementation of KR interface parser for SWI Prolog.
  */
 public class KRInterfaceParser implements Parser {
-	private final IntStream stream;
+	private final ANTLRReaderStream stream;
+	private final int start;
 	/**
 	 * The ANTLR generated parser for Prolog.
 	 */
@@ -52,19 +54,25 @@ public class KRInterfaceParser implements Parser {
 	 *
 	 * @param stream
 	 *            The input stream.
+	 * @throws IOException
 	 * @throws ParserException
 	 *             If an exception occurred during parsing. See
 	 *             {@link ParserException}.
 	 */
-	public KRInterfaceParser(ANTLRReaderStream stream) {
-		this.stream = stream;
-		PrologLexer lexer = new PrologLexer(stream);
-		lexer.initialize();
+	public KRInterfaceParser(Reader r, SourceInfo info) throws IOException {
+		this.stream = new ANTLRReaderStream(r);
+		this.stream.name = (info.getSource() == null) ? "" : info.getSource()
+				.getPath();
+		this.stream.setLine(info.getLineNumber());
+		this.stream.setCharPositionInLine(info.getCharacterPosition());
+		this.start = info.getStartIndex();
+		PrologLexer lexer = new PrologLexer(this.stream);
+		lexer.initialize(this.start);
 		LinkedListTokenSource linker = new LinkedListTokenSource(lexer);
 		LinkedListTokenStream tokenStream = new LinkedListTokenStream(linker);
 		this.parser = new PrologParser(tokenStream);
-		this.parser.setInput(lexer, stream);
-		this.parser.initialize();
+		this.parser.setInput(lexer, this.stream);
+		this.parser.initialize(this.start);
 	}
 
 	@Override
@@ -96,7 +104,7 @@ public class KRInterfaceParser implements Parser {
 		try {
 			term = this.parser.term0();
 		} catch (RecognitionException e) {
-			int start = e.index;
+			int start = this.start + e.index;
 			int end = (e.token == null || e.token.getText() == null) ? start
 					: (start + e.token.getText().length());
 			final SourceInfoObject source = new SourceInfoObject(
@@ -138,8 +146,8 @@ public class KRInterfaceParser implements Parser {
 		if (size - index > 0) {
 			final SourceInfoObject error = new SourceInfoObject(
 					this.parser.getSource(), this.parser.getLexer().getLine(),
-					this.parser.getLexer().getCharPositionInLine(), index,
-					size - 1);
+					this.parser.getLexer().getCharPositionInLine(), this.start
+					+ index, this.start + (size - 1));
 			exceptions.add(new ParserException("Unrecognized spurious input",
 					error));
 		}

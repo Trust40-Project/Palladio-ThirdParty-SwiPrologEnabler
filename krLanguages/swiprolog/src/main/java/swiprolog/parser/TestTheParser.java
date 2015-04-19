@@ -18,7 +18,7 @@
 
 package swiprolog.parser;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -42,7 +42,7 @@ public class TestTheParser {
 		CommonTokenStream tokens = new CommonTokenStream(lex);
 
 		PrologParser parser = new PrologParser(tokens);
-		ArrayList<PrologTerm> results = parser.prologtext(); // launch parsing
+		List<PrologTerm> results = parser.prologtext(); // launch parsing
 		// ArrayList<PrologTerm> results = new ArrayList<PrologTerm>();
 		// results.add(parser.term1200()); // parsing
 		// print tree if building trees

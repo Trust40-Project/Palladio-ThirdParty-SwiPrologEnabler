@@ -48,6 +48,7 @@ options {
     import krTools.parser.SourceInfo;
     
     import java.io.File;
+    import java.util.LinkedList;
 	
 	import swiprolog.language.PrologDBFormula;
 	import swiprolog.language.PrologQuery;
@@ -60,19 +61,22 @@ options {
     package swiprolog.parser;
     
     import krTools.errors.exceptions.ParserException;
+    import krTools.parser.SourceInfo;
     
     import java.io.File;
+    import java.util.LinkedList;
 }
 
 @lexer::members {
-
     /**
      * The list of errors that were found during parsing.
      */
-    private ArrayList<ParserException> errors;
+    private List<ParserException> errors;
+    private int start;
     
-    public void initialize() {
-        errors = new ArrayList<ParserException>();
+    public void initialize(int start) {
+        this.errors = new LinkedList<ParserException>();
+        this.start = start;
     }
     
     public File getSource() {
@@ -89,9 +93,9 @@ options {
     
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	int start = this.input.index();
+    	int start = this.start + this.input.index();
         int end = (e.token == null || e.token.getText() == null) ? start : (start + e.token.getText().length());
-        SourceInfoObject info = new SourceInfoObject(getSource(), this.input.getLine(), this.input.getCharPositionInLine(), start, end);
+        SourceInfo info = new SourceInfoObject(getSource(), this.input.getLine(), this.input.getCharPositionInLine(), start, end);
     	ParserException newErr = null;
     	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
     	if (e instanceof MismatchedTokenException) {
@@ -111,7 +115,7 @@ options {
         errors.add(newErr);
     }
     
-    public ArrayList<ParserException> getErrors() {
+    public List<ParserException> getErrors() {
         return this.errors;
     }
     
@@ -137,10 +141,12 @@ options {
 @parser::members {
     private PrologLexer lexer;
     private CharStream cs;
-	private ArrayList<ParserException> errors;
+    private int start;
+	private List<ParserException> errors;
   
-    public void initialize() {
-		errors = new ArrayList<ParserException>();
+    public void initialize(int start) {
+		errors = new LinkedList<ParserException>();
+		this.start = start;
     }
     
     public File getSource() {
@@ -157,9 +163,7 @@ options {
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
-    	int start = this.cs.index();
-        int end = (e.token == null || e.token.getText() == null) ? start : (start + e.token.getText().length());
-        SourceInfoObject info = new SourceInfoObject(getSource(), this.cs.getLine(), this.cs.getCharPositionInLine(), start, end);
+        SourceInfo info = getSourceInfo(e.token); 
     	ParserException newErr = null;
     	String found = (e.token == null || e.token.getText() == null) ? "nothing" : e.token.getText();
     	if (e instanceof MismatchedTokenException) {
@@ -178,7 +182,7 @@ options {
         errors.add(newErr);
     }
     
-    public ArrayList<ParserException> getErrors() {
+    public List<ParserException> getErrors() {
         return this.errors;
     }
     
@@ -226,14 +230,14 @@ options {
     /**
      * Parses a Prolog program. Assumes that the parser has been set up properly.
      *
-     * @return ArrayList<DatabaseFormula>, or {@code null} if a parser error occurs.
+     * @return List<DatabaseFormula>, or {@code null} if a parser error occurs.
      */
-	public ArrayList<DatabaseFormula> parsePrologProgram() throws ParserException {
+	public List<DatabaseFormula> parsePrologProgram() throws ParserException {
 		try {
-			ArrayList<PrologTerm> prologTerms = prologtextWithImports();
+			List<PrologTerm> prologTerms = prologtextWithImports();
 
             // Parser does not check if Prolog terms are correct database objects, do this next
-            ArrayList<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>();
+            List<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>(prologTerms.size());
             for (PrologTerm t: prologTerms) {
             	PrologTerm updatedSourceInfo = new PrologTerm(t.getTerm(), t.getSourceInfo());
 				dbfs.add(DBFormula(updatedSourceInfo));
@@ -248,12 +252,12 @@ options {
     /**
      * Check that all terms are formula that can be inserted into a Prolog database.
      *
-     * @return ArrayList<DatabaseFormula> List of database formulas derived from input Prolog terms.
+     * @return List<DatabaseFormula> List of database formulas derived from input Prolog terms.
      * @throws ParserException If an input Prolog term cannot be converted to a database formula.
      */
-    private ArrayList<DatabaseFormula> toDBFormulaList(ArrayList<PrologTerm> prologTerms) 
+    private List<DatabaseFormula> toDBFormulaList(List<PrologTerm> prologTerms) 
         throws RecognitionException {
-        ArrayList<DatabaseFormula> DBFormulaList = new ArrayList<DatabaseFormula>();
+        List<DatabaseFormula> DBFormulaList = new ArrayList<DatabaseFormula>(prologTerms.size());
         for (PrologTerm t: prologTerms)
             try {
 				DBFormulaList.add(DBFormula(t));
@@ -352,8 +356,9 @@ options {
      * @return Source info object.
      */
     private SourceInfo getSourceInfo(Token token) {
-    	return new SourceInfoObject(getSource(), token.getLine(), token.getCharPositionInLine(), token.getTokenIndex(), 
-        			(token.getText() == null) ? token.getTokenIndex() : (token.getTokenIndex() + token.getText().length()));
+        int start = this.start + this.cs.index();
+        int end = (token == null || token.getText() == null) ? start : (start + token.getText().length());
+        return new SourceInfoObject(getSource(), this.cs.getLine(), this.cs.getCharPositionInLine(), start, end);
     }
     
 
@@ -384,15 +389,13 @@ options {
        /**
          * Parse a section that should contain Prolog goals, i.e., queries.
          *
-         * @return ArrayList<Query>, or {@code null} if a parser error occurs.
+         * @return List<Query>, or {@code null} if a parser error occurs.
          * @throws ParserException 
          */
-        public ArrayList<Query> parsePrologGoalSection() throws ParserException { 
-            ArrayList<Query> goals = new ArrayList<Query>();
-            
+        public List<Query> parsePrologGoalSection() throws ParserException {             
             try {
-                ArrayList<PrologTerm> prologTerms = prologtext();
-
+                List<PrologTerm> prologTerms = prologtext();
+            	List<Query> goals = new ArrayList<Query>(prologTerms.size());
                 for (PrologTerm t: prologTerms) {
                 	// check that each term is a valid Prolog goal / query
                     goals.add(new PrologQuery(toGoal(t.getTerm(), t.getSourceInfo()), t.getSourceInfo()));
@@ -603,8 +606,9 @@ options {
     public List<Term> ParsePrologTerms() {
       try {
         PrologTerm t = term1000();
-        ArrayList<Term> terms = new ArrayList<Term>();
-        for (jpl.Term term : JPLUtils.getOperands(",", t.getTerm())) {
+        List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
+        List<Term> terms = new ArrayList<Term>(original.size());
+        for (jpl.Term term : original) {
           if (term instanceof jpl.Variable) {
             terms.add(new PrologVar((jpl.Variable)term, t.getSourceInfo()));
           } else {
@@ -649,9 +653,9 @@ options {
  * but requires the EOF token after the last clause or directive.
  * </p> 
  */
-prologfile returns [ArrayList<PrologTerm> clauses]
+prologfile returns [List<PrologTerm> clauses]
     :
-        { clauses = new ArrayList<PrologTerm>(); }
+        { clauses = new LinkedList<PrologTerm>(); }
         (
             (
               term = directive
@@ -665,9 +669,9 @@ prologfile returns [ArrayList<PrologTerm> clauses]
 /**
  * The same rule as #prologtext
  */ 
-prologtextWithImports returns [ArrayList<PrologTerm> clauses]
+prologtextWithImports returns [List<PrologTerm> clauses]
     :
-        { clauses = new ArrayList<PrologTerm>(); }
+        { clauses = new LinkedList<PrologTerm>(); }
         ( (
             term = directive
           | term = clause
@@ -676,9 +680,9 @@ prologtextWithImports returns [ArrayList<PrologTerm> clauses]
         )*
     ;
     
-prologtext returns [ArrayList<PrologTerm> clauses] // 6.2.1
+prologtext returns [List<PrologTerm> clauses] // 6.2.1
   :
-    { clauses = new ArrayList<PrologTerm>(); }
+    { clauses = new LinkedList<PrologTerm>(); }
     ( (
         term = directive
       | term = clause
@@ -700,9 +704,9 @@ clause returns [PrologTerm term] // 6.2.1.2
       t = term1200 ENDTOKEN { term = t; }
   ;
 
-arglist returns [ArrayList<PrologTerm> arguments] // 6.3.3
+arglist returns [List<PrologTerm> arguments] // 6.3.3
   :
-      { ArrayList<PrologTerm> argList = new ArrayList<PrologTerm>(); }
+      { List<PrologTerm> argList = new LinkedList<PrologTerm>(); }
         exp = expression
       { argList.add(exp); }
         ( ',' argTail = arglist { argList.addAll(argTail); } )?
@@ -802,7 +806,7 @@ term0 returns [PrologTerm term]
     { if (a==null) {
          term = new PrologTerm(new jpl.Atom(tk.getText()), getSourceInfo(tk));
       } else { 
-         List<jpl.Term> terms = new ArrayList<jpl.Term>();
+         List<jpl.Term> terms = new ArrayList<jpl.Term>(a.size());
          for (PrologTerm pterm: a) {
             terms.add(pterm.getTerm());
          }

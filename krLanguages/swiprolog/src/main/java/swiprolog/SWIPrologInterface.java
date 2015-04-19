@@ -38,9 +38,6 @@ import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
-
-import org.antlr.runtime.ANTLRReaderStream;
-
 import swiprolog.database.SWIPrologDatabase;
 import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
@@ -165,17 +162,12 @@ public final class SWIPrologInterface implements KRInterface {
 	 */
 	@Override
 	public Parser getParser(Reader r, SourceInfo info) throws ParserException {
-		ANTLRReaderStream cs;
 		try {
-			cs = new ANTLRReaderStream(r);
-			cs.name = info.getSource().getPath();
-			cs.setLine(info.getLineNumber());
-			cs.setCharPositionInLine(info.getCharacterPosition());
+			return new KRInterfaceParser(r, info);
 		} catch (IOException e) {
 			throw new ParserException("could not parse the data as SWI prolog",
 					info, e);
 		}
-		return new KRInterfaceParser(cs);
 	}
 
 	/**
