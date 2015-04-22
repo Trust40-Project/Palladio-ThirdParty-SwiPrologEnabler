@@ -104,13 +104,22 @@ NUMBER  // 6.4.4. + 6.4.5
       // We still need to put REST_OF_FLOAT optional, otherwise a plain "0" will not parse, because
       // the ANT predictor predicts that the first rule will *not* fit (because there is NO '.')
       // and it will try only the 0x 0b etc cases which of course fail also.    
-    INTEGERCONSTANT { if (input.LA(1)!='.' || input.LA(2)<'0' || input.LA(2)>'9') break; } REST_OF_FLOAT?  // accept either FLOAT or INTEGER
+      
+      // CHECK Is this now working with ANTLR4?
+    INTEGERCONSTANT REST_OF_FLOAT?  // accept either FLOAT or INTEGER
   | BINARYCONSTANT
   | OCTALCONSTANT
   | HEXADECIMALCONSTANT
   ;
 
-fragment REST_OF_FLOAT
+
+// Floating point number (used in test2g file).
+fragment 
+FLOAT	: (PLUS | MINUS)? (DIGIT+ (DOT DIGIT+)?) | (DOT DIGIT+)
+		;
+		
+fragment 
+REST_OF_FLOAT
   :  '.' INTEGERCONSTANT EXPONENT?
   ;
 
@@ -128,7 +137,8 @@ VARIABLE// 6.4.3
   ;
 
 
-fragment INTEGERCONSTANT  // 6.4.4
+fragment 
+INTEGERCONSTANT  // 6.4.4
   :     (DIGIT)+
   ;
   
