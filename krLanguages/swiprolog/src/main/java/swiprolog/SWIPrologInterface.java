@@ -37,9 +37,7 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
-
-import org.antlr.runtime.ANTLRReaderStream;
-
+import krTools.parser.SourceInfo;
 import swiprolog.database.SWIPrologDatabase;
 import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
@@ -87,7 +85,8 @@ public final class SWIPrologInterface implements KRInterface {
 					"set_prolog_flag", new jpl.Atom("debug_on_error"),
 					new jpl.Atom("false")));
 		} catch (KRQueryFailedException e) {
-			throw new KRInitFailedException(e.getMessage(), e);
+			throw new KRInitFailedException(
+					"swi prolog says it can't set the run mode", e);
 		}
 		// See http://www.swi-prolog.org/packages/jpl/release_notes.html for
 		// explanation why Don't Tell Me Mode needs to be false. Setting this
@@ -114,12 +113,9 @@ public final class SWIPrologInterface implements KRInterface {
 		return SWIPrologInterface.instance;
 	}
 
-	/**
-	 * @return The name of this KR interface.
-	 */
 	@Override
 	public final String getName() {
-		return "swiprolog";
+		return "SWIProlog";
 	}
 
 	/**
@@ -130,15 +126,13 @@ public final class SWIPrologInterface implements KRInterface {
 	 * are used for storing goals.
 	 * </p>
 	 *
-	 * @param agent
-	 *            The name of an agent.
-	 * @param type
-	 *            The type that is requested.
+	 * @param name
+	 *            the owner name of the database
 	 * @returns The database associated with a given agent of a given type, or
 	 *          {@code null} if no database of the given type exists.
 	 */
-	protected SWIPrologDatabase getDatabase(String id) {
-		return this.databases.get(id);
+	protected SWIPrologDatabase getDatabase(String name) {
+		return this.databases.get(name);
 	}
 
 	@Override
@@ -167,14 +161,13 @@ public final class SWIPrologInterface implements KRInterface {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Parser getParser(Reader r) throws ParserException {
-		ANTLRReaderStream cs;
+	public Parser getParser(Reader r, SourceInfo info) throws ParserException {
 		try {
-			cs = new ANTLRReaderStream(r);
+			return new KRInterfaceParser(r, info);
 		} catch (IOException e) {
-			throw new ParserException(e.getMessage());
+			throw new ParserException("could not parse the data as SWI prolog",
+					info, e);
 		}
-		return new KRInterfaceParser(cs);
 	}
 
 	/**
@@ -232,6 +225,11 @@ public final class SWIPrologInterface implements KRInterface {
 	@Override
 	public String toString() {
 		return getName();
+	}
+
+	@Override
+	public boolean supportsSerialization() {
+		return false;
 	}
 
 }

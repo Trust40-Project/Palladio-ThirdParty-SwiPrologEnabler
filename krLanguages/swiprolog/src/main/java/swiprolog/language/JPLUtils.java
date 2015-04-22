@@ -18,7 +18,9 @@
 package swiprolog.language;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,7 +53,8 @@ public class JPLUtils {
 	 */
 	public static String getSignature(jpl.Term term) {
 		if (term.isInteger()) { // does not support name() method
-			return Integer.toString(term.intValue()) + "/0";
+			// use the longValue, #3399
+			return Long.toString(term.longValue()) + "/0";
 		} else if (term.isFloat()) { // does not support name() method
 			return Float.toString(term.floatValue()) + "/0";
 		} else if (term.isVariable()) { // does not support arity() method
@@ -97,20 +100,21 @@ public class JPLUtils {
 	 *            The term whose variables are returned.
 	 * @return The variables that occur in the term.
 	 */
-	public static Set<jpl.Variable> getFreeVar(jpl.Term term) {
-		Set<Variable> freeVars = new LinkedHashSet<Variable>();
+	public static Set<Variable> getFreeVar(Term term) {
+		SetWithoutHash<Variable> freeVars = new SetWithoutHash<Variable>();
 
 		if (term.isVariable()) {
 			freeVars.add((jpl.Variable) term);
 		}
 		if (term.isCompound()) {
-			for (jpl.Term argument : term.args()) {
+			for (Term argument : term.args()) {
 				freeVars.addAll(getFreeVar(argument));
 			}
 		}
 
 		return freeVars;
 	}
+
 
 	/**
 	 * Creates a new term, cloning the given term and substituting variables
@@ -198,6 +202,12 @@ public class JPLUtils {
 	 * D-is-a-predication in ISO p.132-.
 	 */
 	public static boolean isPredication(jpl.Term term) {
+		// only compound has concrete implementation of name(). #3463
+		if (!(term instanceof jpl.Compound)) {
+			return false;
+		}
+
+		// CHECK this seems nonsense, jpl.Term objects are not String objects?
 		if (term.equals("&")) {
 			return false;
 		}
@@ -207,6 +217,7 @@ public class JPLUtils {
 		if (term.equals("->")) {
 			return false;
 		}
+
 		/*
 		 * Arguments must be a D-is-an-arglist see ISO p.132 but all arguments
 		 * must already be PrologTerm and no further checks are needed. TODO
@@ -241,6 +252,10 @@ public class JPLUtils {
 			jpl.Term otherterm) {
 		Hashtable<String, Term> result = new Hashtable<String, jpl.Term>();
 
+		// terms are equal already. success.
+		if (thisterm.equals(otherterm)) {
+			return result;
+		}
 		// First term is a constant.
 		if (thisterm.isAtom() || thisterm.isInteger() || thisterm.isFloat()) {
 			if (thisterm.equals(otherterm)) {
@@ -454,6 +469,23 @@ public class JPLUtils {
 	}
 
 	/**
+	 * Workaround for bug in jpl #3399. Create float for large integers.
+	 * 
+	 * @param number
+	 *            long number
+	 * @return term representing the long.
+	 */
+	public static jpl.Term createIntegerNumber(long number) {
+		// int or long. Check if it fits
+		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE) {
+			System.out
+					.println("SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
+			return new jpl.Float(number);
+		}
+		return new jpl.Integer(number);
+	}
+
+	/**
 	 * Returns a hash code for the JPL term.
 	 *
 	 * @param term
@@ -477,7 +509,8 @@ public class JPLUtils {
 			return ((jpl.Variable) term).name().hashCode();
 		}
 		if (term instanceof jpl.Integer) {
-			return Integer.toString(((jpl.Integer) term).intValue()).hashCode();
+			// use the longValue, #3399
+			return Long.toString(((jpl.Integer) term).longValue()).hashCode();
 		}
 		if (term instanceof jpl.Float) {
 			return Float.toString(((jpl.Float) term).floatValue()).hashCode();
@@ -531,8 +564,9 @@ public class JPLUtils {
 			return ((jpl.Variable) term1).name().equals((term2));
 		}
 		if (term1 instanceof jpl.Integer) {
-			return ((jpl.Integer) term1).intValue() == ((jpl.Integer) term2)
-					.intValue();
+			// compare longs, #3399
+			return ((jpl.Integer) term1).longValue() == ((jpl.Integer) term2)
+					.longValue();
 		}
 		if (term1 instanceof jpl.Float) {
 			return ((jpl.Float) term1).floatValue() == ((jpl.Float) term2)

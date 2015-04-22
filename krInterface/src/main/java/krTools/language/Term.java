@@ -29,11 +29,7 @@ package krTools.language;
  */
 public interface Term extends Expression {
 
-	/**
-	 * Applies a substitution to the term, i.e., instantiates free variables
-	 * that are bound to a term in the substitution by that term (or, only
-	 * renames in case the substitution binds a variable to another one).
-	 */
+
 	@Override
 	Term applySubst(Substitution substitution);
 

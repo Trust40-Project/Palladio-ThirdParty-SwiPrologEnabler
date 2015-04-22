@@ -22,7 +22,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Hashtable;
 
+import jpl.Compound;
 import jpl.Term;
+import jpl.Variable;
 
 import org.junit.Test;
 
@@ -33,6 +35,30 @@ public class TestPrologSubstitution {
 		SwiInstaller.init();
 	}
 
+	/**
+	 * Check that variables are substituted only once. 
+	 */
+	@Test
+	public void testSubstitution() {
+		Hashtable<String, Term> solution = new Hashtable<String, Term>();
+
+		Variable Y = new Variable("Y");
+		Variable Z = new Variable("Z");
+		solution.put("X", Y);
+		solution.put("Y", Z);
+		
+		Term[] args = new Term[2];
+		args[0]=new Variable("X");
+		args[1]=new Variable("Y");
+		Term term = new jpl.Compound("aap", args);
+		
+		Term result = JPLUtils.applySubst(solution, term );
+		assertTrue(result instanceof Compound) ;
+		Compound compound = (Compound)result;
+		assertEquals(Y, compound.arg0(0) );
+		assertEquals(Z, compound.arg0(1) );	
+	}
+	
 	@Test
 	public void testToString() {
 		Hashtable<String, Term> solution = new Hashtable<String, Term>();

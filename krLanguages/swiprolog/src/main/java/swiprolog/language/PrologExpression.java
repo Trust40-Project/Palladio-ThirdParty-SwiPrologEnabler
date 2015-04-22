@@ -158,7 +158,7 @@ public abstract class PrologExpression implements Expression {
 		}
 
 		if (this.term.isInteger()) {
-			return Integer.toString(this.term.intValue());
+			return Long.toString(this.term.longValue());
 		}
 
 		if (this.term.isFloat()) {
@@ -191,7 +191,7 @@ public abstract class PrologExpression implements Expression {
 			case XFY:
 			case YFX:
 				return maybeBracketed(1) + " " + this.term.name() + " "
-				+ maybeBracketed(2);
+						+ maybeBracketed(2);
 			case XF:
 				return maybeBracketed(1) + " " + this.term.name() + " ";
 			default:
@@ -208,9 +208,8 @@ public abstract class PrologExpression implements Expression {
 		}
 
 		// Don't know what this is; throw.
-		throw new UnsupportedOperationException(
-				"No support for constructing String for JPL term of type "
-						+ this.term.getClass());
+		throw new UnsupportedOperationException("Unknown JPL term of type "
+				+ this.term.getClass());
 	}
 
 	/**

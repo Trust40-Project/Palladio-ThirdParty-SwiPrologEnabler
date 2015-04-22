@@ -18,7 +18,7 @@
 
 package swiprolog.parser;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -36,11 +36,13 @@ public class TestTheParser {
 		java.net.URL u = TestTheParser.class.getClassLoader().getResource(
 				"goal/kr/language/prolog/" + args[0]);
 
-		PrologLexer lex = new PrologLexer(new ANTLRFileStream(u.getFile()));
+		ANTLRFileStream stream = new ANTLRFileStream(u.getFile());
+		stream.name = u.getFile();
+		PrologLexer lex = new PrologLexer(stream);
 		CommonTokenStream tokens = new CommonTokenStream(lex);
 
 		PrologParser parser = new PrologParser(tokens);
-		ArrayList<PrologTerm> results = parser.prologtext(); // launch parsing
+		List<PrologTerm> results = parser.prologtext(); // launch parsing
 		// ArrayList<PrologTerm> results = new ArrayList<PrologTerm>();
 		// results.add(parser.term1200()); // parsing
 		// print tree if building trees
@@ -48,12 +50,8 @@ public class TestTheParser {
 			System.out.println("parse failed");
 		} else {
 			for (PrologTerm t : results) {
-				try {
-					System.out.println(">" + t + " with main operator "
-							+ t.getSignature());
-				} catch (Exception e) {
-					System.out.println("print failed:" + e);
-				}
+				System.out.println(">" + t + " with main operator "
+						+ t.getSignature());
 			}
 		}
 	}
