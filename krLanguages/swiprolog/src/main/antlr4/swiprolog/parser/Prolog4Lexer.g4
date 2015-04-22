@@ -19,7 +19,7 @@
  * The lexer grammar for the agent programming language GOAL lists all tokens used in the parser grammar
  * for the programming language. It is also used by the parser grammar for tests (test2g files).
  */
-lexer grammar PrologLexer;
+lexer grammar Prolog4Lexer;
 
 
 @members {
@@ -29,6 +29,7 @@ lexer grammar PrologLexer;
 tokens{ HIDDEN }
 
 IF		: ':-';
+QF		: '?-';
 SLBR	: '[';
 SRBR	: ']';
 DOT		: '.';
@@ -54,8 +55,12 @@ ALPHALT		: '@<';
 ALPHALE		: '@=<';
 ALPHAGT		: '@>';
 ALPHAGE		: '@>=';
+ALPHAEQ		: '=@=';
 UNIV		: '=..';
 IS			: 'is';
+
+AND			: '/\\';
+OR			: '\\/';
 
 EQUAL		: '=:=';
 NOTEQUAL	: '=\\=';
@@ -65,17 +70,23 @@ LE			: '=<';
 GT			: '>';
 GT2			: '>>';
 GE			: '>=';
+UNEQUAL		: '><';
 
 UP			: '^';
 
 PLUS		: '+';
+MINUS		: '-';
 STAR		: '*';
 STAR2		: '**';
 SLASH		: '/';
 SLASH2		: '//';
+BACKSLASH	: '\\';
 
 REM			: 'rem';
 MOD			: 'mod';
+XOR			: 'xor';
+RDIV		: 'rdiv';
+
 NEGATION	: '\\+';
 
 
@@ -162,23 +173,22 @@ fragment META_CHAR: '\\' | '\'' | '"' | '`'; // 6.5.5
 
 fragment SYMBOLIC_CONTROL_CHAR: 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | 'x'; // 6.4.2.1
 
-
-ENDTOKEN // Cf. 6.4.8: The end char '.' must be followed by a layout text; 
-    // The footnote there also allows comments; we are more generous also allowing /* there¬
-    // @modified Nick 27mar2011: to be able to import files, we now also allow the endtoken to be followed by the end of the file (EOF)
-  : '.' ( WHITESPACECHAR | COMMENTCHARS | EOF );
+// Cf. 6.4.8: The end char '.' must be followed by a layout text; 
+// The footnote there also allows comments; we are more generous also allowing /* there¬
+// @modified Nick 27mar2011: to be able to import files, we now also allow the endtoken to be followed by the end of the file (EOF)
+ENDTOKEN   : '.' ( WHITESPACECHAR | COMMENTCHARS | EOF );
 
 // Layout text. Note that comments and whitespace are handled slightly differently than the Standard does.
 // See also remark (1) in list of deviations below.
-COMMENT   : COMMENTCHARS { $channel=HIDDEN; } ;
+COMMENT   : COMMENTCHARS -> skip ; 
     // skip() means that COMMENT can be placed anywhere.
     // I think that's not conform the standard?
    
 fragment COMMENTCHARS:  '%'(~('\n'|'\r'))*                // 6.4.1 (single line comment)
-        | '/*' (options { greedy=false; } : .)* '*/'  // 6.4.1 (bracketed comment)
+        | '/*' .*? '*/'  // 6.4.1 (bracketed comment)
         ;
 
-WHITESPACE  : WHITESPACECHAR+  { $channel=HIDDEN; }; // 6.4.1 (layout text)
+WHITESPACE  : WHITESPACECHAR+  -> skip; // 6.4.1 (layout text)//FIXME channel=HIDDEN
     // because skip() is called, WHITESPACE never will appear as a token.
     // hence you can not refer to WHITESPACE in the parser
 
