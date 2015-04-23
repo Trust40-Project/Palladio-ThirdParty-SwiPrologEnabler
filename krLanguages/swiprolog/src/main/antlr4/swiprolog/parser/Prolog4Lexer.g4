@@ -22,9 +22,6 @@
 lexer grammar Prolog4Lexer;
 
 
-@members {
-	boolean stayInDefault = false;
-}
 
 tokens{ HIDDEN }
 
