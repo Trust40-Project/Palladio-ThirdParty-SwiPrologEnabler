@@ -31,7 +31,7 @@
  *
  */
 
-parser grammar Prolog4;
+parser grammar Prolog4Parser;
 
 options{ tokenVocab=Prolog4Lexer; }
 
