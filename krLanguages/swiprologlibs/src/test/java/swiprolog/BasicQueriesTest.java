@@ -7,6 +7,7 @@ import java.util.Hashtable;
 
 import jpl.PrologException;
 import jpl.Query;
+import jpl.Variable;
 
 import org.junit.Test;
 
@@ -47,5 +48,18 @@ public class BasicQueriesTest {
 		Object result = solution.get("X");
 		assertTrue(result instanceof jpl.Integer);
 		assertEquals(2, ((jpl.Integer) result).intValue());
+	}
+
+	@Test
+	public void infinity() {
+		jpl.Float inf = new jpl.Float(Double.POSITIVE_INFINITY);
+		System.out.println("infinity term: " + inf);
+
+		Variable x = new jpl.Variable("X");
+		Query query = new Query(new jpl.Compound("is",
+				new jpl.Term[] { x, inf }));
+		Hashtable[] result = query.allSolutions();
+		System.out.println("query " + query + "->" + result[0]);
+
 	}
 }
