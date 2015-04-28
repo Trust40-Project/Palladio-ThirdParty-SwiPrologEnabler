@@ -49,19 +49,16 @@ options{ tokenVocab=Prolog4Lexer; }
  * </p> 
  */
 prologfile
-    : ( directive | clause ) *
-      EOF
-    ;
-
-/**
- * The same rule as #prologtext
- */ 
-prologtextWithImports
-    : ( directive | clause )*
+    : prologtext EOF
     ;
     
 prologtext
-  : ( directive | clause )*
+  : directiveorclause*
+  ;
+  
+directiveorclause 
+  : directive 
+  | clause 
   ;
 
 directive // 6.2.1.1
@@ -100,16 +97,19 @@ items // 6.3.5 ; we use the prolog "." functor to build items list.
       )?
   ;
 
-prefixoperator 
-  // compensates for absence of names derived from graphic token.
-  // Note that ',' cannot be used as prefix operator since the comma character is not a graphic token
-  // char (cf. 6.4.2, 6.5.1).
-  // In addition, we do not allow ':-' as prefix operator to avoid ambiguity and allow '-' 
-  // only as unary prefix operator (see term200 below for the 'infix' version.)
-  : (  '-->' | ';' | '->' | '=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | '@>' | '@>=' | '=..' | 'is' |
-    '=:=' | '=\\=' | '<' | '=<' | '>' | '>=' | '+' | '/\\' | '\\/' | '*' | '/' | '//' | 'rem' |
-    'mod' | '<<' | '>>' | '**' | '^'  ) LBR expression COMMA expression RBR
+prefixoperator   // compensates for absence of names derived from graphic token.
+  : prefixop LBR expression COMMA expression RBR
   ;
+
+/* Note that ',' cannot be used as prefix operator since the comma character is not a graphic token
+ char (cf. 6.4.2, 6.5.1).
+ In addition, we do not allow ':-' as prefix operator to avoid ambiguity and allow '-' 
+ only as unary prefix operator (see term200 below for the 'infix' version.)
+*/
+prefixop
+  :  '-->' | ';' | '->' | '=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | '@>' | '@>=' | '=..' | 'is' |
+    '=:=' | '=\\=' | '<' | '=<' | '>' | '>=' | '+' | '/\\' | '\\/' | '*' | '/' | '//' | 'rem' |
+    'mod' | '<<' | '>>' | '**' | '^' ;
 
 /* 
  * Prolog terms have been defined using the grammar design pattern in Terence Parr, 2007, The Definitive ANTLR
@@ -138,16 +138,20 @@ term100
   ;
 
 term200
-  : ('-' | '\\' ) term200 
-  | term100  ( ('^' term200) | ('**' term100) )?
+  : (op = '-' | op= '\\' ) term200 
+  | term100  ( (op= '^' term200) | (op= '**' term100) )?
   ;
 
 term400
 // Operators *, /, //, rem, mod, <<, and >> are left-associative
 // rdiv is SWI prolog specific.
-  : term200    ( ('*'  | '/' | '//' | 'rem' | 'mod' | 'rdiv' | '<<' | '>>')  term200 )*
+  : term200 term400b*
   ;
 
+term400b
+  : op=('*'  | '/' | '//' | 'rem' | 'mod' | 'rdiv' | '<<' | '>>')  term200
+  ;
+  
 term500  // Operators +, -, /\, and \/ are left-associative
 // 'xor' and '><' are SWI specific.
   : term400 (  ('+' | '-' | '/\\' | '\\/' | 'xor' | '><')  term400    )*

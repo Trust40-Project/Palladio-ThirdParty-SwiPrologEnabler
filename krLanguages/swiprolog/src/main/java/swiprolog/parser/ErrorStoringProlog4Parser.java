@@ -29,8 +29,23 @@ public class ErrorStoringProlog4Parser extends Prolog4Parser implements
 		addErrorListener(this);
 	}
 
+	/**
+	 * Get the errors that occured during parsing.
+	 * 
+	 * @return error list.
+	 */
 	public ArrayList<RecognitionException> getErrors() {
 		return errors;
+	}
+
+	/**
+	 * Check if parse was a success. To be called after parsing.
+	 * 
+	 * 
+	 * @return true if parsing was a success = no errors.
+	 */
+	public boolean isSuccess() {
+		return errors.isEmpty();
 	}
 
 	@Override
