@@ -51,7 +51,7 @@ public class BasicQueriesTest {
 	}
 
 	@Test
-	public void infinity() {
+	public void varIsInfinity() {
 		jpl.Float inf = new jpl.Float(Double.POSITIVE_INFINITY);
 		System.out.println("infinity term: " + inf);
 
@@ -61,5 +61,17 @@ public class BasicQueriesTest {
 		Hashtable[] result = query.allSolutions();
 		System.out.println("query " + query + "->" + result[0]);
 
+	}
+
+	@Test
+	public void divByInfinity() {
+		jpl.Float inf = new jpl.Float(Double.POSITIVE_INFINITY);
+		jpl.Float ten = new jpl.Float(10.0);
+		Variable x = new jpl.Variable("X");
+
+		Query query = new Query(new jpl.Compound("is", new jpl.Term[] { x,
+				new jpl.Compound("/", new jpl.Term[] { ten, inf }) }));
+		Hashtable[] result1 = query.allSolutions();
+		System.out.println("query " + query + "->" + result1[0]);
 	}
 }
