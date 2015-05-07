@@ -1110,7 +1110,7 @@ fragment SYMBOLIC_CONTROL_CHAR: 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | 'x'; /
 
 
 ENDTOKEN // Cf. 6.4.8: The end char '.' must be followed by a layout text; 
-    // The footnote there also allows comments; we are more generous also allowing /* there¬
+    // The footnote there also allows comments; we are more generous also allowing /* there
     // @modified Nick 27mar2011: to be able to import files, we now also allow the endtoken to be followed by the end of the file (EOF)
   : '.' ( WHITESPACECHAR | COMMENTCHARS | EOF );
 
