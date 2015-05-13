@@ -57,8 +57,10 @@ public class RDFRepositoryConnectionListener implements RepositoryConnectionList
 			Value object, Resource... contexts) {
 		//System.out.println("adding "+subject+predicate+object);	
 		Statement s = ValueFactoryImpl.getInstance().createStatement(subject, predicate, object);
-		Collection<Statement> sts = new ArrayList<Statement>(); sts.add(s);
-		db.insertShared(sts);
+		Collection<Statement> sts = new ArrayList<Statement>(); 
+		sts.add(s);
+		//System.out.println("Insert "+s);
+		db.insert(sts);
 	}
 
 	@Override

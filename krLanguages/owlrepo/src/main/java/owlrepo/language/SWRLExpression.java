@@ -16,8 +16,10 @@ import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLDataFactory;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
+import org.swrlapi.core.SWRLAPIFactory;
 
 import owlrepo.parser.SQWRLParserSourceInfo;
+import uk.ac.manchester.cs.owl.owlapi.SWRLVariableImpl;
 
 public class SWRLExpression implements Expression{
 
@@ -86,14 +88,13 @@ public class SWRLExpression implements Expression{
 	}
 
 	public boolean isClosed() {
-		// TODO Auto-generated method stub
-		return false;
+		return getFreeVar().isEmpty();
 	}
 
 	public Set<Var> getFreeVar() {
 		HashSet<Var> vars = new HashSet<Var>();
 		if (this.type==3){//argument
-			vars.add(getFreeVar(this.argument));
+			vars.add(getFreeVar(this.argument));			
 		}else if (this.type == 2 ){//atom
 			for (SWRLArgument arg: this.atom.getAllArguments()){
 				vars.add(getFreeVar(arg));
@@ -108,7 +109,7 @@ public class SWRLExpression implements Expression{
 	
 	private Var getFreeVar(SWRLArgument arg){
 		if (arg instanceof SWRLVariable)
-			return new SWRLVar((SWRLVariable)arg);
+			return new SWRLVar(((SWRLVariable)arg));
 		return null;
 	}
 
@@ -139,7 +140,8 @@ public class SWRLExpression implements Expression{
 	public Substitution mgu(Expression expression) {
 		SWRLExpression exp = (SWRLExpression)expression;
 		if (this.isVar() && expression.isVar()){
-			return new SWRLSubstitution((SWRLVariable)this.argument,(SWRLVariable)exp.argument);
+			if (!this.equals(expression))
+				return new SWRLSubstitution((SWRLVariable)this.argument,(SWRLVariable)exp.argument);
 		} else if (this.isTerm() && exp.isTerm()){
 			
 		}
@@ -162,6 +164,42 @@ public class SWRLExpression implements Expression{
 		return new SQWRLParserSourceInfo();
 	}
 	
+	@Override
+	public int hashCode() {
+		switch(type){
+		case 1:
+			 return rule.hashCode();
+		case 2: 
+			return atom.hashCode();
+		case 3:
+			return argument.hashCode();
+		}
+		return 0;
+	}
 	
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		SWRLExpression other = (SWRLExpression) obj;
+		if (this.type!=other.type)
+			return false;
+		
+		boolean equal = false;
+		switch(type){
+		case 1:
+			 equal = this.rule.equals(other.rule);
+		case 2: 
+			equal =  this.atom.equals(other.atom);
+		case 3:
+			equal =  this.argument.equals(other.argument);
+		}
+		return equal;
+	}
 	
 }

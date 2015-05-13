@@ -35,10 +35,11 @@ public class OWLOntologyDatabaseTest {
 	OWLOntologyDatabase db;
 	File file;
 	char ring ;
+	String repoURL;
 	
 	public OWLOntologyDatabaseTest() {
 		file = new File("src/test/resources/tradrIndivrdf.owl");
-		
+		repoURL = "http://localhost:5820/tradr";
 	}
 	
 	//@Test
@@ -46,7 +47,7 @@ public class OWLOntologyDatabaseTest {
 		try {
 			System.out.println("\n\n*********************Test 1************************");
 
-			 db = new OWLOntologyDatabase("tradr", file);//"http://localhost:5820");
+			 db = new OWLOntologyDatabase("tradr", file);
 			db.setupRepo(null);
 			 db.insert(getRule(
 					 //"onto:Human(?d) ^ onto:hasAge(?d, ?age) ^ swrlb:add(?newage, ?age, 1) -> onto:hasNewAge(?d, ?newage)"));
@@ -69,7 +70,7 @@ public class OWLOntologyDatabaseTest {
 	
 	
 	
-	@Test
+	//@Test
 	public void test2() throws SQWRLException, SWRLParseException, KRDatabaseException{
 		try {
 			System.out.println("\n\n*********************Test 2************************");
@@ -102,15 +103,15 @@ public class OWLOntologyDatabaseTest {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void test3() throws SQWRLException, SWRLParseException, KRDatabaseException{
 		try {
 			System.out.println("\n\n*********************Test 3************************");
 			 db = new OWLOntologyDatabase("tradr", file);
-			 db.setupRepo("http://localhost:5820");
-			 db.insert(getRule("onto:Robot(?x) ^ onto:belongsToTeam(?x,?t) -> onto:RobotTeam(?t)"));
+			 db.setupRepo("http://localhost:5820/");
+			 db.insert(getRule("onto:Image(?x) ^ onto:reference(?x,?t) -> onto:showOnMap(?x, \"true\")"));
 
-			query("onto:RobotTeam(?x) -> sqwrl:select(?x)");
+			query("onto:Image(?x) ^ onto:reference(?x,?t) -> sqwrl:select(?x)");
 			
 			db.destroy();
 		} catch (OWLOntologyCreationException e) {

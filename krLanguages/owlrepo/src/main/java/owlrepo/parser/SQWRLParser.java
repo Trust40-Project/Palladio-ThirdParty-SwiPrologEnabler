@@ -33,6 +33,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 
 	SWRLParser parser;
 	BufferedReader reader;
+	SourceInfo info;
 	String currentLine = "";
 	int line = -1;
 	List<SourceInfo> errors;
@@ -45,12 +46,13 @@ public class SQWRLParser extends SWRLParser implements Parser {
 		this.swrlParserSupport = new SWRLParserSupport(swrlapiOWLOntology);
 	}
 	
-	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, BufferedReader reader) {
+	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, BufferedReader reader, SourceInfo info) {
 		this(swrlapiOWLOntology);
 		this.reader = reader;
+		this.info = info;
 	}
 	
-	private SWRLRule parse(int line, int pos){
+	private SWRLRule parse(){
 		SWRLRule rule =  null;
 		//until end of file
 		if (currentLine != null){
@@ -75,10 +77,10 @@ public class SQWRLParser extends SWRLParser implements Parser {
 			}
 		} catch (SWRLParseException e) {
 			e.printStackTrace(); 
-			errors.add(new SQWRLParserSourceInfo(null, line, -1, e.getMessage()));
+			errors.add(new SQWRLParserSourceInfo(info.getSource(), line, -1, e.getMessage()));
 		} catch (IOException e) {
 			e.printStackTrace();
-			errors.add(new SQWRLParserSourceInfo(null, line, -1, e.getMessage()));
+			errors.add(new SQWRLParserSourceInfo(info.getSource(), line, -1, e.getMessage()));
 		}
 		}
 //		 else
@@ -112,28 +114,28 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	}
 
 	@Override
-	public List<DatabaseFormula> parseDBFs(SourceInfo info) throws ParserException {
+	public List<DatabaseFormula> parseDBFs() throws ParserException {
 		//rule to list of dbformula
 			List<DatabaseFormula> dbfs = new LinkedList<DatabaseFormula>();
 			DatabaseFormula dbf;
-			while((dbf = parseDBF(info)) != null){
+			while((dbf = parseDBF()) != null){
 				dbfs.add(dbf);
 			}
 			return dbfs;
 		}
 	
-	public DatabaseFormula parseDBF(SourceInfo info) throws ParserException {
+	public DatabaseFormula parseDBF() throws ParserException {
 	//rule to list of dbformula
-		SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
+		SWRLRule rule = parse();
 		if (rule!=null)
 		return new SWRLDatabaseFormula(rule);
 		else return null;
 	}
 
 	@Override
-	public Update parseUpdate(SourceInfo info) throws ParserException {
+	public Update parseUpdate() throws ParserException {
 		//rule to update
-		SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
+		SWRLRule rule = parse();
 		if (rule!=null)
 			return new SWRLUpdate(rule);
 		return null;
@@ -141,10 +143,10 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	
 	
 	@Override
-	public List<Query> parseQueries(SourceInfo info) throws ParserException {
+	public List<Query> parseQueries() throws ParserException {
 			List<Query> queries = new LinkedList<Query>();
 		Query q;
-		while((q=parseQuery(info))!=null){
+		while((q=parseQuery())!=null){
 			queries.add(q);
 		}
 		return queries;
@@ -152,9 +154,9 @@ public class SQWRLParser extends SWRLParser implements Parser {
 
 
 	@Override
-	public Query parseQuery(SourceInfo info) throws ParserException {
+	public Query parseQuery() throws ParserException {
 		//rule to query
-		SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
+		SWRLRule rule = parse();
 		if (rule!=null)
 			return new SWRLQuery(rule);
 		return null;
@@ -162,13 +164,13 @@ public class SQWRLParser extends SWRLParser implements Parser {
 
 	
 	@Override
-	public List<Term> parseTerms(SourceInfo info) throws ParserException {
+	public List<Term> parseTerms() throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
 		try {
 			String line = reader.readLine();
 			String[] termstrings = line.split(",");
 			for (String term: termstrings)
-				terms.add(parseTerm(term));
+				terms.add(parseTerm(term.trim()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ParserException(e.getMessage());
@@ -181,7 +183,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 		if (termstring.startsWith("?")) {
 			//variable
 		//	swrlParserSupport.checkThatSWRLVariableNameIsValid(termstring);
-			SWRLVariable var = swrlParserSupport.getSWRLVariable(termstring);
+			SWRLVariable var = swrlParserSupport.getSWRLVariable(termstring.substring(1,termstring.length()));
 			term = new SWRLVar(var);
 		}
 		System.out.println(term);
@@ -189,18 +191,18 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	}
 
 	@Override
-	public Term parseTerm(SourceInfo info) throws ParserException {
+	public Term parseTerm() throws ParserException {
 		//rule to term
-			SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
+			SWRLRule rule = parse();
 			if (rule!=null)
 				return new SWRLTerm(rule);
 		return null;
 	}
 
 	@Override
-	public Var parseVar(SourceInfo info) throws ParserException {
+	public Var parseVar() throws ParserException {
 			//rule to var
-			SWRLRule rule = parse(info.getLineNumber(), info.getCharacterPosition());
+			SWRLRule rule = parse();
 			Set<SWRLVariable> vars = rule.getVariables();
 			return new SWRLVar(vars.iterator().next());
 	}

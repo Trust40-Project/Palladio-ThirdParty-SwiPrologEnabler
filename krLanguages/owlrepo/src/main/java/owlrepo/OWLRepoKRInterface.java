@@ -21,6 +21,7 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
+import krTools.parser.SourceInfo;
 
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -79,15 +80,20 @@ public class OWLRepoKRInterface implements KRInterface {
 		return database;
 	}
 
-	public Parser getParser(Reader source) throws ParserException {
+	@Override
+	public Parser getParser(Reader source, SourceInfo info)
+			throws ParserException {
 		BufferedReader reader = new BufferedReader(source);
 		String owlfilename = "";
 		try {
 			reader.mark(100);
 			String firstline = reader.readLine();
-			if (firstline!=null && firstline.endsWith(".owl")){
-				this.owlfile = new File(firstline);
-				owlfilename = firstline.substring(0,firstline.length()-4);
+			if (firstline!=null && firstline.endsWith(";")){
+				String[] firstl = firstline.split(";");
+				if (firstl.length >1)
+					this.repoUrl = firstl[1];
+				this.owlfile = new File(info.getSource().getParent()+File.separator+firstl[0]);
+				owlfilename = firstl[0].substring(0,firstl[0].length()-4);
 			}else
 				reader.reset();
 		} catch (Exception e1) {
@@ -112,7 +118,7 @@ public class OWLRepoKRInterface implements KRInterface {
 		} 
 		
 		//create parser for this database onto and reader source
-		return new SQWRLParser(database.getSWRLOntology(), reader);
+		return new SQWRLParser(database.getSWRLOntology(), reader, info);
 	}
 	
 	public File getOwlFile(){
@@ -133,13 +139,21 @@ public class OWLRepoKRInterface implements KRInterface {
 	
 	
 	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries) {
-		return queries;
+		//TODO:check terms in db
+		return new HashSet<Query>();
 	}
 	
 	
 	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
 			Set<Query> queries) {
-		return dbfs;
+		//TODO:check terms in db
+		return new HashSet<DatabaseFormula>();
+	}
+	
+	@Override
+	public boolean supportsSerialization() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 	
 

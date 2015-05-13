@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.rio.RioRenderer;
 
 import com.complexible.common.protocols.server.Server;
+import com.complexible.common.protocols.server.ServerException;
 import com.complexible.stardog.Stardog;
 import com.complexible.stardog.api.ConnectionConfiguration;
 import com.complexible.stardog.api.admin.AdminConnection;
@@ -35,7 +36,7 @@ import com.complexible.stardog.sesame.StardogRepository;
 
 public class RDFRepositoryDatabase {
 
-	private Server server;
+	private static Server server = null;
 	private Repository repo;
 	private RepositoryConnection conn;
 	private NotifyingRepositoryConnection nconn;
@@ -47,6 +48,25 @@ public class RDFRepositoryDatabase {
 	private  String username = "admin";
 	private  String password = "admin";
 	
+	private boolean SHARED_MODE = false;
+	
+	public static Server getServerInstance(){
+		try {
+				if (server == null){
+				server = Stardog
+				         .buildServer()
+				         .bind(SNARLProtocolConstants.EMBEDDED_ADDRESS)
+				         .start();
+				}
+				if (!server.isRunning())
+					server.start();
+			
+		} catch (ServerException e) {
+			e.printStackTrace();
+		}
+		
+		return server;
+	}
 	public RDFRepositoryDatabase(String name, OWLOntology ontology, String baseURI, String url, RepositoryConnectionListener listener) {
 		this.repo_url = url;
 
@@ -66,10 +86,9 @@ public class RDFRepositoryDatabase {
 			//StarDog repo
 		if (repo_url == null){
 			//start local server
-			server = Stardog
-	                 .buildServer()
-	                 .bind(SNARLProtocolConstants.EMBEDDED_ADDRESS)
-	                 .start();
+			
+			
+			server = getServerInstance();
 			
 			 // first create a temporary database to use (if there is one already, drop it first)
 			 AdminConnection aAdminConnection = AdminConnectionConfiguration.toEmbeddedServer().credentials(username, password).connect();
@@ -87,18 +106,19 @@ public class RDFRepositoryDatabase {
 	                                         .credentials(username, password));
 			 
 		} else{
-			  //create Stardog Sesame Repository with SL reasoning
+			  //create Stardog Sesame Repository with reasoning
 			repo = new StardogRepository(ConnectionConfiguration
-					.to(name)
+					.to("tradr")
 					.reasoning(true)
 					.server(repo_url)
 					);
+			System.out.println("Set up shared repo:"+name+" at "+repo_url+"tradr");
+			this.SHARED_MODE = true;
 		}
 	        
 		//start the repo up
 		repo.initialize();
 		conn = repo.getConnection();
-		conn.begin();
 		
 		//wrap it in notifying connection
 		 nrepo = new NotifyingRepositoryWrapper(repo);
@@ -106,15 +126,14 @@ public class RDFRepositoryDatabase {
 			 nrepo.addRepositoryConnectionListener(listener);
 		 nconn = nrepo.getConnection();
 
-		//add contents of file (ontology) to repo
-		//repositoryConnection.add(File, String baseUri, RDFFormat, ResourcE)
-		StatementCollector stc = new StatementCollector();
-		RioRenderer render = new RioRenderer(ontology, stc, ontology.getOWLOntologyManager().getOntologyFormat(ontology), (Resource)null);
-		render.render();
-		nconn.add(stc.getStatements()); 
-		nconn.commit();
-		
-		
+		//add contents of file (ontology) to local repo
+		 if (!SHARED_MODE){		
+			 StatementCollector stc = new StatementCollector();
+			 RioRenderer render = new RioRenderer(ontology, stc, ontology.getOWLOntologyManager().getOntologyFormat(ontology), (Resource)null);
+			 render.render();
+			 nconn.add(stc.getStatements()); 
+			 nconn.commit();
+		 }
 		}catch(Exception e){
 			e.printStackTrace();
 			shutdown();
@@ -155,7 +174,9 @@ public class RDFRepositoryDatabase {
 	
 	public void insert(Collection<Statement> stms){
 		try {
-			nconn.add(stms, (Resource) null);
+		//	nconn.begin();
+			conn.add(stms, (Resource) null);
+			conn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}

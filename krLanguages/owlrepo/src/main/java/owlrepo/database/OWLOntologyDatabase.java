@@ -1,6 +1,7 @@
 package owlrepo.database;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -72,17 +73,22 @@ public class OWLOntologyDatabase implements Database {
  // private SWRLAPIFactory swrlfactory;
 //  private SWRLDataFactory swrldfactory;
 	
-    private RDFRepositoryDatabase localdb;
-    private RDFRepositoryDatabase shareddb;
+    private RDFRepositoryDatabase localdb = null;
+    private RDFRepositoryDatabase shareddb = null;
 	private RepositoryConnectionListener local_listener;
 	private RepositoryConnectionListener shared_listener;
 
-
+	private boolean firstInsert = true;
+	private Collection<Statement> baseStm ;
     private SWRLAPIRenderer renderer;
     
     public OWLOntologyDatabase(String name, File file) throws OWLOntologyCreationException{
     	this.name = name;
-		
+    	
+    	//KB is shared
+    	if (this.name.equals("KNOWLEDGEBASE"))
+    		this.SHARED_MODE = true;
+
 		//create owl ontology and its manager
 		  manager = OWLManager.createOWLOntologyManager();
 		  
@@ -107,32 +113,16 @@ public class OWLOntologyDatabase implements Database {
 	      //create swrl ontology
 	      swrlontology = SWRLAPIFactory.createOntology(owlontology, prefixManager);
 	      SWRLAPIFactory.updatePrefixManager(owlontology, prefixManager);
-	      renderer = SWRLAPIFactory.createSWRLAPIRenderer(swrlontology);  
-
-	      //create owlapi reasoner pellet
-	//      PelletOWLAPIReasoner pellet =  PelletOWLAPIReasonerFactory.getInstance().createReasoner(owlontology);
-//	      SPARQLBuilder builder = SPARQLBuilder.createInstance();
-//	      builder.allProperties(new com.complexible.jsonld.types.IRI(prefixManager.getPrefix("onto")));
-//	      builder.limit(5);
-//	      try {
-//			System.out.println(builder.renderQuery());
-//		} catch (CollectionsException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-	     // pellet.getKB().explain(axiom);
-	      
-	      
-	      //create rule engine creator Drools
-	//	    TargetSWRLRuleEngineCreator recreator =   DroolsFactory.getSWRLRuleEngineCreator();
-//		//   create sqwrl query engine
-	//	    queryEngine = SWRLAPIFactory.createSQWRLQueryEngine(swrlontology, recreator);
-//	    //  create swrl rule engine
-		    
-//			SWRLRuleEngineFactory swrlRuleEngineFactory = SWRLAPIFactory.createSWRLRuleEngineFactory();
-//			 ruleEngine = swrlRuleEngineFactory.createSWRLRuleEngine(swrlontology);
-//			 ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(swrlontology, recreator);
+	     // renderer = SWRLAPIFactory.createSWRLAPIRenderer(swrlontology);  
 			
+	      StatementCollector stc = new StatementCollector();		
+			RioRenderer render = new RioRenderer(owlontology, stc, manager.getOntologyFormat(owlontology), (Resource)null);
+			try {
+				render.render();
+				baseStm= stc.getStatements();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			
 	      //   OWLRDFConsumer consumer = new OWLRDFConsumer( owlontology, new OWLOntologyLoaderConfiguration() );
 //  		consumer.statementWithResourceValue(subject, predicate, object);
@@ -142,20 +132,21 @@ public class OWLOntologyDatabase implements Database {
     
     public void setupRepo(String repoUrl){
 	      //set up RDF repository = triple store local + shared
-	      if (this.localdb == null){
-	      	System.out.println("Setting up local repo");
-	    	  local_listener = new RDFRepositoryConnectionListener(this, "local");
-	    		this.localdb = new RDFRepositoryDatabase(name, owlontology, baseURI, repoUrl, local_listener);
-	         
+	        
 	      if (repoUrl!=null){
-	    	  this.SHARED_MODE = true;
-	    	  System.out.println("Setting up shared repo");
+	    	  System.out.println("Setting up remote repo");
 
 	    	  shared_listener = new RDFRepositoryConnectionListener(this, "shared");
 
 	    	  this.shareddb = new RDFRepositoryDatabase(name, owlontology, baseURI, repoUrl, shared_listener);
-	      }}
-		
+	      }
+	      else{
+	    	  if (this.localdb == null){
+	  	      	System.out.println("Setting up local repo");
+	  	    	  local_listener = new RDFRepositoryConnectionListener(this, "local");
+	  	    		this.localdb = new RDFRepositoryDatabase(name, owlontology, baseURI, null, local_listener);
+	    	  }
+	      }
     }
    
     public RDFRepositoryDatabase getRepo(){
@@ -228,9 +219,16 @@ public class OWLOntologyDatabase implements Database {
 		SWRLTranslator transl = new SWRLTranslator(this.swrlontology, qr.getRule());
 		
 		try {
-			
-		System.out.println("Local Stardog Repo results: ");
-		TupleQueryResult rdfresult = this.localdb.query(transl.translateToSPARQL());
+			TupleQueryResult rdfresult = null;
+			String querySPARQL = transl.translateToSPARQL();
+			if (this.shareddb!=null && this.shareddb.isOpen()){
+				System.out.println("Querying shared db:");
+				rdfresult = this.shareddb.query(querySPARQL);
+			}else if (this.localdb!=null && this.localdb.isOpen()){
+				System.out.println("Querying local db: ");
+				rdfresult = this.localdb.query(querySPARQL);
+			}
+		
 	    
 		while (rdfresult.hasNext()) {
             BindingSet bindingSet = rdfresult.next();
@@ -248,7 +246,7 @@ public class OWLOntologyDatabase implements Database {
             	valueArgument = //SWRL.individual(val.stringValue());
             			owlfactory.getSWRLIndividualArgument(owlfactory.getOWLNamedIndividual(IRI.create(val.stringValue())));
           	  }
-          	//  System.out.println(name + " : "+val);
+          	  System.out.println(name + " : "+val);
           	  qresult.add(new SWRLSubstitution(//SWRL.variable(name)
           			 owlfactory.getSWRLVariable(IRI.create(name))
           			  , valueArgument));
@@ -303,7 +301,18 @@ public class OWLOntologyDatabase implements Database {
 //			Iterator<Statement> stit= stc.getStatements().iterator();
 //			while(stit.hasNext())
 //				System.out.println(stit.next().toString());
-			insertLocal(stc.getStatements());
+			Collection<Statement> statements = stc.getStatements();
+			
+			statements.removeAll(baseStm);
+			
+			if (this.SHARED_MODE){
+				System.out.println("Inserting into shared db: "+formula);
+				insertShared(statements);
+			}
+			else {
+				System.out.println("Inserting into local db: "+formula);
+				insertLocal(statements);
+			}
 		
 			
 		} catch (Exception e) {
@@ -321,16 +330,22 @@ public class OWLOntologyDatabase implements Database {
 		return new SWRLDatabaseFormula(rule);
 	}
 	
+	public void insert(Collection<Statement> statements){
+		if (SHARED_MODE)
+			insertShared(statements);
+		else insertLocal(statements);
+	}
+	
 	public void insertLocal(Collection<Statement> statements){
 		//System.out.println("Inserting into local");
-		if (localdb!=null & localdb.isOpen())
+		if (localdb!=null && localdb.isOpen())
 			localdb.insert(statements);
 	}
 	
 	public void insertShared(Collection<Statement> statements){
 	//	System.out.println("Inserting into shared");
-//		if (shareddb!=null & shareddb.isOpen())
-//			shareddb.insert(statements);
+		if (shareddb!=null && shareddb.isOpen())
+			shareddb.insert(statements);
 	}
 	
 

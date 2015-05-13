@@ -48,7 +48,7 @@ public class SWRLQuery extends SWRLExpression implements Query {
 			//replace atom where var is replaced with term of substituion
 		}
 		
-		return null;
+		return this;
 	}
 
 	/**

@@ -38,14 +38,17 @@ public class SWRLSubstitution implements Substitution {
 
 	public SWRLSubstitution(Map<Var, Term> map) {
 		this();
+		if (map!=null){
 		Set<Var> vars = map.keySet();
 		Iterator<Var> it = vars.iterator();
 		while (it.hasNext()) {
-			SWRLVariable var = (SWRLVariable) it.next();
-			SWRLArgument atom = (SWRLArgument) map.get(var);
+			Var v = it.next();
+			SWRLVariable var = ((SWRLVar) v).getVar();
+			SWRLArgument atom = ((SWRLTerm) map.get(v)).getArgument();
 			substitutions.put(var, atom);
 		}
 		variables = substitutions.keySet();
+		}
 	}
 
 

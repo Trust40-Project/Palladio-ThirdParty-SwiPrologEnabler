@@ -100,7 +100,7 @@ public class SWRLTerm extends SWRLExpression implements Term {
 	 */
 	public Term applySubst(Substitution substitution){
 		SWRLSubstitution subst = (SWRLSubstitution)substitution;
-		if (this.isVariable() ){
+		if (this.isVariable() && subst.getVariables().contains(this.argument) ){
 			return new SWRLTerm(subst.getSWRLArgument((SWRLVariable)this.argument));
 		}
 		else if (this.isTerm()){
