@@ -154,14 +154,18 @@ term400b
   
 term500  // Operators +, -, /\, and \/ are left-associative
 // 'xor' and '><' are SWI specific.
-  : term400 (  ('+' | '-' | '/\\' | '\\/' | 'xor' | '><')  term400    )*
+  : term400 term500b*
+  ;
+  
+term500b
+  : op=('+' | '-' | '/\\' | '\\/' | 'xor' | '><')  term400
   ;
 
 term700
   : 
       term500
        ( 
-         (	'=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | 
+         op= (	'=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | 
 			'@>' | '@>=' | '=@='| '=..' | 'is' | '=:=' | '=\\=' |
         	'<' | '=<' | '>' | '>=') 
          term500 
@@ -170,30 +174,28 @@ term700
 
 term900 // CHECK UNKNOWN OPERATOR, NOT IN TABLE ON ISO-SPEC p.13 ?
   : term700
-  | '\\+' term900
+  | op = '\\+' term900
   ;
 
 term1000
-  : term900  (',' term1000)?
+  : term900  (op=',' term1000)?
   ;
 
 term1050
-  : t1 = term1000  ( ('*->' | '->') term1050  )?
+  : t1 = term1000  ( op=('*->' | '->') term1050  )?
   ;
 
 term1100 
-  : term1050  (';' term1100)?
+  : term1050  (op=';' term1100)?
   ;
 
 term1105
-  :  term1100  ('|' term1105)?
+  :  term1100  (op='|' term1105)?
   ; 
   
 term1200
-  : (  term1105 
-  		( ( op=':-' | op='-->')  term1105)?
-    	| '?-'  term1105
-    )
+  : term1105  ( ( op=':-' | op='-->')  term1105)?
+  | op='?-'  term1105
   ;
 
 

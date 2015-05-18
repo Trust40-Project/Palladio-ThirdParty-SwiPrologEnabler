@@ -39,6 +39,7 @@ import swiprolog.parser.Prolog4Parser.Term200Context;
 import swiprolog.parser.Prolog4Parser.Term400Context;
 import swiprolog.parser.Prolog4Parser.Term400bContext;
 import swiprolog.parser.Prolog4Parser.Term500Context;
+import swiprolog.parser.Prolog4Parser.Term500bContext;
 import swiprolog.parser.Prolog4Parser.Term50Context;
 import swiprolog.parser.Prolog4Parser.Term700Context;
 import swiprolog.parser.Prolog4Parser.Term900Context;
@@ -89,7 +90,8 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 	 * @param args
 	 *            the arguments for the compound
 	 * @param ctx
-	 *            the {@link ParserRuleContext}
+	 *            the {@link ParserRuleContext}. Used to create the
+	 *            {@link SourceInfo}.
 	 * @return
 	 */
 	private PrologTerm compound(String name, jpl.Term[] args,
@@ -393,58 +395,151 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 	}
 
 	@Override
-	public Term visitTerm400b(Prolog4Parser.Term400bContext ctx) {
-		// these will be part of bigger jpl term anyway, don't bother with
-		// PrologTerms and ctx.
+	public Term visitTerm400b(Term400bContext ctx) {
 		return visitTerm200(ctx.term200()).getTerm();
 	}
 
 	@Override
 	public PrologTerm visitTerm500(Term500Context ctx) {
-		// TODO Auto-generated method stub
-		return null;
+		/*
+		 * term400 ( ('+' | '-' | '/\\' | '\\/' | 'xor' | '><') term400 )*
+		 */
+		PrologTerm term = visitTerm400(ctx.term400());
+		for (Term500bContext t : ctx.term500b()) {
+			Term t1 = visitTerm500b(t);
+			jpl.Term[] args = { term.getTerm(), t1 };
+			term = compound(t.op.getText(), args, ctx);
+		}
+
+		return term;
+	}
+
+	@Override
+	public Term visitTerm500b(Term500bContext ctx) {
+		return visitTerm400(ctx.term400()).getTerm();
 	}
 
 	@Override
 	public PrologTerm visitTerm700(Term700Context ctx) {
-		// TODO Auto-generated method stub
-		return null;
+/**
+		        term500
+       ( 
+         (	'=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | 
+			'@>' | '@>=' | '=@='| '=..' | 'is' | '=:=' | '=\\=' |
+        	'<' | '=<' | '>' | '>=') 
+         term500 
+       )?
+		 */
+		PrologTerm lhs = visitTerm500(ctx.term500(0));
+		PrologTerm rhs = visitTerm500(ctx.term500(1));
+		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+
+		return compound(ctx.op.getText(), args, ctx);
 	}
 
 	@Override
 	public PrologTerm visitTerm900(Term900Context ctx) {
-		// TODO Auto-generated method stub
-		return null;
+
+		/**
+		 * : term700 | '\\+' term900
+		 */
+		if (ctx.term700() != null) {
+			return visitTerm700(ctx.term700());
+		}
+
+		jpl.Term[] args = { visitTerm900(ctx.term900()).getTerm() };
+
+		return compound(ctx.op.getText(), args, ctx);
 	}
 
 	@Override
 	public PrologTerm visitTerm1000(Term1000Context ctx) {
-		// TODO Auto-generated method stub
-		return null;
+		/**
+		 * : term900 (',' term1000)?
+		 */
+		PrologTerm lhs = visitTerm900(ctx.term900());
+		if (ctx.term1000() == null) {
+			return lhs;
+		}
+
+		PrologTerm rhs = visitTerm1000(ctx.term1000());
+		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+
+		return compound(ctx.op.getText(), args, ctx);
+
 	}
 
 	@Override
 	public PrologTerm visitTerm1050(Term1050Context ctx) {
-		// TODO Auto-generated method stub
-		return null;
+		/**
+		 * term1000 ( ('*->' | '->') term1050 )?
+		 */
+		PrologTerm lhs = visitTerm1000(ctx.term1000());
+		if (ctx.term1050() == null) {
+			return lhs;
+		}
+
+		PrologTerm rhs = visitTerm1050(ctx.term1050());
+		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+
+		return compound(ctx.op.getText(), args, ctx);
 	}
 
 	@Override
 	public PrologTerm visitTerm1100(Term1100Context ctx) {
-		// TODO Auto-generated method stub
-		return null;
+		/**
+		 * term1050 (';' term1100)?
+		 */
+		PrologTerm lhs = visitTerm1050(ctx.term1050());
+		if (ctx.term1100() == null) {
+			return lhs;
+		}
+
+		PrologTerm rhs = visitTerm1100(ctx.term1100());
+		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+
+		return compound(ctx.op.getText(), args, ctx);
+
 	}
 
 	@Override
 	public PrologTerm visitTerm1105(Term1105Context ctx) {
-		// TODO Auto-generated method stub
-		return null;
+		/**
+		 * term1100 ('|' term1105)?
+		 */
+		PrologTerm lhs = visitTerm1100(ctx.term1100());
+		if (ctx.term1105() == null) {
+			return lhs;
+		}
+
+		PrologTerm rhs = visitTerm1105(ctx.term1105());
+		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+
+		return compound(ctx.op.getText(), args, ctx);
+
 	}
 
 	@Override
 	public PrologTerm visitTerm1200(Term1200Context ctx) {
-		// TODO Auto-generated method stub
-		return null;
+		/**
+		 * term1105 ( ( op=':-' | op='-->') term1105)? | op='?-' term1105
+		 */
+		PrologTerm lhs = visitTerm1105(ctx.term1105(0));
+
+		if (ctx.op == null) {
+			return lhs;
+		}
+
+		if ("?-".equals(ctx.op.getText())) {
+			jpl.Term[] args = { lhs.getTerm() };
+			return compound("?-", args, ctx);
+		}
+
+		// op=':-' | op='-->' and we have a 2nd arg
+		PrologTerm rhs = visitTerm1105(ctx.term1105(1));
+		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+		return compound(ctx.op.getText(), args, ctx);
+
 	}
 
 }
