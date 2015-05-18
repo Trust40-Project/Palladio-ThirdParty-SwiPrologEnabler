@@ -25,16 +25,15 @@ import java.io.StringBufferInputStream;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Test;
 
 /**
- * Tests for Prolog4Parser term0
+ * Tests for Prolog4Parser term50
  *
  */
-public class Term0Test {
+public class Term50Test {
 	/**
 	 * Parses the textStream.
 	 *
@@ -51,9 +50,9 @@ public class Term0Test {
 
 		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(tokens);
 
-		// parser report all ambiguities for testing.
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
+
 		return parser;
 	}
 
@@ -62,73 +61,50 @@ public class Term0Test {
 		return getParser(new StringBufferInputStream(text));
 	}
 
-	private void checkParsesAsTerm0(String text) throws IOException {
+	/**
+	 * Checks that two ':' separated texts (which should be term0 parse-able
+	 * texts) are parssed properly.
+	 */
+	private void checkParsesAsTerm50(String text1, String text2)
+			throws IOException {
+		String text = text1 + ":" + text2;
 		ErrorStoringProlog4Parser parser = getParser(text);
-		ParseTree tree = parser.term0();
+		ParseTree tree = parser.term50();
 		if (!parser.getErrors().isEmpty()) {
 			throw parser.getErrors().get(0);
 		}
 		System.out.println(text + " -> " + tree.toStringTree(parser));
-		assertEquals("(term0 " + text + ")", tree.toStringTree(parser));
+		assertEquals("(term50 " + "(term0 " + text1 + ") : (term0 " + text2
+				+ "))", tree.toStringTree(parser));
 	}
 
 	@Test
-	public void testFloat() throws IOException {
-		checkParsesAsTerm0("100.3");
+	public void testFloats() throws IOException {
+		checkParsesAsTerm50("100.3", "100.3e13");
 	}
 
 	@Test
-	public void testFloat2() throws IOException {
-		checkParsesAsTerm0("100.3e13");
-	}
-
-	@Test
-	public void testFloat3() throws IOException {
-		checkParsesAsTerm0("0.3e13");
-	}
-
-	@Test
-	public void testInteger() throws IOException {
-		checkParsesAsTerm0("12345");
-	}
-
-	@Test
-	public void testBigInteger() throws IOException {
-		checkParsesAsTerm0("123456789012345678901234567890123456789012345678901234567890");
-	}
-
-	@Test
-	public void testVariable() throws IOException {
-		checkParsesAsTerm0("X");
+	public void testVariables() throws IOException {
+		checkParsesAsTerm50("X", "Y");
 	}
 
 	@Test
 	public void testVariable2() throws IOException {
-		checkParsesAsTerm0("_123");
+		checkParsesAsTerm50("X", "_123");
 	}
 
 	@Test
-	public void testString() throws IOException {
-		checkParsesAsTerm0("'Aap'");
+	public void testStrings() throws IOException {
+		checkParsesAsTerm50("'Aap'", "\"Aap\"");
 	}
 
 	@Test
-	public void testString1() throws IOException {
-		checkParsesAsTerm0("\"Aap\"");
+	public void testMix1() throws IOException {
+		checkParsesAsTerm50("12", "\"Aap\"");
 	}
 
 	@Test
-	public void testAtom() throws IOException {
-		checkParsesAsTerm0("aap");
-	}
-
-	@Test
-	public void testString2() throws IOException {
-		checkParsesAsTerm0("`Aap`");
-	}
-
-	@Test(expected = NoViableAltException.class)
-	public void testString3() throws IOException {
-		checkParsesAsTerm0("`Aap'");
+	public void testMix2() throws IOException {
+		checkParsesAsTerm50("aap", "\"Aap\"");
 	}
 }

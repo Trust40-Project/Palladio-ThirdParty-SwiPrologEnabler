@@ -130,7 +130,7 @@ term0
   ;
 
 term50
-  : term0 (',' term0)?
+  : term0 (':' term0)?
   ;
 
 term100
