@@ -30,18 +30,16 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+
+import swiprolog.validator.Prolog4Validator;
 
 /**
- * Implementation of KR interface parser for SWI Prolog that is based on antlr4.
+ * Implementation of KR interface parser, visitor and validator for SWI Prolog
+ * that is based on antlr4.
  */
-public class KRInterfaceParser4 implements Parser {
-	private final ANTLRInputStream stream;
-	/**
-	 * The ANTLR4 generated parser for Prolog.
-	 */
-	private final ErrorStoringProlog4Parser parser;
+public class KRInterfaceReader4 implements Parser {
+	private final Prolog4Validator validator;
 
 	/**
 	 * Creates a new KR interface parser that uses the given stream as input.
@@ -55,87 +53,50 @@ public class KRInterfaceParser4 implements Parser {
 	 *             If an exception occurred during parsing. See
 	 *             {@link ParserException}.
 	 */
-	public KRInterfaceParser4(Reader r, SourceInfo info) throws IOException {
-		stream = new ANTLRInputStream(r);
-		stream.name = (info.getSource() == null) ? "" : info.getSource()
-				.getPath();
-		// this.start = info.getStartIndex();
-		Prolog4Lexer lexer = new Prolog4Lexer(stream);
-		lexer.setLine(info.getLineNumber());
-		lexer.setCharPositionInLine(info.getCharacterPosition());
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-		this.parser = new ErrorStoringProlog4Parser(tokens);
+	public KRInterfaceReader4(Reader r, SourceInfo info) throws IOException {
+		validator = new Prolog4Validator(r, info);
 	}
 
 	@Override
-	public Update parseUpdate() {
-		return null;
-		// ParseTree tree = parser.possiblyEmptyConjunct();
-		// if (!parser.isSuccess()) {
-		// return null;
-		// }
-		// parser.visit(tree);
-		// return this.parser.ParseUpdateOrEmpty();
+	public Update parseUpdate() throws RecognitionException, ParserException {
+		return validator.parseUpdateOrEmpty();
 	}
 
 	@Override
-	public List<DatabaseFormula> parseDBFs() throws ParserException {
-		return null;
-		// return this.parser.parsePrologProgram();
+	public List<DatabaseFormula> parseDBFs() throws RecognitionException,
+			ParserException {
+		return validator.parsePrologProgram();
 	}
 
 	@Override
-	public List<Query> parseQueries() throws ParserException {
-		return null;
-		// return this.parser.parsePrologGoalSection();
+	public List<Query> parseQueries() throws RecognitionException,
+			ParserException {
+		return validator.parsePrologGoalSection();
 	}
 
 	/**
 	 * Allows empty queries.
+	 * 
+	 * @throws ParserException
 	 */
 	@Override
-	public Query parseQuery() {
-		return null;
-		// return this.parser.ParseQueryOrEmpty();
+	public Query parseQuery() throws RecognitionException, ParserException {
+		return validator.ParseQueryOrEmpty();
 	}
 
 	@Override
 	public Var parseVar() throws ParserException {
-		return null;
-		// PrologTerm term;
-		// try {
-		// term = this.parser.term0();
-		// } catch (RecognitionException e) {
-		// int start = this.start + e.index;
-		// int end = (e.token == null || e.token.getText() == null) ? start
-		// : (start + e.token.getText().length());
-		// final SourceInfoObject source = new SourceInfoObject(
-		// this.parser.getSource(), e.line, e.charPositionInLine,
-		// start, end);
-		// throw new ParserException(
-		// "data could not be parsed as a SWI term0", source, e);
-		// }
-		// if (term.isVar()) {
-		// return new PrologVar((Variable) term.getTerm(),
-		// term.getSourceInfo());
-		// } else {
-		// throw new ParserException(String.format(
-		// "expected a SWI prolog variable but found '%s'",
-		// term.toString()), term.getSourceInfo());
-		// }
+		return validator.parseVar();
 	}
 
 	@Override
 	public Term parseTerm() {
-		return null;
-		// return this.parser.ParseTerm();
+		return validator.ParseTerm();
 	}
 
 	@Override
 	public List<Term> parseTerms() {
-		return null;
-		// return this.parser.ParsePrologTerms();
+		return validator.ParsePrologTerms();
 	}
 
 	@Override
@@ -162,8 +123,4 @@ public class KRInterfaceParser4 implements Parser {
 		// return exceptions;
 	}
 
-	public String[] getTokenNames() {
-		return null;
-		// return this.parser.getTokenNames();
-	}
 }

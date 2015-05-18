@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Test;
@@ -43,14 +44,13 @@ public class ListTest {
 	 * @throws IOException
 	 *             If the file does not exist.
 	 */
-	private ErrorStoringProlog4Parser getParser(InputStream textStream)
-			throws IOException {
+	private Prolog4Parser getParser(InputStream textStream) throws IOException {
 		ANTLRInputStream input = new ANTLRInputStream(textStream);
 
 		Prolog4Lexer lexer = new Prolog4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(tokens);
+		Prolog4Parser parser = new Prolog4Parser(tokens);
 
 		// parser report all ambiguities for testing.
 		parser.getInterpreter().setPredictionMode(
@@ -59,7 +59,7 @@ public class ListTest {
 	}
 
 	@SuppressWarnings("deprecation")
-	private ErrorStoringProlog4Parser getParser(String text) throws IOException {
+	private Prolog4Parser getParser(String text) throws IOException {
 		return getParser(new StringBufferInputStream(text));
 	}
 
@@ -82,13 +82,11 @@ public class ListTest {
 		return listtext;
 	}
 
-	private void checkParsesAsList(String... items) throws IOException {
+	private void checkParsesAsList(String... items) throws IOException,
+			RecognitionException {
 		String text = "[" + list2String(",", items) + "]";
-		ErrorStoringProlog4Parser parser = getParser(text);
+		Prolog4Parser parser = getParser(text);
 		ParseTree tree = parser.listterm();
-		if (!parser.getErrors().isEmpty()) {
-			throw parser.getErrors().get(0);
-		}
 		System.out.println(text + " -> " + tree.toStringTree(parser));
 		assertEquals(parsedList2String(items), tree.toStringTree(parser));
 	}

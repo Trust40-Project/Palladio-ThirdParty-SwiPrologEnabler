@@ -27,8 +27,9 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.atn.PredictionMode;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Test;
+
+import swiprolog.parser.Prolog4Parser.Term0Context;
 
 /**
  * Tests for Prolog4Parser term0
@@ -64,12 +65,9 @@ public class Term0Test {
 
 	private void checkParsesAsTerm0(String text) throws IOException {
 		ErrorStoringProlog4Parser parser = getParser(text);
-		ParseTree tree = parser.term0();
-		if (!parser.getErrors().isEmpty()) {
-			throw parser.getErrors().get(0);
-		}
-		System.out.println(text + " -> " + tree.toStringTree(parser));
-		assertEquals("(term0 " + text + ")", tree.toStringTree(parser));
+		Term0Context tree = parser.term0();
+		System.out.println(text + " -> " + parser.toStringTree(tree));
+		assertEquals("(term0 " + text + ")", parser.toStringTree(tree));
 	}
 
 	@Test

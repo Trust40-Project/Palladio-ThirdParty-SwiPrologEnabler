@@ -1,4 +1,4 @@
-package swiprolog.validator;
+package visitor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,9 +48,23 @@ import swiprolog.parser.SourceInfoObject;
 
 /**
  * Implements the antlr ParserVisitor and creates the proper objects from the
- * parsed tree.
+ * parsed tree. This returns {@link PrologTerm}s but they are not yet validated.
  * 
- * Usage:
+ * Usage (example parsing a term0): <code>
+ * 		ANTLRInputStream input = new ANTLRInputStream(textStream);
+
+		Prolog4Lexer lexer = new Prolog4Lexer(input);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(tokens);
+
+		Term0Context tree = parser.term0();
+		if (!parser.getErrors().isEmpty()) {
+			throw parser.getErrors().get(0);
+		}
+		Prolog4Visitor visitor = new Prolog4Visitor(null); // give File if you have.
+		PrologTerm term = visitor.visitTerm0(tree);
+ * </code>
  * 
  * @author W.Pasman 23apr15
  *

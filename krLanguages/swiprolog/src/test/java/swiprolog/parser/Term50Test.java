@@ -41,14 +41,13 @@ public class Term50Test {
 	 * @throws IOException
 	 *             If the file does not exist.
 	 */
-	private ErrorStoringProlog4Parser getParser(InputStream textStream)
-			throws IOException {
+	private Prolog4Parser getParser(InputStream textStream) throws IOException {
 		ANTLRInputStream input = new ANTLRInputStream(textStream);
 
 		Prolog4Lexer lexer = new Prolog4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(tokens);
+		Prolog4Parser parser = new Prolog4Parser(tokens);
 
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
@@ -57,7 +56,7 @@ public class Term50Test {
 	}
 
 	@SuppressWarnings("deprecation")
-	private ErrorStoringProlog4Parser getParser(String text) throws IOException {
+	private Prolog4Parser getParser(String text) throws IOException {
 		return getParser(new StringBufferInputStream(text));
 	}
 
@@ -68,11 +67,8 @@ public class Term50Test {
 	private void checkParsesAsTerm50(String text1, String text2)
 			throws IOException {
 		String text = text1 + ":" + text2;
-		ErrorStoringProlog4Parser parser = getParser(text);
+		Prolog4Parser parser = getParser(text);
 		ParseTree tree = parser.term50();
-		if (!parser.getErrors().isEmpty()) {
-			throw parser.getErrors().get(0);
-		}
 		System.out.println(text + " -> " + tree.toStringTree(parser));
 		assertEquals("(term50 " + "(term0 " + text1 + ") : (term0 " + text2
 				+ "))", tree.toStringTree(parser));

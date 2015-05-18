@@ -6,27 +6,41 @@ import java.util.BitSet;
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
+import org.antlr.v4.runtime.atn.ParserATNSimulator;
 import org.antlr.v4.runtime.dfa.DFA;
+
+import swiprolog.parser.Prolog4Parser.PossiblyEmptyConjunctContext;
+import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
+import swiprolog.parser.Prolog4Parser.PrologtextContext;
+import swiprolog.parser.Prolog4Parser.Term0Context;
+import swiprolog.parser.Prolog4Parser.Term1000Context;
 
 /**
  * Prolog4Parser that stores all errors coming from antlr so that we can later
- * report them.
+ * report them. Use similar as {@link Prolog4Parser}. This is needed because
+ * {@link Prolog4Parser} does not throw when errors occur, instead it "recovers"
+ * and never reports us so. Therefore, we may get back trees that contain hidden
+ * null objects. The validator then later can crash on these null objects. The
+ * only way to check for parser errors is to listen for them and keep a copy.
+ * 
+ * This parser therefore checks the results and re-throws the first exception so
+ * that we can handle problems with the normal throw/catch mechanisms higher up.
  * 
  * @author W.Pasman 23apr15
  *
  */
-public class ErrorStoringProlog4Parser extends Prolog4Parser implements
-		ANTLRErrorListener {
+public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
 
-	ArrayList<RecognitionException> errors = new ArrayList<RecognitionException>();
+	private Prolog4Parser parser;
+	private ArrayList<RecognitionException> errors = new ArrayList<RecognitionException>();
 
 	public ErrorStoringProlog4Parser(CommonTokenStream tokens) {
-		super(tokens);
-		removeErrorListeners();
-		addErrorListener(this);
+		parser = new Prolog4Parser(tokens);
+		parser.addErrorListener(this);
 	}
 
 	/**
@@ -80,6 +94,63 @@ public class ErrorStoringProlog4Parser extends Prolog4Parser implements
 		throw new IllegalStateException(
 				"SWI Prolog parser encountered context sensitivity!"
 						+ recognizer + " at " + startIndex);
+	}
+
+	public ParserATNSimulator getInterpreter() {
+		// TODO Auto-generated method stub
+		return parser.getInterpreter();
+	}
+
+	public Term0Context term0() {
+		Term0Context t = parser.term0();
+		rethrow();
+		return t;
+	}
+
+	/**
+	 * Re-throw the first error, if there occurred an error during the parsing
+	 * 
+	 * @throws RecognitionException
+	 */
+	private void rethrow() throws RecognitionException {
+		if (!errors.isEmpty()) {
+			throw errors.get(0);
+		}
+	}
+
+	public PossiblyEmptyConjunctContext possiblyEmptyConjunct() {
+		PossiblyEmptyConjunctContext t = parser.possiblyEmptyConjunct();
+		rethrow();
+		return t;
+	}
+
+	public PrologtextContext prologtext() {
+		PrologtextContext t = parser.prologtext();
+		rethrow();
+		return t;
+	}
+
+	public PossiblyEmptyDisjunctContext possiblyEmptyDisjunct() {
+		PossiblyEmptyDisjunctContext t = parser.possiblyEmptyDisjunct();
+		rethrow();
+		return t;
+	}
+
+	public Term1000Context term1000() {
+		Term1000Context t = parser.term1000();
+		rethrow();
+		return t;
+	}
+
+	/**
+	 * Renders string from a parse tree result.
+	 * 
+	 * @param tree
+	 *            {@link ParserRuleContext} to render
+	 * @return String represetation of tree.
+	 */
+	public String toStringTree(ParserRuleContext tree) {
+		return tree.toStringTree(parser);
 	}
 
 }
