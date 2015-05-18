@@ -48,7 +48,9 @@ import swiprolog.parser.SourceInfoObject;
 
 /**
  * Implements the antlr ParserVisitor and creates the proper objects from the
- * parsed tree
+ * parsed tree.
+ * 
+ * Usage:
  * 
  * @author W.Pasman 23apr15
  *
@@ -57,7 +59,12 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 
 	private final File sourcefile;
 
-	Prolog4Visitor(File source) {
+	/**
+	 * 
+	 * @param source
+	 *            used only to handle getSourceInfo.
+	 */
+	public Prolog4Visitor(File source) {
 		sourcefile = source;
 	}
 

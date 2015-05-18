@@ -151,4 +151,5 @@ public class ListTest {
 		checkParsesAsList("a", "b", "c");
 	}
 
+	// TODO also test lists containing lists and the BAR notation eg [1,2|3]
 }
