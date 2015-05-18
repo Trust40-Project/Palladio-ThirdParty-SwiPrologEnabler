@@ -3,12 +3,16 @@ package swiprolog.parser;
 import java.util.ArrayList;
 import java.util.BitSet;
 
+import krTools.errors.exceptions.ParserException;
+import krTools.parser.SourceInfo;
+
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.atn.ParserATNSimulator;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -101,7 +105,7 @@ public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
 		return parser.getInterpreter();
 	}
 
-	public Term0Context term0() {
+	public Term0Context term0() throws ParserException {
 		Term0Context t = parser.term0();
 		rethrow();
 		return t;
@@ -110,33 +114,43 @@ public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
 	/**
 	 * Re-throw the first error, if there occurred an error during the parsing
 	 * 
-	 * @throws RecognitionException
+	 * @throws ParserException
 	 */
-	private void rethrow() throws RecognitionException {
+	private void rethrow() throws ParserException {
 		if (!errors.isEmpty()) {
-			throw errors.get(0);
+			RecognitionException exc = errors.get(0);
+			Token token = exc.getOffendingToken();
+			// FIXME can we get the original file if there is one?
+			SourceInfo info = new SourceInfoObject(null, token.getLine(),
+					token.getCharPositionInLine(),
+					token.getCharPositionInLine(),
+					token.getCharPositionInLine());
+			throw new ParserException("error(s) occured while parsing", info,
+					exc);
 		}
 	}
 
-	public PossiblyEmptyConjunctContext possiblyEmptyConjunct() {
+	public PossiblyEmptyConjunctContext possiblyEmptyConjunct()
+			throws ParserException {
 		PossiblyEmptyConjunctContext t = parser.possiblyEmptyConjunct();
 		rethrow();
 		return t;
 	}
 
-	public PrologtextContext prologtext() {
+	public PrologtextContext prologtext() throws ParserException {
 		PrologtextContext t = parser.prologtext();
 		rethrow();
 		return t;
 	}
 
-	public PossiblyEmptyDisjunctContext possiblyEmptyDisjunct() {
+	public PossiblyEmptyDisjunctContext possiblyEmptyDisjunct()
+			throws ParserException {
 		PossiblyEmptyDisjunctContext t = parser.possiblyEmptyDisjunct();
 		rethrow();
 		return t;
 	}
 
-	public Term1000Context term1000() {
+	public Term1000Context term1000() throws ParserException {
 		Term1000Context t = parser.term1000();
 		rethrow();
 		return t;

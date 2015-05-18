@@ -28,7 +28,6 @@ import krTools.errors.exceptions.ParserException;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
@@ -179,7 +178,7 @@ public class Term0ValidatorTest {
 		checkValidatesAsTerm0("`Aap`", "'Aap'");
 	}
 
-	@Test(expected = NoViableAltException.class)
+	@Test(expected = ParserException.class)
 	public void testString3() throws IOException, KRInitFailedException,
 			ParserException {
 		checkValidatesAsTerm0("`Aap'");

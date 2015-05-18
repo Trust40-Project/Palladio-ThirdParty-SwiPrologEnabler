@@ -29,9 +29,6 @@ import krTools.language.Update;
 import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
-
-import org.antlr.v4.runtime.RecognitionException;
-
 import swiprolog.validator.Prolog4Validator;
 
 /**
@@ -58,19 +55,17 @@ public class KRInterfaceReader4 implements Parser {
 	}
 
 	@Override
-	public Update parseUpdate() throws RecognitionException, ParserException {
+	public Update parseUpdate() throws ParserException {
 		return validator.parseUpdateOrEmpty();
 	}
 
 	@Override
-	public List<DatabaseFormula> parseDBFs() throws RecognitionException,
-			ParserException {
+	public List<DatabaseFormula> parseDBFs() throws ParserException {
 		return validator.parsePrologProgram();
 	}
 
 	@Override
-	public List<Query> parseQueries() throws RecognitionException,
-			ParserException {
+	public List<Query> parseQueries() throws ParserException {
 		return validator.parsePrologGoalSection();
 	}
 
@@ -80,7 +75,7 @@ public class KRInterfaceReader4 implements Parser {
 	 * @throws ParserException
 	 */
 	@Override
-	public Query parseQuery() throws RecognitionException, ParserException {
+	public Query parseQuery() throws ParserException {
 		return validator.ParseQueryOrEmpty();
 	}
 
@@ -90,12 +85,12 @@ public class KRInterfaceReader4 implements Parser {
 	}
 
 	@Override
-	public Term parseTerm() {
+	public Term parseTerm() throws ParserException {
 		return validator.ParseTerm();
 	}
 
 	@Override
-	public List<Term> parseTerms() {
+	public List<Term> parseTerms() throws ParserException {
 		return validator.ParsePrologTerms();
 	}
 

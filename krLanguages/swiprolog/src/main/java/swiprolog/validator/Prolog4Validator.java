@@ -161,8 +161,9 @@ public class Prolog4Validator {
 	 * try parse a term
 	 * 
 	 * @return term, or null if error occurs
+	 * @throws ParserException
 	 */
-	public PrologTerm ParseTerm() {
+	public PrologTerm ParseTerm() throws ParserException {
 		Term0Context tree = parser.term0();
 		return visitor.visitTerm0(tree);
 	}
@@ -171,8 +172,9 @@ public class Prolog4Validator {
 	 * Parse a set of parameters.
 	 *
 	 * @return A list of {@link Term}s.
+	 * @throws ParserException
 	 */
-	public List<Term> ParsePrologTerms() {
+	public List<Term> ParsePrologTerms() throws ParserException {
 		Term1000Context tree = parser.term1000();
 		PrologTerm t = visitor.visitTerm1000(tree);
 

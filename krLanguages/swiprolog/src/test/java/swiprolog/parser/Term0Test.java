@@ -23,9 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
 
+import krTools.errors.exceptions.ParserException;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
@@ -63,7 +64,8 @@ public class Term0Test {
 		return getParser(new StringBufferInputStream(text));
 	}
 
-	private void checkParsesAsTerm0(String text) throws IOException {
+	private void checkParsesAsTerm0(String text) throws IOException,
+			ParserException {
 		ErrorStoringProlog4Parser parser = getParser(text);
 		Term0Context tree = parser.term0();
 		System.out.println(text + " -> " + parser.toStringTree(tree));
@@ -71,62 +73,62 @@ public class Term0Test {
 	}
 
 	@Test
-	public void testFloat() throws IOException {
+	public void testFloat() throws IOException, ParserException {
 		checkParsesAsTerm0("100.3");
 	}
 
 	@Test
-	public void testFloat2() throws IOException {
+	public void testFloat2() throws IOException, ParserException {
 		checkParsesAsTerm0("100.3e13");
 	}
 
 	@Test
-	public void testFloat3() throws IOException {
+	public void testFloat3() throws IOException, ParserException {
 		checkParsesAsTerm0("0.3e13");
 	}
 
 	@Test
-	public void testInteger() throws IOException {
+	public void testInteger() throws IOException, ParserException {
 		checkParsesAsTerm0("12345");
 	}
 
 	@Test
-	public void testBigInteger() throws IOException {
+	public void testBigInteger() throws IOException, ParserException {
 		checkParsesAsTerm0("123456789012345678901234567890123456789012345678901234567890");
 	}
 
 	@Test
-	public void testVariable() throws IOException {
+	public void testVariable() throws IOException, ParserException {
 		checkParsesAsTerm0("X");
 	}
 
 	@Test
-	public void testVariable2() throws IOException {
+	public void testVariable2() throws IOException, ParserException {
 		checkParsesAsTerm0("_123");
 	}
 
 	@Test
-	public void testString() throws IOException {
+	public void testString() throws IOException, ParserException {
 		checkParsesAsTerm0("'Aap'");
 	}
 
 	@Test
-	public void testString1() throws IOException {
+	public void testString1() throws IOException, ParserException {
 		checkParsesAsTerm0("\"Aap\"");
 	}
 
 	@Test
-	public void testAtom() throws IOException {
+	public void testAtom() throws IOException, ParserException {
 		checkParsesAsTerm0("aap");
 	}
 
 	@Test
-	public void testString2() throws IOException {
+	public void testString2() throws IOException, ParserException {
 		checkParsesAsTerm0("`Aap`");
 	}
 
-	@Test(expected = NoViableAltException.class)
-	public void testString3() throws IOException {
+	@Test(expected = ParserException.class)
+	public void testString3() throws IOException, ParserException {
 		checkParsesAsTerm0("`Aap'");
 	}
 }
