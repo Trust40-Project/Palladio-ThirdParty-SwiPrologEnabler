@@ -43,9 +43,9 @@ public class Term900Test {
 	 * @throws IOException
 	 *             If the file does not exist.
 	 */
-	private ErrorStoringProlog4Parser getParser(Reader textStream)
+	private Parser4 getParser(Reader textStream)
 			throws IOException {
-		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(
+		Parser4 parser = new Parser4(
 				textStream, null);
 
 		parser.getInterpreter().setPredictionMode(
@@ -55,7 +55,7 @@ public class Term900Test {
 	}
 
 	@SuppressWarnings("deprecation")
-	private ErrorStoringProlog4Parser getParser(String text) throws IOException {
+	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}
 
@@ -68,7 +68,7 @@ public class Term900Test {
 	private void checkParsesAsTerm0(String text1, String text2)
 			throws IOException, ParserException {
 		String text = text1 + ":" + text2;
-		ErrorStoringProlog4Parser parser = getParser(text);
+		Parser4 parser = getParser(text);
 		Term0Context tree = parser.term0();
 		System.out.println(text + " -> " + parser.toStringTree(tree));
 		assertEquals(text2, parser.toStringTree(tree));

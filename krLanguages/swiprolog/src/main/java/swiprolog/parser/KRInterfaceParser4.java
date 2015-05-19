@@ -19,6 +19,7 @@ package swiprolog.parser;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
 
 import krTools.errors.exceptions.ParserException;
@@ -29,15 +30,14 @@ import krTools.language.Update;
 import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
-import swiprolog.validator.Prolog4Validator;
-import visitor.Prolog4VisitorPlus;
+import swiprolog.validator.Validator4Internal;
+import visitor.Visitor4;
 
 /**
- * Implementation of KR interface parser, visitor and validator for SWI Prolog
- * that is based on antlr4.
+ * Implementation of KR Tools {@link Parser} based on antlr4.
  */
-public class KRInterfaceReader4 implements Parser {
-	private final Prolog4Validator validator;
+public class KRInterfaceParser4 implements Parser {
+	private final Validator4Internal validator;
 
 	/**
 	 * Creates a new KR interface parser that uses the given stream as input.
@@ -53,24 +53,23 @@ public class KRInterfaceReader4 implements Parser {
 	 *             If an exception occurred during parsing. See
 	 *             {@link ParserException}.
 	 */
-	public KRInterfaceReader4(Reader r, SourceInfo info) throws IOException {
-		validator = new Prolog4Validator(new Prolog4VisitorPlus(
-				new ErrorStoringProlog4Parser(r, info)));
+	public KRInterfaceParser4(Reader r, SourceInfo info) throws IOException {
+		validator = new Validator4Internal(new Visitor4(new Parser4(r, info)));
 	}
 
 	@Override
 	public Update parseUpdate() throws ParserException {
-		return validator.parseUpdateOrEmpty();
+		return validator.updateOrEmpty();
 	}
 
 	@Override
 	public List<DatabaseFormula> parseDBFs() throws ParserException {
-		return validator.parsePrologProgram();
+		return validator.program();
 	}
 
 	@Override
 	public List<Query> parseQueries() throws ParserException {
-		return validator.parsePrologGoalSection();
+		return validator.goalSection();
 	}
 
 	/**
@@ -80,27 +79,29 @@ public class KRInterfaceReader4 implements Parser {
 	 */
 	@Override
 	public Query parseQuery() throws ParserException {
-		return validator.ParseQueryOrEmpty();
+		return validator.queryOrEmpty();
 	}
 
 	@Override
 	public Var parseVar() throws ParserException {
-		return validator.parseVar();
+		return validator.var();
 	}
 
 	@Override
 	public Term parseTerm() throws ParserException {
-		return validator.ParseTerm();
+		return validator.term();
 	}
 
 	@Override
 	public List<Term> parseTerms() throws ParserException {
-		return validator.ParsePrologTerms();
+		return validator.terms();
 	}
 
 	@Override
 	public List<SourceInfo> getErrors() {
-		return null;
+		List<SourceInfo> errors = new ArrayList<SourceInfo>();
+		errors.addAll(validator.getErrors());
+		return errors;
 		// // Get all (syntax)errors from the lexer or the parser
 		// List<SourceInfo> exceptions = new ArrayList<SourceInfo>();
 		// exceptions.addAll(this.parser.getLexer().getErrors());

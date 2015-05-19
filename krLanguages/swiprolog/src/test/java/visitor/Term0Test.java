@@ -15,7 +15,7 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package validator4;
+package visitor;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,8 +28,7 @@ import krTools.errors.exceptions.ParserException;
 import org.junit.Test;
 
 import swiprolog.language.PrologTerm;
-import swiprolog.parser.ErrorStoringProlog4Parser;
-import visitor.Prolog4VisitorPlus;
+import swiprolog.parser.Parser4;
 
 /**
  * Tests for Prolog4Parser term0 to see if pipeline parser->visitor works ok.
@@ -37,7 +36,7 @@ import visitor.Prolog4VisitorPlus;
  * also we hook in SWI prolog.
  *
  */
-public class Term0VisitorTest {
+public class Term0Test {
 
 	/**
 	 * Default version of {@link #checkVisitesAsTerm0(String, String)} where
@@ -67,8 +66,8 @@ public class Term0VisitorTest {
 	 */
 	private void checkVisitesAsTerm0(String in, String out)
 			throws KRInitFailedException, IOException, ParserException {
-		Prolog4VisitorPlus visitor = new Prolog4VisitorPlus(
-				new ErrorStoringProlog4Parser(new StringReader(in), null));
+		Visitor4 visitor = new Visitor4(
+				new Parser4(new StringReader(in), null));
 		PrologTerm term = visitor.visitTerm0();
 
 		System.out.println(in + " -> " + term);

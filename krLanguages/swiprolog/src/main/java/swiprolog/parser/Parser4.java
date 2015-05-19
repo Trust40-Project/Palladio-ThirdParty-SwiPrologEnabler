@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 
 import krTools.errors.exceptions.ParserException;
 import krTools.parser.SourceInfo;
@@ -15,7 +16,6 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.atn.ParserATNSimulator;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -25,25 +25,23 @@ import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
 import swiprolog.parser.Prolog4Parser.PrologtextContext;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
+import antlr.build.ANTLR;
 
 /**
- * Prolog4Parser that stores all errors coming from antlr so that we can later
- * report them. Use similar as {@link Prolog4Parser}. This is needed because
- * {@link Prolog4Parser} does not throw when errors occur, instead it "recovers"
- * and never reports us so. Therefore, we may get back trees that contain hidden
- * null objects. The validator then later can crash on these null objects. The
- * only way to check for parser errors is to listen for them and keep a copy.
- * 
+ * {@link Prolog4Parser} but stores all errors coming from {@link ANTLR} so that
+ * we can later report them. Also it re-throws if there was an error after
+ * parsing. This is needed because {@link Prolog4Parser} does not throw when
+ * errors occur, instead it "recovers" and never reports us so. <br>
  * This parser therefore checks the results and re-throws the first exception so
  * that we can handle problems with the normal throw/catch mechanisms higher up.
  * 
  * @author W.Pasman 23apr15
  *
  */
-public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
+public class Parser4 implements ANTLRErrorListener {
 
 	private Prolog4Parser parser;
-	private ArrayList<RecognitionException> errors = new ArrayList<RecognitionException>();
+	private List<ParserException> errors = new ArrayList<ParserException>();
 	private SourceInfo sourceInfo;
 
 	/**
@@ -59,9 +57,7 @@ public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
 	 *            with a file reference set to null.
 	 * @throws IOException
 	 */
-	public ErrorStoringProlog4Parser(Reader reader, SourceInfo info)
-			throws IOException {
-
+	public Parser4(Reader reader, SourceInfo info) throws IOException {
 		sourceInfo = info;
 		if (sourceInfo == null) {
 			sourceInfo = new SourceInfoObject(null, 1, 0, 0, 0);
@@ -88,17 +84,12 @@ public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
 		return sourceInfo;
 	}
 
-	// private ErrorStoringProlog4Parser(CommonTokenStream tokens) {
-	// parser = new Prolog4Parser(tokens);
-	// parser.addErrorListener(this);
-	// }
-
 	/**
 	 * Get the errors that occured during parsing.
 	 * 
 	 * @return error list.
 	 */
-	public ArrayList<RecognitionException> getErrors() {
+	public List<ParserException> getErrors() {
 		return errors;
 	}
 
@@ -116,7 +107,10 @@ public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
 	public void syntaxError(Recognizer<?, ?> recognizer,
 			Object offendingSymbol, int line, int charPositionInLine,
 			String msg, RecognitionException e) {
-		errors.add(e); // CHECK store more info?
+		SourceInfoObject info = new SourceInfoObject(sourceInfo.getSource(),
+				line, charPositionInLine, charPositionInLine,
+				charPositionInLine);
+		errors.add(new ParserException(msg, info, e));
 	}
 
 	@Override
@@ -164,15 +158,9 @@ public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
 	 */
 	private void rethrow() throws ParserException {
 		if (!errors.isEmpty()) {
-			RecognitionException exc = errors.get(0);
-			Token token = exc.getOffendingToken();
-			// FIXME can we get the original file if there is one?
-			SourceInfo info = new SourceInfoObject(null, token.getLine(),
-					token.getCharPositionInLine(),
-					token.getCharPositionInLine(),
-					token.getCharPositionInLine());
-			throw new ParserException("error(s) occured while parsing", info,
-					exc);
+			ParserException exc = errors.get(0);
+			throw new ParserException("error(s) occured while parsing",
+					exc.getSourceInfo(), exc);
 		}
 	}
 

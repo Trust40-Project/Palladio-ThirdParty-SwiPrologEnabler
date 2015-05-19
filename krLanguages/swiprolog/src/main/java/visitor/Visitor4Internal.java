@@ -1,3 +1,20 @@
+/**
+ * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
+ *
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package visitor;
 
 import java.io.File;
@@ -47,30 +64,13 @@ import swiprolog.parser.Prolog4ParserBaseVisitor;
 import swiprolog.parser.SourceInfoObject;
 
 /**
- * Implements the basic antlr ParserVisitor interface and creates the proper
- * objects from the parsed tree. This returns {@link PrologTerm}s but they are
- * not yet validated.
- * 
- * Usage (example parsing a term0): <code>
- * 		ANTLRInputStream input = new ANTLRInputStream(textStream);
-
-		Prolog4Lexer lexer = new Prolog4Lexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(tokens);
-
-		Term0Context tree = parser.term0();
-		if (!parser.getErrors().isEmpty()) {
-			throw parser.getErrors().get(0);
-		}
-		Prolog4Visitor visitor = new Prolog4Visitor(null); // give File if you have.
-		PrologTerm term = visitor.visitTerm0(tree);
- * </code>
- * 
- * @author W.Pasman 23apr15
+ * Implements the basic antlr {@link Prolog4ParserBaseVisitor} interface and
+ * creates the proper objects from the parsed tree. This returns
+ * {@link PrologTerm}s but they are not yet validated. This is for internal use
+ * only, as you normally need an error listener. See also {@link Visitor4}.<br>
  *
  */
-public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
+public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 
 	private final File sourcefile;
 
@@ -79,7 +79,7 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 	 * @param source
 	 *            used only to make correct getSourceInfo references.
 	 */
-	public Prolog4Visitor(File source) {
+	public Visitor4Internal(File source) {
 		sourcefile = source;
 	}
 

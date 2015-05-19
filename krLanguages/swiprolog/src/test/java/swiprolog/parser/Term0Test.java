@@ -42,26 +42,29 @@ public class Term0Test {
 	 * @throws IOException
 	 *             If the file does not exist.
 	 */
-	private ErrorStoringProlog4Parser getParser(Reader textStream)
-			throws IOException {
-		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(
-				textStream, null);
+	private Parser4 getParser(Reader textStream) throws IOException {
+		Parser4 parser = new Parser4(textStream, null);
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
 	@SuppressWarnings("deprecation")
-	private ErrorStoringProlog4Parser getParser(String text) throws IOException {
+	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}
 
 	private void checkParsesAsTerm0(String text) throws IOException,
 			ParserException {
-		ErrorStoringProlog4Parser parser = getParser(text);
+		Parser4 parser = getParser(text);
 		Term0Context tree = parser.term0();
 		System.out.println(text + " -> " + parser.toStringTree(tree));
 		assertEquals("(term0 " + text + ")", parser.toStringTree(tree));
+	}
+
+	@Test(expected = ParserException.class)
+	public void testLexerError() throws IOException, ParserException {
+		checkParsesAsTerm0("");
 	}
 
 	@Test
