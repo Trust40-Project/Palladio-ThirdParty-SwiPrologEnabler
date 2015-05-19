@@ -30,8 +30,9 @@ import org.junit.Test;
 
 import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
-import swiprolog.parser.SourceInfoObject;
+import swiprolog.parser.ErrorStoringProlog4Parser;
 import swiprolog.validator.Prolog4Validator;
+import visitor.Prolog4VisitorPlus;
 
 /**
  * Tests for {@link Prolog4Validator} to see if pipeline
@@ -50,8 +51,8 @@ public class ValidatorTest {
 	 * @throws IOException
 	 */
 	public Prolog4Validator validator(String in) throws IOException {
-		SourceInfoObject inf = new SourceInfoObject(null, 1, 0, 0, 0);
-		return new Prolog4Validator(new StringReader(in), inf);
+		return new Prolog4Validator(new Prolog4VisitorPlus(
+				new ErrorStoringProlog4Parser(new StringReader(in), null)));
 	}
 
 	@Test

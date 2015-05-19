@@ -1,5 +1,7 @@
 package swiprolog.parser;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.BitSet;
 
@@ -7,6 +9,7 @@ import krTools.errors.exceptions.ParserException;
 import krTools.parser.SourceInfo;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
+import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -41,11 +44,54 @@ public class ErrorStoringProlog4Parser implements ANTLRErrorListener {
 
 	private Prolog4Parser parser;
 	private ArrayList<RecognitionException> errors = new ArrayList<RecognitionException>();
+	private SourceInfo sourceInfo;
 
-	public ErrorStoringProlog4Parser(CommonTokenStream tokens) {
+	/**
+	 * Constructor. Adjusts the tokeniser input stream position matching the
+	 * given start position
+	 * 
+	 * @param reader
+	 *            the input text stream to use for parsing.
+	 * @param info
+	 *            The start position (line number, column etc) for this parse.
+	 *            Used if the text received really is part of a bigger file. If
+	 *            set to null, we use a default info object starting at line 1
+	 *            with a file reference set to null.
+	 * @throws IOException
+	 */
+	public ErrorStoringProlog4Parser(Reader reader, SourceInfo info)
+			throws IOException {
+
+		sourceInfo = info;
+		if (sourceInfo == null) {
+			sourceInfo = new SourceInfoObject(null, 1, 0, 0, 0);
+		}
+		ANTLRInputStream stream = new ANTLRInputStream(reader);
+		stream.name = (sourceInfo.getSource() == null) ? "" : sourceInfo
+				.getSource().getPath();
+
+		Prolog4Lexer lexer = new Prolog4Lexer(stream);
+		lexer.setLine(sourceInfo.getLineNumber());
+		lexer.setCharPositionInLine(sourceInfo.getCharacterPosition());
+
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+
 		parser = new Prolog4Parser(tokens);
 		parser.addErrorListener(this);
 	}
+
+	/**
+	 * @return the initial source info field of this parser.
+	 * 
+	 */
+	public SourceInfo getSourceInfo() {
+		return sourceInfo;
+	}
+
+	// private ErrorStoringProlog4Parser(CommonTokenStream tokens) {
+	// parser = new Prolog4Parser(tokens);
+	// parser.addErrorListener(this);
+	// }
 
 	/**
 	 * Get the errors that occured during parsing.

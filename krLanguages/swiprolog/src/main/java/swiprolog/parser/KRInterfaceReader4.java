@@ -30,6 +30,7 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 import swiprolog.validator.Prolog4Validator;
+import visitor.Prolog4VisitorPlus;
 
 /**
  * Implementation of KR interface parser, visitor and validator for SWI Prolog
@@ -44,14 +45,17 @@ public class KRInterfaceReader4 implements Parser {
 	 * @param r
 	 *            The input stream.
 	 * @param info
-	 *            the {@link SourceInfo} for the fragment to be parsed
+	 *            the {@link SourceInfo} for the fragment to be parsed. If set
+	 *            to null, we use a default info object starting at line 1 with
+	 *            a file reference set to null.
 	 * @throws IOException
 	 * @throws ParserException
 	 *             If an exception occurred during parsing. See
 	 *             {@link ParserException}.
 	 */
 	public KRInterfaceReader4(Reader r, SourceInfo info) throws IOException {
-		validator = new Prolog4Validator(r, info);
+		validator = new Prolog4Validator(new Prolog4VisitorPlus(
+				new ErrorStoringProlog4Parser(r, info)));
 	}
 
 	@Override

@@ -47,8 +47,9 @@ import swiprolog.parser.Prolog4ParserBaseVisitor;
 import swiprolog.parser.SourceInfoObject;
 
 /**
- * Implements the antlr ParserVisitor and creates the proper objects from the
- * parsed tree. This returns {@link PrologTerm}s but they are not yet validated.
+ * Implements the basic antlr ParserVisitor interface and creates the proper
+ * objects from the parsed tree. This returns {@link PrologTerm}s but they are
+ * not yet validated.
  * 
  * Usage (example parsing a term0): <code>
  * 		ANTLRInputStream input = new ANTLRInputStream(textStream);
@@ -76,7 +77,7 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 	/**
 	 * 
 	 * @param source
-	 *            used only to handle getSourceInfo.
+	 *            used only to make correct getSourceInfo references.
 	 */
 	public Prolog4Visitor(File source) {
 		sourcefile = source;

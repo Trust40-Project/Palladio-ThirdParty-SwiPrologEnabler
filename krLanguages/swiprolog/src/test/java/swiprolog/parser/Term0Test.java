@@ -20,13 +20,11 @@ package swiprolog.parser;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
+import java.io.Reader;
+import java.io.StringReader;
 
 import krTools.errors.exceptions.ParserException;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
@@ -44,16 +42,10 @@ public class Term0Test {
 	 * @throws IOException
 	 *             If the file does not exist.
 	 */
-	private ErrorStoringProlog4Parser getParser(InputStream textStream)
+	private ErrorStoringProlog4Parser getParser(Reader textStream)
 			throws IOException {
-		ANTLRInputStream input = new ANTLRInputStream(textStream);
-
-		Prolog4Lexer lexer = new Prolog4Lexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(tokens);
-
-		// parser report all ambiguities for testing.
+		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(
+				textStream, null);
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
@@ -61,7 +53,7 @@ public class Term0Test {
 
 	@SuppressWarnings("deprecation")
 	private ErrorStoringProlog4Parser getParser(String text) throws IOException {
-		return getParser(new StringBufferInputStream(text));
+		return getParser(new StringReader(text));
 	}
 
 	private void checkParsesAsTerm0(String text) throws IOException,

@@ -1,35 +1,22 @@
 package swiprolog.validator;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import jpl.Variable;
 import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
-import krTools.parser.SourceInfo;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
-import swiprolog.parser.ErrorStoringProlog4Parser;
-import swiprolog.parser.Prolog4Lexer;
-import swiprolog.parser.Prolog4Parser.PossiblyEmptyConjunctContext;
-import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
-import swiprolog.parser.Prolog4Parser.PrologtextContext;
-import swiprolog.parser.Prolog4Parser.Term0Context;
-import swiprolog.parser.Prolog4Parser.Term1000Context;
-import visitor.Prolog4Visitor;
+import visitor.Prolog4VisitorPlus;
 
 /**
  * Prolog4Validator that parses and validates. All errors occuring during parse
@@ -43,8 +30,7 @@ import visitor.Prolog4Visitor;
  */
 public class Prolog4Validator {
 
-	private ErrorStoringProlog4Parser parser;
-	private Prolog4Visitor visitor;
+	private Prolog4VisitorPlus visitor;
 
 	/**
 	 * @param reader
@@ -55,20 +41,30 @@ public class Prolog4Validator {
 	 *            input stream.
 	 * @throws IOException
 	 */
-	public Prolog4Validator(Reader reader, SourceInfo info) throws IOException {
+	// public Prolog4Validator(Reader reader, SourceInfo info) throws
+	// IOException {
+	//
+	// ANTLRInputStream stream = new ANTLRInputStream(reader);
+	// stream.name = (info.getSource() == null) ? "" : info.getSource()
+	// .getPath();
+	//
+	// Prolog4Lexer lexer = new Prolog4Lexer(stream);
+	// lexer.setLine(info.getLineNumber());
+	// lexer.setCharPositionInLine(info.getCharacterPosition());
+	//
+	// CommonTokenStream tokens = new CommonTokenStream(lexer);
+	//
+	// parser = new ErrorStoringProlog4Parser(tokens);
+	// visitor = new Prolog4Visitor(info.getSource());
+	// }
 
-		ANTLRInputStream stream = new ANTLRInputStream(reader);
-		stream.name = (info.getSource() == null) ? "" : info.getSource()
-				.getPath();
-
-		Prolog4Lexer lexer = new Prolog4Lexer(stream);
-		lexer.setLine(info.getLineNumber());
-		lexer.setCharPositionInLine(info.getCharacterPosition());
-
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-		parser = new ErrorStoringProlog4Parser(tokens);
-		visitor = new Prolog4Visitor(info.getSource());
+	/**
+	 * 
+	 * @param visitor
+	 *            the {@link Prolog4VisitorPlus} (that contains the parser)
+	 */
+	public Prolog4Validator(Prolog4VisitorPlus vis) {
+		visitor = vis;
 	}
 
 	/**
@@ -78,12 +74,13 @@ public class Prolog4Validator {
 	 * @throws RecognitionException
 	 *             , ParserException
 	 */
-	public Update parseUpdateOrEmpty() throws RecognitionException,
-			ParserException {
-		PossiblyEmptyConjunctContext tree = parser.possiblyEmptyConjunct();
-		PrologTerm term = visitor.visitPossiblyEmptyConjunct(tree);
-		return SemanticTools.conj2Update(term);
+	public Update parseUpdateOrEmpty() throws ParserException {
+		return SemanticTools.conj2Update(visitor.visitPossiblyEmptyConjunct());
+	}
 
+	public Update parseUpdateOrEmpty(String text) throws RecognitionException,
+			ParserException {
+		return SemanticTools.conj2Update(visitor.visitPossiblyEmptyConjunct());
 	}
 
 	/**
@@ -94,17 +91,13 @@ public class Prolog4Validator {
 	 */
 	public List<DatabaseFormula> parsePrologProgram()
 			throws RecognitionException, ParserException {
-		PrologtextContext tree = parser.prologtext();
-		List<PrologTerm> prologTerms = visitor.visitPrologtext(tree);
 
-		// Parser does not check if Prolog terms are correct database
-		// objects, do this next
+		List<PrologTerm> prologTerms = visitor.visitPrologtext();
+
 		List<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>(
 				prologTerms.size());
 		for (PrologTerm t : prologTerms) {
-			PrologTerm updatedSourceInfo = new PrologTerm(t.getTerm(),
-					t.getSourceInfo());
-			dbfs.add(SemanticTools.DBFormula(updatedSourceInfo));
+			dbfs.add(SemanticTools.DBFormula(t));
 		}
 		return dbfs;
 	}
@@ -117,10 +110,8 @@ public class Prolog4Validator {
 	 */
 	public List<Query> parsePrologGoalSection() throws ParserException,
 			RecognitionException {
-		PrologtextContext tree = parser.prologtext();
-		List<PrologTerm> prologTerms = visitor.visitPrologtext(tree);
-		List<Query> goals = new ArrayList<Query>(prologTerms.size());
-		for (PrologTerm t : prologTerms) {
+		List<Query> goals = new ArrayList<Query>();
+		for (PrologTerm t : visitor.visitPrologtext()) {
 			// check that each term is a valid Prolog goal / query
 			goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(),
 					t.getSourceInfo()), t.getSourceInfo()));
@@ -136,9 +127,7 @@ public class Prolog4Validator {
 	 */
 	public PrologQuery ParseQueryOrEmpty() throws ParserException,
 			RecognitionException {
-		PossiblyEmptyDisjunctContext tree = parser.possiblyEmptyDisjunct();
-		PrologTerm term = visitor.visitPossiblyEmptyDisjunct(tree);
-		return SemanticTools.toQuery(term);
+		return SemanticTools.toQuery(visitor.visitPossiblyEmptyDisjunct());
 	}
 
 	/**
@@ -149,7 +138,7 @@ public class Prolog4Validator {
 	 * @throws RecognitionException
 	 */
 	public Var parseVar() throws ParserException, RecognitionException {
-		PrologTerm term = ParseTerm();
+		PrologTerm term = visitor.visitTerm0();
 
 		if (!term.isVar()) {
 			throw new ParserException(String.format(
@@ -157,7 +146,7 @@ public class Prolog4Validator {
 					term.toString()), term.getSourceInfo());
 		}
 
-		return new PrologVar((Variable) term.getTerm(), term.getSourceInfo());
+		return (PrologVar) term;
 	}
 
 	/**
@@ -167,8 +156,7 @@ public class Prolog4Validator {
 	 * @throws ParserException
 	 */
 	public PrologTerm ParseTerm() throws ParserException {
-		Term0Context tree = parser.term0();
-		return visitor.visitTerm0(tree);
+		return visitor.visitTerm0();
 	}
 
 	/**
@@ -178,8 +166,7 @@ public class Prolog4Validator {
 	 * @throws ParserException
 	 */
 	public List<Term> ParsePrologTerms() throws ParserException {
-		Term1000Context tree = parser.term1000();
-		PrologTerm t = visitor.visitTerm1000(tree);
+		PrologTerm t = visitor.visitTerm1000();
 
 		List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
 		List<Term> terms = new ArrayList<Term>(original.size());

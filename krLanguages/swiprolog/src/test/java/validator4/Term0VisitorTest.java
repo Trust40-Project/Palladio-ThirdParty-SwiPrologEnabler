@@ -20,23 +20,16 @@ package validator4;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
+import java.io.StringReader;
 
 import krTools.errors.exceptions.KRInitFailedException;
 import krTools.errors.exceptions.ParserException;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
-import swiprolog.SWIPrologInterface;
 import swiprolog.language.PrologTerm;
 import swiprolog.parser.ErrorStoringProlog4Parser;
-import swiprolog.parser.Prolog4Lexer;
-import swiprolog.parser.Prolog4Parser.Term0Context;
-import visitor.Prolog4Visitor;
+import visitor.Prolog4VisitorPlus;
 
 /**
  * Tests for Prolog4Parser term0 to see if pipeline parser->visitor works ok.
@@ -45,36 +38,6 @@ import visitor.Prolog4Visitor;
  *
  */
 public class Term0VisitorTest {
-	/**
-	 * Parses the textStream.
-	 *
-	 * @return The ANTLR parser for the file.
-	 * @throws IOException
-	 *             If the file does not exist.
-	 * @throws KRInitFailedException
-	 */
-	private ErrorStoringProlog4Parser getParser(InputStream textStream)
-			throws IOException, KRInitFailedException {
-
-		SWIPrologInterface.getInstance();
-		ANTLRInputStream input = new ANTLRInputStream(textStream);
-
-		Prolog4Lexer lexer = new Prolog4Lexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-		ErrorStoringProlog4Parser parser = new ErrorStoringProlog4Parser(tokens);
-
-		// parser report all ambiguities for testing.
-		parser.getInterpreter().setPredictionMode(
-				PredictionMode.LL_EXACT_AMBIG_DETECTION);
-		return parser;
-	}
-
-	@SuppressWarnings("deprecation")
-	private ErrorStoringProlog4Parser getParser(String text)
-			throws IOException, KRInitFailedException {
-		return getParser(new StringBufferInputStream(text));
-	}
 
 	/**
 	 * Default version of {@link #checkVisitesAsTerm0(String, String)} where
@@ -104,10 +67,9 @@ public class Term0VisitorTest {
 	 */
 	private void checkVisitesAsTerm0(String in, String out)
 			throws KRInitFailedException, IOException, ParserException {
-		ErrorStoringProlog4Parser parser = getParser(in);
-		Term0Context tree = parser.term0();
-		Prolog4Visitor visitor = new Prolog4Visitor(null);
-		PrologTerm term = visitor.visitTerm0(tree);
+		Prolog4VisitorPlus visitor = new Prolog4VisitorPlus(
+				new ErrorStoringProlog4Parser(new StringReader(in), null));
+		PrologTerm term = visitor.visitTerm0();
 
 		System.out.println(in + " -> " + term);
 		assertEquals(out, term.toString());
