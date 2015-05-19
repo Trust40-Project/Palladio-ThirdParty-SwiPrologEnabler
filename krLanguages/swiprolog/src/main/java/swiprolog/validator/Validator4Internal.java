@@ -1,3 +1,19 @@
+/**
+ * Knowledge Representation Tools. Copyright (C) 2014 Koen Hindriks.
+ *
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package swiprolog.validator;
 
 import java.util.ArrayList;
@@ -12,6 +28,7 @@ import krTools.language.Var;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
+import swiprolog.language.PrologUpdate;
 import swiprolog.language.PrologVar;
 import visitor.Visitor4;
 
@@ -44,14 +61,18 @@ public class Validator4Internal {
 	}
 
 	/**
-	 * Parses an update or empty term.
+	 * Validate an update or empty term.
 	 * 
 	 * @return {@link Update} or null if there is error.
 	 */
 	public Update updateOrEmpty() throws ParserException {
 		try {
-			return SemanticTools.conj2Update(visitor
-					.visitPossiblyEmptyConjunct());
+			PrologTerm conj = visitor.visitPossiblyEmptyConjunct();
+			if (conj.toString().equals("true")) { // special case.
+				return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
+			}
+			return SemanticTools.conj2Update(conj);
+
 		} catch (ParserException e) {
 			errors.add(e);
 		}
@@ -59,7 +80,7 @@ public class Validator4Internal {
 	}
 
 	/**
-	 * Parses a Prolog program. Assumes that the parser has been set up
+	 * Validate a Prolog program. Assumes that the parser has been set up
 	 * properly.
 	 *
 	 * @return List<DatabaseFormula>, or {@code null} if a parser error occurs.
@@ -81,7 +102,7 @@ public class Validator4Internal {
 	}
 
 	/**
-	 * Parse a section that should contain Prolog goals, i.e., queries.
+	 * Validate a section that should contain Prolog goals, i.e., queries.
 	 *
 	 * @return List<Query>, or {@code null} if a parser error occurs.
 	 */
@@ -101,7 +122,7 @@ public class Validator4Internal {
 	}
 
 	/**
-	 * Parses a (possibly empty) query.
+	 * Validate a (possibly empty) query.
 	 *
 	 * @return A {@link PrologQuery}, or {@code null} if an error occurred.
 	 */
@@ -115,7 +136,7 @@ public class Validator4Internal {
 	}
 
 	/**
-	 * Parses the input. Returns a variable obtained by parsing the input.
+	 * Validate the variable. Returns a variable obtained by parsing the input.
 	 * 
 	 * @return {@link Var} or null if error occured.
 	 */
@@ -138,7 +159,7 @@ public class Validator4Internal {
 	}
 
 	/**
-	 * try parse a term
+	 * Validate a term
 	 * 
 	 * @return term, or null if error occurs
 	 * @throws ParserException
@@ -153,7 +174,7 @@ public class Validator4Internal {
 	}
 
 	/**
-	 * Parse a set of parameters.
+	 * Validate a set of parameters.
 	 *
 	 * @return A list of {@link Term}s. Or null if an error occured.
 	 */
@@ -180,8 +201,8 @@ public class Validator4Internal {
 	}
 
 	/**
-	 * Convert all errors that occured in the validator. Excludes the errors in
-	 * the visitor.
+	 * get all errors that occured in the validator. Excludes the errors in the
+	 * visitor.
 	 * 
 	 * @return list of validator errors that occured in the validator.
 	 */
