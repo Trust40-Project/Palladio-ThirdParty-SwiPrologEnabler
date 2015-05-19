@@ -43,10 +43,8 @@ public class Term900Test {
 	 * @throws IOException
 	 *             If the file does not exist.
 	 */
-	private Parser4 getParser(Reader textStream)
-			throws IOException {
-		Parser4 parser = new Parser4(
-				textStream, null);
+	private Parser4 getParser(Reader textStream) throws IOException {
+		Parser4 parser = new Parser4(textStream, null);
 
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
@@ -61,14 +59,14 @@ public class Term900Test {
 
 	/**
 	 * Checks that two ':' separated texts (which should be term0 parse-able
-	 * texts) are parssed properly.
+	 * texts) are parsed properly.
 	 * 
 	 * @throws ParserException
 	 */
 	private void checkParsesAsTerm0(String text1, String text2)
 			throws IOException, ParserException {
 		String text = text1 + ":" + text2;
-		Parser4 parser = getParser(text);
+		Parser4 parser = getParser(text1);
 		Term0Context tree = parser.term0();
 		System.out.println(text + " -> " + parser.toStringTree(tree));
 		assertEquals(text2, parser.toStringTree(tree));

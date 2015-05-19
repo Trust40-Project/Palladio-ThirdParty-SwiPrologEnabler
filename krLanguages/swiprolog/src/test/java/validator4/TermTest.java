@@ -105,7 +105,6 @@ public class TermTest {
 			ParserException {
 		PrologTerm term = validator("_123").term();
 		assertEquals(term, new PrologVar(new jpl.Variable("_123"), null));
-
 	}
 
 }

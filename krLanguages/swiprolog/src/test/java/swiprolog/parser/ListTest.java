@@ -20,17 +20,16 @@ package swiprolog.parser;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
+import krTools.errors.exceptions.ParserException;
+
 import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.atn.PredictionMode;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Test;
+
+import swiprolog.parser.Prolog4Parser.ListtermContext;
 
 /**
  * Tests for Prolog4Parser term0
@@ -38,29 +37,22 @@ import org.junit.Test;
  */
 public class ListTest {
 	/**
-	 * Parses the textStream.
+	 * Creates parser to parse given text.
 	 *
-	 * @return The ANTLR parser for the file.
-	 * @throws IOException
-	 *             If the file does not exist.
+	 * @return The {@link Parser4} for the text.
 	 */
-	private Prolog4Parser getParser(InputStream textStream) throws IOException {
-		ANTLRInputStream input = new ANTLRInputStream(textStream);
+	private Parser4 getParser(String text) throws IOException {
+		return new Parser4(new StringReader(text), null);
 
-		Prolog4Lexer lexer = new Prolog4Lexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-		Prolog4Parser parser = new Prolog4Parser(tokens);
-
-		// parser report all ambiguities for testing.
-		parser.getInterpreter().setPredictionMode(
-				PredictionMode.LL_EXACT_AMBIG_DETECTION);
-		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
-	private Prolog4Parser getParser(String text) throws IOException {
-		return getParser(new StringBufferInputStream(text));
+	private void checkParsesAsList(String... items) throws IOException,
+			ParserException {
+		String text = "[" + list2String(",", items) + "]";
+		Parser4 parser = getParser(text);
+		ListtermContext tree = parser.listterm();
+		System.out.println(text + " -> " + parser.toStringTree(tree));
+		assertEquals(parsedList2String(items), parser.toStringTree(tree));
 	}
 
 	/**
@@ -80,15 +72,6 @@ public class ListTest {
 			listtext += item;
 		}
 		return listtext;
-	}
-
-	private void checkParsesAsList(String... items) throws IOException,
-			RecognitionException {
-		String text = "[" + list2String(",", items) + "]";
-		Prolog4Parser parser = getParser(text);
-		ParseTree tree = parser.listterm();
-		System.out.println(text + " -> " + tree.toStringTree(parser));
-		assertEquals(parsedList2String(items), tree.toStringTree(parser));
 	}
 
 	/**
@@ -130,22 +113,23 @@ public class ListTest {
 	}
 
 	@Test
-	public void testLisEmptyList() throws IOException {
+	public void testLisEmptyList() throws IOException, RecognitionException,
+			ParserException {
 		checkParsesAsList();
 	}
 
 	@Test
-	public void testLista() throws IOException {
+	public void testLista() throws IOException, ParserException {
 		checkParsesAsList("a");
 	}
 
 	@Test
-	public void testListab() throws IOException {
+	public void testListab() throws IOException, ParserException {
 		checkParsesAsList("a", "b");
 	}
 
 	@Test
-	public void testListabc() throws IOException {
+	public void testListabc() throws IOException, ParserException {
 		checkParsesAsList("a", "b", "c");
 	}
 

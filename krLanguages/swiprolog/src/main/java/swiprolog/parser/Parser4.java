@@ -20,6 +20,7 @@ import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.atn.ParserATNSimulator;
 import org.antlr.v4.runtime.dfa.DFA;
 
+import swiprolog.parser.Prolog4Parser.ListtermContext;
 import swiprolog.parser.Prolog4Parser.PossiblyEmptyConjunctContext;
 import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
 import swiprolog.parser.Prolog4Parser.PrologtextContext;
@@ -29,9 +30,11 @@ import antlr.build.ANTLR;
 
 /**
  * {@link Prolog4Parser} but stores all errors coming from {@link ANTLR} so that
- * we can later report them. Also it re-throws if there was an error after
- * parsing. This is needed because {@link Prolog4Parser} does not throw when
- * errors occur, instead it "recovers" and never reports us so. <br>
+ * we can later report them. All (unchecked) {@link RecognitionException}s are
+ * shielded (actually, never thrown directly from the {@link Prolog4Parser}) and
+ * changed to {@link ParserException}s.Also it re-throws if there was an error
+ * after parsing. This is needed because {@link Prolog4Parser} does not throw
+ * when errors occur, instead it "recovers" and never reports us so. <br>
  * This parser therefore checks the results and re-throws the first exception so
  * that we can handle problems with the normal throw/catch mechanisms higher up.
  * 
@@ -43,6 +46,8 @@ public class Parser4 implements ANTLRErrorListener {
 	private Prolog4Parser parser;
 	private List<ParserException> errors = new ArrayList<ParserException>();
 	private SourceInfo sourceInfo;
+	private ANTLRInputStream stream;
+	private Prolog4Lexer lexer;
 
 	/**
 	 * Constructor. Adjusts the tokeniser input stream position matching the
@@ -62,17 +67,19 @@ public class Parser4 implements ANTLRErrorListener {
 		if (sourceInfo == null) {
 			sourceInfo = new SourceInfoObject(null, 1, 0, 0, 0);
 		}
-		ANTLRInputStream stream = new ANTLRInputStream(reader);
+		stream = new ANTLRInputStream(reader);
 		stream.name = (sourceInfo.getSource() == null) ? "" : sourceInfo
 				.getSource().getPath();
 
-		Prolog4Lexer lexer = new Prolog4Lexer(stream);
+		lexer = new Prolog4Lexer(stream);
 		lexer.setLine(sourceInfo.getLineNumber());
 		lexer.setCharPositionInLine(sourceInfo.getCharacterPosition());
 
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 
 		parser = new Prolog4Parser(tokens);
+
+		lexer.addErrorListener(this);
 		parser.addErrorListener(this);
 	}
 
@@ -82,6 +89,19 @@ public class Parser4 implements ANTLRErrorListener {
 	 */
 	public SourceInfo getSourceInfo() {
 		return sourceInfo;
+	}
+
+	/**
+	 * Check if we processed the whole stream we were given
+	 */
+	private void checkEndOfInputReached() {
+		if (stream.index() < stream.size()) {
+			final SourceInfoObject info = new SourceInfoObject(
+					sourceInfo.getSource(), lexer.getLine(),
+					lexer.getCharPositionInLine(), 0, 0);
+			errors.add(new ParserException("Unrecognized spurious input", info));
+		}
+
 	}
 
 	/**
@@ -103,6 +123,44 @@ public class Parser4 implements ANTLRErrorListener {
 		return errors.isEmpty();
 	}
 
+	public ParserATNSimulator getInterpreter() {
+		return parser.getInterpreter();
+	}
+
+	/**
+	 * Re-throw the first error, if there occurred an error during the parsing
+	 * 
+	 * @throws ParserException
+	 */
+	private void rethrow() throws ParserException {
+		if (!errors.isEmpty()) {
+			throw errors.get(0);
+		}
+	}
+
+	/**
+	 * Check all input was read and no errors occured.
+	 * 
+	 * @throws ParserException
+	 */
+	private void finalChecks() throws ParserException {
+		checkEndOfInputReached();
+		rethrow();
+
+	}
+
+	/**
+	 * Renders string from a parse tree result.
+	 * 
+	 * @param tree
+	 *            {@link ParserRuleContext} to render
+	 * @return String represetation of tree.
+	 */
+	public String toStringTree(ParserRuleContext tree) {
+		return tree.toStringTree(parser);
+	}
+
+	/*************** Implements {@link ANTLRErrorListener} *******************/
 	@Override
 	public void syntaxError(Recognizer<?, ?> recognizer,
 			Object offendingSymbol, int line, int charPositionInLine,
@@ -116,6 +174,7 @@ public class Parser4 implements ANTLRErrorListener {
 	@Override
 	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
 			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
+		// THIS IS A BUG SITUATION
 		throw new IllegalStateException(
 				"SWI Prolog parser encountered ambiguity!" + recognizer
 						+ " at " + startIndex);
@@ -126,6 +185,7 @@ public class Parser4 implements ANTLRErrorListener {
 	public void reportAttemptingFullContext(Parser recognizer, DFA dfa,
 			int startIndex, int stopIndex, BitSet conflictingAlts,
 			ATNConfigSet configs) {
+		// THIS IS A BUG SITUATION
 		throw new IllegalStateException(
 				"SWI Prolog parser encountered restart at full context!"
 						+ recognizer + " at " + startIndex);
@@ -135,70 +195,49 @@ public class Parser4 implements ANTLRErrorListener {
 	@Override
 	public void reportContextSensitivity(Parser recognizer, DFA dfa,
 			int startIndex, int stopIndex, int prediction, ATNConfigSet configs) {
+		// THIS IS A BUG SITUATION
 		throw new IllegalStateException(
 				"SWI Prolog parser encountered context sensitivity!"
 						+ recognizer + " at " + startIndex);
 	}
 
-	public ParserATNSimulator getInterpreter() {
-		// TODO Auto-generated method stub
-		return parser.getInterpreter();
-	}
-
+	/************** Actual public Parser functionality *******************/
 	public Term0Context term0() throws ParserException {
 		Term0Context t = parser.term0();
-		rethrow();
+		finalChecks();
 		return t;
-	}
-
-	/**
-	 * Re-throw the first error, if there occurred an error during the parsing
-	 * 
-	 * @throws ParserException
-	 */
-	private void rethrow() throws ParserException {
-		if (!errors.isEmpty()) {
-			ParserException exc = errors.get(0);
-			throw new ParserException("error(s) occured while parsing",
-					exc.getSourceInfo(), exc);
-		}
 	}
 
 	public PossiblyEmptyConjunctContext possiblyEmptyConjunct()
 			throws ParserException {
 		PossiblyEmptyConjunctContext t = parser.possiblyEmptyConjunct();
-		rethrow();
+		finalChecks();
 		return t;
 	}
 
 	public PrologtextContext prologtext() throws ParserException {
 		PrologtextContext t = parser.prologtext();
-		rethrow();
+		finalChecks();
 		return t;
 	}
 
 	public PossiblyEmptyDisjunctContext possiblyEmptyDisjunct()
 			throws ParserException {
 		PossiblyEmptyDisjunctContext t = parser.possiblyEmptyDisjunct();
-		rethrow();
+		finalChecks();
 		return t;
 	}
 
 	public Term1000Context term1000() throws ParserException {
 		Term1000Context t = parser.term1000();
-		rethrow();
+		finalChecks();
 		return t;
 	}
 
-	/**
-	 * Renders string from a parse tree result.
-	 * 
-	 * @param tree
-	 *            {@link ParserRuleContext} to render
-	 * @return String represetation of tree.
-	 */
-	public String toStringTree(ParserRuleContext tree) {
-		return tree.toStringTree(parser);
+	public ListtermContext listterm() throws ParserException {
+		ListtermContext t = parser.listterm();
+		finalChecks();
+		return t;
 	}
 
 }

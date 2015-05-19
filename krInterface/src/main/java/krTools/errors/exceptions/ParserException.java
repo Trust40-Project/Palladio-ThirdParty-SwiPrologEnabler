@@ -49,6 +49,11 @@ public class ParserException extends Exception implements SourceInfo {
 		this(msg, null);
 	}
 
+	@Override
+	public String toString() {
+		return "ParserException " + getMessage() + " " + info;
+	}
+
 	/**
 	 * Creates a new {@link ParserException} using the message, and source that
 	 * are provided.
@@ -134,7 +139,7 @@ public class ParserException extends Exception implements SourceInfo {
 			return -1;
 		}
 	}
-	
+
 	/** public getter for Source Info */
 	public SourceInfo getSourceInfo() {
 		return info;
