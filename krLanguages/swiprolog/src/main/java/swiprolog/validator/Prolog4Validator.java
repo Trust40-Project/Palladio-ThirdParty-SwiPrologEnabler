@@ -35,6 +35,9 @@ import visitor.Prolog4Visitor;
  * Prolog4Validator that parses and validates. All errors occuring during parse
  * or validation are thrown.
  * 
+ * Usage example:
+ * <code>PrologTerm term = validator("aap(1)").ParseTerm();</code>
+ * 
  * @author W.Pasman 18may15
  *
  */

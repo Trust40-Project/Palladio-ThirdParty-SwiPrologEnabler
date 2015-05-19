@@ -218,10 +218,15 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 
 	@Override
 	public List<PrologTerm> visitArglist(ArglistContext ctx) {
-		List<PrologTerm> argList = new LinkedList<PrologTerm>();
-		argList.add(visitExpression(ctx.expression()));
-		argList.addAll(visitArglist(ctx.arglist()));
-		return argList;
+		ArrayList<PrologTerm> arglist = new ArrayList<PrologTerm>();
+
+		arglist.add(visitExpression(ctx.expression()));
+
+		if (ctx.arglist() != null) {
+			// we DO have a comma and more arguments
+			arglist.addAll(visitArglist(ctx.arglist()));
+		}
+		return arglist;
 	}
 
 	@Override
@@ -359,14 +364,23 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 
 	@Override
 	public PrologTerm visitTerm200(Term200Context ctx) {
-		String op = ctx.op.getText();
+
+		String op = null;
+		SourceInfo info = getSourceInfo(ctx);
+		/**
+		 * (op = '-' | op= '\\' ) term200 <br>
+		 * | term100 ( (op= '^' term200) | (op='**' term100) )?
+		 */
+		if (ctx.op != null) {
+			op = ctx.op.getText();
+		}
 		PrologTerm term;
 
-		if (op.equals("-") || op.equals("\\")) {
+		if ("-".equals(op) || "\\".equals(op)) {
 			// (op = '-' | op= '\\' ) term200
 
 			Term t = visitTerm200(ctx.term200()).getTerm();
-			jpl.Term[] args = { t };
+			Term[] args = { t };
 			term = compound(op, args, ctx);
 			if (op.equals("-")) {
 				// minus sign, check special case of numeric constant. See ISO
@@ -377,24 +391,31 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 				// compliance here.
 				if (t.isFloat()) {
 					term = new PrologTerm(new jpl.Float(-1 * t.floatValue()),
-							getSourceInfo(ctx));
+							info);
 				} else { // integer
 					term = new PrologTerm(new jpl.Integer(-1 * t.intValue()),
-							getSourceInfo(ctx));
+							info);
 				}
 			}
 		} else {
 			// term100 ( (op= '^' term200) | (op= '**' term100) )?
 
 			Term t1 = visitTerm100(ctx.term100(0)).getTerm();
-			Term t2;
-			if (op.equals("^")) {
-				t2 = visitTerm200(ctx.term200()).getTerm();
+			if (op == null) { // only term100.
+				term = new PrologTerm(t1, info);
 			} else {
-				t2 = visitTerm100(ctx.term100(1)).getTerm();
+				Term t2;
+				if ("^".equals(op)) {
+					t2 = visitTerm200(ctx.term200()).getTerm();
+				} else {
+					t2 = visitTerm100(ctx.term100(1)).getTerm();
+				}
+				Term[] args = { t1, t2 };
+				term = compound(op, args, ctx);
 			}
-			jpl.Term[] args = { t1, t2 };
-			term = compound(op, args, ctx);
+
+			Term t2 = null; // optional
+
 		}
 
 		return term;
@@ -423,7 +444,7 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
 	@Override
 	public PrologTerm visitTerm500(Term500Context ctx) {
 		/*
-		 * term400 ( ('+' | '-' | '/\\' | '\\/' | 'xor' | '><') term400 )*
+		 * term400 term500b*
 		 */
 		PrologTerm term = visitTerm400(ctx.term400());
 		for (Term500bContext t : ctx.term500b()) {
@@ -452,6 +473,11 @@ public class Prolog4Visitor extends Prolog4ParserBaseVisitor {
        )?
 		 */
 		PrologTerm lhs = visitTerm500(ctx.term500(0));
+		if (ctx.term500().size() == 1) {
+			// only term500
+			return lhs;
+		}
+		// we DO have the optional RHS term. Make a compound.
 		PrologTerm rhs = visitTerm500(ctx.term500(1));
 		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
 

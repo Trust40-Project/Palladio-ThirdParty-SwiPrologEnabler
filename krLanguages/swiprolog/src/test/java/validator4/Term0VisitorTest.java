@@ -39,11 +39,12 @@ import swiprolog.parser.Prolog4Parser.Term0Context;
 import visitor.Prolog4Visitor;
 
 /**
- * Tests for Prolog4Parser term0. This is already a kind of end-to-end test as
- * SWI prolog is being used from this point.
+ * Tests for Prolog4Parser term0 to see if pipeline parser->visitor works ok.
+ * This is already a kind of end-to-end test as we do not stub the parser and
+ * also we hook in SWI prolog.
  *
  */
-public class Term0ValidatorTest {
+public class Term0VisitorTest {
 	/**
 	 * Parses the textStream.
 	 *
@@ -76,7 +77,7 @@ public class Term0ValidatorTest {
 	}
 
 	/**
-	 * Default version of {@link #checkValidatesAsTerm0(String, String)} where
+	 * Default version of {@link #checkVisitesAsTerm0(String, String)} where
 	 * input and output are exptected identical.
 	 * 
 	 * @param text
@@ -85,9 +86,9 @@ public class Term0ValidatorTest {
 	 * @throws KRInitFailedException
 	 * @throws ParserException
 	 */
-	private void checkValidatesAsTerm0(String text) throws IOException,
+	private void checkVisitsAsTerm0(String text) throws IOException,
 			KRInitFailedException, ParserException {
-		checkValidatesAsTerm0(text, text);
+		checkVisitesAsTerm0(text, text);
 	}
 
 	/**
@@ -101,7 +102,7 @@ public class Term0ValidatorTest {
 	 * @throws KRInitFailedException
 	 * @throws ParserException
 	 */
-	private void checkValidatesAsTerm0(String in, String out)
+	private void checkVisitesAsTerm0(String in, String out)
 			throws KRInitFailedException, IOException, ParserException {
 		ErrorStoringProlog4Parser parser = getParser(in);
 		Term0Context tree = parser.term0();
@@ -115,72 +116,72 @@ public class Term0ValidatorTest {
 	@Test
 	public void testFloat() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("100.3");
+		checkVisitsAsTerm0("100.3");
 	}
 
 	@Test
 	public void testFloat2() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("100.3e13", "1.00300002E15");
+		checkVisitesAsTerm0("100.3e13", "1.00300002E15");
 	}
 
 	@Test
 	public void testFloat3() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("0.3e13", "3.00000005E12");
+		checkVisitesAsTerm0("0.3e13", "3.00000005E12");
 	}
 
 	@Test
 	public void testInteger() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("12345");
+		checkVisitsAsTerm0("12345");
 	}
 
 	@Test(expected = NumberFormatException.class)
 	public void testBigInteger() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("123456789012345678901234567890123456789012345678901234567890");
+		checkVisitsAsTerm0("123456789012345678901234567890123456789012345678901234567890");
 	}
 
 	@Test
 	public void testVariable() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("X");
+		checkVisitsAsTerm0("X");
 	}
 
 	@Test
 	public void testVariable2() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("_123");
+		checkVisitsAsTerm0("_123");
 	}
 
 	@Test
 	public void testString() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("'Aap'");
+		checkVisitsAsTerm0("'Aap'");
 	}
 
 	@Test
 	public void testString1() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("\"Aap\"", "'Aap'");
+		checkVisitesAsTerm0("\"Aap\"", "'Aap'");
 	}
 
 	@Test
 	public void testAtom() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("aap");
+		checkVisitsAsTerm0("aap");
 	}
 
 	@Test
 	public void testString2() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("`Aap`", "'Aap'");
+		checkVisitesAsTerm0("`Aap`", "'Aap'");
 	}
 
 	@Test(expected = ParserException.class)
 	public void testString3() throws IOException, KRInitFailedException,
 			ParserException {
-		checkValidatesAsTerm0("`Aap'");
+		checkVisitsAsTerm0("`Aap'");
 	}
 }
