@@ -17,7 +17,6 @@
 
 package visitor;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -70,14 +69,13 @@ import swiprolog.parser.SourceInfoObject;
  * only, as you normally need an error listener. See also {@link Visitor4}.<br>
  */
 public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
-	private final File sourcefile;
+	private final SourceInfo source;
 
 	/**
 	 * @param source
-	 *            used only to make correct getSourceInfo references.
 	 */
-	public Visitor4Internal(File source) {
-		this.sourcefile = source;
+	public Visitor4Internal(SourceInfo source) {
+		this.source = source;
 	}
 
 	/**
@@ -94,16 +92,18 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			// happens if we are at EOF...
 			stop = start;
 		}
-		return new SourceInfoObject(this.sourcefile, start.getLine(),
-				start.getCharPositionInLine(), start.getStartIndex(),
-				stop.getStopIndex());
+		return new SourceInfoObject(this.source.getSource(), start.getLine(),
+				start.getCharPositionInLine(), this.source.getStartIndex()
+				+ start.getStartIndex(), this.source.getStartIndex()
+				+ stop.getStopIndex());
 	}
 
 	private SourceInfo getSourceInfo(TerminalNode leaf) {
 		Token symbol = leaf.getSymbol();
-		return new SourceInfoObject(this.sourcefile, symbol.getLine(),
-				symbol.getCharPositionInLine(), symbol.getStartIndex(),
-				symbol.getStopIndex());
+		return new SourceInfoObject(this.source.getSource(), symbol.getLine(),
+				symbol.getCharPositionInLine(), this.source.getStartIndex()
+				+ symbol.getStartIndex(), this.source.getStartIndex()
+				+ symbol.getStopIndex());
 	}
 
 	/**

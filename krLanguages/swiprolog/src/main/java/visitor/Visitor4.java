@@ -29,7 +29,7 @@ public class Visitor4 {
 	 */
 	public Visitor4(Parser4 p) {
 		this.parser = p;
-		this.visitor = new Visitor4Internal(p.getSourceInfo().getSource());
+		this.visitor = new Visitor4Internal(p.getSourceInfo());
 	}
 
 	public PrologTerm visitPossiblyEmptyConjunct() throws ParserException {
