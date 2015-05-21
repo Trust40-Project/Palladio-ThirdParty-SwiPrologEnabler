@@ -19,7 +19,6 @@ package swiprolog.parser;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.List;
 
 import krTools.errors.exceptions.ParserException;
@@ -54,73 +53,52 @@ public class KRInterfaceParser4 implements Parser {
 	 *             {@link ParserException}.
 	 */
 	public KRInterfaceParser4(Reader r, SourceInfo info) throws IOException {
-		validator = new Validator4(new Visitor4(new Parser4(r, info)));
+		this.validator = new Validator4(new Visitor4(new Parser4(r, info)));
 	}
 
 	@Override
 	public Update parseUpdate() throws ParserException {
-		return validator.updateOrEmpty();
+		return this.validator.updateOrEmpty();
 	}
 
 	@Override
 	public List<DatabaseFormula> parseDBFs() throws ParserException {
-		return validator.program();
+		return this.validator.program();
 	}
 
 	@Override
 	public List<Query> parseQueries() throws ParserException {
-		return validator.goalSection();
+		return this.validator.goalSection();
 	}
 
 	/**
 	 * Allows empty queries.
-	 * 
+	 *
 	 * @throws ParserException
 	 */
 	@Override
 	public Query parseQuery() throws ParserException {
-		return validator.queryOrEmpty();
+		return this.validator.queryOrEmpty();
 	}
 
 	@Override
 	public Var parseVar() throws ParserException {
-		return validator.var();
+		return this.validator.var();
 	}
 
 	@Override
 	public Term parseTerm() throws ParserException {
-		return validator.term();
+		return this.validator.term();
 	}
 
 	@Override
 	public List<Term> parseTerms() throws ParserException {
-		return validator.terms();
+		return this.validator.terms();
 	}
 
 	@Override
 	public List<SourceInfo> getErrors() {
-		List<SourceInfo> errors = new ArrayList<SourceInfo>();
-		errors.addAll(validator.getErrors());
-		return errors;
-		// // Get all (syntax)errors from the lexer or the parser
-		// List<SourceInfo> exceptions = new ArrayList<SourceInfo>();
-		// exceptions.addAll(this.parser.getLexer().getErrors());
-		// exceptions.addAll(this.parser.getErrors());
-		//
-		// // Check if we processed the whole stream we were given
-		// final int index = this.stream.index();
-		// final int size = this.stream.size();
-		// if (size - index > 0) {
-		// final SourceInfoObject error = new SourceInfoObject(
-		// this.parser.getSource(), this.parser.getLexer().getLine(),
-		// this.parser.getLexer().getCharPositionInLine(), this.start
-		// + index, this.start + (size - 1));
-		// exceptions.add(new ParserException("Unrecognized spurious input",
-		// error));
-		// }
-		//
-		// // Return
-		// return exceptions;
+		return this.validator.getErrors();
 	}
 
 }

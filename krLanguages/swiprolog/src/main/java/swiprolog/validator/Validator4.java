@@ -26,6 +26,7 @@ import krTools.language.Query;
 import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
+import krTools.parser.SourceInfo;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
@@ -197,24 +198,14 @@ public class Validator4 {
 	}
 
 	/**
-	 * get all errors that occurred in the validator. Excludes the errors in the
-	 * visitor.
-	 *
-	 * @return list of validator errors that occurred in the validator.
-	 */
-	public List<ParserException> getValidatorErrors() {
-		return this.errors;
-	}
-
-	/**
 	 * Get all errors that occurred, both in validator and in visitor.
 	 *
 	 * @return all errors that occurred
 	 */
-	public List<ParserException> getErrors() {
-		List<ParserException> list = new ArrayList<ParserException>();
+	public List<SourceInfo> getErrors() {
+		List<SourceInfo> list = new LinkedList<SourceInfo>();
 		list.addAll(this.visitor.getErrors());
-		list.addAll(getValidatorErrors());
+		list.addAll(this.errors);
 		return list;
 	}
 
