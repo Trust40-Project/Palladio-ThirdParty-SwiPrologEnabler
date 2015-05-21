@@ -17,6 +17,7 @@
 package swiprolog.validator;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import krTools.errors.exceptions.ParserException;
@@ -33,48 +34,44 @@ import swiprolog.language.PrologVar;
 import visitor.Visitor4;
 
 /**
- * Parse, visit and validate. All errors occuring during parse or validation are
- * thrown. Normally you use Validator4 which also stores errors as they occur.
- * 
+ * Parse, visit and validate. All errors occurring during parse or validation
+ * are thrown. Normally you use Validator4 which also stores errors as they
+ * occur.
+ *
  * Usage example to parse string as prolog term:
  * <code>validator = new Validator4Internal(new Prolog4VisitorPlus(
 				new ErrorStoringProlog4Parser(new StringReader(in), null)));
 				PrologTerm term = validator.term();
 				</code>
- * 
- * @author W.Pasman 18may15
  *
+ * @author W.Pasman 18may15
  */
 public class Validator4Internal {
-
-	private Visitor4 visitor;
-
-	private List<ParserException> errors = new ArrayList<ParserException>();
+	private final Visitor4 visitor;
+	private final List<ParserException> errors = new LinkedList<ParserException>();
 
 	/**
-	 * 
 	 * @param visitor
 	 *            the {@link Visitor4} (that contains the parser)
 	 */
 	public Validator4Internal(Visitor4 vis) {
-		visitor = vis;
+		this.visitor = vis;
 	}
 
 	/**
 	 * Validate an update or empty term.
-	 * 
+	 *
 	 * @return {@link Update} or null if there is error.
 	 */
 	public Update updateOrEmpty() throws ParserException {
 		try {
-			PrologTerm conj = visitor.visitPossiblyEmptyConjunct();
+			PrologTerm conj = this.visitor.visitPossiblyEmptyConjunct();
 			if (conj.toString().equals("true")) { // special case.
 				return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
 			}
 			return SemanticTools.conj2Update(conj);
-
 		} catch (ParserException e) {
-			errors.add(e);
+			this.errors.add(e);
 		}
 		return null;
 	}
@@ -87,8 +84,7 @@ public class Validator4Internal {
 	 */
 	public List<DatabaseFormula> program() {
 		try {
-			List<PrologTerm> prologTerms = visitor.visitPrologtext();
-
+			List<PrologTerm> prologTerms = this.visitor.visitPrologtext();
 			List<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>(
 					prologTerms.size());
 			for (PrologTerm t : prologTerms) {
@@ -96,7 +92,7 @@ public class Validator4Internal {
 			}
 			return dbfs;
 		} catch (ParserException e) {
-			errors.add(e);
+			this.errors.add(e);
 		}
 		return null;
 	}
@@ -109,14 +105,14 @@ public class Validator4Internal {
 	public List<Query> goalSection() {
 		try {
 			List<Query> goals = new ArrayList<Query>();
-			for (PrologTerm t : visitor.visitPrologtext()) {
+			for (PrologTerm t : this.visitor.visitPrologtext()) {
 				// check that each term is a valid Prolog goal / query
 				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(),
 						t.getSourceInfo()), t.getSourceInfo()));
 			}
 			return goals;
 		} catch (ParserException e) {
-			errors.add(e);
+			this.errors.add(e);
 		}
 		return null;
 	}
@@ -128,47 +124,47 @@ public class Validator4Internal {
 	 */
 	public PrologQuery queryOrEmpty() {
 		try {
-			return SemanticTools.toQuery(visitor.visitPossiblyEmptyDisjunct());
+			return SemanticTools.toQuery(this.visitor
+					.visitPossiblyEmptyDisjunct());
 		} catch (ParserException e) {
-			errors.add(e);
+			this.errors.add(e);
 		}
 		return null;
 	}
 
 	/**
 	 * Validate the variable. Returns a variable obtained by parsing the input.
-	 * 
-	 * @return {@link Var} or null if error occured.
+	 *
+	 * @return {@link Var} or null if error occurred.
 	 */
 	public Var var() {
 		try {
 			PrologTerm term;
-			term = visitor.visitTerm0();
-
-			if (!term.isVar()) {
+			term = this.visitor.visitTerm0();
+			if (term.isVar()) {
+				return (PrologVar) term;
+			} else {
 				throw new ParserException(String.format(
 						"expected a SWI prolog variable but found '%s'",
 						term.toString()), term.getSourceInfo());
 			}
-
-			return (PrologVar) term;
 		} catch (ParserException e) {
-			errors.add(e);
+			this.errors.add(e);
 		}
 		return null;
 	}
 
 	/**
 	 * Validate a term
-	 * 
+	 *
 	 * @return term, or null if error occurs
 	 * @throws ParserException
 	 */
 	public PrologTerm term() {
 		try {
-			return visitor.visitTerm0();
+			return this.visitor.visitTerm0();
 		} catch (ParserException e) {
-			errors.add(e);
+			this.errors.add(e);
 		}
 		return null;
 	}
@@ -180,8 +176,7 @@ public class Validator4Internal {
 	 */
 	public List<Term> terms() {
 		try {
-			PrologTerm t = visitor.visitTerm1000();
-
+			PrologTerm t = this.visitor.visitTerm1000();
 			List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
 			List<Term> terms = new ArrayList<Term>(original.size());
 			for (jpl.Term term : original) {
@@ -194,30 +189,30 @@ public class Validator4Internal {
 			}
 			return terms;
 		} catch (ParserException e) {
-			errors.add(e);
+			this.errors.add(e);
 		}
 		return null;
 
 	}
 
 	/**
-	 * get all errors that occured in the validator. Excludes the errors in the
+	 * get all errors that occurred in the validator. Excludes the errors in the
 	 * visitor.
-	 * 
-	 * @return list of validator errors that occured in the validator.
+	 *
+	 * @return list of validator errors that occurred in the validator.
 	 */
 	public List<ParserException> getValidatorErrors() {
-		return errors;
+		return this.errors;
 	}
 
 	/**
-	 * Get all errors that occured, both in validator and in visitor.
-	 * 
-	 * @return all errors that occured
+	 * Get all errors that occurred, both in validator and in visitor.
+	 *
+	 * @return all errors that occurred
 	 */
 	public List<ParserException> getErrors() {
 		List<ParserException> list = new ArrayList<ParserException>();
-		list.addAll(visitor.getErrors());
+		list.addAll(this.visitor.getErrors());
 		list.addAll(getValidatorErrors());
 		return list;
 	}

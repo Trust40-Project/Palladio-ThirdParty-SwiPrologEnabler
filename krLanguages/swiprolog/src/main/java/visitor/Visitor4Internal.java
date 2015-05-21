@@ -68,24 +68,21 @@ import swiprolog.parser.SourceInfoObject;
  * creates the proper objects from the parsed tree. This returns
  * {@link PrologTerm}s but they are not yet validated. This is for internal use
  * only, as you normally need an error listener. See also {@link Visitor4}.<br>
- *
  */
-public class Visitor4Internal extends Prolog4ParserBaseVisitor {
-
+public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	private final File sourcefile;
 
 	/**
-	 * 
 	 * @param source
 	 *            used only to make correct getSourceInfo references.
 	 */
 	public Visitor4Internal(File source) {
-		sourcefile = source;
+		this.sourcefile = source;
 	}
 
 	/**
 	 * Create {@link SourceInfoObject} for given context.
-	 * 
+	 *
 	 * @param ctx
 	 *            the {@link DirectiveContext} from the parsed object
 	 * @return {@link SourceInfoObject}
@@ -97,14 +94,14 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 			// happens if we are at EOF...
 			stop = start;
 		}
-		return new SourceInfoObject(sourcefile, start.getLine(),
+		return new SourceInfoObject(this.sourcefile, start.getLine(),
 				start.getCharPositionInLine(), start.getStartIndex(),
 				stop.getStopIndex());
 	}
 
 	private SourceInfo getSourceInfo(TerminalNode leaf) {
 		Token symbol = leaf.getSymbol();
-		return new SourceInfoObject(sourcefile, symbol.getLine(),
+		return new SourceInfoObject(this.sourcefile, symbol.getLine(),
 				symbol.getCharPositionInLine(), symbol.getStartIndex(),
 				symbol.getStopIndex());
 	}
@@ -112,7 +109,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 	/**
 	 * create new {@link jpl.Compound} using functor name, args and
 	 * {@link ParserRuleContext}
-	 * 
+	 *
 	 * @param name
 	 *            the functor name
 	 * @param args
@@ -130,7 +127,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 	/**
 	 * create new {@link jpl.Compound} using functor name, args and
 	 * {@link SourceInfo}
-	 * 
+	 *
 	 * @param name
 	 *            the functor name
 	 * @param args
@@ -145,7 +142,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 
 	/**
 	 * craete new {@link jpl.Atom} with given name
-	 * 
+	 *
 	 * @param name
 	 *            of new atom
 	 * @param ctx
@@ -195,7 +192,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 	public List<PrologTerm> visitPrologtext(PrologtextContext ctx) {
 		List<PrologTerm> clauses = new LinkedList<PrologTerm>();
 		for (DirectiveorclauseContext d : ctx.directiveorclause()) {
-
 			clauses.add(visitDirectiveorclause(d));
 		}
 		return clauses;
@@ -225,10 +221,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 
 	@Override
 	public List<PrologTerm> visitArglist(ArglistContext ctx) {
-		ArrayList<PrologTerm> arglist = new ArrayList<PrologTerm>();
-
+		List<PrologTerm> arglist = new LinkedList<PrologTerm>();
 		arglist.add(visitExpression(ctx.expression()));
-
 		if (ctx.arglist() != null) {
 			// we DO have a comma and more arguments
 			arglist.addAll(visitArglist(ctx.arglist()));
@@ -241,8 +235,9 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 			PossiblyEmptyConjunctContext ctx) {
 		if (ctx.term1000() != null) {
 			return visitTerm1000(ctx.term1000());
+		} else {
+			return atom("true", ctx);
 		}
-		return atom("true", ctx);
 	}
 
 	@Override
@@ -250,8 +245,9 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 			PossiblyEmptyDisjunctContext ctx) {
 		if (ctx.term1100() != null) {
 			return visitTerm1100(ctx.term1100());
+		} else {
+			return atom("true", ctx);
 		}
-		return atom("true", ctx);
 	}
 
 	@Override
@@ -261,10 +257,11 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 
 	@Override
 	public PrologTerm visitListterm(ListtermContext ctx) {
-		if (ctx.items() == null) {
+		if (ctx.items() != null) {
+			return visitItems(ctx.items());
+		} else {
 			return atom("[]", ctx);
 		}
-		return visitItems(ctx.items());
 	}
 
 	@Override
@@ -289,7 +286,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 			jpl.Term[] args2 = { head.getTerm(), tail.getTerm() };
 			return compound(".", args2, ctx);
 		}
-
 	}
 
 	@Override
@@ -307,44 +303,38 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 				Long val = Long.valueOf(text);
 				return new PrologTerm(JPLUtils.createIntegerNumber(val),
 						getSourceInfo(ctx)); // int, octal, hex, etc.
+			} else { // float
+				return new PrologTerm(new jpl.Float(Double.valueOf(text)),
+						getSourceInfo(ctx));
 			}
-			// float
-			return new PrologTerm(new jpl.Float(Double.valueOf(text)),
-					getSourceInfo(ctx));
-
-		}
-		if (ctx.NAME() != null) {
+		} else if (ctx.NAME() != null) {
 			String name = ctx.NAME().getText();
 			ArglistContext args = ctx.arglist();
 			if (args == null) {
 				return atom(name, ctx);
+			} else {
+				List<PrologTerm> a = visitArglist(args);
+				// functor with arguments
+				List<jpl.Term> terms = new ArrayList<jpl.Term>(a.size());
+				for (PrologTerm pterm : a) {
+					terms.add(pterm.getTerm());
+				}
+				return compound(name, terms.toArray(new jpl.Term[0]), ctx);
 			}
-			List<PrologTerm> a = visitArglist(args);
-
-			// functor with arguments
-			List<jpl.Term> terms = new ArrayList<jpl.Term>(a.size());
-			for (PrologTerm pterm : a) {
-				terms.add(pterm.getTerm());
-			}
-			return compound(name, terms.toArray(new jpl.Term[0]), ctx);
-		}
-		if (ctx.VARIABLE() != null) {
+		} else if (ctx.VARIABLE() != null) {
 			return new PrologVar(new jpl.Variable(ctx.VARIABLE().getText()),
 					getSourceInfo(ctx));
-		}
-		if (ctx.STRING() != null) {
+		} else if (ctx.STRING() != null) {
 			return atom(unquote(ctx.STRING().getText()), ctx);
-		}
-		if (ctx.LBR() != null || ctx.CLBR() != null) {
+		} else if (ctx.LBR() != null || ctx.CLBR() != null) {
 			return visitTerm1200(ctx.term1200());
-		}
-		if (ctx.listterm() != null) {
+		} else if (ctx.listterm() != null) {
 			return visitListterm(ctx.listterm());
-		}
-		if (ctx.prefixoperator() != null) {
+		} else if (ctx.prefixoperator() != null) {
 			return visitPrefixoperator(ctx.prefixoperator());
+		} else {
+			return null; // should never be reached
 		}
-		return null; // should never be reached
 	}
 
 	@Override
@@ -352,10 +342,11 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 		PrologTerm t1 = visitTerm0(ctx.term0(0));
 		if (ctx.term0(1) == null) {
 			return t1;
+		} else {
+			PrologTerm t2 = visitTerm0(ctx.term0(1));
+			jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
+			return compound(":", args, ctx);
 		}
-		PrologTerm t2 = visitTerm0(ctx.term0(1));
-		jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-		return compound(":", args, ctx);
 	}
 
 	@Override
@@ -363,15 +354,15 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 		PrologTerm t1 = visitTerm50(ctx.term50(0));
 		if (ctx.term50(1) == null) {
 			return t1;
+		} else {
+			PrologTerm t2 = visitTerm50(ctx.term50(1));
+			jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
+			return compound("@", args, ctx);
 		}
-		PrologTerm t2 = visitTerm50(ctx.term50(1));
-		jpl.Term[] args = { t1.getTerm(), t2.getTerm() };
-		return compound("@", args, ctx);
 	}
 
 	@Override
 	public PrologTerm visitTerm200(Term200Context ctx) {
-
 		String op = null;
 		SourceInfo info = getSourceInfo(ctx);
 		/**
@@ -385,7 +376,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 
 		if ("-".equals(op) || "\\".equals(op)) {
 			// (op = '-' | op= '\\' ) term200
-
 			Term t = visitTerm200(ctx.term200()).getTerm();
 			Term[] args = { t };
 			term = compound(op, args, ctx);
@@ -406,7 +396,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 			}
 		} else {
 			// term100 ( (op= '^' term200) | (op= '**' term100) )?
-
 			Term t1 = visitTerm100(ctx.term100(0)).getTerm();
 			if (op == null) { // only term100.
 				term = new PrologTerm(t1, info);
@@ -420,11 +409,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 				Term[] args = { t1, t2 };
 				term = compound(op, args, ctx);
 			}
-
 			Term t2 = null; // optional
-
 		}
-
 		return term;
 	}
 
@@ -459,7 +445,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 			jpl.Term[] args = { term.getTerm(), t1 };
 			term = compound(t.op.getText(), args, ctx);
 		}
-
 		return term;
 	}
 
@@ -470,40 +455,38 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 
 	@Override
 	public PrologTerm visitTerm700(Term700Context ctx) {
-/**
+		/**
 		        term500
-       ( 
-         (	'=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | 
+       (
+         (	'=' | '\\=' | '==' | '\\==' | '@<' | '@=<' |
 			'@>' | '@>=' | '=@='| '=..' | 'is' | '=:=' | '=\\=' |
-        	'<' | '=<' | '>' | '>=') 
-         term500 
+        	'<' | '=<' | '>' | '>=')
+         term500
        )?
 		 */
 		PrologTerm lhs = visitTerm500(ctx.term500(0));
 		if (ctx.term500().size() == 1) {
 			// only term500
 			return lhs;
+		} else {
+			// we DO have the optional RHS term. Make a compound.
+			PrologTerm rhs = visitTerm500(ctx.term500(1));
+			jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+			return compound(ctx.op.getText(), args, ctx);
 		}
-		// we DO have the optional RHS term. Make a compound.
-		PrologTerm rhs = visitTerm500(ctx.term500(1));
-		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
-
-		return compound(ctx.op.getText(), args, ctx);
 	}
 
 	@Override
 	public PrologTerm visitTerm900(Term900Context ctx) {
-
 		/**
 		 * : term700 | '\\+' term900
 		 */
 		if (ctx.term700() != null) {
 			return visitTerm700(ctx.term700());
+		} else {
+			jpl.Term[] args = { visitTerm900(ctx.term900()).getTerm() };
+			return compound(ctx.op.getText(), args, ctx);
 		}
-
-		jpl.Term[] args = { visitTerm900(ctx.term900()).getTerm() };
-
-		return compound(ctx.op.getText(), args, ctx);
 	}
 
 	@Override
@@ -514,12 +497,11 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 		PrologTerm lhs = visitTerm900(ctx.term900());
 		if (ctx.term1000() == null) {
 			return lhs;
+		} else {
+			PrologTerm rhs = visitTerm1000(ctx.term1000());
+			jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+			return compound(ctx.op.getText(), args, ctx);
 		}
-
-		PrologTerm rhs = visitTerm1000(ctx.term1000());
-		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
-
-		return compound(ctx.op.getText(), args, ctx);
 
 	}
 
@@ -531,12 +513,11 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 		PrologTerm lhs = visitTerm1000(ctx.term1000());
 		if (ctx.term1050() == null) {
 			return lhs;
+		} else {
+			PrologTerm rhs = visitTerm1050(ctx.term1050());
+			jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+			return compound(ctx.op.getText(), args, ctx);
 		}
-
-		PrologTerm rhs = visitTerm1050(ctx.term1050());
-		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
-
-		return compound(ctx.op.getText(), args, ctx);
 	}
 
 	@Override
@@ -547,13 +528,11 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 		PrologTerm lhs = visitTerm1050(ctx.term1050());
 		if (ctx.term1100() == null) {
 			return lhs;
+		} else {
+			PrologTerm rhs = visitTerm1100(ctx.term1100());
+			jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+			return compound(ctx.op.getText(), args, ctx);
 		}
-
-		PrologTerm rhs = visitTerm1100(ctx.term1100());
-		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
-
-		return compound(ctx.op.getText(), args, ctx);
-
 	}
 
 	@Override
@@ -564,13 +543,11 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 		PrologTerm lhs = visitTerm1100(ctx.term1100());
 		if (ctx.term1105() == null) {
 			return lhs;
+		} else {
+			PrologTerm rhs = visitTerm1105(ctx.term1105());
+			jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+			return compound(ctx.op.getText(), args, ctx);
 		}
-
-		PrologTerm rhs = visitTerm1105(ctx.term1105());
-		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
-
-		return compound(ctx.op.getText(), args, ctx);
-
 	}
 
 	@Override
@@ -579,21 +556,16 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 		 * term1105 ( ( op=':-' | op='-->') term1105)? | op='?-' term1105
 		 */
 		PrologTerm lhs = visitTerm1105(ctx.term1105(0));
-
 		if (ctx.op == null) {
 			return lhs;
-		}
-
-		if ("?-".equals(ctx.op.getText())) {
+		} else if ("?-".equals(ctx.op.getText())) {
 			jpl.Term[] args = { lhs.getTerm() };
 			return compound("?-", args, ctx);
+		} else {
+			// op=':-' | op='-->' and we have a 2nd arg
+			PrologTerm rhs = visitTerm1105(ctx.term1105(1));
+			jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
+			return compound(ctx.op.getText(), args, ctx);
 		}
-
-		// op=':-' | op='-->' and we have a 2nd arg
-		PrologTerm rhs = visitTerm1105(ctx.term1105(1));
-		jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
-		return compound(ctx.op.getText(), args, ctx);
-
 	}
-
 }

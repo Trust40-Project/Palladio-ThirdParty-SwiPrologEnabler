@@ -14,52 +14,48 @@ import swiprolog.parser.Parser4;
 		visitor = new Visitor4(
 				new ErrorStoringProlog4Parser(new StringReader("term"), null));<br>
 		PrologTerm term = visitor.visitTerm0();<br>
-	
+
  * </code>
- * 
- * @author W.Pasman 23apr15
  *
+ * @author W.Pasman 23apr15
  */
 public class Visitor4 {
-
-	private Parser4 parser;
-	private Visitor4Internal visitor;
+	private final Parser4 parser;
+	private final Visitor4Internal visitor;
 
 	/**
-	 * 
 	 * @param parser
 	 *            a {@link Parser4}
 	 */
 	public Visitor4(Parser4 p) {
-		parser = p;
-		visitor = new Visitor4Internal(p.getSourceInfo().getSource());
+		this.parser = p;
+		this.visitor = new Visitor4Internal(p.getSourceInfo().getSource());
 	}
 
 	public PrologTerm visitPossiblyEmptyConjunct() throws ParserException {
-		return visitor.visitPossiblyEmptyConjunct(parser
+		return this.visitor.visitPossiblyEmptyConjunct(this.parser
 				.possiblyEmptyConjunct());
 	}
 
 	public List<PrologTerm> visitPrologtext() throws ParserException {
-		return visitor.visitPrologtext(parser.prologtext());
+		return this.visitor.visitPrologtext(this.parser.prologtext());
 
 	}
 
 	public PrologTerm visitPossiblyEmptyDisjunct() throws ParserException {
-		return visitor.visitPossiblyEmptyDisjunct(parser
+		return this.visitor.visitPossiblyEmptyDisjunct(this.parser
 				.possiblyEmptyDisjunct());
 	}
 
 	public PrologTerm visitTerm0() throws ParserException {
-		return visitor.visitTerm0(parser.term0());
+		return this.visitor.visitTerm0(this.parser.term0());
 	}
 
 	public PrologTerm visitTerm1000() throws ParserException {
-		return visitor.visitTerm1000(parser.term1000());
+		return this.visitor.visitTerm1000(this.parser.term1000());
 	}
 
 	public List<ParserException> getErrors() {
-		return parser.getErrors();
+		return this.parser.getErrors();
 	}
-
 }
