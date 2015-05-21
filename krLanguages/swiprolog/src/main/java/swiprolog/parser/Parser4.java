@@ -74,7 +74,7 @@ public class Parser4 implements ANTLRErrorListener {
 		this.lexer = new Prolog4Lexer(this.stream);
 		this.lexer.setLine(this.sourceInfo.getLineNumber());
 		this.lexer
-		.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
+				.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
 
 		CommonTokenStream tokens = new CommonTokenStream(this.lexer);
 		this.parser = new Prolog4Parser(tokens);
@@ -102,8 +102,8 @@ public class Parser4 implements ANTLRErrorListener {
 			final SourceInfoObject info = new SourceInfoObject(
 					this.sourceInfo.getSource(), this.lexer.getLine(),
 					this.lexer.getCharPositionInLine(),
-					this.sourceInfo.getStartIndex() + this.stream.index(),
-					this.sourceInfo.getStartIndex() + this.stream.size());
+					this.sourceInfo.getStartIndex() + this.stream.index() + 1,
+					this.sourceInfo.getStartIndex() + this.stream.size() + 1);
 			this.errors.add(new ParserException("Unrecognized spurious input",
 					info));
 		}
@@ -177,8 +177,9 @@ public class Parser4 implements ANTLRErrorListener {
 			stop = token.getStopIndex();
 		}
 		SourceInfoObject info = new SourceInfoObject(
-				this.sourceInfo.getSource(), line, charPositionInLine, start,
-				stop);
+				this.sourceInfo.getSource(), line, charPositionInLine,
+				this.sourceInfo.getStartIndex() + start + 1,
+				this.sourceInfo.getStartIndex() + stop + 1);
 		this.errors.add(new ParserException(msg, info, e));
 	}
 
