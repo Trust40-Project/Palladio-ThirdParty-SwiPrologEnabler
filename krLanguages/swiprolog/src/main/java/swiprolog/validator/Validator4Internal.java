@@ -68,8 +68,9 @@ public class Validator4Internal {
 			PrologTerm conj = this.visitor.visitPossiblyEmptyConjunct();
 			if (conj.toString().equals("true")) { // special case.
 				return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
+			} else {
+				return SemanticTools.conj2Update(conj);
 			}
-			return SemanticTools.conj2Update(conj);
 		} catch (ParserException e) {
 			this.errors.add(e);
 		}
@@ -104,7 +105,7 @@ public class Validator4Internal {
 	 */
 	public List<Query> goalSection() {
 		try {
-			List<Query> goals = new ArrayList<Query>();
+			List<Query> goals = new LinkedList<Query>();
 			for (PrologTerm t : this.visitor.visitPrologtext()) {
 				// check that each term is a valid Prolog goal / query
 				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(),

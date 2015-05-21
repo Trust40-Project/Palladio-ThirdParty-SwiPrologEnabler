@@ -75,13 +75,15 @@ public class Parser4 implements ANTLRErrorListener {
 		this.lexer = new Prolog4Lexer(this.stream);
 		this.lexer.setLine(this.sourceInfo.getLineNumber());
 		this.lexer
-		.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
+				.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
 
 		CommonTokenStream tokens = new CommonTokenStream(this.lexer);
-
 		this.parser = new Prolog4Parser(tokens);
+		this.parser.setBuildParseTree(true);
 
+		this.lexer.removeErrorListeners();
 		this.lexer.addErrorListener(this);
+		this.parser.removeErrorListeners();
 		this.parser.addErrorListener(this);
 	}
 
@@ -150,7 +152,6 @@ public class Parser4 implements ANTLRErrorListener {
 	private void finalChecks() throws ParserException {
 		checkEndOfInputReached();
 		rethrow();
-
 	}
 
 	/**
@@ -188,7 +189,7 @@ public class Parser4 implements ANTLRErrorListener {
 		// THIS IS A BUG SITUATION
 		throw new IllegalStateException(
 				"SWI Prolog parser encountered ambiguity!" + recognizer
-						+ " at " + startIndex);
+				+ " at " + startIndex);
 	}
 
 	@Override
