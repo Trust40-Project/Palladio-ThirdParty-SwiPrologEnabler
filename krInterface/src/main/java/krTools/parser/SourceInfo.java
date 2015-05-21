@@ -43,12 +43,14 @@ public interface SourceInfo {
 	public int getCharacterPosition();
 
 	/**
-	 * @return The position of the first character that this info is about.
+	 * @return The position of the first character that this info is about (in
+	 *         relation the entire file that is currently parsed).
 	 */
 	public int getStartIndex();
 
 	/**
-	 * @return The position of the last character that this info is about.
+	 * @return The position of the last character that this info is about (in
+	 *         relation the entire file that is currently parsed).
 	 */
 	public int getStopIndex();
 
