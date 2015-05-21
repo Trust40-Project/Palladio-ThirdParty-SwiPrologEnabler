@@ -32,9 +32,8 @@ import swiprolog.parser.PrologOperators;
 /**
  * Tools for semantic checking of {@link PrologTerm}s and conversion to
  * {@link Update} etc.
- * 
- * @author W.Pasman 18may15
  *
+ * @author W.Pasman 18may15
  */
 public class SemanticTools {
 
@@ -43,7 +42,7 @@ public class SemanticTools {
 	 * Performs additional checks on top of {@link #basicUpdateCheck}, to check
 	 * that conjunct is good update.
 	 * </p>
-	 * 
+	 *
 	 * @param {@link PrologTerm} that is supposedly an update (ie conjunct of
 	 *        [not] dbFormula)
 	 * @returns the original term (no conversion is performed)
@@ -53,17 +52,15 @@ public class SemanticTools {
 	 */
 	public static PrologUpdate conj2Update(PrologTerm conjunct)
 			throws ParserException {
-		PrologUpdate update = new PrologUpdate(basicUpdateCheck(conjunct),
+		return new PrologUpdate(basicUpdateCheck(conjunct),
 				conjunct.getSourceInfo());
-
-		return update;
 	}
 
 	/**
 	 * <p>
 	 * Checks if {@link PrologTerm} may be used as update, i.e. a conjunct of
 	 * either a {@link DatabaseFormula} or not(DatabaseFormula).
-	 * 
+	 *
 	 * @param conjunct
 	 *            is the PrologTerm to be checked which is a zipped conjunct.
 	 *            (see {@link PrologTerm#getConjuncts})
@@ -75,7 +72,6 @@ public class SemanticTools {
 	private static jpl.Term basicUpdateCheck(PrologTerm conjunct)
 			throws ParserException {
 		List<jpl.Term> terms = JPLUtils.getOperands(",", conjunct.getTerm());
-
 		for (jpl.Term term : terms) {
 			if (JPLUtils.getSignature(term).equals("not/1")) {
 				DBFormula(new PrologTerm(term.arg(1), conjunct.getSourceInfo()));
@@ -115,7 +111,7 @@ public class SemanticTools {
 	 * GOAL we do not want to support these and need exclusion. this is done via
 	 * PrologOperators.goalProtected()
 	 * </p>
-	 * 
+	 *
 	 * @param conjunction
 	 *            is a PrologTerm containing a conjunction
 	 * @see PrologTerm#getConjuncts
@@ -125,7 +121,8 @@ public class SemanticTools {
 	 * @throws ParserException
 	 *             If Prolog term is not a valid clause.
 	 */
-	static DatabaseFormula DBFormula(PrologTerm term) throws ParserException {
+	public static DatabaseFormula DBFormula(PrologTerm term)
+			throws ParserException {
 		jpl.Term head, body;
 
 		if (term.getSignature().equals(":-/2")) {
@@ -140,9 +137,7 @@ public class SemanticTools {
 			throw new ParserException(
 					"The head of a Prolog rule cannot be a variable "
 							+ term.toString(), term.getSourceInfo());
-		}
-
-		if (!JPLUtils.isPredication(head)) {
+		} else if (!JPLUtils.isPredication(head)) {
 			throw new ParserException("The head of a Prolog rule cannot be "
 					+ term.toString() + " but should be a Prolog clause",
 					term.getSourceInfo());
@@ -164,9 +159,8 @@ public class SemanticTools {
 					+ term.toString(), term.getSourceInfo());
 		}
 
-		toGoal(body, term.getSourceInfo()); // try to convert, it will throw if
-											// it fails.
-
+		// try to convert, it will throw if it fails.
+		toGoal(body, term.getSourceInfo());
 		return new PrologDBFormula(term.getTerm(), term.getSourceInfo());
 	}
 
@@ -177,12 +171,12 @@ public class SemanticTools {
 	 * variables and hence a real rebuild is not necessary. Instead, we simply
 	 * return the original term after checking.
 	 * </p>
-	 * 
+	 *
 	 * @return the term "rewritten" as a Prolog goal according to ISO.
 	 * @throws ParserException
 	 *             If t is not a well formed Prolog goal.
 	 */
-	static jpl.Term toGoal(jpl.Term t, SourceInfo source)
+	public static jpl.Term toGoal(jpl.Term t, SourceInfo source)
 			throws ParserException {
 		// 7.6.2.a use article 7.8.3
 		if (t.isVariable()) {
@@ -194,12 +188,10 @@ public class SemanticTools {
 		if (PrologOperators.goalProtected(t.name())) {
 			throw new ParserException("The use of predicate " + t.toString()
 					+ ": " + t.toString() + " is not supported", source);
-		}
-		if (sig.equals(":-/2")) {
+		} else if (sig.equals(":-/2")) {
 			throw new ParserException("Cannot use a clause " + t.toString()
 					+ " as a goal", source);
-		}
-		if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
+		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
 			toGoal(t.arg(1), source);
 			toGoal(t.arg(2), source);
 		}
@@ -217,7 +209,7 @@ public class SemanticTools {
 	 * <p>
 	 * ISO section 7.6.2 on p.27 specifies how to convert a term to a goal.
 	 * </p>
-	 * 
+	 *
 	 * @param conjunction
 	 *            is a PrologTerm containing a conjunction
 	 * @see PrologTerm#getConjuncts
@@ -226,7 +218,8 @@ public class SemanticTools {
 	 * @throws ParserException
 	 *             if prologTerm is not a good Query.
 	 */
-	static PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
+	public static PrologQuery toQuery(PrologTerm conjunction)
+			throws ParserException {
 		return new PrologQuery(toGoal(conjunction.getTerm(),
 				conjunction.getSourceInfo()), conjunction.getSourceInfo());
 	}

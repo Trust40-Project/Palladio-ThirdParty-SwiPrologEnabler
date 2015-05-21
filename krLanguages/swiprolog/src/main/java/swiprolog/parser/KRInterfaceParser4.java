@@ -19,6 +19,7 @@ package swiprolog.parser;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
 
 import krTools.errors.exceptions.ParserException;
@@ -98,7 +99,6 @@ public class KRInterfaceParser4 implements Parser {
 
 	@Override
 	public List<SourceInfo> getErrors() {
-		return this.validator.getErrors();
+		return new ArrayList<SourceInfo>(this.validator.getErrors());
 	}
-
 }
