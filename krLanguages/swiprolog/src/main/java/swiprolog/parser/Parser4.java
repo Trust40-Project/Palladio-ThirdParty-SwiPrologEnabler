@@ -186,29 +186,17 @@ public class Parser4 implements ANTLRErrorListener {
 	@Override
 	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
 			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
-		// THIS IS A BUG SITUATION
-		throw new IllegalStateException(
-				"SWI Prolog parser encountered ambiguity!" + recognizer
-				+ " at " + startIndex);
 	}
 
 	@Override
 	public void reportAttemptingFullContext(Parser recognizer, DFA dfa,
 			int startIndex, int stopIndex, BitSet conflictingAlts,
 			ATNConfigSet configs) {
-		// THIS IS A BUG SITUATION
-		throw new IllegalStateException(
-				"SWI Prolog parser encountered restart at full context!"
-						+ recognizer + " at " + startIndex);
 	}
 
 	@Override
 	public void reportContextSensitivity(Parser recognizer, DFA dfa,
 			int startIndex, int stopIndex, int prediction, ATNConfigSet configs) {
-		// THIS IS A BUG SITUATION
-		throw new IllegalStateException(
-				"SWI Prolog parser encountered context sensitivity!"
-						+ recognizer + " at " + startIndex);
 	}
 
 	/************** Actual public Parser functionality *******************/
