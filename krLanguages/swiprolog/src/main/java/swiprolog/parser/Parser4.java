@@ -65,7 +65,7 @@ public class Parser4 implements ANTLRErrorListener {
 	public Parser4(Reader reader, SourceInfo info) throws IOException {
 		sourceInfo = info;
 		if (sourceInfo == null) {
-			sourceInfo = new SourceInfoObject(null, 1, 0, 0, 0);
+			sourceInfo = new SourceInfoObject(null, 1, 1, 0, 0);
 		}
 		stream = new ANTLRInputStream(reader);
 		stream.name = (sourceInfo.getSource() == null) ? "" : sourceInfo

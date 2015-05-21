@@ -27,8 +27,8 @@ public class Visitor4 {
 
 	/**
 	 * 
-	 * @param source
-	 *            used only to make correct getSourceInfo references.
+	 * @param parser
+	 *            a {@link Parser4}
 	 */
 	public Visitor4(Parser4 p) {
 		parser = p;

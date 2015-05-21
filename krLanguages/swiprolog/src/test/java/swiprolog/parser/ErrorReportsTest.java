@@ -48,7 +48,7 @@ public class ErrorReportsTest {
 			getParser("100.3 200 ").term0();
 		} catch (ParserException e) {
 			assertEquals(1, e.getLineNumber());
-			assertEquals(9, e.getCharacterPosition()); // end of next token
+			assertEquals(10, e.getCharacterPosition()); // end of next token
 		}
 
 	}

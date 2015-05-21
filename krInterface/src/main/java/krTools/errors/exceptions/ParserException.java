@@ -51,7 +51,7 @@ public class ParserException extends Exception implements SourceInfo {
 
 	@Override
 	public String toString() {
-		return "ParserException " + getMessage() + " " + info;
+		return "ParserException: " + getMessage() + " " + info;
 	}
 
 	/**

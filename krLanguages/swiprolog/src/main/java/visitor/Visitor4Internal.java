@@ -393,7 +393,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 				if (t.isFloat()) {
 					term = new PrologTerm(new jpl.Float(-1 * t.floatValue()),
 							info);
-				} else { // integer
+				} else if (t.isInteger()) {
 					term = new PrologTerm(new jpl.Integer(-1 * t.intValue()),
 							info);
 				}
