@@ -47,7 +47,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<antlr.version>3.2</antlr.version>
+		<antlr.version>4.5</antlr.version>
 	</properties>
 
 	<repositories>
@@ -66,7 +66,7 @@
 
 		<dependency>
 			<groupId>org.antlr</groupId>
-			<artifactId>antlr-runtime</artifactId>
+			<artifactId>antlr4-runtime</artifactId>
 			<version>${antlr.version}</version>
 		</dependency>
 
@@ -88,41 +88,21 @@
 			<artifactId>swiPrologEnabler</artifactId>
 			<version>1.1.3-SNAPSHOT</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.antlr</groupId>
-			<artifactId>antlr4-runtime</artifactId>
-			<version>4.5</version>
-		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.antlr</groupId>
-				<artifactId>antlr3-maven-plugin</artifactId>
-				<version>${antlr.version}</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>antlr</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.antlr</groupId>
 				<artifactId>antlr4-maven-plugin</artifactId>
-				<version>4.5</version>
+				<version>${antlr.version}</version>
 				<executions>
 					<execution>
 						<configuration>
 							<listener>false</listener>
 							<visitor>true</visitor>
-							<libDirectory>${basedir}/src/main/antlr4/languageTools/parser/</libDirectory>
-							<!-- <outputDirectory>${project.build.directory}\generated-sources\antlr4\languageTools\parser</outputDirectory> -->
-							<package>languageTools.parser</package>
+							<libDirectory>${basedir}/src/main/antlr4/swiprolog/parser/</libDirectory>
+							<package>swiprolog.parser</package>
 						</configuration>
 						<goals>
 							<goal>antlr4</goal>
@@ -144,7 +124,7 @@
 						</goals>
 						<configuration>
 							<sources>
-								<source>${project.build.directory}/generated-sources/antlr3/</source>
+								<source>${project.build.directory}/generated-sources/antlr4/</source>
 							</sources>
 						</configuration>
 					</execution>

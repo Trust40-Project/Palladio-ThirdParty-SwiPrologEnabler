@@ -23,7 +23,7 @@ public class TestKRInterfaceParser {
 	@Test
 	public void testParseUpdate() throws IOException, ParserException {
 		StringReader reader = new StringReader("on(a,b), on(b,c), on(c,table)");
-		Parser parser = new KRInterfaceParser(reader, new SourceInfoObject(
+		Parser parser = new KRInterfaceParser4(reader, new SourceInfoObject(
 				null, 0, 0, 0, 0));
 		Update update = parser.parseUpdate();
 
@@ -36,7 +36,7 @@ public class TestKRInterfaceParser {
 	public void testParseUpdate_2() throws IOException, ParserException {
 		StringReader reader = new StringReader(
 				"zone(ID, Name, X, Y, Neighbours)");
-		Parser parser = new KRInterfaceParser(reader, new SourceInfoObject(
+		Parser parser = new KRInterfaceParser4(reader, new SourceInfoObject(
 				null, 0, 0, 0, 0));
 		Update update = parser.parseUpdate();
 

@@ -27,7 +27,6 @@ import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
 import swiprolog.parser.Prolog4Parser.PrologtextContext;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
-import antlr.build.ANTLR;
 
 /**
  * {@link Prolog4Parser} but stores all errors coming from {@link ANTLR} so that
@@ -75,7 +74,7 @@ public class Parser4 implements ANTLRErrorListener {
 		this.lexer = new Prolog4Lexer(this.stream);
 		this.lexer.setLine(this.sourceInfo.getLineNumber());
 		this.lexer
-				.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
+		.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
 
 		CommonTokenStream tokens = new CommonTokenStream(this.lexer);
 		this.parser = new Prolog4Parser(tokens);
