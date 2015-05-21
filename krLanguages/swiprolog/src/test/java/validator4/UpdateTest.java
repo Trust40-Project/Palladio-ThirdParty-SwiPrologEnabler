@@ -33,7 +33,6 @@ import swiprolog.SWIPrologInterface;
 import swiprolog.language.PrologUpdate;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
-import swiprolog.validator.Validator4Internal;
 import visitor.Visitor4;
 
 /**
@@ -51,7 +50,7 @@ public class UpdateTest {
 	/**
 	 * Create a new prolog4 validator for the test, using given string as input
 	 * stream.
-	 * 
+	 *
 	 * @param in
 	 *            the input string for the validator.
 	 * @return {@link Validator4Internal}
@@ -64,14 +63,14 @@ public class UpdateTest {
 
 	@Test
 	public void testValidateBasicUpdate() throws IOException,
-			KRInitFailedException, ParserException {
+	KRInitFailedException, ParserException {
 		Update term = validator("aap").updateOrEmpty();
 		assertEquals(term, new PrologUpdate(new jpl.Atom("aap"), null));
 	}
 
 	@Test
 	public void testValidateTrueUpdate() throws IOException,
-			KRInitFailedException, ParserException {
+	KRInitFailedException, ParserException {
 		// special update. Should work and not throw that true is protected.
 		Update term = validator("true").updateOrEmpty();
 		assertEquals(term, new PrologUpdate(new jpl.Atom("true"), null));

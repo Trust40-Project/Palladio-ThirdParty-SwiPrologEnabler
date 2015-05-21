@@ -16,6 +16,8 @@
  */
 package swiprolog.validator;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import krTools.errors.exceptions.ParserException;
@@ -24,14 +26,17 @@ import krTools.language.Query;
 import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
+import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
+import swiprolog.language.PrologUpdate;
+import swiprolog.language.PrologVar;
 import visitor.Visitor4;
 
 /**
- * Parse, visit and validate. All errors are collected internally, but also
- * after an attempt to validate a string the first error is thrown if there was
- * an error.
+ * Parse, visit and validate. All errors occurring during parse or validation
+ * are thrown. Normally you use Validator4 which also stores errors as they
+ * occur.
  *
  * Usage example to parse string as prolog term:
  * <code>validator = new Validator4(new Prolog4VisitorPlus(
@@ -42,115 +47,175 @@ import visitor.Visitor4;
  * @author W.Pasman 18may15
  */
 public class Validator4 {
-	private final Validator4Internal validator;
-
-	private void rethrow() throws ParserException {
-		if (!this.validator.isSuccess()) {
-			throw this.validator.getErrors().get(0);
-		}
-	}
+	private final Visitor4 visitor;
+	private final List<ParserException> errors = new LinkedList<ParserException>();
 
 	/**
-	 *
 	 * @param visitor
 	 *            the {@link Visitor4} (that contains the parser)
 	 */
 	public Validator4(Visitor4 vis) {
-		this.validator = new Validator4Internal(vis);
+		this.visitor = vis;
 	}
 
 	/**
-	 * Parses an update or empty term.
+	 * Validate an update or empty term.
 	 *
 	 * @return {@link Update} or null if there is error.
 	 */
 	public Update updateOrEmpty() throws ParserException {
-		Update t = this.validator.updateOrEmpty();
-		rethrow();
-		return t;
+		try {
+			PrologTerm conj = this.visitor.visitPossiblyEmptyConjunct();
+			if (conj.toString().equals("true")) { // special case.
+				return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
+			} else {
+				return SemanticTools.conj2Update(conj);
+			}
+		} catch (ParserException e) {
+			this.errors.add(e);
+		}
+		return null;
 	}
 
 	/**
-	 * Parses a Prolog program. Assumes that the parser has been set up
+	 * Validate a Prolog program. Assumes that the parser has been set up
 	 * properly.
 	 *
-	 * @return List<DatabaseFormula>.
-	 * @throws ParserException
+	 * @return List<DatabaseFormula>, or {@code null} if a parser error occurs.
 	 */
-	public List<DatabaseFormula> program() throws ParserException {
-		List<DatabaseFormula> t = this.validator.program();
-		rethrow();
-		return t;
+	public List<DatabaseFormula> program() {
+		try {
+			List<PrologTerm> prologTerms = this.visitor.visitPrologtext();
+			List<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>(
+					prologTerms.size());
+			for (PrologTerm t : prologTerms) {
+				dbfs.add(SemanticTools.DBFormula(t));
+			}
+			return dbfs;
+		} catch (ParserException e) {
+			this.errors.add(e);
+		}
+		return null;
 	}
 
 	/**
-	 * Parse a section that should contain Prolog goals, i.e., queries.
+	 * Validate a section that should contain Prolog goals, i.e., queries.
 	 *
-	 * @return List<Query>
-	 * @throws ParserException
+	 * @return List<Query>, or {@code null} if a parser error occurs.
 	 */
-	public List<Query> goalSection() throws ParserException {
-		List<Query> t = this.validator.goalSection();
-		rethrow();
-		return t;
+	public List<Query> goalSection() {
+		try {
+			List<Query> goals = new LinkedList<Query>();
+			for (PrologTerm t : this.visitor.visitPrologtext()) {
+				// check that each term is a valid Prolog goal / query
+				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(),
+						t.getSourceInfo()), t.getSourceInfo()));
+			}
+			return goals;
+		} catch (ParserException e) {
+			this.errors.add(e);
+		}
+		return null;
 	}
 
 	/**
-	 * Parses a (possibly empty) query.
+	 * Validate a (possibly empty) query.
 	 *
-	 * @return A {@link PrologQuery}.
-	 * @throws ParserException
+	 * @return A {@link PrologQuery}, or {@code null} if an error occurred.
 	 */
-	public PrologQuery queryOrEmpty() throws ParserException {
-		PrologQuery t = this.validator.queryOrEmpty();
-		rethrow();
-		return t;
+	public PrologQuery queryOrEmpty() {
+		try {
+			return SemanticTools.toQuery(this.visitor
+					.visitPossiblyEmptyDisjunct());
+		} catch (ParserException e) {
+			this.errors.add(e);
+		}
+		return null;
 	}
 
 	/**
-	 * Parses the input. Returns a variable obtained by parsing the input.
+	 * Validate the variable. Returns a variable obtained by parsing the input.
 	 *
-	 * @return {@link Var}.
-	 * @throws ParserException
+	 * @return {@link Var} or null if error occurred.
 	 */
-	public Var var() throws ParserException {
-		Var t = this.validator.var();
-		rethrow();
-		return t;
+	public Var var() {
+		try {
+			PrologTerm term;
+			term = this.visitor.visitTerm0();
+			if (term.isVar()) {
+				return (PrologVar) term;
+			} else {
+				throw new ParserException(String.format(
+						"expected a SWI prolog variable but found '%s'",
+						term.toString()), term.getSourceInfo());
+			}
+		} catch (ParserException e) {
+			this.errors.add(e);
+		}
+		return null;
 	}
 
 	/**
-	 * try parse a term
+	 * Validate a term
 	 *
-	 * @return term
+	 * @return term, or null if error occurs
 	 * @throws ParserException
 	 */
-	public PrologTerm term() throws ParserException {
-		PrologTerm t = this.validator.term();
-		rethrow();
-		return t;
+	public PrologTerm term() {
+		try {
+			return this.visitor.visitTerm0();
+		} catch (ParserException e) {
+			this.errors.add(e);
+		}
+		return null;
 	}
 
 	/**
-	 * Parse a set of parameters.
+	 * Validate a set of parameters.
 	 *
-	 * @return A list of {@link Term}s.
-	 * @throws ParserException
+	 * @return A list of {@link Term}s. Or null if an error occured.
 	 */
-	public List<Term> terms() throws ParserException {
-		List<Term> t = this.validator.terms();
-		rethrow();
-		return t;
+	public List<Term> terms() {
+		try {
+			PrologTerm t = this.visitor.visitTerm1000();
+			List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
+			List<Term> terms = new ArrayList<Term>(original.size());
+			for (jpl.Term term : original) {
+				if (term instanceof jpl.Variable) {
+					terms.add(new PrologVar((jpl.Variable) term, t
+							.getSourceInfo()));
+				} else {
+					terms.add(new PrologTerm(term, t.getSourceInfo()));
+				}
+			}
+			return terms;
+		} catch (ParserException e) {
+			this.errors.add(e);
+		}
+		return null;
 
 	}
 
 	/**
-	 * Get all errors that occured, both in validator and in visitor.
+	 * get all errors that occurred in the validator. Excludes the errors in the
+	 * visitor.
 	 *
-	 * @return all errors that occured
+	 * @return list of validator errors that occurred in the validator.
+	 */
+	public List<ParserException> getValidatorErrors() {
+		return this.errors;
+	}
+
+	/**
+	 * Get all errors that occurred, both in validator and in visitor.
+	 *
+	 * @return all errors that occurred
 	 */
 	public List<ParserException> getErrors() {
-		return this.validator.getErrors();
+		List<ParserException> list = new ArrayList<ParserException>();
+		list.addAll(this.visitor.getErrors());
+		list.addAll(getValidatorErrors());
+		return list;
 	}
 
 	/**
