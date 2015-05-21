@@ -91,9 +91,15 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor {
 	 * @return {@link SourceInfoObject}
 	 */
 	private SourceInfo getSourceInfo(ParserRuleContext ctx) {
-		return new SourceInfoObject(sourcefile, ctx.getStart().getLine(), ctx
-				.getStart().getCharPositionInLine(), ctx.getStart()
-				.getStartIndex(), ctx.getStop().getStopIndex());
+		Token start = ctx.getStart();
+		Token stop = ctx.getStop();
+		if (stop == null) {
+			// happens if we are at EOF...
+			stop = start;
+		}
+		return new SourceInfoObject(sourcefile, start.getLine(),
+				start.getCharPositionInLine(), start.getStartIndex(),
+				stop.getStopIndex());
 	}
 
 	private SourceInfo getSourceInfo(TerminalNode leaf) {

@@ -30,14 +30,14 @@ import krTools.language.Update;
 import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
-import swiprolog.validator.Validator4Internal;
+import swiprolog.validator.Validator4;
 import visitor.Visitor4;
 
 /**
  * Implementation of KR Tools {@link Parser} based on antlr4.
  */
 public class KRInterfaceParser4 implements Parser {
-	private final Validator4Internal validator;
+	private final Validator4 validator;
 
 	/**
 	 * Creates a new KR interface parser that uses the given stream as input.
@@ -54,7 +54,7 @@ public class KRInterfaceParser4 implements Parser {
 	 *             {@link ParserException}.
 	 */
 	public KRInterfaceParser4(Reader r, SourceInfo info) throws IOException {
-		validator = new Validator4Internal(new Visitor4(new Parser4(r, info)));
+		validator = new Validator4(new Visitor4(new Parser4(r, info)));
 	}
 
 	@Override
