@@ -19,6 +19,7 @@ package swiprolog.validator;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedSet;
 
 import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
@@ -163,7 +164,7 @@ public class Validator4 {
 	 *
 	 * @return all errors that occurred
 	 */
-	public List<ParserException> getErrors() {
+	public SortedSet<ParserException> getErrors() {
 		return this.visitor.getErrors();
 	}
 

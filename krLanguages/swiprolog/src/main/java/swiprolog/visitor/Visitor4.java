@@ -1,6 +1,7 @@
 package swiprolog.visitor;
 
 import java.util.List;
+import java.util.SortedSet;
 
 import krTools.errors.exceptions.ParserException;
 import swiprolog.language.PrologTerm;
@@ -55,7 +56,7 @@ public class Visitor4 {
 		return this.visitor.visitTerm1000(this.parser.term1000());
 	}
 
-	public List<ParserException> getErrors() {
+	public SortedSet<ParserException> getErrors() {
 		return this.parser.getErrors();
 	}
 }

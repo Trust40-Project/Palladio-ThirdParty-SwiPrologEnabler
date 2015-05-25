@@ -3,8 +3,8 @@ package swiprolog.parser;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.BitSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import krTools.errors.exceptions.ParserException;
 import krTools.parser.SourceInfo;
@@ -18,6 +18,7 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.atn.ParserATNSimulator;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -28,7 +29,6 @@ import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
 import swiprolog.parser.Prolog4Parser.PrologtextContext;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
-import swiprolog.validator.ErrorStrategy4;
 
 /**
  * {@link Prolog4Parser} but stores all errors coming from {@link ANTLR} so that
@@ -45,7 +45,7 @@ import swiprolog.validator.ErrorStrategy4;
  */
 public class Parser4 implements ANTLRErrorListener {
 	private final Prolog4Parser parser;
-	private final List<ParserException> errors = new LinkedList<ParserException>();
+	private final SortedSet<ParserException> errors = new TreeSet<ParserException>();
 	private final SourceInfo sourceInfo;
 	private final ANTLRInputStream stream;
 	private final Lexer lexer;
@@ -112,9 +112,9 @@ public class Parser4 implements ANTLRErrorListener {
 	/**
 	 * Get the errors that occurred during parsing.
 	 *
-	 * @return error list.
+	 * @return error set.
 	 */
-	public List<ParserException> getErrors() {
+	public SortedSet<ParserException> getErrors() {
 		return this.errors;
 	}
 
@@ -139,7 +139,7 @@ public class Parser4 implements ANTLRErrorListener {
 	 */
 	private void rethrow() throws ParserException {
 		if (!this.errors.isEmpty()) {
-			throw this.errors.get(0);
+			throw this.errors.first();
 		}
 	}
 
@@ -176,11 +176,80 @@ public class Parser4 implements ANTLRErrorListener {
 			start = token.getStartIndex();
 			stop = token.getStopIndex();
 		}
-		SourceInfoObject info = new SourceInfoObject(
+		SourceInfoObject pos = new SourceInfoObject(
 				this.sourceInfo.getSource(), line, charPositionInLine,
 				this.sourceInfo.getStartIndex() + start + 1,
 				this.sourceInfo.getStartIndex() + stop + 1);
-		this.errors.add(new ParserException(msg, info, e));
+		if (recognizer instanceof Lexer) {
+			handleLexerError(recognizer, offendingSymbol, pos, msg, e);
+		} else {
+			handleParserError(recognizer, offendingSymbol, pos, msg, e);
+		}
+	}
+
+	/**
+	 * Adds new error for token recognition problem (lexer).
+	 *
+	 * @param pos
+	 *            input stream position
+	 * @param stop
+	 *            stopIndex of last recognition error
+	 * @param text
+	 *            character(s) that could not be recognized
+	 */
+	public void handleLexerError(Recognizer<?, ?> recognizer,
+			Object offendingSymbol, SourceInfoObject pos, String text,
+			RecognitionException e) {
+		text = text.replace("\\r", "").replace("\\n", " ").replace("\\t", " ")
+				.replace("\\f", "");
+		this.errors.add(new ParserException("'" + text
+				+ "' cannot be used here", pos));
+	}
+
+	/**
+	 * Adds error for parsing problem.
+	 *
+	 * <p>
+	 * Simply pushes parser error msg forward. See {@link #MASErrorStrateg} for
+	 * handling of parsing errors.
+	 * </p>
+	 *
+	 * @param pos
+	 *            input stream position
+	 * @param msg
+	 *            reported parser error msg
+	 */
+	public void handleParserError(Recognizer<?, ?> recognizer,
+			Object offendingSymbol, SourceInfoObject pos,
+			String expectedtokens, RecognitionException e) {
+		// We need the strategy to get access to our customized token displays
+		ErrorStrategy4 strategy = (ErrorStrategy4) ((Parser) recognizer)
+				.getErrorHandler();
+		// Report the various types of syntax errors
+		String offendingTokenText = strategy
+				.getTokenErrorDisplay((Token) offendingSymbol);
+		// TODO: copies and hardcodes derived from LanguageTools->Validator
+		if (e.getMessage().equals("NoViableAlternative")) {
+			this.errors.add(new ParserException("Found " + offendingTokenText
+					+ " but we need " + expectedtokens + " here", pos));
+		} else if (e.getMessage().equals("InputMismatch")) {
+			this.errors.add(new ParserException("Found " + offendingTokenText
+					+ " where we need " + expectedtokens, pos));
+		} else if (e.getMessage().equals("FailedPredicate")) {
+			this.errors
+					.add(new ParserException(
+							"Did not see that coming (thought we were not using predicates)",
+							pos));
+		} else if (e.getMessage().equals("UnwantedToken")) {
+			this.errors.add(new ParserException("Syntax does not allow "
+					+ offendingTokenText + " here, delete this", pos));
+		} else if (e.getMessage().equals("MissingToken")) {
+			this.errors.add(new ParserException(offendingTokenText
+					+ " is missing here", pos));
+		} else {
+			this.errors.add(new ParserException("Found " + offendingTokenText
+					+ " instead of " + expectedtokens, pos));
+		}
 	}
 
 	@Override

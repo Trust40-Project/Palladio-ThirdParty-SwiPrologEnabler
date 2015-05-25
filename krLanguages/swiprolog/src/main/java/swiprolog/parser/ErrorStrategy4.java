@@ -1,4 +1,4 @@
-package swiprolog.validator;
+package swiprolog.parser;
 
 import org.antlr.v4.runtime.DefaultErrorStrategy;
 import org.antlr.v4.runtime.FailedPredicateException;
@@ -8,8 +8,6 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
-
-import swiprolog.parser.Prolog4Parser;
 
 public class ErrorStrategy4 extends DefaultErrorStrategy {
 	@Override
@@ -181,7 +179,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 	protected String prettyPrintToken(int type) {
 		switch (type) {
 		case Token.EOF:
-			return "end of file";
+			return "end of file/section";
 			// TODO: other cases?!
 		default:
 			// Do not improve, simply return token symbol as is
