@@ -31,7 +31,7 @@ import krTools.parser.SourceInfo;
  * </p>
  */
 public class ParserException extends Exception implements SourceInfo,
-		Comparable<ParserException> {
+Comparable<ParserException> {
 	private static final long serialVersionUID = 8224464835000074458L;
 
 	/**
@@ -205,10 +205,14 @@ public class ParserException extends Exception implements SourceInfo,
 	 *         position of info2 object.
 	 */
 	private static boolean before(SourceInfo info1, SourceInfo info2) {
-		boolean source = (info1.getSource().getName()
-				.compareTo(info2.getSource().getName()) < 0);
-		boolean sourceEqual = (info1.getSource().getName()
-				.compareTo(info2.getSource().getName()) == 0);
+		boolean source = info1.getSource() != null
+				&& info2.getSource() != null
+				&& (info1.getSource().getName()
+						.compareTo(info2.getSource().getName()) < 0);
+		boolean sourceEqual = info1.getSource() != null
+				&& info2.getSource() != null
+				&& (info1.getSource().getName()
+						.compareTo(info2.getSource().getName()) == 0);
 		boolean lineNr = sourceEqual
 				&& (info1.getLineNumber() < info2.getLineNumber());
 		boolean lineNrEqual = (info1.getLineNumber() == info2.getLineNumber());
