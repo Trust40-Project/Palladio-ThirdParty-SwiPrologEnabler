@@ -31,7 +31,7 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 import swiprolog.validator.Validator4;
-import visitor.Visitor4;
+import swiprolog.visitor.Visitor4;
 
 /**
  * Implementation of KR Tools {@link Parser} based on antlr4.

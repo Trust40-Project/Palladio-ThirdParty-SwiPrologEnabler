@@ -31,7 +31,7 @@ import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologUpdate;
 import swiprolog.language.PrologVar;
-import visitor.Visitor4;
+import swiprolog.visitor.Visitor4;
 
 /**
  * Parse, visit and validate. All errors occurring during parse or validation

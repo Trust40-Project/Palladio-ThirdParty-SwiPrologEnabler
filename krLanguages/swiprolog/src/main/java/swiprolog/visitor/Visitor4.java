@@ -1,4 +1,4 @@
-package visitor;
+package swiprolog.visitor;
 
 import java.util.List;
 

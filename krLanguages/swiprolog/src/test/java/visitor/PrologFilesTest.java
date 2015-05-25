@@ -35,6 +35,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import swiprolog.language.PrologTerm;
 import swiprolog.parser.Parser4;
+import swiprolog.visitor.Visitor4;
 
 /**
  * Tests for {@link Visitor4}, reading in files with prolog "programs". This is

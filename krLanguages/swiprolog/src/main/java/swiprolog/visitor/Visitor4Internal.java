@@ -15,7 +15,7 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package visitor;
+package swiprolog.visitor;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

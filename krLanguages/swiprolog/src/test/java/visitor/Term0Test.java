@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import swiprolog.language.PrologTerm;
 import swiprolog.parser.Parser4;
+import swiprolog.visitor.Visitor4;
 
 /**
  * Tests for Prolog4Parser term0 to see if pipeline parser->visitor works ok.

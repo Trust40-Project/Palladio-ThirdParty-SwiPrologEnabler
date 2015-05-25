@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
@@ -27,6 +28,7 @@ import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
 import swiprolog.parser.Prolog4Parser.PrologtextContext;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
+import swiprolog.validator.ErrorStrategy4;
 
 /**
  * {@link Prolog4Parser} but stores all errors coming from {@link ANTLR} so that
@@ -46,7 +48,7 @@ public class Parser4 implements ANTLRErrorListener {
 	private final List<ParserException> errors = new LinkedList<ParserException>();
 	private final SourceInfo sourceInfo;
 	private final ANTLRInputStream stream;
-	private final Prolog4Lexer lexer;
+	private final Lexer lexer;
 
 	/**
 	 * Constructor. Adjusts the tokeniser input stream position matching the
@@ -71,19 +73,17 @@ public class Parser4 implements ANTLRErrorListener {
 		this.stream.name = (this.sourceInfo.getSource() == null) ? ""
 				: this.sourceInfo.getSource().getPath();
 
-		this.lexer = new Prolog4Lexer(this.stream);
+		this.lexer = new Lexer4(this.stream, this);
 		this.lexer.setLine(this.sourceInfo.getLineNumber());
 		this.lexer
-				.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
+		.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
 
 		CommonTokenStream tokens = new CommonTokenStream(this.lexer);
 		this.parser = new Prolog4Parser(tokens);
-		this.parser.setBuildParseTree(true);
-
-		this.lexer.removeErrorListeners();
-		this.lexer.addErrorListener(this);
+		this.parser.setErrorHandler(new ErrorStrategy4());
 		this.parser.removeErrorListeners();
 		this.parser.addErrorListener(this);
+		this.parser.setBuildParseTree(true);
 	}
 
 	/**

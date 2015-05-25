@@ -32,7 +32,7 @@ import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
-import visitor.Visitor4;
+import swiprolog.visitor.Visitor4;
 
 /**
  * Tests for {@link Validator4Internal} to see if pipeline
