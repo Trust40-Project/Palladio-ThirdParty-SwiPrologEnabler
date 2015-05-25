@@ -172,6 +172,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		switch (t.getType()) {
 		case Prolog4Parser.VARIABLE:
 			return txt + " '" + t.getText() + "'";
+			// TODO: other cases?!
 		default:
 			return txt;
 		}
@@ -181,6 +182,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		switch (type) {
 		case Token.EOF:
 			return "end of file";
+			// TODO: other cases?!
 		default:
 			// Do not improve, simply return token symbol as is
 			if (type < Prolog4Parser.tokenNames.length) {
@@ -193,6 +195,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 
 	public String prettyPrintRuleContext(int ruleIndex) {
 		switch (ruleIndex) {
+		// TODO: other cases?!
 		default:
 			return Prolog4Parser.ruleNames[ruleIndex];
 		}
