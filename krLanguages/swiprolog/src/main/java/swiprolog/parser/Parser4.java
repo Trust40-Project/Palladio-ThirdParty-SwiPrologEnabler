@@ -244,7 +244,7 @@ public class Parser4 implements ANTLRErrorListener {
 			this.errors.add(new ParserException("Syntax does not allow "
 					+ offendingTokenText + " here, delete this", pos));
 		} else if (e.getMessage().equals("MissingToken")) {
-			this.errors.add(new ParserException(offendingTokenText
+			this.errors.add(new ParserException(expectedtokens
 					+ " is missing here", pos));
 		} else {
 			this.errors.add(new ParserException("Found " + offendingTokenText

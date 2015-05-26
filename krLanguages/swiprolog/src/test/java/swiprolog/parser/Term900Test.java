@@ -29,6 +29,7 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
 import swiprolog.parser.Prolog4Parser.Term0Context;
+import swiprolog.parser.Prolog4Parser.Term1000Context;
 
 /**
  * Tests for Prolog4Parser term900. predicates are term0 but the argument list
@@ -72,6 +73,21 @@ public class Term900Test {
 		assertEquals(text2, parser.toStringTree(tree));
 	}
 
+
+	/**
+	 * Checks term parses as term1000.
+	 * 
+	 * @throws ParserException
+	 */
+	private void checkParsesAsTerm1000(String text1, String text2)
+			throws IOException, ParserException {
+		Parser4 parser = getParser(text1);
+		Term1000Context tree = parser.term1000();
+		System.out.println(text1 + " -> " + parser.toStringTree(tree));
+		assertEquals(text2, parser.toStringTree(tree));
+	}
+
+	
 	@Test
 	public void testTerm1() throws IOException, ParserException {
 		checkParsesAsTerm0(
@@ -106,4 +122,21 @@ public class Term900Test {
 				"[1|2]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) , (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 2))))))))) | X)) ]))");
 	}
+
+	/**
+	 * Bit complex case.  '1;2' does not parse as term900. The parser seems to try the deepest possibilities first
+	 * @throws IOException
+	 * @throws ParserException
+	 */
+	@Test
+	public void testList5() throws IOException, ParserException {
+		try {
+		// as long as the text don't end on ',' we are really testing term900.
+		checkParsesAsTerm1000("1;2", "");
+		throw new IllegalStateException("incorrect success of parsing");
+		} catch (ParserException e) {
+			assertEquals("Found ';' where we need term with '*', '/' or similar", e.getMessage());
+		}
+	}
+
 }

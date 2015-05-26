@@ -170,7 +170,13 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		switch (t.getType()) {
 		case Prolog4Parser.VARIABLE:
 			return txt + " '" + t.getText() + "'";
-			// TODO: other cases?!
+		case Prolog4Parser.NAME:
+			return "atom '" + t.getText()+"'";
+		case Prolog4Parser.NUMBER:
+			return "number '" + t.getText()+"'";
+		case Prolog4Parser.STRING:
+			return "string " + t.getText();
+
 		default:
 			return txt;
 		}
@@ -180,7 +186,16 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		switch (type) {
 		case Token.EOF:
 			return "end of file/section";
-			// TODO: other cases?!
+		case Prolog4Parser.ENDTOKEN:
+			return "'.'";
+		case Prolog4Parser.NAME:
+			return "atom";
+		case Prolog4Parser.NUMBER:
+			return "number";
+		case Prolog4Parser.VARIABLE:
+			return "variable";
+		case Prolog4Parser.STRING:
+			return "string";
 		default:
 			// Do not improve, simply return token symbol as is
 			if (type < Prolog4Parser.tokenNames.length) {
@@ -192,9 +207,67 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 	}
 
 	public String prettyPrintRuleContext(int ruleIndex) {
+		if (Prolog4Parser.ruleNames.length != 28) {
+			throw new IllegalStateException("ErrorStrategy4 code incorrect");
+		}
 		switch (ruleIndex) {
-		// TODO: other cases?!
-		default:
+		case Prolog4Parser.RULE_prologfile:// "prologfile",
+			return "a list of prolog clauses";
+		case 1:// "prologtext",
+			return "a list of prolog clauses";
+		case 2:// "directiveorclause",
+			return "prolog clause or similar";
+		case 3:// "directive",
+			return ":-";
+		case 4:// "clause",
+			return "prolog clause";
+		case 5:// "arglist",
+			return "expression(s)";
+		case 6:// "possiblyEmptyConjunct",
+			return "term(s)";
+		case 7:// "possiblyEmptyDisjunct",
+			return "term(s) or disjunct";
+		case 8: // "expression",
+			return "expression";
+		case 9: // "listterm",
+			return "list";
+		case 10:// "items",
+			return "expression(s)";
+		case 11:// "prefixoperator",
+			return "expression in prefix notation";
+		case 12:// "prefixop",
+			return "prefix operator, such as '=='";
+		case 13:// "term0",
+			return "basic term like a number, variable, name, or list";
+		case 14:// "term50",
+			return "term with ':'";
+		case 15:// "term100",
+			return "term with '@'";
+		case 16:// "term200",
+			return "term with '-' or similar";
+		case 17:// "term400",
+			return "term with '*', '/' or similar";
+		case 18:// "term400b",
+			return "'*', '/' or similar";
+		case 19:// "term500",
+			return "term with '+', '-' or similar";
+		case 20:// "term500b",
+			return "'+', '-' or similar";
+		case 21:// "term700",
+			return "term with '==', '<' or similar";
+		case 22:// "term900",
+			return "expression";
+		case 23:// "term1000",
+			return "expression(s)";
+		case 24:// "term1050",
+			return "expression with '->' or similar";
+		case 25:// "term1100",
+			return "disjunct of expressions";
+		case 26:// "term1105",
+			return "expressions combined with '|'";
+		case 27:// "term1200"
+			return "clause or similar";
+		default: // UNREACHABLE? SAFETY CATCH?
 			return Prolog4Parser.ruleNames[ruleIndex];
 		}
 	}
