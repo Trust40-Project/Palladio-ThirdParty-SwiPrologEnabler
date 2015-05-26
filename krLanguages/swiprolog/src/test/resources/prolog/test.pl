@@ -22,16 +22,14 @@ aap(X):-beer(X),kat(X,Y), Y<2 .
 [aap,beer].
 >=(0,1).
 [>=(0,1), failure].
-aap.beer. % fails correctly. WHITESPACE needed between clauses. Parser will throw confusing comment...
+aap.
+beer.
 aap. beer. % works as expected. 
-{}.	% this fails, I think correctly as {} has 1 parameter: see ISO p. 14. SWI does accept it though??
 {1,2,3}. % NOT SURE from ISO what this SHOULD return: {}((1,(2,3))) or {}((1,2,3))
 	% or is it the same anyway?
-% some shit from the inria suite! 
+% some nasty terms from the inria suite! 
 [>=(2 + floot(1),5), type_error(evaluable, floot/1)].
 [(asserta((bar(X) :- X)), clause(bar(X), B)), [[B , call(X)]]].
-[asserta(bar(X) :- X), clause(bar(X), B)), [[B , call(X)]]].
-
 [asserta((foo :- 4)), type_error(callable, 4)]. 
 
 a < -b. % extra brackets will appear around -b
@@ -42,8 +40,8 @@ a < -(b+c). % becomes (a < -((b + c)))
 -1 .
 - -1 .
 - - - -1 .
-%  -- 1 % ISSUE: tokenizer crashes here.
-% Problem stems from tokenizer: if it sees -- it expects -->. 
+-- 1.
+e-h.
 a*b*c.
 a*b.
 a+b+c.
@@ -58,11 +56,10 @@ a+(b+c)+(d+e).
 (-e).
 e - f.
 e -g.
-%e-h. % ISSUE tokenizer crashes here???
 a+(b-c)- g*(d- ( - e -f )).
 :-(1,aap(2),beer).
 :- a :- b. % Not sure, I guess it should parse as :- (a:-b) which it does. SWI fails on it.
-a :- b :- c. % correctly fails: should give priority clash
+%a :- b :- c. % correctly fails: should give priority clash
 [catch(number_chars(A,L), error(instantiation_error, _), fail), failure].
 display_io(on), 
 		  run_bip('47
@@ -76,7 +73,6 @@ display_io(on),
 <(2 + floot(1),5).
 [abolish(foo/(-1)), domain_error(not_less_than_zero,-1)].
 [abolish(5/2), type_error(atom,5)].
-[,(var(X), X=1), [[X ]]]. % ERR our parser can not accept , as operator.
 %,(true,false). % idem. This even crashes the parser!
 [=\=(3 * 2,7 - 1), failure]. 
 3 * 2 =\= 7 - 1 . %OK, =\= binds less tight than - and *.
@@ -91,7 +87,7 @@ a*(b+c).
 d+a*(b+c). 
 a+b+c+d-e/\f. % should ((((a + b) + c) + d) - e) /\ f
 a+b*c*d-d*e mod f+g-h rem i. % combined test of two left-recursive operators.
-:- :- a.  % FAILS correctly: :- is fx operator, so can have only lower-prio ops on the right.
+:- \ aap.
 aap,beer,kat.
 beer:-1,2;3,4;5,6,!.
 beer :-	% the same but now after parsing and printing in SWI
@@ -112,7 +108,6 @@ a:-b,c,d.
 assert1.	
 assert((a:-b,c)).
 assert2.
-assert(a:-b,c).
 range(L,I,H) :- (L < H, L1 is L+1, range(L1, I, H)).
 
 abs(E-B, F). % ERR: parser FAILS (but gives warning)

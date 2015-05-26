@@ -9,7 +9,6 @@ import krTools.errors.exceptions.ParserException;
 import krTools.language.Update;
 import krTools.parser.Parser;
 
-import org.antlr.runtime.ANTLRReaderStream;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,9 +23,8 @@ public class TestKRInterfaceParser {
 	@Test
 	public void testParseUpdate() throws IOException, ParserException {
 		StringReader reader = new StringReader("on(a,b), on(b,c), on(c,table)");
-		ANTLRReaderStream stream = new ANTLRReaderStream(reader);
-		stream.name = "";
-		Parser parser = new KRInterfaceParser(stream);
+		Parser parser = new KRInterfaceParser4(reader, new SourceInfoObject(
+				null, 0, 0, 0, 0));
 		Update update = parser.parseUpdate();
 
 		assertEquals(",/2", update.getSignature());
@@ -38,9 +36,8 @@ public class TestKRInterfaceParser {
 	public void testParseUpdate_2() throws IOException, ParserException {
 		StringReader reader = new StringReader(
 				"zone(ID, Name, X, Y, Neighbours)");
-		ANTLRReaderStream stream = new ANTLRReaderStream(reader);
-		stream.name = "";
-		KRInterfaceParser parser = new KRInterfaceParser(stream);
+		Parser parser = new KRInterfaceParser4(reader, new SourceInfoObject(
+				null, 0, 0, 0, 0));
 		Update update = parser.parseUpdate();
 
 		assertEquals("zone/5", update.getSignature());

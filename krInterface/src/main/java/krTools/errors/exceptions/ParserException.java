@@ -30,7 +30,8 @@ import krTools.parser.SourceInfo;
  * parsing was interrupted for some reason.
  * </p>
  */
-public class ParserException extends Exception implements SourceInfo {
+public class ParserException extends Exception implements SourceInfo,
+Comparable<ParserException> {
 	private static final long serialVersionUID = 8224464835000074458L;
 
 	/**
@@ -134,9 +135,90 @@ public class ParserException extends Exception implements SourceInfo {
 			return -1;
 		}
 	}
-	
+
 	/** public getter for Source Info */
 	public SourceInfo getSourceInfo() {
-		return info;
+		return this.info;
+	}
+
+	@Override
+	public String toString() {
+		return "ParserException: " + getMessage() + " " + this.info;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		} else if (obj == null || !(obj instanceof ParserException)) {
+			return false;
+		} else {
+			ParserException other = (ParserException) obj;
+			if (this.info == null) {
+				if (other.getSourceInfo() != null) {
+					return false;
+				}
+			} else if (!this.info.equals(other.getSourceInfo())) {
+				return false;
+			}
+			if (getMessage() == null) {
+				if (other.getMessage() != null) {
+					return false;
+				}
+			} else if (!getMessage().equals(other.getMessage())) {
+				return false;
+			}
+			return true;
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((this.info == null) ? 0 : this.info.hashCode());
+		result = prime * result
+				+ ((getMessage() == null) ? 0 : getMessage().hashCode());
+		return result;
+	}
+
+	@Override
+	public int compareTo(ParserException other) {
+		if (equals(other)) {
+			return 0;
+		} else if (other.getSourceInfo() == null) {
+			return (this.info == null) ? 0 : -1;
+		} else if (this.info == null) {
+			return 1;
+		} else {
+			return before(this.info, other.getSourceInfo()) ? -1 : 1;
+		}
+	}
+
+	/**
+	 * @param info1
+	 *            A source info object.
+	 * @param info2
+	 *            A source info object.
+	 * @return {@code true} if source position of info1 object occurs before
+	 *         position of info2 object.
+	 */
+	private static boolean before(SourceInfo info1, SourceInfo info2) {
+		boolean source = info1.getSource() != null
+				&& info2.getSource() != null
+				&& (info1.getSource().getName()
+						.compareTo(info2.getSource().getName()) < 0);
+		boolean sourceEqual = info1.getSource() != null
+				&& info2.getSource() != null
+				&& (info1.getSource().getName()
+						.compareTo(info2.getSource().getName()) == 0);
+		boolean lineNr = sourceEqual
+				&& (info1.getLineNumber() < info2.getLineNumber());
+		boolean lineNrEqual = (info1.getLineNumber() == info2.getLineNumber());
+		boolean position = sourceEqual
+				&& lineNrEqual
+				&& (info1.getCharacterPosition() < info2.getCharacterPosition());
+		return source || lineNr || position;
 	}
 }
