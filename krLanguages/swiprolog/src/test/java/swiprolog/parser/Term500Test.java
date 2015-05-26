@@ -28,13 +28,11 @@ import krTools.errors.exceptions.ParserException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
-import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
 
 /**
- * Tests for Prolog4Parser term900. predicates are term0 but the argument list
- * inside the predicate are term900 elements.
- *
+ * Tests for Prolog4Parser term500. predicates are term0 but the argument list
+ * inside the predicate are term500 elements. *
  */
 public class Term500Test {
 	/**
@@ -46,14 +44,11 @@ public class Term500Test {
 	 */
 	private Parser4 getParser(Reader textStream) throws IOException {
 		Parser4 parser = new Parser4(textStream, null);
-
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
-
 		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}
@@ -61,7 +56,7 @@ public class Term500Test {
 	/**
 	 * Checks that two ':' separated texts (which should be term0 parse-able
 	 * texts) are parsed properly.
-	 * 
+	 *
 	 * @throws ParserException
 	 */
 	private void checkParsesAsTerm1000(String text1, String text2)
@@ -80,13 +75,17 @@ public class Term500Test {
 
 			throw new IllegalStateException("Unexpected success");
 		} catch (ParserException e) {
-			assertEquals("Found '=' where we need term with '*', '/' or similar",e.getMessage());
+			assertEquals(
+					"Found '=' where we need a term with '*', '/' or similar",
+					e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void testGoodTerm500() throws IOException, ParserException {
 		// the term500 is after the '=' sign.
-			checkParsesAsTerm1000("kat = aap + beer", "(term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 kat)))))) = (term500 (term400 (term200 (term100 (term50 (term0 aap))))) (term500b + (term400 (term200 (term100 (term50 (term0 beer))))))))))");
+		checkParsesAsTerm1000(
+				"kat = aap + beer",
+				"(term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 kat)))))) = (term500 (term400 (term200 (term100 (term50 (term0 aap))))) (term500b + (term400 (term200 (term100 (term50 (term0 beer))))))))))");
 	}
 }

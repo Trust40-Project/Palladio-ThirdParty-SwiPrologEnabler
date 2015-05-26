@@ -32,7 +32,6 @@ import swiprolog.parser.Prolog4Parser.Term0Context;
 
 /**
  * Tests for Prolog4Parser term0
- *
  */
 public class Term0Test {
 	/**
@@ -49,13 +48,12 @@ public class Term0Test {
 		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}
 
 	private void checkParsesAsTerm0(String text) throws IOException,
-			ParserException {
+	ParserException {
 		Parser4 parser = getParser(text);
 		Term0Context tree = parser.term0();
 		System.out.println(text + " -> " + parser.toStringTree(tree));

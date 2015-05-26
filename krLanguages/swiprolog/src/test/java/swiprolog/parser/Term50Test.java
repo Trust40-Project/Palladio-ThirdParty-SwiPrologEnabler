@@ -31,8 +31,8 @@ import org.junit.Test;
 
 /**
  * Tests for Prolog4Parser term50
- *
  */
+@SuppressWarnings("deprecation")
 public class Term50Test {
 	/**
 	 * Parses the textStream.
@@ -43,19 +43,14 @@ public class Term50Test {
 	 */
 	private Prolog4Parser getParser(InputStream textStream) throws IOException {
 		ANTLRInputStream input = new ANTLRInputStream(textStream);
-
 		Prolog4Lexer lexer = new Prolog4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
-
 		Prolog4Parser parser = new Prolog4Parser(tokens);
-
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
-
 		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Prolog4Parser getParser(String text) throws IOException {
 		return getParser(new StringBufferInputStream(text));
 	}

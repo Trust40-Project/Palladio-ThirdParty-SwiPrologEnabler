@@ -33,7 +33,6 @@ import swiprolog.parser.Prolog4Parser.ListtermContext;
 
 /**
  * Tests for Prolog4Parser term0
- *
  */
 public class ListTest {
 	/**
@@ -43,11 +42,10 @@ public class ListTest {
 	 */
 	private Parser4 getParser(String text) throws IOException {
 		return new Parser4(new StringReader(text), null);
-
 	}
 
 	private void checkParsesAsList(String... items) throws IOException,
-			ParserException {
+	ParserException {
 		String text = "[" + list2String(",", items) + "]";
 		Parser4 parser = getParser(text);
 		ListtermContext tree = parser.listterm();
@@ -57,7 +55,7 @@ public class ListTest {
 
 	/**
 	 * Turn list of items into a string, using given separator.
-	 * 
+	 *
 	 * @param separator
 	 *            separator to use.
 	 * @param items
@@ -76,7 +74,7 @@ public class ListTest {
 
 	/**
 	 * We should mock this, as now it is really testing too much.
-	 * 
+	 *
 	 * @param term
 	 * @return
 	 */
@@ -87,7 +85,7 @@ public class ListTest {
 
 	/**
 	 * convert a set of items to the expected expression
-	 * 
+	 *
 	 * @param items
 	 *            items that have been put in list and parsed.
 	 */
@@ -100,21 +98,21 @@ public class ListTest {
 			}
 			itemstring = items2String(array) + " ";
 		}
-
 		return "(listterm [ " + itemstring + "])";
 	}
 
 	private String items2String(List<String> items) {
 		if (items.size() == 1) {
 			return "(items " + item2String(items.get(0)) + ")";
+		} else {
+			return "(items " + item2String(items.get(0)) + " , "
+					+ items2String(items.subList(1, items.size())) + ")";
 		}
-		return "(items " + item2String(items.get(0)) + " , "
-				+ items2String(items.subList(1, items.size())) + ")";
 	}
 
 	@Test
 	public void testLisEmptyList() throws IOException, RecognitionException,
-			ParserException {
+	ParserException {
 		checkParsesAsList();
 	}
 

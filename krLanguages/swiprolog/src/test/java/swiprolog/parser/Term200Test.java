@@ -28,13 +28,11 @@ import krTools.errors.exceptions.ParserException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
-import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
 
 /**
- * Tests for Prolog4Parser term900. predicates are term0 but the argument list
- * inside the predicate are term900 elements.
- *
+ * Tests for Prolog4Parser term200. predicates are term0 but the argument list
+ * inside the predicate are term200 elements.
  */
 public class Term200Test {
 	/**
@@ -46,14 +44,11 @@ public class Term200Test {
 	 */
 	private Parser4 getParser(Reader textStream) throws IOException {
 		Parser4 parser = new Parser4(textStream, null);
-
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
-
 		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}
@@ -61,7 +56,7 @@ public class Term200Test {
 	/**
 	 * Checks that two ':' separated texts (which should be term0 parse-able
 	 * texts) are parsed properly.
-	 * 
+	 *
 	 * @throws ParserException
 	 */
 	private void checkParsesAsTerm1000(String text1, String text2)
@@ -80,18 +75,24 @@ public class Term200Test {
 
 			throw new IllegalStateException("Unexpected success");
 		} catch (ParserException e) {
-			assertEquals("Found '\\+' but we need term with '-' or similar here",e.getMessage());
+			assertEquals(
+					"Found '\\+' but we need a term with '-' or similar here",
+					e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void testProposedFix() throws IOException, ParserException {
-			checkParsesAsTerm1000("X^1 - 3", "(term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 X))) ^ (term200 (term100 (term50 (term0 1)))))) (term500b - (term400 (term200 (term100 (term50 (term0 3))))))))))");
+		checkParsesAsTerm1000(
+				"X^1 - 3",
+				"(term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 X))) ^ (term200 (term100 (term50 (term0 1)))))) (term500b - (term400 (term200 (term100 (term50 (term0 3))))))))))");
 	}
-	
+
 	@Test
 	public void testGoodTerm200() throws IOException, ParserException {
 		// the term200 is after the first '^' sign.
-		checkParsesAsTerm1000("X^1^3", "(term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 X))) ^ (term200 (term100 (term50 (term0 1))) ^ (term200 (term100 (term50 (term0 3)))))))))))");
+		checkParsesAsTerm1000(
+				"X^1^3",
+				"(term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 X))) ^ (term200 (term100 (term50 (term0 1))) ^ (term200 (term100 (term50 (term0 3)))))))))))");
 	}
 }

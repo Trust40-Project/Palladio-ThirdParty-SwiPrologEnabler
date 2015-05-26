@@ -171,11 +171,11 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		case Prolog4Parser.VARIABLE:
 			return txt + " '" + t.getText() + "'";
 		case Prolog4Parser.NAME:
-			return "atom '" + t.getText() + "'";
+			return txt + " '" + t.getText() + "'";
 		case Prolog4Parser.NUMBER:
-			return "number '" + t.getText() + "'";
+			return txt + " '" + t.getText() + "'";
 		case Prolog4Parser.STRING:
-			return "string " + t.getText();
+			return txt + " " + t.getText();
 		default:
 			return txt;
 		}

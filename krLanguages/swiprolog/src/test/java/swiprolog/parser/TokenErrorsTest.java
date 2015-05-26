@@ -28,12 +28,8 @@ import krTools.errors.exceptions.ParserException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
-import swiprolog.parser.Prolog4Parser.PrologtextContext;
-import swiprolog.parser.Prolog4Parser.Term0Context;
-
 /**
- * Tests for token errors. 
- *
+ * Tests for token errors.
  */
 public class TokenErrorsTest {
 	/**
@@ -50,26 +46,26 @@ public class TokenErrorsTest {
 		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}
 
 	/**
 	 * Check that given parse as prolog text throws the given error message.
+	 *
 	 * @param text
 	 * @param errormess
 	 * @throws IOException
 	 * @throws ParserException
 	 */
-	private void failsParseAsProlog(String text, String errormess) throws IOException,
-			ParserException {
+	private void failsParseAsProlog(String text, String errormess)
+			throws IOException, ParserException {
 		Parser4 parser = getParser(text);
-		try  {
-		PrologtextContext tree = parser.prologtext();
-		throw new IllegalStateException("Parse of "+text+" should have failed");
-		}
-		catch (ParserException e) {
+		try {
+			parser.prologtext();
+			throw new IllegalStateException("Parse of " + text
+					+ " should have failed");
+		} catch (ParserException e) {
 			assertEquals(errormess, e.getMessage());
 		}
 	}
@@ -79,24 +75,27 @@ public class TokenErrorsTest {
 		failsParseAsProlog("kata", "'.' is missing here");
 	}
 
-
 	@Test
 	public void testTwoNames() throws IOException, ParserException {
-		failsParseAsProlog("kata kata.", "Found atom 'kata' but we need term with '-' or similar here");
+		failsParseAsProlog("kata kata.",
+				"Found an atom 'kata' but we need a term with '-' or similar here");
 	}
-	
+
 	@Test
 	public void testExtraNumber() throws IOException, ParserException {
-		failsParseAsProlog("kata 1.", "Found number '1' but we need term with '-' or similar here");
+		failsParseAsProlog("kata 1.",
+				"Found a number '1' but we need a term with '-' or similar here");
 	}
-	
+
 	@Test
 	public void testExtraVariable() throws IOException, ParserException {
-		failsParseAsProlog("kata X.", "Found variable 'X' but we need term with '-' or similar here");
+		failsParseAsProlog("kata X.",
+				"Found a variable 'X' but we need a term with '-' or similar here");
 	}
 
 	@Test
 	public void testExtraString() throws IOException, ParserException {
-		failsParseAsProlog("kata \"X\".", "Found string \"X\" but we need term with '-' or similar here");
+		failsParseAsProlog("kata \"X\".",
+				"Found a string \"X\" but we need a term with '-' or similar here");
 	}
 }

@@ -28,7 +28,6 @@ import org.junit.Test;
 
 /**
  * Tests the error reports coming from the {@link Parser4}.
- *
  */
 public class ErrorReportsTest {
 	/**
@@ -41,19 +40,17 @@ public class ErrorReportsTest {
 	}
 
 	/**
-	 * Check that we have implemented all prettyprint
-	 * rules in prettyPrintRuleContext. 
+	 * Check that we have implemented all prettyprint rules in
+	 * prettyPrintRuleContext.
 	 */
-	@Test 
+	@Test
 	public void checkAllTokensTranslated() {
-
-		 ErrorStrategy4 strat = new ErrorStrategy4();
-		for (int n=0; n<Prolog4Parser.ruleNames.length; n++) {
+		ErrorStrategy4 strat = new ErrorStrategy4();
+		for (int n = 0; n < Prolog4Parser.ruleNames.length; n++) {
 			strat.prettyPrintRuleContext(n);
 		}
 	}
-	
-	
+
 	@Test
 	public void testSpuriousText() throws IOException, ParserException {
 		// term0 will not eat the second number.

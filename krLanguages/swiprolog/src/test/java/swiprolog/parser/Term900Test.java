@@ -34,7 +34,6 @@ import swiprolog.parser.Prolog4Parser.Term1000Context;
 /**
  * Tests for Prolog4Parser term900. predicates are term0 but the argument list
  * inside the predicate are term900 elements.
- *
  */
 public class Term900Test {
 	/**
@@ -46,14 +45,11 @@ public class Term900Test {
 	 */
 	private Parser4 getParser(Reader textStream) throws IOException {
 		Parser4 parser = new Parser4(textStream, null);
-
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
-
 		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}
@@ -61,7 +57,7 @@ public class Term900Test {
 	/**
 	 * Checks that two ':' separated texts (which should be term0 parse-able
 	 * texts) are parsed properly.
-	 * 
+	 *
 	 * @throws ParserException
 	 */
 	private void checkParsesAsTerm0(String text1, String text2)
@@ -73,10 +69,9 @@ public class Term900Test {
 		assertEquals(text2, parser.toStringTree(tree));
 	}
 
-
 	/**
 	 * Checks term parses as term1000.
-	 * 
+	 *
 	 * @throws ParserException
 	 */
 	private void checkParsesAsTerm1000(String text1, String text2)
@@ -87,7 +82,6 @@ public class Term900Test {
 		assertEquals(text2, parser.toStringTree(tree));
 	}
 
-	
 	@Test
 	public void testTerm1() throws IOException, ParserException {
 		checkParsesAsTerm0(
@@ -124,19 +118,23 @@ public class Term900Test {
 	}
 
 	/**
-	 * Bit complex case.  '1;2' does not parse as term900. The parser seems to try the deepest possibilities first
+	 * Bit complex case. '1;2' does not parse as term900. The parser seems to
+	 * try the deepest possibilities first
+	 *
 	 * @throws IOException
 	 * @throws ParserException
 	 */
 	@Test
 	public void testList5() throws IOException, ParserException {
 		try {
-		// as long as the text don't end on ',' we are really testing term900.
-		checkParsesAsTerm1000("1;2", "");
-		throw new IllegalStateException("incorrect success of parsing");
+			// as long as the text don't end on ',' we are really testing
+			// term900.
+			checkParsesAsTerm1000("1;2", "");
+			throw new IllegalStateException("incorrect success of parsing");
 		} catch (ParserException e) {
-			assertEquals("Found ';' where we need term with '*', '/' or similar", e.getMessage());
+			assertEquals(
+					"Found ';' where we need a term with '*', '/' or similar",
+					e.getMessage());
 		}
 	}
-
 }
