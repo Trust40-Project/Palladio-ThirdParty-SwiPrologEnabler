@@ -171,9 +171,9 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		case Prolog4Parser.VARIABLE:
 			return txt + " '" + t.getText() + "'";
 		case Prolog4Parser.NAME:
-			return "atom '" + t.getText()+"'";
+			return "atom '" + t.getText() + "'";
 		case Prolog4Parser.NUMBER:
-			return "number '" + t.getText()+"'";
+			return "number '" + t.getText() + "'";
 		case Prolog4Parser.STRING:
 			return "string " + t.getText();
 
@@ -206,69 +206,72 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		}
 	}
 
+	/**
+	 * pretty print a name of a parser rule.
+	 * @param ruleIndex
+	 * @return
+	 */
 	public String prettyPrintRuleContext(int ruleIndex) {
-		if (Prolog4Parser.ruleNames.length != 28) {
-			throw new IllegalStateException("ErrorStrategy4 code incorrect");
-		}
+
 		switch (ruleIndex) {
-		case Prolog4Parser.RULE_prologfile:// "prologfile",
+		case Prolog4Parser.RULE_prologfile:
 			return "a list of prolog clauses";
-		case 1:// "prologtext",
+		case Prolog4Parser.RULE_prologtext:
 			return "a list of prolog clauses";
-		case 2:// "directiveorclause",
+		case Prolog4Parser.RULE_directiveorclause:
 			return "prolog clause or similar";
-		case 3:// "directive",
+		case Prolog4Parser.RULE_directive:
 			return ":-";
-		case 4:// "clause",
+		case Prolog4Parser.RULE_clause:
 			return "prolog clause";
-		case 5:// "arglist",
+		case Prolog4Parser.RULE_arglist:
 			return "expression(s)";
-		case 6:// "possiblyEmptyConjunct",
+		case Prolog4Parser.RULE_possiblyEmptyConjunct:
 			return "term(s)";
-		case 7:// "possiblyEmptyDisjunct",
+		case Prolog4Parser.RULE_possiblyEmptyDisjunct:
 			return "term(s) or disjunct";
-		case 8: // "expression",
+		case Prolog4Parser.RULE_expression:
 			return "expression";
-		case 9: // "listterm",
+		case Prolog4Parser.RULE_listterm:
 			return "list";
-		case 10:// "items",
+		case Prolog4Parser.RULE_items:
 			return "expression(s)";
-		case 11:// "prefixoperator",
+		case Prolog4Parser.RULE_prefixoperator:
 			return "expression in prefix notation";
-		case 12:// "prefixop",
+		case Prolog4Parser.RULE_prefixop:
 			return "prefix operator, such as '=='";
-		case 13:// "term0",
+		case Prolog4Parser.RULE_term0:
 			return "basic term like a number, variable, name, or list";
-		case 14:// "term50",
+		case Prolog4Parser.RULE_term50:
 			return "term with ':'";
-		case 15:// "term100",
+		case Prolog4Parser.RULE_term100:
 			return "term with '@'";
-		case 16:// "term200",
+		case Prolog4Parser.RULE_term200:
 			return "term with '-' or similar";
-		case 17:// "term400",
+		case Prolog4Parser.RULE_term400:
 			return "term with '*', '/' or similar";
-		case 18:// "term400b",
+		case Prolog4Parser.RULE_term400b:
 			return "'*', '/' or similar";
-		case 19:// "term500",
+		case Prolog4Parser.RULE_term500:
 			return "term with '+', '-' or similar";
-		case 20:// "term500b",
+		case Prolog4Parser.RULE_term500b:
 			return "'+', '-' or similar";
-		case 21:// "term700",
+		case Prolog4Parser.RULE_term700:
 			return "term with '==', '<' or similar";
-		case 22:// "term900",
+		case Prolog4Parser.RULE_term900:
 			return "expression";
-		case 23:// "term1000",
+		case Prolog4Parser.RULE_term1000:
 			return "expression(s)";
-		case 24:// "term1050",
+		case Prolog4Parser.RULE_term1050:
 			return "expression with '->' or similar";
-		case 25:// "term1100",
+		case Prolog4Parser.RULE_term1100:
 			return "disjunct of expressions";
-		case 26:// "term1105",
+		case Prolog4Parser.RULE_term1105:
 			return "expressions combined with '|'";
-		case 27:// "term1200"
+		case Prolog4Parser.RULE_term1200:
 			return "clause or similar";
-		default: // UNREACHABLE? SAFETY CATCH?
-			return Prolog4Parser.ruleNames[ruleIndex];
+		default: 
+			throw new IllegalArgumentException("unknown parser rule index "+ruleIndex);
 		}
 	}
 }
