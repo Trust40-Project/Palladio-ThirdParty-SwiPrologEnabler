@@ -85,6 +85,16 @@ public class SQWRLParserSourceInfo implements SourceInfo {
 					that.sourceFile.getAbsoluteFile());
 		}
 	}
+	@Override
+	public int getStartIndex() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public int getStopIndex() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 	
 
 }

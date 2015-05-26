@@ -42,5 +42,11 @@ public class SWRLVar extends SWRLTerm implements Var {
 		return var.getIRI().toString();
 	}
 
+	@Override
+	public Var getVariant(Set<Var> usedNames) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	
 }
