@@ -183,6 +183,11 @@ public class SemanticTools {
 			throw new ParserException("Variables cannot be used as goals: "
 					+ t.toString(), source);
 		}
+		// footnote of 7.6.2. If T is a number then there is no goal which corresponds to T.
+		if (t.isFloat() || t.isInteger()) {
+			throw new ParserException("Number cannot be used as goals: "
+					+ t.toString(), source);
+		}
 		// 7.6.2.b
 		String sig = JPLUtils.getSignature(t);
 		if (PrologOperators.goalProtected(t.name())) {
