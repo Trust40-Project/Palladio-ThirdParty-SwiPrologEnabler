@@ -46,10 +46,10 @@ public class SQWRLParser extends SWRLParser implements Parser {
 		this.swrlParserSupport = new SWRLParserSupport(swrlapiOWLOntology);
 	}
 	
-	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, BufferedReader reader, SourceInfo info) {
+	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, BufferedReader reader) {
 		this(swrlapiOWLOntology);
 		this.reader = reader;
-		this.info = info;
+	//	this.info = info;
 	}
 	
 	private SWRLRule parse(){
@@ -114,7 +114,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	}
 
 	@Override
-	public List<DatabaseFormula> parseDBFs() throws ParserException {
+	public List<DatabaseFormula> parseDBFs(SourceInfo arg0) throws ParserException {
 		//rule to list of dbformula
 			List<DatabaseFormula> dbfs = new LinkedList<DatabaseFormula>();
 			DatabaseFormula dbf;
@@ -133,7 +133,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	}
 
 	@Override
-	public Update parseUpdate() throws ParserException {
+	public Update parseUpdate(SourceInfo arg0) throws ParserException {
 		//rule to update
 		SWRLRule rule = parse();
 		if (rule!=null)
@@ -143,10 +143,10 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	
 	
 	@Override
-	public List<Query> parseQueries() throws ParserException {
+	public List<Query> parseQueries(SourceInfo arg0) throws ParserException {
 			List<Query> queries = new LinkedList<Query>();
 		Query q;
-		while((q=parseQuery())!=null){
+		while((q=parseQuery(arg0))!=null){
 			queries.add(q);
 		}
 		return queries;
@@ -154,7 +154,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 
 
 	@Override
-	public Query parseQuery() throws ParserException {
+	public Query parseQuery(SourceInfo arg0) throws ParserException {
 		//rule to query
 		SWRLRule rule = parse();
 		if (rule!=null)
@@ -164,7 +164,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 
 	
 	@Override
-	public List<Term> parseTerms() throws ParserException {
+	public List<Term> parseTerms(SourceInfo arg0) throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
 		try {
 			String line = reader.readLine();
@@ -191,7 +191,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	}
 
 	@Override
-	public Term parseTerm() throws ParserException {
+	public Term parseTerm(SourceInfo arg0) throws ParserException {
 		//rule to term
 			SWRLRule rule = parse();
 			if (rule!=null)
@@ -200,7 +200,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	}
 
 	@Override
-	public Var parseVar() throws ParserException {
+	public Var parseVar(SourceInfo arg0) throws ParserException {
 			//rule to var
 			SWRLRule rule = parse();
 			Set<SWRLVariable> vars = rule.getVariables();
@@ -210,9 +210,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	
 	public List<SourceInfo> getErrors() {
 		return errors;
-	}
-
-	
+	}	
 	
 	
 

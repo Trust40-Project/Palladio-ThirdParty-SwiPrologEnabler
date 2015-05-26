@@ -40,16 +40,7 @@ public class SQWRLParserSourceInfo implements SourceInfo {
 	public String getMessage() {
 		return this.msg;
 	}
-	@Override
-	public int getStartIndex() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	@Override
-	public int getStopIndex() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	
 	
 	@Override
 	public String toString() {

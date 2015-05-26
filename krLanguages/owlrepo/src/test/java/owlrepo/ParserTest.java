@@ -48,7 +48,7 @@ if (file.exists() && file.canRead()){
 	    pmg.setPrefix("tradr", "http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#");
 	   
 	    reader = new BufferedReader(new InputStreamReader(System.in));
-		parser= new SQWRLParser(swrlapiOnto, reader, null);
+		parser= new SQWRLParser(swrlapiOnto, reader);
 }else
 	System.out.println("File not found or not accessible.");
 		}catch(Exception e){

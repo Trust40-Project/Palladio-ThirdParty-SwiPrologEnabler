@@ -81,7 +81,7 @@ public class OWLRepoKRInterface implements KRInterface {
 	}
 
 	@Override
-	public Parser getParser(Reader source, SourceInfo info)
+	public Parser getParser(Reader source)
 			throws ParserException {
 		BufferedReader reader = new BufferedReader(source);
 		String owlfilename = "";
@@ -92,7 +92,7 @@ public class OWLRepoKRInterface implements KRInterface {
 				String[] firstl = firstline.split(";");
 				if (firstl.length >1)
 					this.repoUrl = firstl[1];
-				this.owlfile = new File(info.getSource().getParent()+File.separator+firstl[0]);
+				this.owlfile = new File(firstl[0]);
 				owlfilename = firstl[0].substring(0,firstl[0].length()-4);
 			}else
 				reader.reset();
@@ -118,7 +118,7 @@ public class OWLRepoKRInterface implements KRInterface {
 		} 
 		
 		//create parser for this database onto and reader source
-		return new SQWRLParser(database.getSWRLOntology(), reader, info);
+		return new SQWRLParser(database.getSWRLOntology(), reader);
 	}
 	
 	public File getOwlFile(){
@@ -150,11 +150,7 @@ public class OWLRepoKRInterface implements KRInterface {
 		return new HashSet<DatabaseFormula>();
 	}
 	
-	@Override
-	public boolean supportsSerialization() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 	
 
 }
