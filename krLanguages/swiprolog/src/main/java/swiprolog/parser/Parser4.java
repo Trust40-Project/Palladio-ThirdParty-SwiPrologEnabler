@@ -246,7 +246,7 @@ public class Parser4 implements ANTLRErrorListener {
 			this.errors.add(new ParserException(ParserErrorMessages.TOKEN_BAD
 					.toReadableString(offendingTokenText), pos));
 		} else if (e.getMessage().equals("MissingToken")) {
-			this.errors.add(new ParserException(ParserErrorMessages.TOKEN_BAD
+			this.errors.add(new ParserException(ParserErrorMessages.TOKEN_MISSING
 					.toReadableString(expectedtokens), pos));
 		} else {
 			this.errors.add(new ParserException(
