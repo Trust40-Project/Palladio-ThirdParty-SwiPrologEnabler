@@ -18,10 +18,12 @@
 package swiprolog.visitor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import jpl.Term;
+import krTools.errors.exceptions.ParserException;
 import krTools.parser.SourceInfo;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -70,6 +72,7 @@ import swiprolog.parser.SourceInfoObject;
  */
 public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	private final SourceInfo source;
+	private List<ParserException> errors = new ArrayList<ParserException>();
 
 	/**
 	 * @param source
@@ -94,7 +97,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		}
 		return new SourceInfoObject(this.source.getSource(), start.getLine(),
 				start.getCharPositionInLine(), this.source.getStartIndex()
-				+ start.getStartIndex() + 1,
+						+ start.getStartIndex() + 1,
 				this.source.getStartIndex() + stop.getStopIndex() + 1);
 	}
 
@@ -102,7 +105,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		Token symbol = leaf.getSymbol();
 		return new SourceInfoObject(this.source.getSource(), symbol.getLine(),
 				symbol.getCharPositionInLine(), this.source.getStartIndex()
-				+ symbol.getStartIndex() + 1,
+						+ symbol.getStartIndex() + 1,
 				this.source.getStartIndex() + symbol.getStopIndex() + 1);
 	}
 
@@ -295,18 +298,55 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		return compound(ctx.prefixop().getText(), args, ctx);
 	}
 
+	/**
+	 * Parse number as term.
+	 * 
+	 * @param num
+	 *            number to parse
+	 * @param info
+	 *            the {@link SourceInfo}
+	 * @return the parsed term. If failure, this returns a term '1' and reports
+	 *         the error in the {@link #errors} list.
+	 */
+	private PrologTerm parseNumber(String num, SourceInfo info) {
+		if (num.matches("[0-9]+") || num.matches("0[box].*")) {
+			// integer string
+			try {
+				Long val = Long.valueOf(num);
+				// int, octal, hex, etc.
+				return new PrologTerm(JPLUtils.createIntegerNumber(val), info);
+			} catch (NumberFormatException e) {
+				System.out
+						.println("Number "
+								+ num
+								+ " too large for integer handling. Converting to double.");
+			}
+		}
+		// float
+		try {
+			Double val = Double.valueOf(num);
+			if (val.isNaN()) {
+				throw new NumberFormatException("value " + num
+						+ " is not a number");
+			}
+			if (val.isInfinite()) {
+				throw new NumberFormatException("value " + num
+						+ " maps to infinity");
+			}
+			return new PrologTerm(new jpl.Float(val), info);
+		} catch (NumberFormatException e) {
+			errors.add(new ParserException("Number can't be put in float:"
+					+ e.getMessage(), info));
+		}
+		return new PrologTerm(new jpl.Integer(1), info); // avoid NULL objects
+															// in the parse
+															// tree.
+	}
+
 	@Override
 	public PrologTerm visitTerm0(Term0Context ctx) {
 		if (ctx.NUMBER() != null) {
-			String text = ctx.NUMBER().getText();
-			if (text.matches("[0-9]+") || text.matches("0[box].*")) {
-				Long val = Long.valueOf(text);
-				return new PrologTerm(JPLUtils.createIntegerNumber(val),
-						getSourceInfo(ctx)); // int, octal, hex, etc.
-			} else { // float
-				return new PrologTerm(new jpl.Float(Double.valueOf(text)),
-						getSourceInfo(ctx));
-			}
+			return parseNumber(ctx.NUMBER().getText(), getSourceInfo(ctx));
 		} else if (ctx.NAME() != null) {
 			String name = ctx.NAME().getText();
 			ArglistContext args = ctx.arglist();
@@ -455,7 +495,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	@Override
 	public PrologTerm visitTerm700(Term700Context ctx) {
-		/**
+/**
 		        term500
        (
          (	'=' | '\\=' | '==' | '\\==' | '@<' | '@=<' |
@@ -567,5 +607,15 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
 			return compound(ctx.op.getText(), args, ctx);
 		}
+	}
+
+	/**
+	 * Get all errors that occured in the visiting phase (excluding the parsing
+	 * errors).
+	 * 
+	 * @return
+	 */
+	public List<ParserException> getVisitorErrors() {
+		return errors;
 	}
 }

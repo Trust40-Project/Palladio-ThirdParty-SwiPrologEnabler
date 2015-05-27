@@ -161,8 +161,8 @@ public abstract class PrologExpression implements Expression {
 			return Long.toString(this.term.longValue());
 		}
 
-		if (this.term.isFloat()) {
-			return Float.toString(this.term.floatValue());
+		if (this.term.isFloat()) { // actually a double.
+			return Double.toString(this.term.doubleValue());
 		}
 
 		if (this.term.isCompound()) {
