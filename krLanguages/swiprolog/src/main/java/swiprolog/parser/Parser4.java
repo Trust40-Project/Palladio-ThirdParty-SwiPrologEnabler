@@ -23,6 +23,7 @@ import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.atn.ParserATNSimulator;
 import org.antlr.v4.runtime.dfa.DFA;
 
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.ListtermContext;
 import swiprolog.parser.Prolog4Parser.PossiblyEmptyConjunctContext;
 import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
@@ -76,7 +77,7 @@ public class Parser4 implements ANTLRErrorListener {
 		this.lexer = new Lexer4(this.stream, this);
 		this.lexer.setLine(this.sourceInfo.getLineNumber());
 		this.lexer
-		.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
+				.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
 
 		CommonTokenStream tokens = new CommonTokenStream(this.lexer);
 		this.parser = new Prolog4Parser(tokens);
@@ -202,8 +203,8 @@ public class Parser4 implements ANTLRErrorListener {
 			RecognitionException e) {
 		text = text.replace("\\r", "").replace("\\n", " ").replace("\\t", " ")
 				.replace("\\f", "");
-		this.errors.add(new ParserException("'" + text
-				+ "' cannot be used here", pos));
+		this.errors.add(new ParserException(
+				ParserErrorMessages.CANNOT_BE_USED.toReadableString(text), pos));
 	}
 
 	/**
@@ -230,25 +231,27 @@ public class Parser4 implements ANTLRErrorListener {
 				.getTokenErrorDisplay((Token) offendingSymbol);
 		// TODO: copies and hardcodes derived from LanguageTools->Validator
 		if (e.getMessage().equals("NoViableAlternative")) {
-			this.errors.add(new ParserException("Found " + offendingTokenText
-					+ " but we need " + expectedtokens + " here", pos));
+			this.errors.add(new ParserException(
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+							offendingTokenText, expectedtokens), pos));
 		} else if (e.getMessage().equals("InputMismatch")) {
-			this.errors.add(new ParserException("Found " + offendingTokenText
-					+ " where we need " + expectedtokens, pos));
+			this.errors.add(new ParserException(
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+							offendingTokenText, expectedtokens), pos));
 		} else if (e.getMessage().equals("FailedPredicate")) {
-			this.errors
-					.add(new ParserException(
-							"Did not see that coming (thought we were not using predicates)",
-							pos));
+			this.errors.add(new ParserException(
+					ParserErrorMessages.FAILED_PREDICATE.toReadableString(),
+					pos));
 		} else if (e.getMessage().equals("UnwantedToken")) {
-			this.errors.add(new ParserException("Syntax does not allow "
-					+ offendingTokenText + " here, delete this", pos));
+			this.errors.add(new ParserException(ParserErrorMessages.TOKEN_BAD
+					.toReadableString(offendingTokenText), pos));
 		} else if (e.getMessage().equals("MissingToken")) {
-			this.errors.add(new ParserException(expectedtokens
-					+ " is missing here", pos));
+			this.errors.add(new ParserException(ParserErrorMessages.TOKEN_BAD
+					.toReadableString(expectedtokens), pos));
 		} else {
-			this.errors.add(new ParserException("Found " + offendingTokenText
-					+ " instead of " + expectedtokens, pos));
+			this.errors.add(new ParserException(
+					ParserErrorMessages.EXPECTED_TEXT.toReadableString(
+							offendingTokenText, expectedtokens), pos));
 		}
 	}
 

@@ -28,6 +28,7 @@ import krTools.errors.exceptions.ParserException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
 
 /**
@@ -72,11 +73,10 @@ public class Term500Test {
 	public void testNotTerm500() throws IOException, ParserException {
 		try {
 			checkParsesAsTerm1000("X=Y=Z", "");
-
 			throw new IllegalStateException("Unexpected success");
 		} catch (ParserException e) {
 			assertEquals(
-					"Found '=' where we need a term with '*', '/' or similar",
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'='",ParserErrorMessages.TERM500.toReadableString()),
 					e.getMessage());
 		}
 	}

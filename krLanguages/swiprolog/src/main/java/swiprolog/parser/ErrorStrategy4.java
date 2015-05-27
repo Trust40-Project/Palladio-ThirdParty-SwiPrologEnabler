@@ -9,6 +9,8 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
 
+import swiprolog.errors.ParserErrorMessages;
+
 public class ErrorStrategy4 extends DefaultErrorStrategy {
 	@Override
 	public void reportNoViableAlternative(Parser parser, NoViableAltException e)
@@ -206,7 +208,9 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 	}
 
 	/**
-	 * pretty print a name of a parser rule.
+	 * pretty print a name of a parser rule. We convert often to general
+	 * "an operator" because ANTLR produces too specific errors in many cases,
+	 * which misleads the user. #3511
 	 *
 	 * @param ruleIndex
 	 * @return
@@ -214,62 +218,63 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 	public String prettyPrintRuleContext(int ruleIndex) {
 		switch (ruleIndex) {
 		case Prolog4Parser.RULE_prologfile:
-			return "a list of prolog clauses";
+			return ParserErrorMessages.CLAUSES.toReadableString();
 		case Prolog4Parser.RULE_prologtext:
-			return "a list of prolog clauses";
+			return ParserErrorMessages.CLAUSES.toReadableString();
 		case Prolog4Parser.RULE_directiveorclause:
-			return "a prolog clause or similar";
+			return ParserErrorMessages.CLAUSE.toReadableString();
 		case Prolog4Parser.RULE_directive:
-			return ":-";
+			return ParserErrorMessages.DIRECTIVE.toReadableString();
 		case Prolog4Parser.RULE_clause:
-			return "a prolog clause";
+			return ParserErrorMessages.CLAUSE.toReadableString();
 		case Prolog4Parser.RULE_arglist:
-			return "expression(s)";
+			return ParserErrorMessages.EXPRESSIONS.toReadableString();
 		case Prolog4Parser.RULE_possiblyEmptyConjunct:
-			return "term(s)";
+			return ParserErrorMessages.TERMS.toReadableString();
 		case Prolog4Parser.RULE_possiblyEmptyDisjunct:
-			return "term(s) or disjunct(s)";
+			return ParserErrorMessages.DISJUNCT_OF_TERMS.toReadableString();
 		case Prolog4Parser.RULE_expression:
-			return "an expression";
+			return ParserErrorMessages.EXPRESSION.toReadableString();
 		case Prolog4Parser.RULE_listterm:
-			return "a list";
+			return ParserErrorMessages.LIST.toReadableString();
 		case Prolog4Parser.RULE_items:
-			return "expression(s)";
+			return ParserErrorMessages.EXPRESSIONS.toReadableString();
 		case Prolog4Parser.RULE_prefixoperator:
-			return "an expression in prefix notation";
+			return ParserErrorMessages.PREFIXOP.toReadableString();
 		case Prolog4Parser.RULE_prefixop:
-			return "a prefix operator such as '=='";
+			return ParserErrorMessages.PREFIX_OPERATOR.toReadableString();
 		case Prolog4Parser.RULE_term0:
-			return "a basic term like a number, variable, name, or list";
+			return ParserErrorMessages.TERM0.toReadableString();
 		case Prolog4Parser.RULE_term50:
-			return "a term with ':'";
+			return ParserErrorMessages.TERM50.toReadableString();
 		case Prolog4Parser.RULE_term100:
-			return "a term with '@'";
+			return ParserErrorMessages.TERM100.toReadableString();
 		case Prolog4Parser.RULE_term200:
-			return "a term with '-' or similar";
+			return ParserErrorMessages.TERM200.toReadableString();
 		case Prolog4Parser.RULE_term400:
-			return "a term with '*', '/' or similar";
+			return ParserErrorMessages.TERM400.toReadableString();
 		case Prolog4Parser.RULE_term400b:
-			return "'*', '/' or similar";
+			return ParserErrorMessages.TERM400B.toReadableString();
 		case Prolog4Parser.RULE_term500:
-			return "a term with '+', '-' or similar";
+			return ParserErrorMessages.TERM500.toReadableString();
 		case Prolog4Parser.RULE_term500b:
-			return "'+', '-' or similar";
+			return ParserErrorMessages.TERM500B.toReadableString();
 		case Prolog4Parser.RULE_term700:
-			return "a term with '==', '<' or similar";
+			return ParserErrorMessages.TERM700.toReadableString();
 		case Prolog4Parser.RULE_term900:
-			return "an expression";
+			return ParserErrorMessages.TERM900.toReadableString();
 		case Prolog4Parser.RULE_term1000:
-			return "expression(s)";
+			return ParserErrorMessages.TERM1000.toReadableString(); 
 		case Prolog4Parser.RULE_term1050:
-			return "an expression with '->' or similar";
+			return ParserErrorMessages.TERM1050.toReadableString();
 		case Prolog4Parser.RULE_term1100:
-			return "a disjunct of expressions";
+			return ParserErrorMessages.TERM1100.toReadableString();
 		case Prolog4Parser.RULE_term1105:
-			return "expressions combined with '|'";
+			return ParserErrorMessages.TERM1105.toReadableString();
 		case Prolog4Parser.RULE_term1200:
-			return "a clause or similar";
+			return ParserErrorMessages.TERM1200.toReadableString();
 		default:
+			// getting here would be a bug
 			throw new IllegalArgumentException("unknown parser rule index "
 					+ ruleIndex);
 		}

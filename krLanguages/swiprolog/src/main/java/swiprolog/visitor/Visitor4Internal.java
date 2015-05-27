@@ -30,6 +30,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
@@ -317,30 +318,30 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				return new PrologTerm(JPLUtils.createIntegerNumber(val), info);
 			} catch (NumberFormatException e) {
 				System.out
-						.println("Number "
-								+ num
-								+ " too large for integer handling. Converting to double.");
+						.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING
+								.toReadableString(num));
 			}
 		}
 		// float
 		try {
 			Double val = Double.valueOf(num);
 			if (val.isNaN()) {
-				throw new NumberFormatException("value " + num
-						+ " is not a number");
+				throw new NumberFormatException(
+						ParserErrorMessages.NUMBER_NAN.toReadableString(num));
 			}
 			if (val.isInfinite()) {
-				throw new NumberFormatException("value " + num
-						+ " maps to infinity");
+				throw new NumberFormatException(
+						ParserErrorMessages.NUMBER_INFINITY
+								.toReadableString(num));
 			}
 			return new PrologTerm(new jpl.Float(val), info);
 		} catch (NumberFormatException e) {
-			errors.add(new ParserException("Number can't be put in float:"
-					+ e.getMessage(), info));
+			errors.add(new ParserException(
+					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString()
+							+ ":" + e.getMessage(), info));
 		}
-		return new PrologTerm(new jpl.Integer(1), info); // avoid NULL objects
-															// in the parse
-															// tree.
+		// never return null as others may post process our output.
+		return new PrologTerm(new jpl.Integer(1), info); 
 	}
 
 	@Override

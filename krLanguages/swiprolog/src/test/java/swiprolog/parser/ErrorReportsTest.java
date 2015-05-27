@@ -26,6 +26,8 @@ import krTools.errors.exceptions.ParserException;
 
 import org.junit.Test;
 
+import swiprolog.errors.ParserErrorMessages;
+
 /**
  * Tests the error reports coming from the {@link Parser4}.
  */
@@ -78,7 +80,7 @@ public class ErrorReportsTest {
 			parser.term0();
 		} catch (ParserException e) {
 			System.out.println("errors:" + parser.getErrors());
-			// assertEquals("token recognition error at: 'ç'", e.getMessage());
+			assertEquals(ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"), e.getMessage());
 		}
 	}
 }

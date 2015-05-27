@@ -28,6 +28,7 @@ import krTools.errors.exceptions.ParserException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
 
@@ -127,14 +128,13 @@ public class Term900Test {
 	@Test
 	public void testList5() throws IOException, ParserException {
 		try {
-			// as long as the text don't end on ',' we are really testing
-			// term900.
 			checkParsesAsTerm1000("1;2", "");
 			throw new IllegalStateException("incorrect success of parsing");
 		} catch (ParserException e) {
 			assertEquals(
-					"Found ';' where we need a term with '*', '/' or similar",
-					e.getMessage());
+					e.getMessage(),
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString("';'",
+							ParserErrorMessages.TERM900.toReadableString()));
 		}
 	}
 }

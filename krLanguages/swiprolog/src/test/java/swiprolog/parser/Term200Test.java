@@ -17,7 +17,7 @@
 
 package swiprolog.parser;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -28,6 +28,7 @@ import krTools.errors.exceptions.ParserException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
 
 /**
@@ -75,9 +76,8 @@ public class Term200Test {
 
 			throw new IllegalStateException("Unexpected success");
 		} catch (ParserException e) {
-			assertEquals(
-					"Found '\\+' but we need a term with '-' or similar here",
-					e.getMessage());
+			assertEquals(e.getMessage(),
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'\\+'",ParserErrorMessages.TERM500.toReadableString()));
 		}
 	}
 

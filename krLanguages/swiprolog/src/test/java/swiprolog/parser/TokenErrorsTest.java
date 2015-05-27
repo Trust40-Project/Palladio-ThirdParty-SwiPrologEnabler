@@ -28,6 +28,8 @@ import krTools.errors.exceptions.ParserException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
+import swiprolog.errors.ParserErrorMessages;
+
 /**
  * Tests for token errors.
  */
@@ -72,30 +74,34 @@ public class TokenErrorsTest {
 
 	@Test
 	public void testNoEnd() throws IOException, ParserException {
-		failsParseAsProlog("kata", "'.' is missing here");
+		failsParseAsProlog("kata", 
+				ParserErrorMessages.TOKEN_BAD.toReadableString("'.'"));
 	}
 
 	@Test
 	public void testTwoNames() throws IOException, ParserException {
 		failsParseAsProlog("kata kata.",
-				"Found an atom 'kata' but we need a term with '-' or similar here");
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("an atom 'kata'",ParserErrorMessages.TERM200.toReadableString()));
 	}
 
 	@Test
 	public void testExtraNumber() throws IOException, ParserException {
 		failsParseAsProlog("kata 1.",
-				"Found a number '1' but we need a term with '-' or similar here");
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a number '1'",ParserErrorMessages.TERM200.toReadableString()));
 	}
 
 	@Test
 	public void testExtraVariable() throws IOException, ParserException {
 		failsParseAsProlog("kata X.",
-				"Found a variable 'X' but we need a term with '-' or similar here");
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a variable 'X'",
+						ParserErrorMessages.TERM200.toReadableString()));
+
 	}
 
 	@Test
 	public void testExtraString() throws IOException, ParserException {
 		failsParseAsProlog("kata \"X\".",
-				"Found a string \"X\" but we need a term with '-' or similar here");
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a string \"X\"",
+						ParserErrorMessages.TERM200.toReadableString()));
 	}
 }
