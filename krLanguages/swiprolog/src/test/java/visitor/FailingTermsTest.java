@@ -70,7 +70,7 @@ public class FailingTermsTest {
 	public void testEmptyCurlyList() throws IOException, KRInitFailedException {
 		ParserException exc = checkFailsAsTerm1000("{}",
 				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'}'",
-				ParserErrorMessages.TERM1200.toReadableString()));
+						ParserErrorMessages.TERM1200.toReadableString()));
 		assertEquals(1, exc.getLineNumber());
 		assertEquals(2, exc.getCharacterPosition());
 	}
@@ -102,16 +102,16 @@ public class FailingTermsTest {
 	@Test
 	// . % can not accept , as operator.
 	public void testListWithoutFirstArgument() throws IOException,
-			KRInitFailedException {
+	KRInitFailedException {
 		checkFailsAsTerm1000("[,(var(X), X=1), [[X ]]]",
-				ParserErrorMessages.TOKEN_BAD.toReadableString("']'"));
+				ParserErrorMessages.TOKEN_MISSING.toReadableString("']'"));
 		// CHECK why is parser complaining about ] and not about ,?
 	}
 
 	@Test
 	// :- is fx operator, so can have only lower-prio ops on the right.
 	public void testDoubleImplication() throws IOException,
-			KRInitFailedException {
+	KRInitFailedException {
 		ParserException exc = checkFailsAsTerm1000(":- :- a",
 				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
 						ParserErrorMessages.TERM900.toReadableString()));
