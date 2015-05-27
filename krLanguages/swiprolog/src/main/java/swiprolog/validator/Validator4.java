@@ -27,6 +27,7 @@ import krTools.language.Query;
 import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
@@ -123,9 +124,8 @@ public class Validator4 {
 		if (term.isVar()) {
 			return (PrologVar) term;
 		} else {
-			throw new ParserException(String.format(
-					"expected a SWI prolog variable but found '%s'",
-					term.toString()), term.getSourceInfo());
+			throw new ParserException(
+					ParserErrorMessages.EXPECTED_VAR.toReadableString(term.toString()), term.getSourceInfo());
 		}
 	}
 

@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import swiprolog.SWIPrologInterface;
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologUpdate;
 import swiprolog.parser.Parser4;
@@ -73,9 +74,25 @@ public class ProgramTest {
 				.queryOrEmpty();
 		 throw new IllegalStateException("parse of wrong query succeeded");
 		} catch (ParserException e) {
-			assertEquals("Number cannot be used as goals: 1",e.getMessage());
+			assertEquals(
+					ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString("1"),e.getMessage());
 		}
 	}
+	
+	@Test
+	public void testVarAsGoal() throws IOException,
+			KRInitFailedException, ParserException {
+		try {
+		 validator(
+				"X")
+				.queryOrEmpty();
+		 throw new IllegalStateException("parse of wrong query succeeded");
+		} catch (ParserException e) {
+			assertEquals(
+					ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString("X"),e.getMessage());
+		}
+	}
+	
 
 
 }

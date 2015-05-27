@@ -8,7 +8,7 @@ public enum ParserErrorMessages {
 	/** ?? */
 	VAR_EXPECTED,
 	/**
-	 * number is NAN 
+	 * number is NAN
 	 */
 	NUMBER_NAN,
 	/**
@@ -30,7 +30,7 @@ public enum ParserErrorMessages {
 	/**
 	 * Failed predicate
 	 */
-	FAILED_PREDICATE, 
+	FAILED_PREDICATE,
 	/**
 	 * misplaced/bad token
 	 */
@@ -50,7 +50,7 @@ public enum ParserErrorMessages {
 	/**
 	 * An (other) operator
 	 */
-	AN_OTHER_OPERATOR, 
+	AN_OTHER_OPERATOR,
 	/**
 	 * .. cannot be used here
 	 */
@@ -58,34 +58,46 @@ public enum ParserErrorMessages {
 	/**
 	 * descriptions for all the parser terms
 	 */
-	TERM0, 
-	TERM50,
-	TERM100,
-	TERM200,
-	TERM400,
-	TERM400B,
-	TERM500,
-	TERM500B,
-	TERM700,
-	TERM900, 
-	TERM1000,
-	TERM1050,
-	TERM1100,
-	TERM1105,
-	TERM1200,
-	EXPRESSION,
-	EXPRESSIONS,
-	DISJUNCT_OF_EXPRESSIONS,
-	LIST,
-	CLAUSE,
-	CLAUSES,
-	DIRECTIVE,
-	PREFIXOP,
-	TERMS,
-	DISJUNCT_OF_TERMS
+	TERM0, TERM50, TERM100, TERM200, TERM400, TERM400B, TERM500, TERM500B, TERM700, TERM900, TERM1000, TERM1050, TERM1100, TERM1105, TERM1200, EXPRESSION, EXPRESSIONS, DISJUNCT_OF_EXPRESSIONS, LIST, CLAUSE, CLAUSES, DIRECTIVE, PREFIXOP, TERMS, DISJUNCT_OF_TERMS,
+
+	/**
+	 * Expected var but found something else
+	 */
+	EXPECTED_VAR,
+	/**
+	 * Head can not be a var
+	 */
+	HEAD_CANT_BE_VAR,
+	/**
+	 * Head must be a clause
+	 */
+	HEAD_MUST_BE_CLAUSE,
+	/**
+	 * Can not redefine built-in predicate
+	 */
+	CANNOT_REDEFINE_BUILT_IN,
+	/**
+	 * Predicate is protected
+	 */
+	PROTECTED_PREDICATE,
+	/**
+	 * Variables cant be used as goal
+	 */
+	VARIABLES_NOT_AS_GOAL,
+	/**
+	 * numbers cant be used as goal
+	 */
+	NUMBER_NOT_AS_GOAL,
+	/**
+	 * use of predicate not supoorted
+	 */
+	PREDICATE_NOT_SUPPORTED,
+	/**
+	 * clauses cant be used as goal
+	 */
+	CLAUSE_NOT_AS_GOAL
 
 	;
-	
 
 	private static final ResourceBundle BUNDLE = ResourceBundle
 			.getBundle("swiprolog.errors.ParserErrorMessages");

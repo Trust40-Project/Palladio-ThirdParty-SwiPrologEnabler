@@ -27,6 +27,7 @@ import krTools.errors.exceptions.ParserException;
 
 import org.junit.Test;
 
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Parser4;
 import swiprolog.visitor.Visitor4;
 
@@ -50,23 +51,26 @@ public class FailingTermsTest {
 	 * @throws KRInitFailedException
 	 * @throws ParserException
 	 */
-	private ParserException checkFailsAsTerm1000(String in) throws IOException {
+	private ParserException checkFailsAsTerm1000(String in, String expectedErr)
+			throws IOException {
 		Visitor4 visitor = new Visitor4(new Parser4(new StringReader(in), null));
 		try {
 			visitor.visitTerm1000();
+			throw new IllegalStateException("parsing of " + in
+					+ " succeeds unexpectedly");
 		} catch (ParserException e) {
+			assertEquals(expectedErr, e.getMessage());
 			return e;
 		}
-		throw new IllegalStateException("parsing of " + in
-				+ " succeeds unexpectedly");
 	}
 
 	@Test
 	// this fails, I think correctly as {} has 1 parameter: see ISO p. 14. SWI
 	// does accept it though?
 	public void testEmptyCurlyList() throws IOException, KRInitFailedException {
-		ParserException exc = checkFailsAsTerm1000("{}");
-		// assertEquals("no viable alternative at input '}'", exc.getMessage());
+		ParserException exc = checkFailsAsTerm1000("{}",
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'}'",
+				ParserErrorMessages.TERM1200.toReadableString()));
 		assertEquals(1, exc.getLineNumber());
 		assertEquals(2, exc.getCharacterPosition());
 	}
@@ -74,43 +78,43 @@ public class FailingTermsTest {
 	@Test
 	// :- is term1200 and paramlist holds term1000
 	public void testTerm1200InList() throws IOException, KRInitFailedException {
-		ParserException exc = checkFailsAsTerm1000("[asserta(bar(X) :- X), clause(bar(X), B)), [[B , call(X)]]]");
-		// assertEquals(
-		// "mismatched input ':-' expecting {',', ')', '=', '\\=', '==', '\\==', '@<', '@=<', '@>', '@>=', '=@=', '=..', 'is', '/\\', '\\/', '=:=', '=\\=', '<', '<<', '=<', '>', '>>', '>=', '><', '+', '-', '*', '/', '//', 'rem', 'mod', 'xor', 'rdiv'}",
-		// exc.getMessage());
+		checkFailsAsTerm1000(
+				"[asserta(bar(X) :- X), clause(bar(X), B)), [[B , call(X)]]]",
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
+						ParserErrorMessages.TERM900.toReadableString()));
 	}
 
 	@Test
 	// :- is term1200 and paramlist holds term1000
 	public void testTerm1200InListB() throws IOException, KRInitFailedException {
-		ParserException exc = checkFailsAsTerm1000("assert(a:-b,c)");
-		// assertEquals(
-		// "mismatched input ':-' expecting {',', ')', '=', '\\=', '==', '\\==', '@<', '@=<', '@>', '@>=', '=@=', '=..', 'is', '/\\', '\\/', '=:=', '=\\=', '<', '<<', '=<', '>', '>>', '>=', '><', '+', '-', '*', '/', '//', 'rem', 'mod', 'xor', 'rdiv'}",
-		// exc.getMessage());
+		checkFailsAsTerm1000("assert(a:-b,c)",
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
+						ParserErrorMessages.TERM900.toReadableString()));
 	}
 
 	@Test
 	// -- does not parse and results in 'extraneous input' message.
 	public void testUnknownOperator() throws IOException, KRInitFailedException {
-		ParserException exc = checkFailsAsTerm1000(">>> (1)");
-		// assertEquals("extraneous input '>' expecting '('", exc.getMessage());
+		checkFailsAsTerm1000(">>> (1)",
+				ParserErrorMessages.TOKEN_BAD.toReadableString("'>'"));
 	}
 
 	@Test
 	// . % can not accept , as operator.
 	public void testListWithoutFirstArgument() throws IOException,
 			KRInitFailedException {
-		ParserException exc = checkFailsAsTerm1000("[,(var(X), X=1), [[X ]]]");
-		// assertEquals("missing ']' at ','", exc.getMessage());
+		checkFailsAsTerm1000("[,(var(X), X=1), [[X ]]]",
+				ParserErrorMessages.TOKEN_BAD.toReadableString("']'"));
+		// CHECK why is parser complaining about ] and not about ,?
 	}
 
 	@Test
 	// :- is fx operator, so can have only lower-prio ops on the right.
 	public void testDoubleImplication() throws IOException,
 			KRInitFailedException {
-		ParserException exc = checkFailsAsTerm1000(":- :- a");
-		// assertEquals("no viable alternative at input ':-'",
-		// exc.getMessage());
+		ParserException exc = checkFailsAsTerm1000(":- :- a",
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
+						ParserErrorMessages.TERM900.toReadableString()));
 		assertEquals(1, exc.getCharacterPosition());
 		// CHECK Why isn't this position 3?
 	}
