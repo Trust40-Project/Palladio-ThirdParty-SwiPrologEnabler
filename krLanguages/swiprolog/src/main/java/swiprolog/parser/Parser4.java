@@ -42,7 +42,6 @@ import swiprolog.parser.Prolog4Parser.Term1000Context;
  * that we can handle problems with the normal throw/catch mechanisms higher up.
  *
  * @author W.Pasman 23apr15
- *
  */
 public class Parser4 implements ANTLRErrorListener {
 	private final Prolog4Parser parser;
@@ -77,7 +76,7 @@ public class Parser4 implements ANTLRErrorListener {
 		this.lexer = new Lexer4(this.stream, this);
 		this.lexer.setLine(this.sourceInfo.getLineNumber());
 		this.lexer
-				.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
+		.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
 
 		CommonTokenStream tokens = new CommonTokenStream(this.lexer);
 		this.parser = new Prolog4Parser(tokens);
@@ -203,8 +202,8 @@ public class Parser4 implements ANTLRErrorListener {
 			RecognitionException e) {
 		text = text.replace("\\r", "").replace("\\n", " ").replace("\\t", " ")
 				.replace("\\f", "");
-		this.errors.add(new ParserException(
-				ParserErrorMessages.CANNOT_BE_USED.toReadableString(text), pos));
+		this.errors.add(new ParserException(ParserErrorMessages.CANNOT_BE_USED
+				.toReadableString(text), pos));
 	}
 
 	/**
@@ -246,8 +245,9 @@ public class Parser4 implements ANTLRErrorListener {
 			this.errors.add(new ParserException(ParserErrorMessages.TOKEN_BAD
 					.toReadableString(offendingTokenText), pos));
 		} else if (e.getMessage().equals("MissingToken")) {
-			this.errors.add(new ParserException(ParserErrorMessages.TOKEN_MISSING
-					.toReadableString(expectedtokens), pos));
+			this.errors.add(new ParserException(
+					ParserErrorMessages.TOKEN_MISSING
+							.toReadableString(expectedtokens), pos));
 		} else {
 			this.errors.add(new ParserException(
 					ParserErrorMessages.EXPECTED_TEXT.toReadableString(
@@ -309,5 +309,4 @@ public class Parser4 implements ANTLRErrorListener {
 		finalChecks();
 		return t;
 	}
-
 }
