@@ -25,7 +25,6 @@ import krTools.language.Expression;
 import krTools.language.Substitution;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
-import swiprolog.parser.PrologOperators;
 
 /**
  * DOC

@@ -18,16 +18,12 @@
 package swiprolog.language;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jpl.Atom;
 import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
@@ -137,8 +133,7 @@ public class JPLUtils {
 	 * @return a copy of t but with all occurences of variables substituted as
 	 *         indicated in the substi map.
 	 */
-	@SuppressWarnings("rawtypes")
-	public static jpl.Term applySubst(Hashtable solution, jpl.Term term) {
+	public static jpl.Term applySubst(Map<String, Term> solution, jpl.Term term) {
 		// Cases: Atom, Integer, Float.
 		if (term.isAtom() || term.isInteger() || term.isFloat()) {
 			return term;
@@ -250,9 +245,8 @@ public class JPLUtils {
 	 *         variables if unification is possible, or null if no unification
 	 *         is possible.
 	 */
-	public static Hashtable<String, Term> mgu(jpl.Term thisterm,
-			jpl.Term otherterm) {
-		Hashtable<String, Term> result = new Hashtable<String, jpl.Term>();
+	public static Map<String, Term> mgu(jpl.Term thisterm, jpl.Term otherterm) {
+		Map<String, Term> result = new Hashtable<String, jpl.Term>();
 
 		// terms are equal already. success.
 		if (thisterm.equals(otherterm)) {
@@ -302,9 +296,9 @@ public class JPLUtils {
 	 * @param thisterm
 	 * @return
 	 */
-	public static Hashtable<String, Term> mguCompound(Compound thisterm,
+	public static Map<String, Term> mguCompound(Compound thisterm,
 			Compound otherterm) {
-		Hashtable<String, Term> result = new Hashtable<String, jpl.Term>();
+		Map<String, Term> result = new Hashtable<String, jpl.Term>();
 
 		if (!thisterm.name().equals(otherterm.name())) {
 			return null;
@@ -338,10 +332,9 @@ public class JPLUtils {
 	 * @return combined subst, or null if they can not be combined (variable
 	 *         conflict)
 	 */
-	protected static Hashtable<String, Term> combineSubstitutions(
-			Hashtable<String, Term> thissubst,
-			Hashtable<String, Term> othersubst) {
-		Hashtable<String, Term> combination = new Hashtable<String, Term>();
+	protected static Map<String, Term> combineSubstitutions(
+			Map<String, Term> thissubst, Map<String, Term> othersubst) {
+		Map<String, Term> combination = new Hashtable<String, Term>();
 
 		// Combining with {@code null}, i.e., failure, yields a failure {@code
 		// null}.
@@ -374,7 +367,7 @@ public class JPLUtils {
 				}
 			} else { // two bindings for one and the same variable.
 				// Check whether terms can be unified
-				Hashtable<String, Term> mgu = mgu(othersubst.get(variable),
+				Map<String, Term> mgu = mgu(othersubst.get(variable),
 						thissubst.get(variable));
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
@@ -760,9 +753,8 @@ public class JPLUtils {
 		return "|" + term;
 	}
 
-	
 	public static Map<String, Term> unify(jpl.Term x, jpl.Term y) {
-		return unify(x,y,new HashMap<String,Term>());
+		return unify(x, y, new HashMap<String, Term>());
 	}
 
 	/**

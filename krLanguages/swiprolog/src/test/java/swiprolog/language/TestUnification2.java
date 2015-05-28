@@ -382,7 +382,7 @@ public class TestUnification2 {
 		// f(x,x)
 		jpl.Term FXX = new jpl.Compound("f", new Term[] { x3, x4 });
 
-		Map<String, Term> result = JPLUtils.unify(x, x1);
+		Map<String, Term> result = JPLUtils.unify(fXX, FXX);
 		assertEquals(new Hashtable<String, jpl.Term>(), result);
 
 	}

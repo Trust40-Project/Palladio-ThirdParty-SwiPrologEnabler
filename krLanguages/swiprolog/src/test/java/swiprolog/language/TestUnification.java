@@ -39,7 +39,7 @@ public class TestUnification {
 	public void init() throws KRInitFailedException {
 		swiprolog.SWIPrologInterface.getInstance();
 	}
-	
+
 	/**
 	 * Returns a substitution built from given variable and term.
 	 *
@@ -295,7 +295,7 @@ public class TestUnification {
 
 		assertEquals(unifier1, JPLUtils.mgu(gY, x));
 		// FIXME is this actually correct? See also #3469
-		assertEquals(unifier2, JPLUtils.mgu(fgYX, fXga)); 
+		assertEquals(unifier2, JPLUtils.mgu(fgYX, fXga));
 		// f(g(Y), X, Y) = f(X, g(a), a)
 		assertEquals(unifier2, JPLUtils.mgu(fgYXY, fXgaa));
 	}
@@ -323,9 +323,10 @@ public class TestUnification {
 		assertEquals(unifier1, JPLUtils.mgu(fXY, fYX));
 		assertEquals(unifier2, JPLUtils.mgu(fYX, fXY));
 	}
-	
+
 	/**
-	 * Test case: unification of f(X) and f(g(X)) (occurs check should kick in). #3470
+	 * Test case: unification of f(X) and f(g(X)) (occurs check should kick in).
+	 * #3470
 	 */
 	@Test
 	public void test11Mgu() {
@@ -333,19 +334,19 @@ public class TestUnification {
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
-		
-		assertEquals(x,x1);
-		
+
+		assertEquals(x, x1);
+
 		// f(x)
 		jpl.Term fX = new jpl.Compound("f", new Term[] { x });
-		
-		
-		// Construct f(g(X))
-		jpl.Term fgX = new jpl.Compound("f", new Term[] { new jpl.Compound("g", new Term[] { x1 }) });
 
-		Hashtable<String, Term> result = JPLUtils.mgu(fX, fgX);
-		
-		assertEquals(null,result);
+		// Construct f(g(X))
+		jpl.Term fgX = new jpl.Compound("f", new Term[] { new jpl.Compound("g",
+				new Term[] { x1 }) });
+
+		Map<String, Term> result = JPLUtils.mgu(fX, fgX);
+
+		assertEquals(null, result);
 	}
 
 	/**
@@ -357,12 +358,12 @@ public class TestUnification {
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
-		
-		Hashtable<String, Term> result = JPLUtils.mgu(x, x1);
-		
-		assertEquals(new Hashtable<String, jpl.Term>(),result);
+
+		Map<String, Term> result = JPLUtils.mgu(x, x1);
+
+		assertEquals(new Hashtable<String, jpl.Term>(), result);
 	}
-	
+
 	/**
 	 * Test case: unification of f(X,X) and f(X,X)
 	 */
@@ -372,27 +373,27 @@ public class TestUnification {
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
-		
+
 		// f(x,x)
-		jpl.Term fXX = new jpl.Compound("f", new Term[] { x,x1 });
-		
+		jpl.Term fXX = new jpl.Compound("f", new Term[] { x, x1 });
+
 		// Construct f(X, Y)
 		Variable x3 = new Variable("X");
 		Variable x4 = new Variable("X");
-		
+
 		// f(x,x)
-		jpl.Term FXX = new jpl.Compound("f", new Term[] { x3,x4 });
-		
-		Map<String, Term> result = JPLUtils.mgu(x, x1);
-		assertEquals(new Hashtable<String, jpl.Term>(),result);
+		jpl.Term FXX = new jpl.Compound("f", new Term[] { x3, x4 });
+
+		Map<String, Term> result = JPLUtils.mgu(fXX, FXX);
+		assertEquals(new Hashtable<String, jpl.Term>(), result);
 
 	}
-	
-	//@Test the original mgu fails this check!
+
+	// @Test the original mgu fails this check!
 	public void testOccursCheck() {
-		Compound term1 = new Compound("aap",new Term[] {new Variable("X")});
-		Term term2=new Variable("X");
-		Hashtable<String, Term> result = JPLUtils.mgu(term1,term2);
-		assertEquals(null,result);
+		Compound term1 = new Compound("aap", new Term[] { new Variable("X") });
+		Term term2 = new Variable("X");
+		Map<String, Term> result = JPLUtils.mgu(term1, term2);
+		assertEquals(null, result);
 	}
 }

@@ -17,7 +17,7 @@
 
 package swiprolog.language;
 
-import java.util.Hashtable;
+import java.util.Map;
 
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
@@ -40,7 +40,7 @@ import swiprolog.database.SWIPrologDatabase;
  * </p>
  */
 public class PrologDBFormula extends PrologExpression implements
-DatabaseFormula {
+		DatabaseFormula {
 
 	/**
 	 * Creates a Prolog database formula that can be part of a Prolog database.
@@ -56,7 +56,7 @@ DatabaseFormula {
 
 	@Override
 	public PrologDBFormula applySubst(Substitution substitution) {
-		Hashtable<String, jpl.Term> jplSubstitution = (substitution == null) ? null
+		Map<String, jpl.Term> jplSubstitution = (substitution == null) ? null
 				: ((PrologSubstitution) substitution).getJPLSolution();
 		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution,
 				getTerm()), getSourceInfo());
