@@ -17,7 +17,13 @@
 
 package swiprolog.language;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+
+import java.util.Hashtable;
+
+import jpl.Compound;
+import jpl.Term;
+import jpl.Variable;
 import krTools.errors.exceptions.KRQueryFailedException;
 
 import org.junit.Test;
@@ -35,6 +41,15 @@ public class TestUtils {
 		jpl.Atom constant = new jpl.Atom("Aap");
 		jpl.Term term = JPLUtils.createCompound("var", constant);
 		assertTrue(SWIPrologDatabase.rawquery(term).isEmpty());
+	}
+	
+	//@Test
+	// FIXME MGU seems not working properly.
+	public void testOccursCheck() {
+		Compound term1 = new Compound("aap",new Term[] {new Variable("X")});
+		Term term2=new Variable("X");
+		Hashtable<String, Term> result = JPLUtils.mgu(term1,term2);
+		assertEquals(null,result);
 	}
 
 }
