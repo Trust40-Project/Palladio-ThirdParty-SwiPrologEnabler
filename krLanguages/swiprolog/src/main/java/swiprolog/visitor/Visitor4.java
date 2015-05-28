@@ -44,7 +44,7 @@ public class Visitor4 {
 			throw getErrors().first();
 		}
 	}
-	
+
 	/******************** build on top of Visitor4Internal but throwing **********/
 	public PrologTerm visitPossiblyEmptyConjunct() throws ParserException {
 		PrologTerm t = this.visitor.visitPossiblyEmptyConjunct(this.parser
@@ -53,19 +53,19 @@ public class Visitor4 {
 		return t;
 	}
 
-
 	public List<PrologTerm> visitPrologtext() throws ParserException {
-		List<PrologTerm> t = this.visitor.visitPrologtext(this.parser.prologtext());
+		List<PrologTerm> t = this.visitor.visitPrologtext(this.parser
+				.prologtext());
 		rethrow();
 		return t;
 
 	}
 
 	public PrologTerm visitPossiblyEmptyDisjunct() throws ParserException {
-		 PrologTerm t=this.visitor.visitPossiblyEmptyDisjunct(this.parser
+		PrologTerm t = this.visitor.visitPossiblyEmptyDisjunct(this.parser
 				.possiblyEmptyDisjunct());
-			rethrow();
-			return t;
+		rethrow();
+		return t;
 	}
 
 	public PrologTerm visitTerm0() throws ParserException {
@@ -82,14 +82,15 @@ public class Visitor4 {
 	}
 
 	/**
-	 * Get all errors from both visitor and parser 
+	 * Get all errors from both visitor and parser
+	 * 
 	 * @return all errors from both visitor and parser
 	 */
 	public SortedSet<ParserException> getErrors() {
-		SortedSet<ParserException> allErrors=new TreeSet<ParserException>();
+		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
 
-		allErrors.addAll(visitor.getVisitorErrors());
-		allErrors.addAll(parser.getErrors());
+		allErrors.addAll(this.visitor.getVisitorErrors());
+		allErrors.addAll(this.parser.getErrors());
 		return allErrors;
 	}
 }

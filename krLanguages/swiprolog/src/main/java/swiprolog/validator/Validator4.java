@@ -52,7 +52,7 @@ import swiprolog.visitor.Visitor4;
 public class Validator4 {
 	private final Visitor4 visitor;
 
-	private List<ParserException> errors = new ArrayList<ParserException>();
+	private final List<ParserException> errors = new ArrayList<ParserException>();
 
 	/**
 	 * @param visitor
@@ -90,7 +90,7 @@ public class Validator4 {
 			try {
 				dbfs.add(SemanticTools.DBFormula(t));
 			} catch (ParserException e) {
-				errors.add(e);
+				this.errors.add(e);
 			}
 		}
 		return dbfs;
@@ -110,7 +110,7 @@ public class Validator4 {
 				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(),
 						t.getSourceInfo()), t.getSourceInfo()));
 			} catch (ParserException e) {
-				errors.add(e);
+				this.errors.add(e);
 			}
 		}
 		return goals;
@@ -179,9 +179,9 @@ public class Validator4 {
 	 * @return all errors that occurred
 	 */
 	public SortedSet<ParserException> getErrors() {
-		SortedSet<ParserException> allErrors=new TreeSet<ParserException>();
-		allErrors.addAll(visitor.getErrors());
-		allErrors.addAll(errors);
+		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
+		allErrors.addAll(this.visitor.getErrors());
+		allErrors.addAll(this.errors);
 		return allErrors;
 	}
 
