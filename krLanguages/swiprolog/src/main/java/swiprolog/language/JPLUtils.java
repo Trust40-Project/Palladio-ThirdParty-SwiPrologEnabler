@@ -577,4 +577,183 @@ public class JPLUtils {
 				+ " and " + term2 + " is not defined.");
 	}
 
+	/**
+	 * Convert a {@link Term} to a pretty printed string.
+	 * @param term the term to print
+	 * @return pretty printed term.
+	 */
+	public static String toString(Term term) {
+		if (term.isAtom()) {
+			return term.toString();
+		}
+
+		if (term.isVariable()) {
+			return term.name();
+		}
+
+		if (term.isInteger()) {
+			return Long.toString(term.longValue());
+		}
+
+		if (term.isFloat()) { // actually a double.
+			return Double.toString(term.doubleValue());
+		}
+
+		if (term.isCompound()) {
+			/**
+			 * Special treatment of (non-empty) lists.
+			 */
+			if (term.name().equals(".") && term.arity() == 2) {
+				return "[" + term.arg(1) + tailToString(term.arg(2))
+						+ "]";
+			}
+
+			switch (JPLUtils.getFixity(term)) {
+			case FX:
+			case FY:
+				/*
+				 * "-" is tight binding in which case the extra brackets are not
+				 * needed but the :- is not tight binding so there we need
+				 * brackets.
+				 */
+				// SWI bug workaround. Mantis 280
+				if (term.name().equals("-")) {
+					return term.name() + maybeBracketed(term,1);
+				}
+				return term.name() + " " + maybeBracketed(term,1);
+			case XFX:
+			case XFY:
+			case YFX:
+				return maybeBracketed(term,1) + " " + term.name() + " "
+						+ maybeBracketed(term,2);
+			case XF:
+				return maybeBracketed(term,1) + " " + term.name() + " ";
+			default:
+				/**
+				 * Default: return functional notation (canonical form).
+				 */
+				String s = term.name() + "(" + maybeBracketedArgument(term,1);
+				for (int i = 2; i <= term.arity(); i++) {
+					s = s + "," + maybeBracketedArgument(term,i);
+				}
+				s = s + ")";
+				return s;
+			}
+		}
+
+		// Don't know what this is; throw.
+		throw new UnsupportedOperationException("Unknown JPL term of type "
+				+ term.getClass());
+	}
+
+	/**
+	 * TODO is there a smarter way to do the bracketing? I guess so but then we
+	 * need to determine actual priorities of subtrees.
+	 */
+	/**
+	 * Support function for toString that checks if context requires brackets
+	 * around term. Converts argument to string and possibly places brackets
+	 * around it, if the term has a principal functor whose priority is so high
+	 * that the term could not be re-input correctly. Use for operators. see ISO
+	 * p.45 part h 2.
+	 *
+	 *@param term the Term 
+	 * @param argument
+	 *            Either 1 or 2 to indicate JPL argument.
+	 */
+	private static String maybeBracketed(Term term, int argument) {
+		jpl.Term arg = term.arg(argument);
+		PrologExpression argexpression = new PrologTerm(arg, null);
+		int argprio = JPLUtils.getPriority(arg);
+		int ourprio = JPLUtils.getPriority(term);
+
+		if (argprio > ourprio) {
+			return "(" + argexpression.toString() + ")";
+		}
+		if (argprio == ourprio) {
+			// let's say we have an xfy operator here. The y side can have equal
+			// priority by default,
+			// and that side can be printed without brackets.
+			// but if the x side has same prio that's only possible if there
+			// were brackets.
+			// System.out.println("getting spec of "+label+"/"+arguments.size()+"="+GetSpec());
+			// System.out.println("prio of arg "+argumentnumber+" "+arg+" = "+argprio);
+			PrologOperators.Fixity spec = JPLUtils.getFixity(term);
+			if (spec == null) {
+				return argexpression.toString(); // no spec, no op.
+			}
+			switch (spec) {
+			case FX: // args without Y need brackets anyway
+			case XF:
+			case XFX:
+				return "(" + argexpression.toString() + ")";
+			case YFX:
+				if (argument == 2) {
+					return "(" + argexpression.toString() + ")";
+				}
+				break;
+			case XFY:
+				if (argument == 1) {
+					return "(" + argexpression.toString() + ")";
+				}
+				break;
+			default:
+				//
+			}
+		}
+
+		return argexpression.toString();
+	}
+
+	/**
+	 * Support function for toString that checks if context requires brackets
+	 * around term. Checks if argument[argument] needs bracketing for printing.
+	 * Arguments inside a predicate are priority 1000. All arguments higher than
+	 * that must have been bracketed.
+	 *@param term the {@link Term} to convert
+	 * @param argument
+	 *            Either 1 or 2 to indicate JPL argument.
+	 * @return bracketed term if required, and without brackets if not needed.
+	 */
+	private static String maybeBracketedArgument(Term term, int argument) {
+		jpl.Term arg = term.arg(argument);
+		int argprio = JPLUtils.getPriority(arg);
+
+		// prio of ','. If we encounter a ","(..) inside arglist we also need
+		// brackets.
+		if (argprio >= 1000) {
+			return "(" + arg + ")";
+		}
+
+		PrologExpression expression = new PrologTerm(arg, null);
+		return expression.toString();
+	}
+
+	/**
+	 * Support function for toString of a tail of a lists.
+	 *
+	 * @param term
+	 *            is a Prolog term that is part of a list.
+	 * @return given term t in pretty-printed list form but without "[" or "]"
+	 */
+	private static String tailToString(Term term) {
+		// Did we reach end of the list?
+		// TODO: empty list
+		if (term.isAtom() && term.name().equals("[]")) {
+			return "";
+		}
+
+		// check that we are still in a list and continue.
+		if (term.isCompound()) {
+			jpl.Term[] args = term.args();
+			if (!(term.name().equals(".")) || args.length != 2) {
+				return "|" + term; // no good list.
+			}
+			return "," + args[0] + tailToString(args[1]);
+		}
+
+		// If we arrive here the remainder is either a var or not a good list.
+		// Finish it off.
+		return "|" + term;
+	}
 }
