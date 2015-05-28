@@ -74,26 +74,31 @@ public class TokenErrorsTest {
 
 	@Test
 	public void testNoEnd() throws IOException, ParserException {
-		failsParseAsProlog("kata", 
-				ParserErrorMessages.TOKEN_BAD.toReadableString("'.'"));
+		failsParseAsProlog("kata",
+				ParserErrorMessages.TOKEN_MISSING.toReadableString("'.'"));
 	}
 
 	@Test
 	public void testTwoNames() throws IOException, ParserException {
 		failsParseAsProlog("kata kata.",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("an atom 'kata'",ParserErrorMessages.TERM200.toReadableString()));
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+						"an atom 'kata'",
+						ParserErrorMessages.TERM200.toReadableString()));
 	}
 
 	@Test
 	public void testExtraNumber() throws IOException, ParserException {
 		failsParseAsProlog("kata 1.",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a number '1'",ParserErrorMessages.TERM200.toReadableString()));
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+						"a number '1'",
+						ParserErrorMessages.TERM200.toReadableString()));
 	}
 
 	@Test
 	public void testExtraVariable() throws IOException, ParserException {
 		failsParseAsProlog("kata X.",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a variable 'X'",
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+						"a variable 'X'",
 						ParserErrorMessages.TERM200.toReadableString()));
 
 	}
@@ -101,7 +106,8 @@ public class TokenErrorsTest {
 	@Test
 	public void testExtraString() throws IOException, ParserException {
 		failsParseAsProlog("kata \"X\".",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a string \"X\"",
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+						"a string \"X\"",
 						ParserErrorMessages.TERM200.toReadableString()));
 	}
 }
