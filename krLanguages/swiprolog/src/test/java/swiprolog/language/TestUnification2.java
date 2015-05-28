@@ -32,7 +32,7 @@ import krTools.language.Var;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestUnification {
+public class TestUnification2 {
 
 	@Before
 	public void init() throws KRInitFailedException {
@@ -61,7 +61,7 @@ public class TestUnification {
 	 * @throws KRInitFailedException
 	 */
 	@Test
-	public void test1Mgu() throws KRInitFailedException {
+	public void test1unify() throws KRInitFailedException {
 
 		// Construct a (twice)
 		jpl.Term a1 = new jpl.Atom("a");
@@ -72,15 +72,15 @@ public class TestUnification {
 		// TODO
 		// assertEquals(SWIPrologInterface.getInstance().getSubstitution(new
 		// HashMap<Var, Term>()).getJPLSolution(),
-		// JPLUtils.mgu(a1,a2));
-		assertEquals(null, JPLUtils.mgu(a1, b));
+		// JPLUtils.unify(a1,a2));
+		assertEquals(null, JPLUtils.unify(a1, b));
 	}
 
 	/**
 	 * Test case: unification of single variable X with constant a.
 	 */
 	@Test
-	public void test2Mgu() {
+	public void test2unify() {
 
 		// Construct X
 		jpl.Variable x = new jpl.Variable("X");
@@ -90,7 +90,7 @@ public class TestUnification {
 		Hashtable<String, jpl.Term> unifier = new Hashtable<String, jpl.Term>();
 		unifier.put(x.name(), a);
 
-		assertEquals(unifier, JPLUtils.mgu(x, a));
+		assertEquals(unifier, JPLUtils.unify(x, a));
 	}
 
 	/**
@@ -98,7 +98,7 @@ public class TestUnification {
 	 * contain X.
 	 */
 	@Test
-	public void test3Mgu() {
+	public void test3unify() {
 
 		// Construct X
 		jpl.Variable x = new jpl.Variable("X");
@@ -110,8 +110,8 @@ public class TestUnification {
 
 		Hashtable<String, jpl.Term> unifier = new Hashtable<String, jpl.Term>();
 		unifier.put(x.name(), fa);
-		assertEquals(unifier, JPLUtils.mgu(x, fa));
-		assertEquals(unifier, JPLUtils.mgu(fa, x));
+		assertEquals(unifier, JPLUtils.unify(x, fa));
+		assertEquals(unifier, JPLUtils.unify(fa, x));
 
 		// Construct f(a, b)
 		jpl.Term b = new jpl.Atom("b");
@@ -120,8 +120,8 @@ public class TestUnification {
 
 		Hashtable<String, jpl.Term> unifier2 = new Hashtable<String, jpl.Term>();
 		unifier2.put(x.name(), fab);
-		assertEquals(unifier2, JPLUtils.mgu(x, fab));
-		assertEquals(unifier2, JPLUtils.mgu(fab, x));
+		assertEquals(unifier2, JPLUtils.unify(x, fab));
+		assertEquals(unifier2, JPLUtils.unify(fab, x));
 
 		// Construct f(Y, b)
 		jpl.Variable y = new jpl.Variable("Y");
@@ -130,15 +130,15 @@ public class TestUnification {
 
 		Hashtable<String, jpl.Term> unifier3 = new Hashtable<String, jpl.Term>();
 		unifier3.put(x.name(), fYb);
-		assertEquals(unifier3, JPLUtils.mgu(x, fYb));
-		assertEquals(unifier3, JPLUtils.mgu(fYb, x));
+		assertEquals(unifier3, JPLUtils.unify(x, fYb));
+		assertEquals(unifier3, JPLUtils.unify(fYb, x));
 	}
 
 	/**
 	 * Test case: unification of f(X,Y) and f(a,b) and f(a,b,c).
 	 */
 	@Test
-	public void test4Mgu() {
+	public void test4unify() {
 
 		// Construct f(X, Y)
 		jpl.Variable x = new jpl.Variable("X");
@@ -158,17 +158,17 @@ public class TestUnification {
 		unifier.put(x.name(), a);
 		unifier.put(y.name(), b);
 
-		assertEquals(unifier, JPLUtils.mgu(fXY, fab));
-		assertEquals(unifier, JPLUtils.mgu(fab, fXY));
-		assertEquals(null, JPLUtils.mgu(fXY, fabc));
-		assertEquals(null, JPLUtils.mgu(fabc, fXY));
+		assertEquals(unifier, JPLUtils.unify(fXY, fab));
+		assertEquals(unifier, JPLUtils.unify(fab, fXY));
+		assertEquals(null, JPLUtils.unify(fXY, fabc));
+		assertEquals(null, JPLUtils.unify(fabc, fXY));
 	}
 
 	/**
 	 * Test case: unification of f(a, X) and f(Y, Z).
 	 */
 	@Test
-	public void test5Mgu() {
+	public void test5unify() {
 
 		// Construct f(a, X)
 		jpl.Atom a = new jpl.Atom("a");
@@ -185,20 +185,20 @@ public class TestUnification {
 		unifier.put(y.name(), a);
 		unifier.put(x.name(), z);
 
-		assertEquals(unifier, JPLUtils.mgu(faX, fyz));
+		assertEquals(unifier, JPLUtils.unify(faX, fyz));
 
 		Hashtable<String, jpl.Term> unifier2 = new Hashtable<String, jpl.Term>();
 		unifier2.put(y.name(), a);
 		unifier2.put(z.name(), x);
 
-		assertEquals(unifier2, JPLUtils.mgu(fyz, faX));
+		assertEquals(unifier2, JPLUtils.unify(fyz, faX));
 	}
 
 	/**
 	 * Test case: unification of f(a, X) and f(X, a).
 	 */
 	@Test
-	public void test6Mgu() {
+	public void test6unify() {
 
 		// Construct f(a, X)
 		jpl.Atom a = new jpl.Atom("a");
@@ -212,15 +212,15 @@ public class TestUnification {
 		Hashtable<String, jpl.Term> unifier = new Hashtable<String, jpl.Term>();
 		unifier.put(x.name(), a);
 
-		assertEquals(unifier, JPLUtils.mgu(faX, fXa));
-		assertEquals(unifier, JPLUtils.mgu(fXa, faX));
+		assertEquals(unifier, JPLUtils.unify(faX, fXa));
+		assertEquals(unifier, JPLUtils.unify(fXa, faX));
 	}
 
 	/**
 	 * Test case: unification of f(X, X) and f(a, b).
 	 */
 	@Test
-	public void test7Mgu() {
+	public void test7unify() {
 
 		// Construct f(a, X)
 		jpl.Variable x = new jpl.Variable("X");
@@ -232,15 +232,15 @@ public class TestUnification {
 		jpl.Term[] args2 = { a, b };
 		jpl.Term fab = new jpl.Compound("f", args2);
 
-		assertEquals(null, JPLUtils.mgu(fXX, fab));
-		assertEquals(null, JPLUtils.mgu(fab, fXX));
+		assertEquals(null, JPLUtils.unify(fXX, fab));
+		assertEquals(null, JPLUtils.unify(fab, fXX));
 	}
 
 	/**
 	 * Test case: unification of f(X, X) and f(a, Y).
 	 */
 	@Test
-	public void test8Mgu() {
+	public void test8unify() {
 
 		// Construct f(a, X)
 		jpl.Variable x = new jpl.Variable("X");
@@ -256,15 +256,15 @@ public class TestUnification {
 		unifier.put(x.name(), a);
 		unifier.put(y.name(), a);
 
-		assertEquals(unifier, JPLUtils.mgu(fXX, faY));
-		assertEquals(unifier, JPLUtils.mgu(faY, fXX));
+		assertEquals(unifier, JPLUtils.unify(fXX, faY));
+		assertEquals(unifier, JPLUtils.unify(faY, fXX));
 	}
 
 	/**
 	 * Test case: f(g(Y), X, Y) = f(X, g(a), a).
 	 */
 	@Test
-	public void test9Mgu() {
+	public void test9unify() {
 
 		// Construct f(g(Y), X, Y)
 		jpl.Variable y = new jpl.Variable("Y");
@@ -289,21 +289,20 @@ public class TestUnification {
 		unifier1.put(x.name(), gY);
 
 		Hashtable<String, jpl.Term> unifier2 = new Hashtable<String, jpl.Term>();
-		unifier2.put(x.name(), ga);
+		unifier2.put(x.name(), gY);
 		unifier2.put(y.name(), a);
 
-		assertEquals(unifier1, JPLUtils.mgu(gY, x));
-		// FIXME is this actually correct? See also #3469
-		assertEquals(unifier2, JPLUtils.mgu(fgYX, fXga)); 
+		assertEquals(unifier1, JPLUtils.unify(gY, x));
+		assertEquals(unifier2, JPLUtils.unify(fgYX, fXga));
 		// f(g(Y), X, Y) = f(X, g(a), a)
-		assertEquals(unifier2, JPLUtils.mgu(fgYXY, fXgaa));
+		assertEquals(unifier2, JPLUtils.unify(fgYXY, fXgaa));
 	}
 
 	/**
 	 * Test case: unification of f(X, Y) and f(Y, X).
 	 */
 	@Test
-	public void test10Mgu() {
+	public void test10unify() {
 
 		// Construct f(X, Y)
 		jpl.Variable x = new jpl.Variable("X");
@@ -319,15 +318,15 @@ public class TestUnification {
 		Hashtable<String, jpl.Term> unifier2 = new Hashtable<String, jpl.Term>();
 		unifier2.put(y.name(), x);
 
-		assertEquals(unifier1, JPLUtils.mgu(fXY, fYX));
-		assertEquals(unifier2, JPLUtils.mgu(fYX, fXY));
+		assertEquals(unifier1, JPLUtils.unify(fXY, fYX));
+		assertEquals(unifier2, JPLUtils.unify(fYX, fXY));
 	}
 	
 	/**
 	 * Test case: unification of f(X) and f(g(X)) (occurs check should kick in). #3470
 	 */
 	@Test
-	public void test11Mgu() {
+	public void test11unify() {
 
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
@@ -342,7 +341,7 @@ public class TestUnification {
 		// Construct f(g(X))
 		jpl.Term fgX = new jpl.Compound("f", new Term[] { new jpl.Compound("g", new Term[] { x1 }) });
 
-		Hashtable<String, Term> result = JPLUtils.mgu(fX, fgX);
+		Map<String, Term> result = JPLUtils.unify(fX, fgX);
 		
 		assertEquals(null,result);
 	}
@@ -351,13 +350,12 @@ public class TestUnification {
 	 * Test case: X should match with X. #3469
 	 */
 	@Test
-	public void test12Mgu() {
+	public void test12unify() {
 
-		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
 		
-		Hashtable<String, Term> result = JPLUtils.mgu(x, x1);
+		Map<String, Term> result = JPLUtils.unify(x, x1);
 		
 		assertEquals(new Hashtable<String, jpl.Term>(),result);
 	}
@@ -386,5 +384,4 @@ public class TestUnification {
 		assertEquals(new Hashtable<String, jpl.Term>(),result);
 
 	}
-	
 }

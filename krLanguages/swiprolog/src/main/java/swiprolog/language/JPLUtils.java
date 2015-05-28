@@ -19,12 +19,15 @@ package swiprolog.language;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import jpl.Atom;
 import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
@@ -114,7 +117,6 @@ public class JPLUtils {
 
 		return freeVars;
 	}
-
 
 	/**
 	 * Creates a new term, cloning the given term and substituting variables
@@ -557,11 +559,8 @@ public class JPLUtils {
 			}
 			return true;
 		}
-		if (term1 instanceof jpl.Atom) {
-			return ((jpl.Atom) term1).name().equals((term2));
-		}
-		if (term1 instanceof jpl.Variable) {
-			return ((jpl.Variable) term1).name().equals((term2));
+		if (term1 instanceof jpl.Atom || term1 instanceof Variable) {
+			return term1.name().equals(term2.name());
 		}
 		if (term1 instanceof jpl.Integer) {
 			// compare longs, #3399
@@ -579,7 +578,9 @@ public class JPLUtils {
 
 	/**
 	 * Convert a {@link Term} to a pretty printed string.
-	 * @param term the term to print
+	 * 
+	 * @param term
+	 *            the term to print
 	 * @return pretty printed term.
 	 */
 	public static String toString(Term term) {
@@ -604,8 +605,7 @@ public class JPLUtils {
 			 * Special treatment of (non-empty) lists.
 			 */
 			if (term.name().equals(".") && term.arity() == 2) {
-				return "[" + term.arg(1) + tailToString(term.arg(2))
-						+ "]";
+				return "[" + term.arg(1) + tailToString(term.arg(2)) + "]";
 			}
 
 			switch (JPLUtils.getFixity(term)) {
@@ -618,23 +618,23 @@ public class JPLUtils {
 				 */
 				// SWI bug workaround. Mantis 280
 				if (term.name().equals("-")) {
-					return term.name() + maybeBracketed(term,1);
+					return term.name() + maybeBracketed(term, 1);
 				}
-				return term.name() + " " + maybeBracketed(term,1);
+				return term.name() + " " + maybeBracketed(term, 1);
 			case XFX:
 			case XFY:
 			case YFX:
-				return maybeBracketed(term,1) + " " + term.name() + " "
-						+ maybeBracketed(term,2);
+				return maybeBracketed(term, 1) + " " + term.name() + " "
+						+ maybeBracketed(term, 2);
 			case XF:
-				return maybeBracketed(term,1) + " " + term.name() + " ";
+				return maybeBracketed(term, 1) + " " + term.name() + " ";
 			default:
 				/**
 				 * Default: return functional notation (canonical form).
 				 */
-				String s = term.name() + "(" + maybeBracketedArgument(term,1);
+				String s = term.name() + "(" + maybeBracketedArgument(term, 1);
 				for (int i = 2; i <= term.arity(); i++) {
-					s = s + "," + maybeBracketedArgument(term,i);
+					s = s + "," + maybeBracketedArgument(term, i);
 				}
 				s = s + ")";
 				return s;
@@ -657,7 +657,8 @@ public class JPLUtils {
 	 * that the term could not be re-input correctly. Use for operators. see ISO
 	 * p.45 part h 2.
 	 *
-	 *@param term the Term 
+	 * @param term
+	 *            the Term
 	 * @param argument
 	 *            Either 1 or 2 to indicate JPL argument.
 	 */
@@ -710,7 +711,9 @@ public class JPLUtils {
 	 * around term. Checks if argument[argument] needs bracketing for printing.
 	 * Arguments inside a predicate are priority 1000. All arguments higher than
 	 * that must have been bracketed.
-	 *@param term the {@link Term} to convert
+	 *
+	 * @param term
+	 *            the {@link Term} to convert
 	 * @param argument
 	 *            Either 1 or 2 to indicate JPL argument.
 	 * @return bracketed term if required, and without brackets if not needed.
@@ -755,5 +758,109 @@ public class JPLUtils {
 		// If we arrive here the remainder is either a var or not a good list.
 		// Finish it off.
 		return "|" + term;
+	}
+
+	
+	public static Map<String, Term> unify(jpl.Term x, jpl.Term y) {
+		return unify(x,y,new HashMap<String,Term>());
+	}
+
+	/**
+	 * Textbook implementation of Unify algorithm. AI : A modern Approach,
+	 * Russel, Norvig, Third Edition unifies two terms and returns set of
+	 * substitutions that make the terms unify. The variables in the two terms
+	 * are assumed to be in the same namespace.
+	 * 
+	 * This textbook implementation has a bias towards assigning variables in
+	 * the left hand term.
+	 * 
+	 * @param x
+	 *            the first term.
+	 * @param y
+	 *            the second term.
+	 * @param s
+	 *            the substitutions used so far.
+	 * @return set of variable substitutions, or null if the terms do not unify.
+	 */
+	public static Map<String, Term> unify(jpl.Term x, jpl.Term y,
+			Map<String, Term> s) {
+		if (s == null) {
+			return null;
+		}
+		if (equals(x, y)) {
+			return s;
+		}
+		if (x.isVariable()) {
+			return unifyVar((Variable) x, y, s);
+		}
+		if (y.isVariable()) {
+			return unifyVar((Variable) y, x, s);
+		}
+		if (x.isCompound() && y.isCompound()) {
+			return unifyCompounds((Compound) x, (Compound) y, s);
+		}
+		// we do not have lists. List is just another compound.
+		return null;
+	}
+
+	/**
+	 * Unify 2 {@link Compound}s. Implements the bit vague element in the
+	 * textbook UNIFY(x.ARGS, y.ARGS, UNIFY(x.OP, y.OP,s)).
+	 * 
+	 * @param x
+	 *            the first {@link Compound}
+	 * @param y
+	 *            The second {@link Compound}
+	 * @param s
+	 *            the substitutions used so far.
+	 * @return set of variable substitutions, or null if the terms do not unify.
+	 */
+	private static Map<String, Term> unifyCompounds(Compound x, Compound y,
+			Map<String, Term> s) {
+		if (s == null) {
+			return null;
+		}
+		if (x.arity() != y.arity()) {
+			return null;
+		}
+		if (!x.name().equals(y.name())) {
+			return null;
+		}
+		for (int i = 1; i <= x.arity(); i++) {
+			s = unify(x.arg(i), y.arg(i), s);
+		}
+		return s;
+	}
+
+	/**
+	 * Textbook implementation of Unify-Var algorithm. AI : A modern Approach,
+	 * Russel, Norvig, Third Edition. unifies two terms and returns set of
+	 * substitutions that make the terms unify. The variables in the two terms
+	 * are assumed to be in the same namespace.
+	 * 
+	 * @param var
+	 *            the {@link jpl.Variable}.
+	 * @param y
+	 *            the {@link Term}.
+	 * @param s
+	 *            the substitutions used so far. Must not be null. This set can
+	 *            be modified by this function.
+	 * 
+	 * @return set of variable substitutions, or null if the terms do not unify.
+	 */
+
+	private static Map<String, Term> unifyVar(Variable var, Term x,
+			Map<String, Term> s) {
+		if (s.containsKey(var.name)) {
+			return unify(s.get(var.name), x, s);
+		}
+		if (x.isVariable() && s.containsKey(((Variable) x).name)) {
+			return unify(var, s.get(((Variable) x).name), s);
+		}
+		if (getFreeVar(x).contains(var)) {
+			return null;
+		}
+		s.put(var.name, x);
+		return s;
 	}
 }
