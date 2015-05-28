@@ -182,22 +182,22 @@ public class SemanticTools {
 		// 7.6.2.a use article 7.8.3
 		if (t.isVariable()) {
 			throw new ParserException(
-					ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString(t.toString()), source);
+					ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)), source);
 		}
 		// footnote of 7.6.2. If T is a number then there is no goal which
 		// corresponds to T.
 		if (t.isFloat() || t.isInteger()) {
 			throw new ParserException(
-					ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString(t.toString()), source);
+					ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)), source);
 		}
 		// 7.6.2.b
 		String sig = JPLUtils.getSignature(t);
 		if (PrologOperators.goalProtected(t.name())) {
 			throw new ParserException(
-					ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(t.toString()), source);
+					ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(JPLUtils.toString(t)), source);
 		} else if (sig.equals(":-/2")) {
 			throw new ParserException(
-					ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t.toString()), source);
+					ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)), source);
 		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
 			toGoal(t.arg(1), source);
 			toGoal(t.arg(2), source);
