@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
+import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
 import krTools.errors.exceptions.KRInitFailedException;
@@ -382,9 +383,16 @@ public class TestUnification {
 		// f(x,x)
 		jpl.Term FXX = new jpl.Compound("f", new Term[] { x3,x4 });
 		
-		Map<String, Term> result = JPLUtils.unify(x, x1);
+		Map<String, Term> result = JPLUtils.mgu(x, x1);
 		assertEquals(new Hashtable<String, jpl.Term>(),result);
 
 	}
 	
+	//@Test the original mgu fails this check!
+	public void testOccursCheck() {
+		Compound term1 = new Compound("aap",new Term[] {new Variable("X")});
+		Term term2=new Variable("X");
+		Hashtable<String, Term> result = JPLUtils.mgu(term1,term2);
+		assertEquals(null,result);
+	}
 }

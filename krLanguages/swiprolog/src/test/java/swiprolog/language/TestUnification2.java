@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
+import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
 import krTools.errors.exceptions.KRInitFailedException;
@@ -38,7 +39,7 @@ public class TestUnification2 {
 	public void init() throws KRInitFailedException {
 		swiprolog.SWIPrologInterface.getInstance();
 	}
-	
+
 	/**
 	 * Returns a substitution built from given variable and term.
 	 *
@@ -321,9 +322,10 @@ public class TestUnification2 {
 		assertEquals(unifier1, JPLUtils.unify(fXY, fYX));
 		assertEquals(unifier2, JPLUtils.unify(fYX, fXY));
 	}
-	
+
 	/**
-	 * Test case: unification of f(X) and f(g(X)) (occurs check should kick in). #3470
+	 * Test case: unification of f(X) and f(g(X)) (occurs check should kick in).
+	 * #3470
 	 */
 	@Test
 	public void test11unify() {
@@ -331,19 +333,19 @@ public class TestUnification2 {
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
-		
-		assertEquals(x,x1);
-		
+
+		assertEquals(x, x1);
+
 		// f(x)
 		jpl.Term fX = new jpl.Compound("f", new Term[] { x });
-		
-		
+
 		// Construct f(g(X))
-		jpl.Term fgX = new jpl.Compound("f", new Term[] { new jpl.Compound("g", new Term[] { x1 }) });
+		jpl.Term fgX = new jpl.Compound("f", new Term[] { new jpl.Compound("g",
+				new Term[] { x1 }) });
 
 		Map<String, Term> result = JPLUtils.unify(fX, fgX);
-		
-		assertEquals(null,result);
+
+		assertEquals(null, result);
 	}
 
 	/**
@@ -354,12 +356,12 @@ public class TestUnification2 {
 
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
-		
+
 		Map<String, Term> result = JPLUtils.unify(x, x1);
-		
-		assertEquals(new Hashtable<String, jpl.Term>(),result);
+
+		assertEquals(new Hashtable<String, jpl.Term>(), result);
 	}
-	
+
 	/**
 	 * Test case: unification of f(X,X) and f(X,X)
 	 */
@@ -369,19 +371,27 @@ public class TestUnification2 {
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
-		
+
 		// f(x,x)
-		jpl.Term fXX = new jpl.Compound("f", new Term[] { x,x1 });
-		
+		jpl.Term fXX = new jpl.Compound("f", new Term[] { x, x1 });
+
 		// Construct f(X, Y)
 		Variable x3 = new Variable("X");
 		Variable x4 = new Variable("X");
-		
-		// f(x,x)
-		jpl.Term FXX = new jpl.Compound("f", new Term[] { x3,x4 });
-		
-		Map<String, Term> result = JPLUtils.unify(x, x1);
-		assertEquals(new Hashtable<String, jpl.Term>(),result);
 
+		// f(x,x)
+		jpl.Term FXX = new jpl.Compound("f", new Term[] { x3, x4 });
+
+		Map<String, Term> result = JPLUtils.unify(x, x1);
+		assertEquals(new Hashtable<String, jpl.Term>(), result);
+
+	}
+
+	@Test
+	public void testOccursCheck() {
+		Compound term1 = new Compound("aap", new Term[] { new Variable("X") });
+		Term term2 = new Variable("X");
+		Map<String, Term> result = JPLUtils.unify(term1, term2);
+		assertEquals(null, result);
 	}
 }
