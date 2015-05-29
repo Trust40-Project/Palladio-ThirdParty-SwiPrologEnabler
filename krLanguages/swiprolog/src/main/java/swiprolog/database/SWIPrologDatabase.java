@@ -282,7 +282,7 @@ public class SWIPrologDatabase implements Database {
 	 *         not return any bindings of variables.
 	 * @throws KRQueryFailedException
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static synchronized Set<PrologSubstitution> rawquery(jpl.Term query)
 			throws KRQueryFailedException {
 
@@ -290,7 +290,6 @@ public class SWIPrologDatabase implements Database {
 		jpl.Query jplQuery = new jpl.Query(query);
 
 		// Get all solutions.
-		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions;
 		try {
 			solutions = jplQuery.allSolutions();
