@@ -24,7 +24,6 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import krTools.errors.exceptions.ParserException;
 
@@ -33,7 +32,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import swiprolog.language.PrologTerm;
 import swiprolog.parser.Parser4;
 import swiprolog.visitor.Visitor4;
 
@@ -69,6 +67,6 @@ public class PrologFilesTest {
 	@Test
 	public void readFile() throws IOException, ParserException {
 		Visitor4 visitor = new Visitor4(new Parser4(this.stream, null));
-		List<PrologTerm> term = visitor.visitPrologtext();
+		visitor.visitPrologtext();
 	}
 }

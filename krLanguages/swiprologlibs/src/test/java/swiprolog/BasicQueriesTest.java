@@ -15,10 +15,8 @@ import org.junit.Test;
  * A few basic tests to see if SwiInstaller is working as expected
  *
  * @author W.Pasman 1dec14
- *
  */
 public class BasicQueriesTest {
-
 	static {
 		SwiInstaller.init();
 	}
@@ -35,10 +33,10 @@ public class BasicQueriesTest {
 
 	@Test(expected = PrologException.class)
 	public void syntaxError() {
-		Query q = new Query("syntax)error");
-
+		new Query("syntax)error");
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void computeQuery() {
 		Hashtable[] solutions = new Query("X is 1+1").allSolutions();
@@ -50,6 +48,7 @@ public class BasicQueriesTest {
 		assertEquals(2, ((jpl.Integer) result).intValue());
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void varIsInfinity() {
 		jpl.Float inf = new jpl.Float(Double.POSITIVE_INFINITY);
@@ -60,9 +59,9 @@ public class BasicQueriesTest {
 				new jpl.Term[] { x, inf }));
 		Hashtable[] result = query.allSolutions();
 		System.out.println("query " + query + "->" + result[0]);
-
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void divByInfinity() {
 		jpl.Float inf = new jpl.Float(Double.POSITIVE_INFINITY);

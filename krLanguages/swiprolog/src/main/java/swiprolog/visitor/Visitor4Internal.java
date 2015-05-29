@@ -97,7 +97,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		}
 		return new SourceInfoObject(this.source.getSource(), start.getLine(),
 				start.getCharPositionInLine(), this.source.getStartIndex()
-						+ start.getStartIndex() + 1,
+				+ start.getStartIndex() + 1,
 				this.source.getStartIndex() + stop.getStopIndex() + 1);
 	}
 
@@ -105,7 +105,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		Token symbol = leaf.getSymbol();
 		return new SourceInfoObject(this.source.getSource(), symbol.getLine(),
 				symbol.getCharPositionInLine(), this.source.getStartIndex()
-						+ symbol.getStartIndex() + 1,
+				+ symbol.getStartIndex() + 1,
 				this.source.getStartIndex() + symbol.getStopIndex() + 1);
 	}
 
@@ -317,8 +317,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				return new PrologTerm(JPLUtils.createIntegerNumber(val), info);
 			} catch (NumberFormatException e) {
 				System.out
-						.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING
-								.toReadableString(num));
+				.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING
+						.toReadableString(num));
 			}
 		}
 		// float
@@ -331,13 +331,13 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			if (val.isInfinite()) {
 				throw new NumberFormatException(
 						ParserErrorMessages.NUMBER_INFINITY
-								.toReadableString(num));
+						.toReadableString(num));
 			}
 			return new PrologTerm(new jpl.Float(val), info);
 		} catch (NumberFormatException e) {
 			this.errors.add(new ParserException(
 					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString()
-							+ ":" + e.getMessage(), info));
+					+ ":" + e.getMessage(), info));
 		}
 		// never return null as others may post process our output.
 		return new PrologTerm(new jpl.Integer(1), info);
@@ -449,7 +449,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				Term[] args = { t1, t2 };
 				term = compound(op, args, ctx);
 			}
-			Term t2 = null; // optional
 		}
 		return term;
 	}
@@ -495,7 +494,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	@Override
 	public PrologTerm visitTerm700(Term700Context ctx) {
-/**
+		/**
 		        term500
        (
          (	'=' | '\\=' | '==' | '\\==' | '@<' | '@=<' |

@@ -301,7 +301,7 @@ public class SWIPrologDatabase implements Database {
 
 		// Convert to PrologSubstitution.
 		LinkedHashSet<PrologSubstitution> substitutions = new LinkedHashSet<PrologSubstitution>();
-		for (Hashtable solution : solutions) {
+		for (Hashtable<String, jpl.Term> solution : solutions) {
 			substitutions.add(PrologSubstitution
 					.getSubstitutionOrNull(solution));
 		}
@@ -402,7 +402,7 @@ public class SWIPrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	protected void cleanUp() throws KRDatabaseException {
-		this.eraseContent();
+		eraseContent();
 		SWIPrologInterface instance;
 		try {
 			instance = SWIPrologInterface.getInstance();
