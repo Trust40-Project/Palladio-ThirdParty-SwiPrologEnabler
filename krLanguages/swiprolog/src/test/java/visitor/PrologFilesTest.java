@@ -47,7 +47,7 @@ public class PrologFilesTest {
 
 	/**
 	 * Parameters are the filenames of the files to test
-	 * 
+	 *
 	 * @return
 	 */
 	@Parameters
@@ -57,17 +57,18 @@ public class PrologFilesTest {
 						"/prolog/test-2.pl", "/prolog/test-3.pl" });
 	}
 
-	private Reader stream;
+	private final Reader stream;
 
 	public PrologFilesTest(String filename) throws IOException {
 		URL url = getClass().getResource(filename);
-		stream = new BufferedReader(new InputStreamReader(url.openStream()));
+		this.stream = new BufferedReader(
+				new InputStreamReader(url.openStream()));
 		System.out.println("running test with file " + url);
 	}
 
 	@Test
 	public void readFile() throws IOException, ParserException {
-		Visitor4 visitor = new Visitor4(new Parser4(stream, null));
+		Visitor4 visitor = new Visitor4(new Parser4(this.stream, null));
 		List<PrologTerm> term = visitor.visitPrologtext();
 	}
 }

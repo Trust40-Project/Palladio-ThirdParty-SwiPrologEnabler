@@ -75,8 +75,8 @@ public class Term500Test {
 			checkParsesAsTerm1000("X=Y=Z", "");
 			throw new IllegalStateException("Unexpected success");
 		} catch (ParserException e) {
-			assertEquals(
-					ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'='",ParserErrorMessages.TERM500.toReadableString()),
+			assertEquals(ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+					"'='", ParserErrorMessages.TERM500.toReadableString()),
 					e.getMessage());
 		}
 	}

@@ -91,7 +91,7 @@ public class TestUpdate {
 	 */
 	@Test
 	public void testInsertFormula() throws KRQueryFailedException,
-			KRDatabaseException {
+	KRDatabaseException {
 		DatabaseFormula formula = new PrologDBFormula(this.aap, null);
 		this.beliefbase.insert(formula);
 
@@ -137,7 +137,7 @@ public class TestUpdate {
 	 */
 	@Test
 	public void testDeleteBeliefbase() throws KRQueryFailedException,
-	KRDatabaseException {
+			KRDatabaseException {
 		this.beliefbase.destroy();
 		this.beliefbase = this.language
 				.getDatabase(new LinkedHashSet<DatabaseFormula>());
@@ -155,7 +155,7 @@ public class TestUpdate {
 	 */
 	@Test
 	public void testUseNewBeliefbase() throws KRQueryFailedException,
-			KRDatabaseException {
+	KRDatabaseException {
 		DatabaseFormula formula = new PrologDBFormula(this.kat, null);
 		this.beliefbase.insert(formula);
 

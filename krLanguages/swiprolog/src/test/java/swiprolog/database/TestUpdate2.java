@@ -123,7 +123,7 @@ public class TestUpdate2 {
 	 */
 	@Test
 	public void testDeleteAll() throws KRQueryFailedException,
-			KRDatabaseException {
+	KRDatabaseException {
 		this.beliefbase.destroy();
 		this.beliefbase = null;
 		this.knowledgebase.destroy();
@@ -139,7 +139,7 @@ public class TestUpdate2 {
 	 */
 	@Test
 	public void testRecreateKbAndBb() throws KRQueryFailedException,
-			KRDatabaseException {
+	KRDatabaseException {
 		this.beliefbase.destroy();
 		this.knowledgebase.destroy();
 

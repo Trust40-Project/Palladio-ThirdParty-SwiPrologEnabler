@@ -17,7 +17,7 @@
 
 package swiprolog.parser;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -77,7 +77,9 @@ public class Term200Test {
 			throw new IllegalStateException("Unexpected success");
 		} catch (ParserException e) {
 			assertEquals(e.getMessage(),
-					ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'\\+'",ParserErrorMessages.TERM500.toReadableString()));
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+							"'\\+'",
+							ParserErrorMessages.TERM500.toReadableString()));
 		}
 	}
 

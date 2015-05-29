@@ -17,8 +17,7 @@
 
 package swiprolog.language;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertTrue;
 import krTools.errors.exceptions.KRQueryFailedException;
 
 import org.junit.Test;

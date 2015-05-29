@@ -8,66 +8,66 @@ import java.util.Set;
 /**
  * class to store a set of elements that do not implement HashCode. We don't
  * extend ArrayList to shield it from use.
- * 
+ *
  * @author W.Pasman 10mar15
  *
  * @param <T>
  *            the type of the set elements.
  */
 public class SetWithoutHash<T> implements Set<T> {
-	private ArrayList<T> set = new ArrayList<T>();
+	private final ArrayList<T> set = new ArrayList<T>();
 
 	@Override
 	public int size() {
-		return set.size();
+		return this.set.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return set.isEmpty();
+		return this.set.isEmpty();
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		return set.contains(o);
+		return this.set.contains(o);
 	}
 
 	@Override
 	public Iterator<T> iterator() {
-		return set.iterator();
+		return this.set.iterator();
 	}
 
 	@Override
 	public Object[] toArray() {
-		return set.toArray();
+		return this.set.toArray();
 	}
 
 	@Override
 	public <T> T[] toArray(T[] a) {
-		return set.toArray(a);
+		return this.set.toArray(a);
 	}
 
 	@Override
 	public boolean add(T e) {
-		if (!set.contains(e)) {
-			return set.add(e);
+		if (!this.set.contains(e)) {
+			return this.set.add(e);
 		}
 		return false;
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		return set.remove(o);
+		return this.set.remove(o);
 	}
 
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return set.containsAll(c);
+		return this.set.containsAll(c);
 	}
 
 	@Override
 	public boolean addAll(Collection<? extends T> c) {
-		boolean changed=false;
+		boolean changed = false;
 		for (T element : c) {
 			changed |= add(element);
 		}
@@ -76,17 +76,17 @@ public class SetWithoutHash<T> implements Set<T> {
 
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		return set.retainAll(c);
+		return this.set.retainAll(c);
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		return set.removeAll(c);
+		return this.set.removeAll(c);
 	}
 
 	@Override
 	public void clear() {
-		set.clear();
+		this.set.clear();
 	}
 
 }

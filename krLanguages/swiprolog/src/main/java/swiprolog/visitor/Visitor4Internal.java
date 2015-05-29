@@ -18,7 +18,6 @@
 package swiprolog.visitor;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -73,7 +72,7 @@ import swiprolog.parser.SourceInfoObject;
  */
 public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	private final SourceInfo source;
-	private List<ParserException> errors = new ArrayList<ParserException>();
+	private final List<ParserException> errors = new ArrayList<ParserException>();
 
 	/**
 	 * @param source
@@ -301,7 +300,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	/**
 	 * Parse number as term.
-	 * 
+	 *
 	 * @param num
 	 *            number to parse
 	 * @param info
@@ -336,12 +335,12 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			}
 			return new PrologTerm(new jpl.Float(val), info);
 		} catch (NumberFormatException e) {
-			errors.add(new ParserException(
+			this.errors.add(new ParserException(
 					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString()
 							+ ":" + e.getMessage(), info));
 		}
 		// never return null as others may post process our output.
-		return new PrologTerm(new jpl.Integer(1), info); 
+		return new PrologTerm(new jpl.Integer(1), info);
 	}
 
 	@Override
@@ -613,10 +612,10 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	/**
 	 * Get all errors that occured in the visiting phase (excluding the parsing
 	 * errors).
-	 * 
+	 *
 	 * @return
 	 */
 	public List<ParserException> getVisitorErrors() {
-		return errors;
+		return this.errors;
 	}
 }

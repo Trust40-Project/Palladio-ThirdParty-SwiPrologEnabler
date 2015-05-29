@@ -180,7 +180,7 @@ public class PrologSubstitution implements Substitution {
 	@Override
 	@SuppressWarnings("unchecked")
 	public PrologSubstitution clone() {
-		return new PrologSubstitution(new Hashtable(jplSubstitution));
+		return new PrologSubstitution(new Hashtable(this.jplSubstitution));
 	}
 
 	/**

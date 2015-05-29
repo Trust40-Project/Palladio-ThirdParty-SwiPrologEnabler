@@ -131,8 +131,7 @@ public class Term900Test {
 			checkParsesAsTerm1000("1;2", "");
 			throw new IllegalStateException("incorrect success of parsing");
 		} catch (ParserException e) {
-			assertEquals(
-					e.getMessage(),
+			assertEquals(e.getMessage(),
 					ParserErrorMessages.FOUND_BUT_NEED.toReadableString("';'",
 							ParserErrorMessages.TERM900.toReadableString()));
 		}

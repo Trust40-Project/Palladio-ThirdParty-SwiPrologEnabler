@@ -83,7 +83,7 @@ public class Visitor4 {
 
 	/**
 	 * Get all errors from both visitor and parser
-	 * 
+	 *
 	 * @return all errors from both visitor and parser
 	 */
 	public SortedSet<ParserException> getErrors() {

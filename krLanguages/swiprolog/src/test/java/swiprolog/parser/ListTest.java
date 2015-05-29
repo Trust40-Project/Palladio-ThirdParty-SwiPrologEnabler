@@ -45,7 +45,7 @@ public class ListTest {
 	}
 
 	private void checkParsesAsList(String... items) throws IOException,
-	ParserException {
+			ParserException {
 		String text = "[" + list2String(",", items) + "]";
 		Parser4 parser = getParser(text);
 		ListtermContext tree = parser.listterm();
@@ -112,7 +112,7 @@ public class ListTest {
 
 	@Test
 	public void testLisEmptyList() throws IOException, RecognitionException,
-	ParserException {
+			ParserException {
 		checkParsesAsList();
 	}
 

@@ -13,7 +13,7 @@ import org.junit.Test;
 
 /**
  * A few basic tests to see if SwiInstaller is working as expected
- * 
+ *
  * @author W.Pasman 1dec14
  *
  */

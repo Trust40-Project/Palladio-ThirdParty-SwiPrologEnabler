@@ -122,7 +122,7 @@ public class SWIPrologDatabase implements Database {
 	 * Performs given query on the database. As databases are implemented as
 	 * modules in SWI Prolog, a query is constructed that contains a reference
 	 * to the corresponding module.
-	 * 
+	 *
 	 * @param pQuery
 	 *            the query to be performed.
 	 * @return set of substitutions satisfying the query.
@@ -311,7 +311,7 @@ public class SWIPrologDatabase implements Database {
 
 	/**
 	 * Converts exception into more readable warning message.
-	 * 
+	 *
 	 * @param query
 	 * @param e
 	 * @return a readable version of the JPL error. Only interprets
@@ -351,7 +351,7 @@ public class SWIPrologDatabase implements Database {
 	 * one.
 	 * </p>
 	 * <p>
-	 * 
+	 *
 	 * @throws KRDatabaseException
 	 */
 	protected void eraseContent() throws KRDatabaseException {

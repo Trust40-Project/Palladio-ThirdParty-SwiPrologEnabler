@@ -63,14 +63,14 @@ public class UpdateTest {
 
 	@Test
 	public void testValidateBasicUpdate() throws IOException,
-	KRInitFailedException, ParserException {
+			KRInitFailedException, ParserException {
 		Update term = validator("aap").updateOrEmpty();
 		assertEquals(term, new PrologUpdate(new jpl.Atom("aap"), null));
 	}
 
 	@Test
 	public void testValidateTrueUpdate() throws IOException,
-	KRInitFailedException, ParserException {
+			KRInitFailedException, ParserException {
 		// special update. Should work and not throw that true is protected.
 		Update term = validator("true").updateOrEmpty();
 		assertEquals(term, new PrologUpdate(new jpl.Atom("true"), null));
