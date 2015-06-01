@@ -225,103 +225,6 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Method for computing the mgu (most general unifier). Tries to instantiate
-	 * such that the outterm variables get assigned with otherterm objects.
-	 * Built as close as possible to JPL, with the idea that we try to get close
-	 * to JPL for efficiency reasons.
-	 * <p>
-	 * ourterm and otherterm share variable names. So if X gets assigned in
-	 * ourterm, that immediately assigns X in the other side.
-	 * <p>
-	 * The map that we return contains String as key objects, because
-	 * jpl.Variable can not be used for key (as it does not implement hashCode).
-	 *
-	 * @param thisterm
-	 *            is the term that we want to assign variables so that it
-	 *            matches the other term
-	 * @param otherterm
-	 *            is the term that we want to match with
-	 * @return hashmap containing a substitution for the left and right hand
-	 *         variables if unification is possible, or null if no unification
-	 *         is possible.
-	 */
-	public static Map<String, Term> mgu(jpl.Term thisterm, jpl.Term otherterm) {
-		Map<String, Term> result = new Hashtable<String, jpl.Term>();
-
-		// terms are equal already. success.
-		if (thisterm.equals(otherterm)) {
-			return result;
-		}
-		// First term is a constant.
-		if (thisterm.isAtom() || thisterm.isInteger() || thisterm.isFloat()) {
-			if (thisterm.equals(otherterm)) {
-				return result;
-			}
-			if (otherterm.isVariable()) {
-				result.put(otherterm.name(), thisterm);
-				return result;
-			}
-		}
-		// First term is a variable.
-		if (thisterm.isVariable()) {
-			if (thisterm.name().equals("_")) { // is anonymous
-				return result;
-			}
-			// Occurs check.
-			if (JPLUtils.getFreeVar(otherterm).contains(thisterm)) {
-				return null;
-			}
-			result.put(thisterm.name(), otherterm);
-			return result;
-		}
-		// First term is a compound term.
-		if (thisterm.isCompound()) {
-			if (otherterm.isVariable()) {
-				result.put(otherterm.name(), thisterm);
-				return result;
-			}
-			if (otherterm.isCompound()) {
-				return mguCompound((Compound) thisterm, (Compound) otherterm);
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * MGU where left hand is a compound
-	 * <p>
-	 * The map that we return contains String as key objects, because
-	 * jpl.Variable can not be used for key (as it does not implement hashCode).
-	 *
-	 * @param thisterm
-	 * @return
-	 */
-	public static Map<String, Term> mguCompound(Compound thisterm,
-			Compound otherterm) {
-		Map<String, Term> result = new Hashtable<String, jpl.Term>();
-
-		if (!thisterm.name().equals(otherterm.name())) {
-			return null;
-		}
-		if (thisterm.arity() != otherterm.arity()) {
-			return null;
-		}
-
-		/*
-		 * Functions have same number of arguments. Match all the arguments and
-		 * merge results. Returns null if no mgu.
-		 */
-		for (int i = 1; i <= thisterm.arity(); i++) {
-			result = combineSubstitutions(result,
-					mgu(thisterm.arg(i), otherterm.arg(i)));
-			if (result == null) {
-				break;
-			}
-		}
-		return result;
-	}
-
-	/**
 	 * Try to combine two substitutions into a new substi.
 	 * <p>
 	 * The map that we return contains String as key objects, because
@@ -367,7 +270,7 @@ public class JPLUtils {
 				}
 			} else { // two bindings for one and the same variable.
 				// Check whether terms can be unified
-				Map<String, Term> mgu = mgu(othersubst.get(variable),
+				Map<String, Term> mgu = unify(othersubst.get(variable),
 						thissubst.get(variable));
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
@@ -474,7 +377,7 @@ public class JPLUtils {
 		// int or long. Check if it fits
 		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE) {
 			System.out
-			.println("SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
+					.println("SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
 			return new jpl.Float(number);
 		}
 		return new jpl.Integer(number);
@@ -618,7 +521,7 @@ public class JPLUtils {
 			case XFY:
 			case YFX:
 				return maybeBracketed(term, 1) + " " + term.name() + " "
-				+ maybeBracketed(term, 2);
+						+ maybeBracketed(term, 2);
 			case XF:
 				return maybeBracketed(term, 1) + " " + term.name() + " ";
 			default:
@@ -761,11 +664,12 @@ public class JPLUtils {
 	 * Textbook implementation of Unify algorithm. AI : A modern Approach,
 	 * Russel, Norvig, Third Edition unifies two terms and returns set of
 	 * substitutions that make the terms unify. The variables in the two terms
-	 * are assumed to be in the same namespace.
-	 *
+	 * are assumed to be in the same namespace. <br>
 	 * This textbook implementation has a bias towards assigning variables in
-	 * the left hand term.
-	 *
+	 * the left hand term. <br>
+	 * The map that we return contains String as key objects, because
+	 * jpl.Variable can not be used for key (as it does not implement hashCode).
+	 * 
 	 * @param x
 	 *            the first term.
 	 * @param y
