@@ -32,12 +32,13 @@ import java.util.Set;
  */
 public interface Var extends Term {
 	/**
-	 * Get a variant of this variable for resolving name conflicts.
-	 * This is used eg when an actioncall uses the same variables as the actionspec.
-	 * The variant of this variable should be different but similar to the existing var, 
-	 * and not use the given names already in use.
-	 * 
-	 * @param usedNames a set of Vars already in use.
+	 * Get a variant of this variable for resolving name conflicts. This is used
+	 * eg when an actioncall uses the same variables as the actionspec. The
+	 * variant of this variable should be different but similar to the existing
+	 * var, and not use the given names already in use.
+	 *
+	 * @param usedNames
+	 *            a set of Vars already in use.
 	 */
 	public Var getVariant(Set<Var> usedNames);
 }

@@ -199,11 +199,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 			return "a string";
 		default:
 			// Do not improve, simply return token symbol as is
-			if (type < Prolog4Parser.tokenNames.length) {
-				return Prolog4Parser.tokenNames[type];
-			} else {
-				return "something that does not make sense";
-			}
+			return Prolog4Parser.VOCABULARY.getDisplayName(type);
 		}
 	}
 
@@ -264,7 +260,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		case Prolog4Parser.RULE_term900:
 			return ParserErrorMessages.TERM900.toReadableString();
 		case Prolog4Parser.RULE_term1000:
-			return ParserErrorMessages.TERM1000.toReadableString(); 
+			return ParserErrorMessages.TERM1000.toReadableString();
 		case Prolog4Parser.RULE_term1050:
 			return ParserErrorMessages.TERM1050.toReadableString();
 		case Prolog4Parser.RULE_term1100:

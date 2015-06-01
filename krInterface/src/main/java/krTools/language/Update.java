@@ -69,7 +69,6 @@ public interface Update extends Expression {
 	 */
 	List<DatabaseFormula> getDeleteList();
 
-
 	@Override
 	Update applySubst(Substitution substitution);
 

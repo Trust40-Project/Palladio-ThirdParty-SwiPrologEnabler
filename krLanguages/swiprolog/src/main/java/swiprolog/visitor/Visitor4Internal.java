@@ -18,7 +18,6 @@
 package swiprolog.visitor;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -73,7 +72,7 @@ import swiprolog.parser.SourceInfoObject;
  */
 public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	private final SourceInfo source;
-	private List<ParserException> errors = new ArrayList<ParserException>();
+	private final List<ParserException> errors = new ArrayList<ParserException>();
 
 	/**
 	 * @param source
@@ -98,7 +97,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		}
 		return new SourceInfoObject(this.source.getSource(), start.getLine(),
 				start.getCharPositionInLine(), this.source.getStartIndex()
-						+ start.getStartIndex() + 1,
+				+ start.getStartIndex() + 1,
 				this.source.getStartIndex() + stop.getStopIndex() + 1);
 	}
 
@@ -106,7 +105,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		Token symbol = leaf.getSymbol();
 		return new SourceInfoObject(this.source.getSource(), symbol.getLine(),
 				symbol.getCharPositionInLine(), this.source.getStartIndex()
-						+ symbol.getStartIndex() + 1,
+				+ symbol.getStartIndex() + 1,
 				this.source.getStartIndex() + symbol.getStopIndex() + 1);
 	}
 
@@ -301,7 +300,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	/**
 	 * Parse number as term.
-	 * 
+	 *
 	 * @param num
 	 *            number to parse
 	 * @param info
@@ -318,8 +317,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				return new PrologTerm(JPLUtils.createIntegerNumber(val), info);
 			} catch (NumberFormatException e) {
 				System.out
-						.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING
-								.toReadableString(num));
+				.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING
+						.toReadableString(num));
 			}
 		}
 		// float
@@ -332,16 +331,16 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			if (val.isInfinite()) {
 				throw new NumberFormatException(
 						ParserErrorMessages.NUMBER_INFINITY
-								.toReadableString(num));
+						.toReadableString(num));
 			}
 			return new PrologTerm(new jpl.Float(val), info);
 		} catch (NumberFormatException e) {
-			errors.add(new ParserException(
+			this.errors.add(new ParserException(
 					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString()
-							+ ":" + e.getMessage(), info));
+					+ ":" + e.getMessage(), info));
 		}
 		// never return null as others may post process our output.
-		return new PrologTerm(new jpl.Integer(1), info); 
+		return new PrologTerm(new jpl.Integer(1), info);
 	}
 
 	@Override
@@ -450,7 +449,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				Term[] args = { t1, t2 };
 				term = compound(op, args, ctx);
 			}
-			Term t2 = null; // optional
 		}
 		return term;
 	}
@@ -496,7 +494,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	@Override
 	public PrologTerm visitTerm700(Term700Context ctx) {
-/**
+		/**
 		        term500
        (
          (	'=' | '\\=' | '==' | '\\==' | '@<' | '@=<' |
@@ -613,10 +611,10 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	/**
 	 * Get all errors that occured in the visiting phase (excluding the parsing
 	 * errors).
-	 * 
+	 *
 	 * @return
 	 */
 	public List<ParserException> getVisitorErrors() {
-		return errors;
+		return this.errors;
 	}
 }

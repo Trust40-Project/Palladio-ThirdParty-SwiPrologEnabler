@@ -31,7 +31,7 @@ import krTools.parser.SourceInfo;
  * </p>
  */
 public class ParserException extends Exception implements SourceInfo,
-Comparable<ParserException> {
+		Comparable<ParserException> {
 	private static final long serialVersionUID = 8224464835000074458L;
 
 	/**

@@ -122,7 +122,7 @@ public class SWIPrologDatabase implements Database {
 	 * Performs given query on the database. As databases are implemented as
 	 * modules in SWI Prolog, a query is constructed that contains a reference
 	 * to the corresponding module.
-	 * 
+	 *
 	 * @param pQuery
 	 *            the query to be performed.
 	 * @return set of substitutions satisfying the query.
@@ -282,7 +282,7 @@ public class SWIPrologDatabase implements Database {
 	 *         not return any bindings of variables.
 	 * @throws KRQueryFailedException
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static synchronized Set<PrologSubstitution> rawquery(jpl.Term query)
 			throws KRQueryFailedException {
 
@@ -290,7 +290,6 @@ public class SWIPrologDatabase implements Database {
 		jpl.Query jplQuery = new jpl.Query(query);
 
 		// Get all solutions.
-		@SuppressWarnings("rawtypes")
 		Hashtable[] solutions;
 		try {
 			solutions = jplQuery.allSolutions();
@@ -301,7 +300,7 @@ public class SWIPrologDatabase implements Database {
 
 		// Convert to PrologSubstitution.
 		LinkedHashSet<PrologSubstitution> substitutions = new LinkedHashSet<PrologSubstitution>();
-		for (Hashtable solution : solutions) {
+		for (Hashtable<String, jpl.Term> solution : solutions) {
 			substitutions.add(PrologSubstitution
 					.getSubstitutionOrNull(solution));
 		}
@@ -311,7 +310,7 @@ public class SWIPrologDatabase implements Database {
 
 	/**
 	 * Converts exception into more readable warning message.
-	 * 
+	 *
 	 * @param query
 	 * @param e
 	 * @return a readable version of the JPL error. Only interprets
@@ -351,7 +350,7 @@ public class SWIPrologDatabase implements Database {
 	 * one.
 	 * </p>
 	 * <p>
-	 * 
+	 *
 	 * @throws KRDatabaseException
 	 */
 	protected void eraseContent() throws KRDatabaseException {
@@ -402,7 +401,7 @@ public class SWIPrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	protected void cleanUp() throws KRDatabaseException {
-		this.eraseContent();
+		eraseContent();
 		SWIPrologInterface instance;
 		try {
 			instance = SWIPrologInterface.getInstance();

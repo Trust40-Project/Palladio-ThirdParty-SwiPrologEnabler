@@ -80,13 +80,13 @@ public class PrologVar extends PrologTerm implements Var {
 		String name = getTerm().name();
 		SourceInfo theinfo = getSourceInfo();
 
-		int n=1;
+		int n = 1;
 		Var newVar;
 		do {
-			newVar=  new PrologVar(new Variable(name+"_"+n), theinfo);
+			newVar = new PrologVar(new Variable(name + "_" + n), theinfo);
 			n++;
 		} while (usedNames.contains(newVar));
-		
+
 		return newVar;
 	}
 

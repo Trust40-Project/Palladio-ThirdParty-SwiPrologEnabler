@@ -58,7 +58,7 @@ public class TestUnification {
 
 	/**
 	 * Test case: unification of basic constants.
-	 * 
+	 *
 	 * @throws KRInitFailedException
 	 */
 	@Test

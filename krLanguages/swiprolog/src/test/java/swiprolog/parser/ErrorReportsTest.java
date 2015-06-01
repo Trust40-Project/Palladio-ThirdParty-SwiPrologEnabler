@@ -80,7 +80,9 @@ public class ErrorReportsTest {
 			parser.term0();
 		} catch (ParserException e) {
 			System.out.println("errors:" + parser.getErrors());
-			assertEquals(ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"), e.getMessage());
+			assertEquals(
+					ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"),
+					e.getMessage());
 		}
 	}
 }

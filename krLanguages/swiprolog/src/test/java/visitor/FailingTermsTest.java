@@ -102,7 +102,7 @@ public class FailingTermsTest {
 	@Test
 	// . % can not accept , as operator.
 	public void testListWithoutFirstArgument() throws IOException,
-	KRInitFailedException {
+			KRInitFailedException {
 		checkFailsAsTerm1000("[,(var(X), X=1), [[X ]]]",
 				ParserErrorMessages.TOKEN_MISSING.toReadableString("']'"));
 		// CHECK why is parser complaining about ] and not about ,?
@@ -111,7 +111,7 @@ public class FailingTermsTest {
 	@Test
 	// :- is fx operator, so can have only lower-prio ops on the right.
 	public void testDoubleImplication() throws IOException,
-	KRInitFailedException {
+			KRInitFailedException {
 		ParserException exc = checkFailsAsTerm1000(":- :- a",
 				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
 						ParserErrorMessages.TERM900.toReadableString()));

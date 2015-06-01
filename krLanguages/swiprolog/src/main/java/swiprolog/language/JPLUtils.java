@@ -168,7 +168,7 @@ public class JPLUtils {
 	 * variables and hence a real rebuild is not necessary. Instead, we simply
 	 * return the original term after checking.
 	 * </p>
-	 * 
+	 *
 	 * @return {@code true} if term is a Prolog goal according to ISO.
 	 */
 	public static boolean isQuery(jpl.Term t) {
@@ -465,7 +465,7 @@ public class JPLUtils {
 
 	/**
 	 * Workaround for bug in jpl #3399. Create float for large integers.
-	 * 
+	 *
 	 * @param number
 	 *            long number
 	 * @return term representing the long.
@@ -474,7 +474,7 @@ public class JPLUtils {
 		// int or long. Check if it fits
 		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE) {
 			System.out
-					.println("SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
+			.println("SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
 			return new jpl.Float(number);
 		}
 		return new jpl.Integer(number);
@@ -571,7 +571,7 @@ public class JPLUtils {
 
 	/**
 	 * Convert a {@link Term} to a pretty printed string.
-	 * 
+	 *
 	 * @param term
 	 *            the term to print
 	 * @return pretty printed term.
@@ -618,7 +618,7 @@ public class JPLUtils {
 			case XFY:
 			case YFX:
 				return maybeBracketed(term, 1) + " " + term.name() + " "
-						+ maybeBracketed(term, 2);
+				+ maybeBracketed(term, 2);
 			case XF:
 				return maybeBracketed(term, 1) + " " + term.name() + " ";
 			default:
@@ -762,10 +762,10 @@ public class JPLUtils {
 	 * Russel, Norvig, Third Edition unifies two terms and returns set of
 	 * substitutions that make the terms unify. The variables in the two terms
 	 * are assumed to be in the same namespace.
-	 * 
+	 *
 	 * This textbook implementation has a bias towards assigning variables in
 	 * the left hand term.
-	 * 
+	 *
 	 * @param x
 	 *            the first term.
 	 * @param y
@@ -798,7 +798,7 @@ public class JPLUtils {
 	/**
 	 * Unify 2 {@link Compound}s. Implements the bit vague element in the
 	 * textbook UNIFY(x.ARGS, y.ARGS, UNIFY(x.OP, y.OP,s)).
-	 * 
+	 *
 	 * @param x
 	 *            the first {@link Compound}
 	 * @param y
@@ -826,7 +826,7 @@ public class JPLUtils {
 	 * Russel, Norvig, Third Edition. unifies two terms and returns set of
 	 * substitutions that make the terms unify. The variables in the two terms
 	 * are assumed to be in the same namespace.
-	 * 
+	 *
 	 * @param var
 	 *            the {@link jpl.Variable}.
 	 * @param y
@@ -834,7 +834,7 @@ public class JPLUtils {
 	 * @param s
 	 *            the substitutions used so far. Must not be null. This set can
 	 *            be modified by this function.
-	 * 
+	 *
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
 

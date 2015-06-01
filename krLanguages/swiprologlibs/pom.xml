@@ -4,7 +4,7 @@
 
 	<groupId>com.github.goalhub.krTools.krLanguages</groupId>
 	<artifactId>swiPrologEnabler</artifactId>
-	<version>1.1.3-SNAPSHOT</version>
+	<version>1.1.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	
 	<name>SWI Prolog Enabler</name>
@@ -129,9 +129,17 @@
 			</plugin>
 
 			<plugin>
-		      <groupId>org.apache.maven.plugins</groupId>
-		      <artifactId>maven-jar-plugin</artifactId>
-		      <version>2.6</version>
+		    	<groupId>org.apache.maven.plugins</groupId>
+		      	<artifactId>maven-jar-plugin</artifactId>
+		      	<version>2.6</version>
+		      	<configuration>
+		        	<archive>                   
+		        		<manifest>
+		            		<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+		                	<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+		            	</manifest>
+		        	</archive>
+		    	</configuration>
 		    </plugin>
 			
 			<plugin>
@@ -142,6 +150,12 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+		                	<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
 				</configuration>
 				<executions>
 					<execution>

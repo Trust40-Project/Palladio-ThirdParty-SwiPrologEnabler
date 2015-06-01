@@ -82,7 +82,7 @@ public interface Expression {
 	 * free variables that are bound to a term in the substitution by that term
 	 * (or, only renames in case the substitution binds a variable to another
 	 * one).
-	 * 
+	 *
 	 * @param substitution
 	 *            A map that binds terms to variables.
 	 * @return An instantiated expression.

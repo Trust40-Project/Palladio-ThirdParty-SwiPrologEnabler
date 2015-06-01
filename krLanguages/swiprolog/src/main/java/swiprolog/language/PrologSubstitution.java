@@ -178,9 +178,9 @@ public class PrologSubstitution implements Substitution {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public PrologSubstitution clone() {
-		return new PrologSubstitution(new Hashtable(jplSubstitution));
+		return new PrologSubstitution(new Hashtable<String, jpl.Term>(
+				this.jplSubstitution));
 	}
 
 	/**
@@ -188,7 +188,6 @@ public class PrologSubstitution implements Substitution {
 	 *
 	 * @return The string representation of this substitution.
 	 */
-	@SuppressWarnings("rawtypes")
 	@Override
 	public String toString() {
 		Set<String> variables = this.jplSubstitution.keySet();
