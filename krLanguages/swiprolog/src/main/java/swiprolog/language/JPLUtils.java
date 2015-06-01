@@ -804,14 +804,11 @@ public class JPLUtils {
 	 * @param y
 	 *            The second {@link Compound}
 	 * @param s
-	 *            the substitutions used so far.
+	 *            the substitutions used so far. s must not be null.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
 	private static Map<String, Term> unifyCompounds(Compound x, Compound y,
 			Map<String, Term> s) {
-		if (s == null) {
-			return null;
-		}
 		if (x.arity() != y.arity()) {
 			return null;
 		}

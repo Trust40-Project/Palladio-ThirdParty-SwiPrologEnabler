@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
+import jpl.Atom;
 import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
@@ -65,10 +66,10 @@ public class TestUnification2 {
 	public void test1unify() throws KRInitFailedException {
 
 		// Construct a (twice)
-		jpl.Term a1 = new jpl.Atom("a");
-		// jpl.Term a2 = new jpl.Atom("a");
+		jpl.Term a1 = new Atom("a");
+		// jpl.Term a2 = new Atom("a");
 		// Construct b
-		jpl.Term b = new jpl.Atom("b");
+		jpl.Term b = new Atom("b");
 
 		// TODO
 		// assertEquals(SWIPrologInterface.getInstance().getSubstitution(new
@@ -84,9 +85,9 @@ public class TestUnification2 {
 	public void test2unify() {
 
 		// Construct X
-		jpl.Variable x = new jpl.Variable("X");
+		Variable x = new Variable("X");
 		// Construct a
-		jpl.Atom a = new jpl.Atom("a");
+		Atom a = new Atom("a");
 
 		Hashtable<String, jpl.Term> unifier = new Hashtable<String, jpl.Term>();
 		unifier.put(x.name(), a);
@@ -102,10 +103,10 @@ public class TestUnification2 {
 	public void test3unify() {
 
 		// Construct X
-		jpl.Variable x = new jpl.Variable("X");
+		Variable x = new Variable("X");
 
 		// Construct f(a)
-		jpl.Term a = new jpl.Atom("a");
+		jpl.Term a = new Atom("a");
 		jpl.Term[] args = { a };
 		jpl.Term fa = new jpl.Compound("f", args);
 
@@ -115,7 +116,7 @@ public class TestUnification2 {
 		assertEquals(unifier, JPLUtils.unify(fa, x));
 
 		// Construct f(a, b)
-		jpl.Term b = new jpl.Atom("b");
+		jpl.Term b = new Atom("b");
 		jpl.Term[] args2 = { a, b };
 		jpl.Term fab = new jpl.Compound("f", args2);
 
@@ -125,7 +126,7 @@ public class TestUnification2 {
 		assertEquals(unifier2, JPLUtils.unify(fab, x));
 
 		// Construct f(Y, b)
-		jpl.Variable y = new jpl.Variable("Y");
+		Variable y = new Variable("Y");
 		jpl.Term[] args3 = { y, b };
 		jpl.Term fYb = new jpl.Compound("f", args3);
 
@@ -142,16 +143,16 @@ public class TestUnification2 {
 	public void test4unify() {
 
 		// Construct f(X, Y)
-		jpl.Variable x = new jpl.Variable("X");
-		jpl.Variable y = new jpl.Variable("Y");
+		Variable x = new Variable("X");
+		Variable y = new Variable("Y");
 		jpl.Term[] args = { x, y };
 		jpl.Term fXY = new jpl.Compound("f", args);
 		// Construct f(a, b)
-		jpl.Atom a = new jpl.Atom("a");
-		jpl.Atom b = new jpl.Atom("b");
+		Atom a = new Atom("a");
+		Atom b = new Atom("b");
 		jpl.Term[] args2 = { a, b };
 		jpl.Term fab = new jpl.Compound("f", args2);
-		jpl.Atom c = new jpl.Atom("c");
+		Atom c = new Atom("c");
 		jpl.Term[] args3 = { a, b, c };
 		jpl.Term fabc = new jpl.Compound("f", args3);
 
@@ -172,13 +173,13 @@ public class TestUnification2 {
 	public void test5unify() {
 
 		// Construct f(a, X)
-		jpl.Atom a = new jpl.Atom("a");
-		jpl.Variable x = new jpl.Variable("X");
+		Atom a = new Atom("a");
+		Variable x = new Variable("X");
 		jpl.Term[] args = { a, x };
 		jpl.Term faX = new jpl.Compound("f", args);
 		// Construct f(Y, Z)
-		jpl.Variable y = new jpl.Variable("Y");
-		jpl.Variable z = new jpl.Variable("Z");
+		Variable y = new Variable("Y");
+		Variable z = new Variable("Z");
 		jpl.Term[] args2 = { y, z };
 		jpl.Term fyz = new jpl.Compound("f", args2);
 
@@ -202,8 +203,8 @@ public class TestUnification2 {
 	public void test6unify() {
 
 		// Construct f(a, X)
-		jpl.Atom a = new jpl.Atom("a");
-		jpl.Variable x = new jpl.Variable("X");
+		Atom a = new Atom("a");
+		Variable x = new Variable("X");
 		jpl.Term[] args = { a, x };
 		jpl.Term faX = new jpl.Compound("f", args);
 		// Construct f(X, a)
@@ -224,12 +225,12 @@ public class TestUnification2 {
 	public void test7unify() {
 
 		// Construct f(a, X)
-		jpl.Variable x = new jpl.Variable("X");
+		Variable x = new Variable("X");
 		jpl.Term[] args = { x, x };
 		jpl.Term fXX = new jpl.Compound("f", args);
 		// Construct f(X, a)
-		jpl.Atom a = new jpl.Atom("a");
-		jpl.Atom b = new jpl.Atom("b");
+		Atom a = new Atom("a");
+		Atom b = new Atom("b");
 		jpl.Term[] args2 = { a, b };
 		jpl.Term fab = new jpl.Compound("f", args2);
 
@@ -244,12 +245,12 @@ public class TestUnification2 {
 	public void test8unify() {
 
 		// Construct f(a, X)
-		jpl.Variable x = new jpl.Variable("X");
+		Variable x = new Variable("X");
 		jpl.Term[] args = { x, x };
 		jpl.Term fXX = new jpl.Compound("f", args);
 		// Construct f(X, a)
-		jpl.Atom a = new jpl.Atom("a");
-		jpl.Variable y = new jpl.Variable("Y");
+		Atom a = new Atom("a");
+		Variable y = new Variable("Y");
 		jpl.Term[] args2 = { a, y };
 		jpl.Term faY = new jpl.Compound("f", args2);
 
@@ -268,14 +269,14 @@ public class TestUnification2 {
 	public void test9unify() {
 
 		// Construct f(g(Y), X, Y)
-		jpl.Variable y = new jpl.Variable("Y");
+		Variable y = new Variable("Y");
 		jpl.Term[] args = { y };
 		jpl.Term gY = new jpl.Compound("g", args);
-		jpl.Variable x = new jpl.Variable("X");
+		Variable x = new Variable("X");
 		jpl.Term[] args2 = { gY, x, y };
 		jpl.Term fgYXY = new jpl.Compound("f", args2);
 		// Construct f(X, g(a), a)
-		jpl.Atom a = new jpl.Atom("a");
+		Atom a = new Atom("a");
 		jpl.Term[] args3 = { a };
 		jpl.Term ga = new jpl.Compound("g", args3);
 		jpl.Term[] args4 = { x, ga, a };
@@ -306,8 +307,8 @@ public class TestUnification2 {
 	public void test10unify() {
 
 		// Construct f(X, Y)
-		jpl.Variable x = new jpl.Variable("X");
-		jpl.Variable y = new jpl.Variable("Y");
+		Variable x = new Variable("X");
+		Variable y = new Variable("Y");
 		jpl.Term[] args = { x, y };
 		jpl.Term fXY = new jpl.Compound("f", args);
 		// Construct f(Y, X)
@@ -392,6 +393,72 @@ public class TestUnification2 {
 		Compound term1 = new Compound("aap", new Term[] { new Variable("X") });
 		Term term2 = new Variable("X");
 		Map<String, Term> result = JPLUtils.unify(term1, term2);
+		assertEquals(null, result);
+	}
+
+	/**
+	 * Test case: aap(1,X) versus aap(2,X)
+	 */
+	@Test
+	public void test14unify() {
+
+		Term one = new Atom("1");
+		Term two = new Atom("2");
+		Variable x = new Variable("X");
+		Variable x1 = new Variable("X");
+
+		Compound aap1 = new Compound("aap", new Term[] { one, x });
+		Compound aap2 = new Compound("aap", new Term[] { two, x1 });
+
+		Map<String, Term> result = JPLUtils.unify(aap1, aap2);
+
+		assertEquals(null, result);
+	}
+
+	/**
+	 * Test case: aap(1,beer(3)) versus aap(2,beer(3))
+	 */
+	@Test
+	public void test15unify() {
+
+		Term one = new Atom("1");
+		Term two = new Atom("2");
+		Compound three = new Atom("3");
+		Compound three2 = new Atom("3");
+
+		Compound aap1 = new Compound("aap", new Term[] { one, three });
+		Compound aap2 = new Compound("aap", new Term[] { two, three2 });
+
+		Map<String, Term> result = JPLUtils.unify(aap1, aap2);
+
+		assertEquals(null, result);
+	}
+
+	/**
+	 * Test case: '1' versus 1
+	 */
+	@Test
+	public void testAtom1Int1() {
+
+		Term one = new jpl.Integer(1);
+		Term one2 = new Atom("1");
+
+		Map<String, Term> result = JPLUtils.unify(one, one2);
+
+		assertEquals(null, result);
+	}
+
+	/**
+	 * Test case: 1 versus '1'
+	 */
+	@Test
+	public void test2Atom1Int1() {
+
+		Term one = new Atom("1");
+		Term one2 = new jpl.Integer(1);
+
+		Map<String, Term> result = JPLUtils.unify(one, one2);
+
 		assertEquals(null, result);
 	}
 }
