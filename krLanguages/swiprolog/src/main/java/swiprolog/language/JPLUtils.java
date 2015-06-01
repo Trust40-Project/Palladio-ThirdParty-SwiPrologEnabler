@@ -270,7 +270,7 @@ public class JPLUtils {
 				}
 			} else { // two bindings for one and the same variable.
 				// Check whether terms can be unified
-				Map<String, Term> mgu = unify(othersubst.get(variable),
+				Map<String, Term> mgu = mgu(othersubst.get(variable),
 						thissubst.get(variable));
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
@@ -656,7 +656,22 @@ public class JPLUtils {
 		return "|" + term;
 	}
 
-	public static Map<String, Term> unify(jpl.Term x, jpl.Term y) {
+	/**
+	 * Create most general unifier (mgu) of two terms. The returned most general
+	 * unifier is a substitution which, if applied to both terms, will make the
+	 * terms equal. This algorithm currently will first try to set variables in
+	 * x. So it has a bias towards filling in the x variables over filling in y
+	 * variables. <br>
+	 * The map that is returned contains String as key objects, because
+	 * jpl.Variable can not be used for key (as it does not implement hashCode).
+	 * 
+	 * @param x
+	 *            first term
+	 * @param y
+	 *            second term
+	 * @return mgu, or null if no mgu exists.
+	 */
+	public static Map<String, Term> mgu(jpl.Term x, jpl.Term y) {
 		return unify(x, y, new HashMap<String, Term>());
 	}
 
@@ -667,8 +682,8 @@ public class JPLUtils {
 	 * are assumed to be in the same namespace. <br>
 	 * This textbook implementation has a bias towards assigning variables in
 	 * the left hand term. <br>
-	 * The map that we return contains String as key objects, because
-	 * jpl.Variable can not be used for key (as it does not implement hashCode).
+	 * The returned map contains String as key objects, because jpl.Variable can
+	 * not be used for key (as it does not implement hashCode).
 	 * 
 	 * @param x
 	 *            the first term.

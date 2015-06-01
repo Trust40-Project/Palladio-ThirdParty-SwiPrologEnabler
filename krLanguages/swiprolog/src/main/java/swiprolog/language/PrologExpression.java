@@ -120,7 +120,7 @@ public abstract class PrologExpression implements Expression {
 	@Override
 	public Substitution mgu(Expression expression) {
 		jpl.Term otherterm = ((PrologExpression) expression).getTerm();
-		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.unify(
+		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(
 				this.getTerm(), otherterm));
 	}
 
