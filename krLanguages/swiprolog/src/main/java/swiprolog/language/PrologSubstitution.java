@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import jpl.Variable;
@@ -48,7 +49,7 @@ public class PrologSubstitution implements Substitution {
 	/**
 	 * Create empty JPL substitution.
 	 */
-	private Hashtable<String, jpl.Term> jplSubstitution = new Hashtable<String, jpl.Term>();
+	private Map<String, jpl.Term> jplSubstitution = new Hashtable<String, jpl.Term>();
 
 	/**
 	 * Creates an empty {@link Substitution}.
@@ -74,12 +75,12 @@ public class PrologSubstitution implements Substitution {
 	 * @param solutions
 	 *            JPL substitution.
 	 */
-	private PrologSubstitution(Hashtable<String, jpl.Term> solution) {
+	private PrologSubstitution(Map<String, jpl.Term> solution) {
 		this.jplSubstitution = solution;
 	}
 
 	public static PrologSubstitution getSubstitutionOrNull(
-			Hashtable<String, jpl.Term> solution) {
+			Map<String, jpl.Term> solution) {
 		if (solution == null) {
 			return null;
 		} else {
@@ -90,7 +91,7 @@ public class PrologSubstitution implements Substitution {
 	/**
 	 * @return A JPL substitution.
 	 */
-	public Hashtable<String, jpl.Term> getJPLSolution() {
+	public Map<String, jpl.Term> getJPLSolution() {
 		return this.jplSubstitution;
 	}
 
@@ -140,7 +141,7 @@ public class PrologSubstitution implements Substitution {
 
 	@Override
 	public Substitution combine(Substitution substitution) {
-		Hashtable<String, jpl.Term> combined = null;
+		Map<String, jpl.Term> combined = null;
 		if (substitution != null) {
 			combined = JPLUtils.combineSubstitutions(this.jplSubstitution,
 					((PrologSubstitution) substitution).getJPLSolution());
@@ -163,7 +164,8 @@ public class PrologSubstitution implements Substitution {
 		for (Var v : varsToRetain) {
 			varnamesToRetain.add(((PrologVar) v).getVariable().name());
 		}
-		Set<String> currentVars = new HashSet<String>(this.jplSubstitution.keySet());
+		Set<String> currentVars = new HashSet<String>(
+				this.jplSubstitution.keySet());
 
 		boolean removed = false;
 		for (String varname : currentVars) {
@@ -176,10 +178,9 @@ public class PrologSubstitution implements Substitution {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public PrologSubstitution clone() {
-		return new PrologSubstitution(
-				(Hashtable<String, jpl.Term>) this.jplSubstitution.clone());
+		return new PrologSubstitution(new Hashtable<String, jpl.Term>(
+				this.jplSubstitution));
 	}
 
 	/**
@@ -187,7 +188,6 @@ public class PrologSubstitution implements Substitution {
 	 *
 	 * @return The string representation of this substitution.
 	 */
-	@SuppressWarnings("rawtypes")
 	@Override
 	public String toString() {
 		Set<String> variables = this.jplSubstitution.keySet();

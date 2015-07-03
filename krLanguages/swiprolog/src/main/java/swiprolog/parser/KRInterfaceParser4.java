@@ -72,11 +72,6 @@ public class KRInterfaceParser4 implements Parser {
 		return this.validator.goalSection();
 	}
 
-	/**
-	 * Allows empty queries.
-	 *
-	 * @throws ParserException
-	 */
 	@Override
 	public Query parseQuery() throws ParserException {
 		return this.validator.queryOrEmpty();

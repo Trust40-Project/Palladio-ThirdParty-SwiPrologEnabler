@@ -28,12 +28,13 @@ import krTools.errors.exceptions.ParserException;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.Term0Context;
+import swiprolog.parser.Prolog4Parser.Term1000Context;
 
 /**
  * Tests for Prolog4Parser term900. predicates are term0 but the argument list
  * inside the predicate are term900 elements.
- *
  */
 public class Term900Test {
 	/**
@@ -45,14 +46,11 @@ public class Term900Test {
 	 */
 	private Parser4 getParser(Reader textStream) throws IOException {
 		Parser4 parser = new Parser4(textStream, null);
-
 		parser.getInterpreter().setPredictionMode(
 				PredictionMode.LL_EXACT_AMBIG_DETECTION);
-
 		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}
@@ -60,7 +58,7 @@ public class Term900Test {
 	/**
 	 * Checks that two ':' separated texts (which should be term0 parse-able
 	 * texts) are parsed properly.
-	 * 
+	 *
 	 * @throws ParserException
 	 */
 	private void checkParsesAsTerm0(String text1, String text2)
@@ -69,6 +67,19 @@ public class Term900Test {
 		Parser4 parser = getParser(text1);
 		Term0Context tree = parser.term0();
 		System.out.println(text + " -> " + parser.toStringTree(tree));
+		assertEquals(text2, parser.toStringTree(tree));
+	}
+
+	/**
+	 * Checks term parses as term1000.
+	 *
+	 * @throws ParserException
+	 */
+	private void checkParsesAsTerm1000(String text1, String text2)
+			throws IOException, ParserException {
+		Parser4 parser = getParser(text1);
+		Term1000Context tree = parser.term1000();
+		System.out.println(text1 + " -> " + parser.toStringTree(tree));
 		assertEquals(text2, parser.toStringTree(tree));
 	}
 
@@ -105,5 +116,24 @@ public class Term900Test {
 		checkParsesAsTerm0(
 				"[1|2]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) , (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 2))))))))) | X)) ]))");
+	}
+
+	/**
+	 * Bit complex case. '1;2' does not parse as term900. The parser seems to
+	 * try the deepest possibilities first
+	 *
+	 * @throws IOException
+	 * @throws ParserException
+	 */
+	@Test
+	public void testList5() throws IOException, ParserException {
+		try {
+			checkParsesAsTerm1000("1;2", "");
+			throw new IllegalStateException("incorrect success of parsing");
+		} catch (ParserException e) {
+			assertEquals(e.getMessage(),
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString("';'",
+							ParserErrorMessages.TERM900.toReadableString()));
+		}
 	}
 }

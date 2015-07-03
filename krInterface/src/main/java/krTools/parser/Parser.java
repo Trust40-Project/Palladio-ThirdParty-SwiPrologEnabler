@@ -61,6 +61,7 @@ public interface Parser {
 
 	/**
 	 * Parses the input. Returns the update found during parsing.
+	 * 
 	 * @throws ParserException
 	 *             If parsing was interrupted.
 	 */

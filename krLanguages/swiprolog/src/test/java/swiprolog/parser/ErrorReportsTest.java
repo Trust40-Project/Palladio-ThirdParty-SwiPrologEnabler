@@ -26,9 +26,10 @@ import krTools.errors.exceptions.ParserException;
 
 import org.junit.Test;
 
+import swiprolog.errors.ParserErrorMessages;
+
 /**
  * Tests the error reports coming from the {@link Parser4}.
- *
  */
 public class ErrorReportsTest {
 	/**
@@ -38,6 +39,18 @@ public class ErrorReportsTest {
 	 */
 	private Parser4 getParser(String text) throws IOException {
 		return new Parser4(new StringReader(text), null);
+	}
+
+	/**
+	 * Check that we have implemented all prettyprint rules in
+	 * prettyPrintRuleContext.
+	 */
+	@Test
+	public void checkAllTokensTranslated() {
+		ErrorStrategy4 strat = new ErrorStrategy4();
+		for (int n = 0; n < Prolog4Parser.ruleNames.length; n++) {
+			strat.prettyPrintRuleContext(n);
+		}
 	}
 
 	@Test
@@ -67,7 +80,9 @@ public class ErrorReportsTest {
 			parser.term0();
 		} catch (ParserException e) {
 			System.out.println("errors:" + parser.getErrors());
-			// assertEquals("token recognition error at: 'ç'", e.getMessage());
+			assertEquals(
+					ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"),
+					e.getMessage());
 		}
 	}
 }

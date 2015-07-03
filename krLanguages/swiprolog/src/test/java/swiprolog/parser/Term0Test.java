@@ -32,7 +32,6 @@ import swiprolog.parser.Prolog4Parser.Term0Context;
 
 /**
  * Tests for Prolog4Parser term0
- *
  */
 public class Term0Test {
 	/**
@@ -49,7 +48,6 @@ public class Term0Test {
 		return parser;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Parser4 getParser(String text) throws IOException {
 		return getParser(new StringReader(text));
 	}

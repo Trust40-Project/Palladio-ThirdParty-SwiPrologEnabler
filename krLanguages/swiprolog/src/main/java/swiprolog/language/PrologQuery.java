@@ -17,7 +17,7 @@
 
 package swiprolog.language;
 
-import java.util.Hashtable;
+import java.util.Map;
 
 import krTools.language.Query;
 import krTools.language.Substitution;
@@ -50,7 +50,7 @@ public class PrologQuery extends PrologExpression implements Query {
 
 	@Override
 	public Query applySubst(Substitution s) {
-		Hashtable<String, jpl.Term> jplSubstitution = (s == null) ? null
+		Map<String, jpl.Term> jplSubstitution = (s == null) ? null
 				: ((PrologSubstitution) s).getJPLSolution();
 		return new PrologQuery(JPLUtils.applySubst(jplSubstitution,
 				this.getTerm()), getSourceInfo());

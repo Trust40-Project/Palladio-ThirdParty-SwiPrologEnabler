@@ -24,13 +24,12 @@ import java.io.StringReader;
 
 import krTools.errors.exceptions.KRInitFailedException;
 import krTools.errors.exceptions.ParserException;
-import krTools.language.Update;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import swiprolog.SWIPrologInterface;
-import swiprolog.language.PrologUpdate;
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
 import swiprolog.visitor.Visitor4;
@@ -40,7 +39,7 @@ import swiprolog.visitor.Visitor4;
  * parser->visitor->validator works ok. This is an end-to-end test.
  *
  */
-public class UpdateTest {
+public class ProgramTest {
 
 	@Before
 	public void init() throws KRInitFailedException {
@@ -63,17 +62,30 @@ public class UpdateTest {
 
 	@Test
 	public void testValidateBasicUpdate() throws IOException,
-			KRInitFailedException, ParserException {
-		Update term = validator("aap").updateOrEmpty();
-		assertEquals(term, new PrologUpdate(new jpl.Atom("aap"), null));
+	KRInitFailedException, ParserException {
+		try {
+			validator("1").queryOrEmpty();
+			throw new IllegalStateException("parse of wrong query succeeded");
+		} catch (ParserException e) {
+			assertEquals(
+					ParserErrorMessages.NUMBER_NOT_AS_GOAL
+							.toReadableString("1"),
+					e.getMessage());
+		}
 	}
 
 	@Test
-	public void testValidateTrueUpdate() throws IOException,
-			KRInitFailedException, ParserException {
-		// special update. Should work and not throw that true is protected.
-		Update term = validator("true").updateOrEmpty();
-		assertEquals(term, new PrologUpdate(new jpl.Atom("true"), null));
+	public void testVarAsGoal() throws IOException, KRInitFailedException,
+			ParserException {
+		try {
+			validator("X").queryOrEmpty();
+			throw new IllegalStateException("parse of wrong query succeeded");
+		} catch (ParserException e) {
+			assertEquals(
+					ParserErrorMessages.VARIABLES_NOT_AS_GOAL
+							.toReadableString("X"),
+					e.getMessage());
+		}
 	}
 
 }

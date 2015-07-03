@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
@@ -27,6 +28,7 @@ import krTools.language.Query;
 import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
@@ -49,6 +51,8 @@ import swiprolog.visitor.Visitor4;
  */
 public class Validator4 {
 	private final Visitor4 visitor;
+
+	private final List<ParserException> errors = new ArrayList<ParserException>();
 
 	/**
 	 * @param visitor
@@ -83,7 +87,11 @@ public class Validator4 {
 		List<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>(
 				prologTerms.size());
 		for (PrologTerm t : prologTerms) {
-			dbfs.add(SemanticTools.DBFormula(t));
+			try {
+				dbfs.add(SemanticTools.DBFormula(t));
+			} catch (ParserException e) {
+				this.errors.add(e);
+			}
 		}
 		return dbfs;
 	}
@@ -97,8 +105,13 @@ public class Validator4 {
 		List<Query> goals = new LinkedList<Query>();
 		for (PrologTerm t : this.visitor.visitPrologtext()) {
 			// check that each term is a valid Prolog goal / query
-			goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(),
-					t.getSourceInfo()), t.getSourceInfo()));
+
+			try {
+				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(),
+						t.getSourceInfo()), t.getSourceInfo()));
+			} catch (ParserException e) {
+				this.errors.add(e);
+			}
 		}
 		return goals;
 	}
@@ -123,9 +136,9 @@ public class Validator4 {
 		if (term.isVar()) {
 			return (PrologVar) term;
 		} else {
-			throw new ParserException(String.format(
-					"expected a SWI prolog variable but found '%s'",
-					term.toString()), term.getSourceInfo());
+			throw new ParserException(
+					ParserErrorMessages.EXPECTED_VAR.toReadableString(term
+							.toString()), term.getSourceInfo());
 		}
 	}
 
@@ -142,13 +155,14 @@ public class Validator4 {
 	/**
 	 * Validate a set of parameters.
 	 *
-	 * @return A list of {@link Term}s. Or null if an error occured.
+	 * @return A list of {@link Term}s.
 	 */
 	public List<Term> terms() throws ParserException {
 		PrologTerm t = this.visitor.visitTerm1000();
 		List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
 		List<Term> terms = new ArrayList<Term>(original.size());
 		for (jpl.Term term : original) {
+
 			if (term instanceof jpl.Variable) {
 				terms.add(new PrologVar((jpl.Variable) term, t.getSourceInfo()));
 			} else {
@@ -165,7 +179,10 @@ public class Validator4 {
 	 * @return all errors that occurred
 	 */
 	public SortedSet<ParserException> getErrors() {
-		return this.visitor.getErrors();
+		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
+		allErrors.addAll(this.visitor.getErrors());
+		allErrors.addAll(this.errors);
+		return allErrors;
 	}
 
 	/**

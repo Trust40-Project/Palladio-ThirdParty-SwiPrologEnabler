@@ -22,12 +22,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import jpl.Term;
+import krTools.errors.exceptions.ParserException;
 import krTools.parser.SourceInfo;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
@@ -70,6 +72,7 @@ import swiprolog.parser.SourceInfoObject;
  */
 public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	private final SourceInfo source;
+	private final List<ParserException> errors = new ArrayList<ParserException>();
 
 	/**
 	 * @param source
@@ -295,18 +298,55 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		return compound(ctx.prefixop().getText(), args, ctx);
 	}
 
+	/**
+	 * Parse number as term.
+	 *
+	 * @param num
+	 *            number to parse
+	 * @param info
+	 *            the {@link SourceInfo}
+	 * @return the parsed term. If failure, this returns a term '1' and reports
+	 *         the error in the {@link #errors} list.
+	 */
+	private PrologTerm parseNumber(String num, SourceInfo info) {
+		if (num.matches("[0-9]+") || num.matches("0[box].*")) {
+			// integer string
+			try {
+				Long val = Long.valueOf(num);
+				// int, octal, hex, etc.
+				return new PrologTerm(JPLUtils.createIntegerNumber(val), info);
+			} catch (NumberFormatException e) {
+				System.out
+				.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING
+						.toReadableString(num));
+			}
+		}
+		// float
+		try {
+			Double val = Double.valueOf(num);
+			if (val.isNaN()) {
+				throw new NumberFormatException(
+						ParserErrorMessages.NUMBER_NAN.toReadableString(num));
+			}
+			if (val.isInfinite()) {
+				throw new NumberFormatException(
+						ParserErrorMessages.NUMBER_INFINITY
+						.toReadableString(num));
+			}
+			return new PrologTerm(new jpl.Float(val), info);
+		} catch (NumberFormatException e) {
+			this.errors.add(new ParserException(
+					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString()
+					+ ":" + e.getMessage(), info));
+		}
+		// never return null as others may post process our output.
+		return new PrologTerm(new jpl.Integer(1), info);
+	}
+
 	@Override
 	public PrologTerm visitTerm0(Term0Context ctx) {
 		if (ctx.NUMBER() != null) {
-			String text = ctx.NUMBER().getText();
-			if (text.matches("[0-9]+") || text.matches("0[box].*")) {
-				Long val = Long.valueOf(text);
-				return new PrologTerm(JPLUtils.createIntegerNumber(val),
-						getSourceInfo(ctx)); // int, octal, hex, etc.
-			} else { // float
-				return new PrologTerm(new jpl.Float(Double.valueOf(text)),
-						getSourceInfo(ctx));
-			}
+			return parseNumber(ctx.NUMBER().getText(), getSourceInfo(ctx));
 		} else if (ctx.NAME() != null) {
 			String name = ctx.NAME().getText();
 			ArglistContext args = ctx.arglist();
@@ -409,7 +449,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				Term[] args = { t1, t2 };
 				term = compound(op, args, ctx);
 			}
-			Term t2 = null; // optional
 		}
 		return term;
 	}
@@ -567,5 +606,15 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			jpl.Term[] args = { lhs.getTerm(), rhs.getTerm() };
 			return compound(ctx.op.getText(), args, ctx);
 		}
+	}
+
+	/**
+	 * Get all errors that occured in the visiting phase (excluding the parsing
+	 * errors).
+	 *
+	 * @return
+	 */
+	public List<ParserException> getVisitorErrors() {
+		return this.errors;
 	}
 }

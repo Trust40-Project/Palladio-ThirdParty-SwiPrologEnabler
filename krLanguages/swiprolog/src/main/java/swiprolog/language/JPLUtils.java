@@ -18,11 +18,10 @@
 package swiprolog.language;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import jpl.Compound;
@@ -115,7 +114,6 @@ public class JPLUtils {
 		return freeVars;
 	}
 
-
 	/**
 	 * Creates a new term, cloning the given term and substituting variables
 	 * where applicable. JPL does not provide this.
@@ -135,8 +133,7 @@ public class JPLUtils {
 	 * @return a copy of t but with all occurences of variables substituted as
 	 *         indicated in the substi map.
 	 */
-	@SuppressWarnings("rawtypes")
-	public static jpl.Term applySubst(Hashtable solution, jpl.Term term) {
+	public static jpl.Term applySubst(Map<String, Term> solution, jpl.Term term) {
 		// Cases: Atom, Integer, Float.
 		if (term.isAtom() || term.isInteger() || term.isFloat()) {
 			return term;
@@ -171,7 +168,7 @@ public class JPLUtils {
 	 * variables and hence a real rebuild is not necessary. Instead, we simply
 	 * return the original term after checking.
 	 * </p>
-	 * 
+	 *
 	 * @return {@code true} if term is a Prolog goal according to ISO.
 	 */
 	public static boolean isQuery(jpl.Term t) {
@@ -228,104 +225,6 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Method for computing the mgu (most general unifier). Tries to instantiate
-	 * such that the outterm variables get assigned with otherterm objects.
-	 * Built as close as possible to JPL, with the idea that we try to get close
-	 * to JPL for efficiency reasons.
-	 * <p>
-	 * ourterm and otherterm share variable names. So if X gets assigned in
-	 * ourterm, that immediately assigns X in the other side.
-	 * <p>
-	 * The map that we return contains String as key objects, because
-	 * jpl.Variable can not be used for key (as it does not implement hashCode).
-	 *
-	 * @param thisterm
-	 *            is the term that we want to assign variables so that it
-	 *            matches the other term
-	 * @param otherterm
-	 *            is the term that we want to match with
-	 * @return hashmap containing a substitution for the left and right hand
-	 *         variables if unification is possible, or null if no unification
-	 *         is possible.
-	 */
-	public static Hashtable<String, Term> mgu(jpl.Term thisterm,
-			jpl.Term otherterm) {
-		Hashtable<String, Term> result = new Hashtable<String, jpl.Term>();
-
-		// terms are equal already. success.
-		if (thisterm.equals(otherterm)) {
-			return result;
-		}
-		// First term is a constant.
-		if (thisterm.isAtom() || thisterm.isInteger() || thisterm.isFloat()) {
-			if (thisterm.equals(otherterm)) {
-				return result;
-			}
-			if (otherterm.isVariable()) {
-				result.put(otherterm.name(), thisterm);
-				return result;
-			}
-		}
-		// First term is a variable.
-		if (thisterm.isVariable()) {
-			if (thisterm.name().equals("_")) { // is anonymous
-				return result;
-			}
-			// Occurs check.
-			if (JPLUtils.getFreeVar(otherterm).contains(thisterm)) {
-				return null;
-			}
-			result.put(thisterm.name(), otherterm);
-			return result;
-		}
-		// First term is a compound term.
-		if (thisterm.isCompound()) {
-			if (otherterm.isVariable()) {
-				result.put(otherterm.name(), thisterm);
-				return result;
-			}
-			if (otherterm.isCompound()) {
-				return mguCompound((Compound) thisterm, (Compound) otherterm);
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * MGU where left hand is a compound
-	 * <p>
-	 * The map that we return contains String as key objects, because
-	 * jpl.Variable can not be used for key (as it does not implement hashCode).
-	 *
-	 * @param thisterm
-	 * @return
-	 */
-	public static Hashtable<String, Term> mguCompound(Compound thisterm,
-			Compound otherterm) {
-		Hashtable<String, Term> result = new Hashtable<String, jpl.Term>();
-
-		if (!thisterm.name().equals(otherterm.name())) {
-			return null;
-		}
-		if (thisterm.arity() != otherterm.arity()) {
-			return null;
-		}
-
-		/*
-		 * Functions have same number of arguments. Match all the arguments and
-		 * merge results. Returns null if no mgu.
-		 */
-		for (int i = 1; i <= thisterm.arity(); i++) {
-			result = combineSubstitutions(result,
-					mgu(thisterm.arg(i), otherterm.arg(i)));
-			if (result == null) {
-				break;
-			}
-		}
-		return result;
-	}
-
-	/**
 	 * Try to combine two substitutions into a new substi.
 	 * <p>
 	 * The map that we return contains String as key objects, because
@@ -336,10 +235,9 @@ public class JPLUtils {
 	 * @return combined subst, or null if they can not be combined (variable
 	 *         conflict)
 	 */
-	protected static Hashtable<String, Term> combineSubstitutions(
-			Hashtable<String, Term> thissubst,
-			Hashtable<String, Term> othersubst) {
-		Hashtable<String, Term> combination = new Hashtable<String, Term>();
+	protected static Map<String, Term> combineSubstitutions(
+			Map<String, Term> thissubst, Map<String, Term> othersubst) {
+		Map<String, Term> combination = new Hashtable<String, Term>();
 
 		// Combining with {@code null}, i.e., failure, yields a failure {@code
 		// null}.
@@ -372,7 +270,7 @@ public class JPLUtils {
 				}
 			} else { // two bindings for one and the same variable.
 				// Check whether terms can be unified
-				Hashtable<String, Term> mgu = mgu(othersubst.get(variable),
+				Map<String, Term> mgu = mgu(othersubst.get(variable),
 						thissubst.get(variable));
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
@@ -470,7 +368,7 @@ public class JPLUtils {
 
 	/**
 	 * Workaround for bug in jpl #3399. Create float for large integers.
-	 * 
+	 *
 	 * @param number
 	 *            long number
 	 * @return term representing the long.
@@ -557,11 +455,8 @@ public class JPLUtils {
 			}
 			return true;
 		}
-		if (term1 instanceof jpl.Atom) {
-			return ((jpl.Atom) term1).name().equals((term2));
-		}
-		if (term1 instanceof jpl.Variable) {
-			return ((jpl.Variable) term1).name().equals((term2));
+		if (term1 instanceof jpl.Atom || term1 instanceof Variable) {
+			return term1.name().equals(term2.name());
 		}
 		if (term1 instanceof jpl.Integer) {
 			// compare longs, #3399
@@ -577,4 +472,303 @@ public class JPLUtils {
 				+ " and " + term2 + " is not defined.");
 	}
 
+	/**
+	 * Convert a {@link Term} to a pretty printed string.
+	 *
+	 * @param term
+	 *            the term to print
+	 * @return pretty printed term.
+	 */
+	public static String toString(Term term) {
+		if (term.isAtom()) {
+			return term.toString();
+		}
+
+		if (term.isVariable()) {
+			return term.name();
+		}
+
+		if (term.isInteger()) {
+			return Long.toString(term.longValue());
+		}
+
+		if (term.isFloat()) { // actually a double.
+			return Double.toString(term.doubleValue());
+		}
+
+		if (term.isCompound()) {
+			/**
+			 * Special treatment of (non-empty) lists.
+			 */
+			if (term.name().equals(".") && term.arity() == 2) {
+				return "[" + term.arg(1) + tailToString(term.arg(2)) + "]";
+			}
+
+			switch (JPLUtils.getFixity(term)) {
+			case FX:
+			case FY:
+				/*
+				 * "-" is tight binding in which case the extra brackets are not
+				 * needed but the :- is not tight binding so there we need
+				 * brackets.
+				 */
+				// SWI bug workaround. Mantis 280
+				if (term.name().equals("-")) {
+					return term.name() + maybeBracketed(term, 1);
+				}
+				return term.name() + " " + maybeBracketed(term, 1);
+			case XFX:
+			case XFY:
+			case YFX:
+				return maybeBracketed(term, 1) + " " + term.name() + " "
+						+ maybeBracketed(term, 2);
+			case XF:
+				return maybeBracketed(term, 1) + " " + term.name() + " ";
+			default:
+				/**
+				 * Default: return functional notation (canonical form).
+				 */
+				String s = term.name() + "(" + maybeBracketedArgument(term, 1);
+				for (int i = 2; i <= term.arity(); i++) {
+					s = s + "," + maybeBracketedArgument(term, i);
+				}
+				s = s + ")";
+				return s;
+			}
+		}
+
+		// Don't know what this is; throw.
+		throw new UnsupportedOperationException("Unknown JPL term of type "
+				+ term.getClass());
+	}
+
+	/**
+	 * TODO is there a smarter way to do the bracketing? I guess so but then we
+	 * need to determine actual priorities of subtrees.
+	 */
+	/**
+	 * Support function for toString that checks if context requires brackets
+	 * around term. Converts argument to string and possibly places brackets
+	 * around it, if the term has a principal functor whose priority is so high
+	 * that the term could not be re-input correctly. Use for operators. see ISO
+	 * p.45 part h 2.
+	 *
+	 * @param term
+	 *            the Term
+	 * @param argument
+	 *            Either 1 or 2 to indicate JPL argument.
+	 */
+	private static String maybeBracketed(Term term, int argument) {
+		jpl.Term arg = term.arg(argument);
+		PrologExpression argexpression = new PrologTerm(arg, null);
+		int argprio = JPLUtils.getPriority(arg);
+		int ourprio = JPLUtils.getPriority(term);
+
+		if (argprio > ourprio) {
+			return "(" + argexpression.toString() + ")";
+		}
+		if (argprio == ourprio) {
+			// let's say we have an xfy operator here. The y side can have equal
+			// priority by default,
+			// and that side can be printed without brackets.
+			// but if the x side has same prio that's only possible if there
+			// were brackets.
+			// System.out.println("getting spec of "+label+"/"+arguments.size()+"="+GetSpec());
+			// System.out.println("prio of arg "+argumentnumber+" "+arg+" = "+argprio);
+			PrologOperators.Fixity spec = JPLUtils.getFixity(term);
+			if (spec == null) {
+				return argexpression.toString(); // no spec, no op.
+			}
+			switch (spec) {
+			case FX: // args without Y need brackets anyway
+			case XF:
+			case XFX:
+				return "(" + argexpression.toString() + ")";
+			case YFX:
+				if (argument == 2) {
+					return "(" + argexpression.toString() + ")";
+				}
+				break;
+			case XFY:
+				if (argument == 1) {
+					return "(" + argexpression.toString() + ")";
+				}
+				break;
+			default:
+				//
+			}
+		}
+
+		return argexpression.toString();
+	}
+
+	/**
+	 * Support function for toString that checks if context requires brackets
+	 * around term. Checks if argument[argument] needs bracketing for printing.
+	 * Arguments inside a predicate are priority 1000. All arguments higher than
+	 * that must have been bracketed.
+	 *
+	 * @param term
+	 *            the {@link Term} to convert
+	 * @param argument
+	 *            Either 1 or 2 to indicate JPL argument.
+	 * @return bracketed term if required, and without brackets if not needed.
+	 */
+	private static String maybeBracketedArgument(Term term, int argument) {
+		jpl.Term arg = term.arg(argument);
+		int argprio = JPLUtils.getPriority(arg);
+
+		// prio of ','. If we encounter a ","(..) inside arglist we also need
+		// brackets.
+		if (argprio >= 1000) {
+			return "(" + arg + ")";
+		}
+
+		PrologExpression expression = new PrologTerm(arg, null);
+		return expression.toString();
+	}
+
+	/**
+	 * Support function for toString of a tail of a lists.
+	 *
+	 * @param term
+	 *            is a Prolog term that is part of a list.
+	 * @return given term t in pretty-printed list form but without "[" or "]"
+	 */
+	private static String tailToString(Term term) {
+		// Did we reach end of the list?
+		// TODO: empty list
+		if (term.isAtom() && term.name().equals("[]")) {
+			return "";
+		}
+
+		// check that we are still in a list and continue.
+		if (term.isCompound()) {
+			jpl.Term[] args = term.args();
+			if (!(term.name().equals(".")) || args.length != 2) {
+				return "|" + term; // no good list.
+			}
+			return "," + args[0] + tailToString(args[1]);
+		}
+
+		// If we arrive here the remainder is either a var or not a good list.
+		// Finish it off.
+		return "|" + term;
+	}
+
+	/**
+	 * Create most general unifier (mgu) of two terms. The returned most general
+	 * unifier is a substitution which, if applied to both terms, will make the
+	 * terms equal. This algorithm currently will first try to set variables in
+	 * x. So it has a bias towards filling in the x variables over filling in y
+	 * variables. <br>
+	 * The map that is returned contains String as key objects, because
+	 * jpl.Variable can not be used for key (as it does not implement hashCode).
+	 * 
+	 * @param x
+	 *            first term
+	 * @param y
+	 *            second term
+	 * @return mgu, or null if no mgu exists.
+	 */
+	public static Map<String, Term> mgu(jpl.Term x, jpl.Term y) {
+		return unify(x, y, new HashMap<String, Term>());
+	}
+
+	/**
+	 * Textbook implementation of Unify algorithm. AI : A modern Approach,
+	 * Russel, Norvig, Third Edition unifies two terms and returns set of
+	 * substitutions that make the terms unify. The variables in the two terms
+	 * are assumed to be in the same namespace. <br>
+	 * This textbook implementation has a bias towards assigning variables in
+	 * the left hand term. <br>
+	 * The returned map contains String as key objects, because jpl.Variable can
+	 * not be used for key (as it does not implement hashCode).
+	 * 
+	 * @param x
+	 *            the first term.
+	 * @param y
+	 *            the second term.
+	 * @param s
+	 *            the substitutions used so far.
+	 * @return set of variable substitutions, or null if the terms do not unify.
+	 */
+	public static Map<String, Term> unify(jpl.Term x, jpl.Term y,
+			Map<String, Term> s) {
+		if (s == null) {
+			return null;
+		}
+		if (equals(x, y)) {
+			return s;
+		}
+		if (x.isVariable()) {
+			return unifyVar((Variable) x, y, s);
+		}
+		if (y.isVariable()) {
+			return unifyVar((Variable) y, x, s);
+		}
+		if (x.isCompound() && y.isCompound()) {
+			return unifyCompounds((Compound) x, (Compound) y, s);
+		}
+		// we do not have lists. List is just another compound.
+		return null;
+	}
+
+	/**
+	 * Unify 2 {@link Compound}s. Implements the bit vague element in the
+	 * textbook UNIFY(x.ARGS, y.ARGS, UNIFY(x.OP, y.OP,s)).
+	 *
+	 * @param x
+	 *            the first {@link Compound}
+	 * @param y
+	 *            The second {@link Compound}
+	 * @param s
+	 *            the substitutions used so far. s must not be null.
+	 * @return set of variable substitutions, or null if the terms do not unify.
+	 */
+	private static Map<String, Term> unifyCompounds(Compound x, Compound y,
+			Map<String, Term> s) {
+		if (x.arity() != y.arity()) {
+			return null;
+		}
+		if (!x.name().equals(y.name())) {
+			return null;
+		}
+		for (int i = 1; i <= x.arity(); i++) {
+			s = unify(x.arg(i), y.arg(i), s);
+		}
+		return s;
+	}
+
+	/**
+	 * Textbook implementation of Unify-Var algorithm. AI : A modern Approach,
+	 * Russel, Norvig, Third Edition. unifies two terms and returns set of
+	 * substitutions that make the terms unify. The variables in the two terms
+	 * are assumed to be in the same namespace.
+	 *
+	 * @param var
+	 *            the {@link jpl.Variable}.
+	 * @param y
+	 *            the {@link Term}.
+	 * @param s
+	 *            the substitutions used so far. Must not be null. This set can
+	 *            be modified by this function.
+	 *
+	 * @return set of variable substitutions, or null if the terms do not unify.
+	 */
+
+	private static Map<String, Term> unifyVar(Variable var, Term x,
+			Map<String, Term> s) {
+		if (s.containsKey(var.name)) {
+			return unify(s.get(var.name), x, s);
+		}
+		if (x.isVariable() && s.containsKey(((Variable) x).name)) {
+			return unify(var, s.get(((Variable) x).name), s);
+		}
+		if (getFreeVar(x).contains(var)) {
+			return null;
+		}
+		s.put(var.name, x);
+		return s;
+	}
 }

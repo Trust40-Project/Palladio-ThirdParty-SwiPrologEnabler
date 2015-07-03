@@ -9,6 +9,8 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
 
+import swiprolog.errors.ParserErrorMessages;
+
 public class ErrorStrategy4 extends DefaultErrorStrategy {
 	@Override
 	public void reportNoViableAlternative(Parser parser, NoViableAltException e)
@@ -170,7 +172,12 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		switch (t.getType()) {
 		case Prolog4Parser.VARIABLE:
 			return txt + " '" + t.getText() + "'";
-			// TODO: other cases?!
+		case Prolog4Parser.NAME:
+			return txt + " '" + t.getText() + "'";
+		case Prolog4Parser.NUMBER:
+			return txt + " '" + t.getText() + "'";
+		case Prolog4Parser.STRING:
+			return txt + " " + t.getText();
 		default:
 			return txt;
 		}
@@ -180,22 +187,92 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		switch (type) {
 		case Token.EOF:
 			return "end of file/section";
-			// TODO: other cases?!
+		case Prolog4Parser.ENDTOKEN:
+			return "'.'";
+		case Prolog4Parser.NAME:
+			return "an atom";
+		case Prolog4Parser.NUMBER:
+			return "a number";
+		case Prolog4Parser.VARIABLE:
+			return "a variable";
+		case Prolog4Parser.STRING:
+			return "a string";
 		default:
 			// Do not improve, simply return token symbol as is
-			if (type < Prolog4Parser.tokenNames.length) {
-				return Prolog4Parser.tokenNames[type];
-			} else {
-				return "something that does not make sense";
-			}
+			return Prolog4Parser.VOCABULARY.getDisplayName(type);
 		}
 	}
 
+	/**
+	 * pretty print a name of a parser rule. We convert often to general
+	 * "an operator" because ANTLR produces too specific errors in many cases,
+	 * which misleads the user. #3511
+	 *
+	 * @param ruleIndex
+	 * @return
+	 */
 	public String prettyPrintRuleContext(int ruleIndex) {
 		switch (ruleIndex) {
-		// TODO: other cases?!
+		case Prolog4Parser.RULE_prologfile:
+			return ParserErrorMessages.CLAUSES.toReadableString();
+		case Prolog4Parser.RULE_prologtext:
+			return ParserErrorMessages.CLAUSES.toReadableString();
+		case Prolog4Parser.RULE_directiveorclause:
+			return ParserErrorMessages.CLAUSE.toReadableString();
+		case Prolog4Parser.RULE_directive:
+			return ParserErrorMessages.DIRECTIVE.toReadableString();
+		case Prolog4Parser.RULE_clause:
+			return ParserErrorMessages.CLAUSE.toReadableString();
+		case Prolog4Parser.RULE_arglist:
+			return ParserErrorMessages.EXPRESSIONS.toReadableString();
+		case Prolog4Parser.RULE_possiblyEmptyConjunct:
+			return ParserErrorMessages.TERMS.toReadableString();
+		case Prolog4Parser.RULE_possiblyEmptyDisjunct:
+			return ParserErrorMessages.DISJUNCT_OF_TERMS.toReadableString();
+		case Prolog4Parser.RULE_expression:
+			return ParserErrorMessages.EXPRESSION.toReadableString();
+		case Prolog4Parser.RULE_listterm:
+			return ParserErrorMessages.LIST.toReadableString();
+		case Prolog4Parser.RULE_items:
+			return ParserErrorMessages.EXPRESSIONS.toReadableString();
+		case Prolog4Parser.RULE_prefixoperator:
+			return ParserErrorMessages.PREFIXOP.toReadableString();
+		case Prolog4Parser.RULE_prefixop:
+			return ParserErrorMessages.PREFIX_OPERATOR.toReadableString();
+		case Prolog4Parser.RULE_term0:
+			return ParserErrorMessages.TERM0.toReadableString();
+		case Prolog4Parser.RULE_term50:
+			return ParserErrorMessages.TERM50.toReadableString();
+		case Prolog4Parser.RULE_term100:
+			return ParserErrorMessages.TERM100.toReadableString();
+		case Prolog4Parser.RULE_term200:
+			return ParserErrorMessages.TERM200.toReadableString();
+		case Prolog4Parser.RULE_term400:
+			return ParserErrorMessages.TERM400.toReadableString();
+		case Prolog4Parser.RULE_term400b:
+			return ParserErrorMessages.TERM400B.toReadableString();
+		case Prolog4Parser.RULE_term500:
+			return ParserErrorMessages.TERM500.toReadableString();
+		case Prolog4Parser.RULE_term500b:
+			return ParserErrorMessages.TERM500B.toReadableString();
+		case Prolog4Parser.RULE_term700:
+			return ParserErrorMessages.TERM700.toReadableString();
+		case Prolog4Parser.RULE_term900:
+			return ParserErrorMessages.TERM900.toReadableString();
+		case Prolog4Parser.RULE_term1000:
+			return ParserErrorMessages.TERM1000.toReadableString();
+		case Prolog4Parser.RULE_term1050:
+			return ParserErrorMessages.TERM1050.toReadableString();
+		case Prolog4Parser.RULE_term1100:
+			return ParserErrorMessages.TERM1100.toReadableString();
+		case Prolog4Parser.RULE_term1105:
+			return ParserErrorMessages.TERM1105.toReadableString();
+		case Prolog4Parser.RULE_term1200:
+			return ParserErrorMessages.TERM1200.toReadableString();
 		default:
-			return Prolog4Parser.ruleNames[ruleIndex];
+			// getting here would be a bug
+			throw new IllegalArgumentException("unknown parser rule index "
+					+ ruleIndex);
 		}
 	}
 }

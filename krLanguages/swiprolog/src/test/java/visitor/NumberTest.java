@@ -37,10 +37,10 @@ import swiprolog.visitor.Visitor4;
  * also we hook in SWI prolog.
  *
  */
-public class Term0Test {
+public class NumberTest {
 
 	/**
-	 * Default version of {@link #checkVisitesAsTerm0(String, String)} where
+	 * Default version of {@link #checkVisitsAsTerm0(String, String)} where
 	 * input and output are exptected identical.
 	 *
 	 * @param text
@@ -51,7 +51,7 @@ public class Term0Test {
 	 */
 	private void checkVisitsAsTerm0(String text) throws IOException,
 	KRInitFailedException, ParserException {
-		checkVisitesAsTerm0(text, text);
+		checkVisitsAsTerm0(text, text);
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class Term0Test {
 	 * @throws KRInitFailedException
 	 * @throws ParserException
 	 */
-	private void checkVisitesAsTerm0(String in, String out)
+	private void checkVisitsAsTerm0(String in, String out)
 			throws KRInitFailedException, IOException, ParserException {
 		Visitor4 visitor = new Visitor4(new Parser4(new StringReader(in), null));
 		PrologTerm term = visitor.visitTerm0();
@@ -75,44 +75,53 @@ public class Term0Test {
 	}
 
 	@Test
-	public void testVariable() throws IOException, KRInitFailedException,
+	public void testFloat() throws IOException, KRInitFailedException,
 	ParserException {
-		checkVisitsAsTerm0("X");
+		checkVisitsAsTerm0("100.3");
 	}
 
 	@Test
-	public void testVariable2() throws IOException, KRInitFailedException,
+	public void testFloat2() throws IOException, KRInitFailedException,
 	ParserException {
-		checkVisitsAsTerm0("_123");
+		checkVisitsAsTerm0("100.3e13", "1.003E15");
 	}
 
 	@Test
-	public void testString() throws IOException, KRInitFailedException,
+	public void testFloat3() throws IOException, KRInitFailedException,
 	ParserException {
-		checkVisitsAsTerm0("'Aap'");
+		checkVisitsAsTerm0("0.3e13", "3.0E12");
 	}
 
 	@Test
-	public void testString1() throws IOException, KRInitFailedException,
+	public void testInteger() throws IOException, KRInitFailedException,
 	ParserException {
-		checkVisitesAsTerm0("\"Aap\"", "'Aap'");
+		checkVisitsAsTerm0("12345");
 	}
 
 	@Test
-	public void testAtom() throws IOException, KRInitFailedException,
+	public void testBigInteger() throws IOException, KRInitFailedException,
 	ParserException {
-		checkVisitsAsTerm0("aap");
+		checkVisitsAsTerm0(
+				"123456789012345678901234567890123456789012345678901234567890",
+				"1.2345678901234567E59");
 	}
 
 	@Test
-	public void testString2() throws IOException, KRInitFailedException,
+	public void testAlmostMaxInt() throws IOException, KRInitFailedException,
 	ParserException {
-		checkVisitesAsTerm0("`Aap`", "'Aap'");
+		checkVisitsAsTerm0("2147483647", "2147483647");
+	}
+
+	@Test
+	public void testMaxInt() throws IOException, KRInitFailedException,
+	ParserException {
+		checkVisitsAsTerm0("2147483648", "2.147483648E9");
 	}
 
 	@Test(expected = ParserException.class)
-	public void testString3() throws IOException, KRInitFailedException,
+	public void testHugeNumber() throws IOException, KRInitFailedException,
 	ParserException {
-		checkVisitsAsTerm0("`Aap'");
+		checkVisitsAsTerm0("12.1e738273", "1.2345678901234567E59");
 	}
+
 }
