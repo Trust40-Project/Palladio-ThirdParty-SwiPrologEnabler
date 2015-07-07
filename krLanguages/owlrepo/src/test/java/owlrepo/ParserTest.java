@@ -12,6 +12,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.model.SWRLRule;
+import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.parser.SWRLParseException;
@@ -40,12 +41,12 @@ if (file.exists() && file.canRead()){
 //	    ontology.setOWLOntologyManager(mng);
 //		mng.setOntologyFormat(ontology, mng.getOntologyFormat(ontology));
 		
-	     swrlapiOnto = SWRLAPIFactory.createOntology(file);
+	     DefaultPrefixManager pmg = new DefaultPrefixManager();
+	     swrlapiOnto = SWRLAPIFactory.createOntology(ontology, pmg);
 	    
 	    System.out.println("NR of swrl rules in onto: "+swrlapiOnto.getNumberOfSWRLRules());
 	    
-	    PrefixManager pmg = swrlapiOnto.getPrefixManager();
-	    pmg.setPrefix("tradr", "http://www.semanticweb.org/timi/ontologies/2014/3/untitled-ontology-10#");
+	    pmg.setPrefix("tradr", "http://www.semanticweb.org/ontologies/tradr#");
 	   
 	    reader = new BufferedReader(new InputStreamReader(System.in));
 		parser= new SQWRLParser(swrlapiOnto, reader);

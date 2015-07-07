@@ -560,6 +560,14 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#Agency -->
+
+    <owl:Class rdf:about="&onto;Agency">
+        <rdfs:subClassOf rdf:resource="&onto;Actor"/>
+    </owl:Class>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#Area -->
 
     <owl:Class rdf:about="&onto;Area">
@@ -611,7 +619,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Avalanche -->
 
     <owl:Class rdf:about="&onto;Avalanche">
-        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
+        <rdfs:subClassOf rdf:resource="&onto;Geophysical"/>
     </owl:Class>
     
 
@@ -620,6 +628,14 @@
 
     <owl:Class rdf:about="&onto;Bicycle">
         <rdfs:subClassOf rdf:resource="&onto;Vehicle"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Biological -->
+
+    <owl:Class rdf:about="&onto;Biological">
+        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
     </owl:Class>
     
 
@@ -652,6 +668,22 @@
 
     <owl:Class rdf:about="&onto;Chemical_leakage">
         <rdfs:subClassOf rdf:resource="&onto;Industrial_incident"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#CivilProtection -->
+
+    <owl:Class rdf:about="&onto;CivilProtection">
+        <rdfs:subClassOf rdf:resource="&onto;Authorities"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Climatological -->
+
+    <owl:Class rdf:about="&onto;Climatological">
+        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
     </owl:Class>
     
 
@@ -704,10 +736,26 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#Drought -->
+
+    <owl:Class rdf:about="&onto;Drought">
+        <rdfs:subClassOf rdf:resource="&onto;Climatological"/>
+    </owl:Class>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#Earthquake -->
 
     <owl:Class rdf:about="&onto;Earthquake">
-        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
+        <rdfs:subClassOf rdf:resource="&onto;Geophysical"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Epidemic -->
+
+    <owl:Class rdf:about="&onto;Epidemic">
+        <rdfs:subClassOf rdf:resource="&onto;Biological"/>
     </owl:Class>
     
 
@@ -745,7 +793,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Fire -->
 
     <owl:Class rdf:about="&onto;Fire">
-        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
+        <rdfs:subClassOf rdf:resource="&onto;Human_Made"/>
     </owl:Class>
     
 
@@ -777,7 +825,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Flood -->
 
     <owl:Class rdf:about="&onto;Flood">
-        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
+        <rdfs:subClassOf rdf:resource="&onto;Hydrological"/>
     </owl:Class>
     
 
@@ -794,6 +842,14 @@
 
     <owl:Class rdf:about="&onto;Gas_pipe">
         <rdfs:subClassOf rdf:resource="&onto;Infrastructure"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Geophysical -->
+
+    <owl:Class rdf:about="&onto;Geophysical">
+        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
     </owl:Class>
     
 
@@ -875,6 +931,14 @@
 
     <owl:Class rdf:about="&onto;Hurricane">
         <rdfs:subClassOf rdf:resource="&onto;Storm"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Hydrological -->
+
+    <owl:Class rdf:about="&onto;Hydrological">
+        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
     </owl:Class>
     
 
@@ -1013,6 +1077,22 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#Meteorological -->
+
+    <owl:Class rdf:about="&onto;Meteorological">
+        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Military -->
+
+    <owl:Class rdf:about="&onto;Military">
+        <rdfs:subClassOf rdf:resource="&onto;Authorities"/>
+    </owl:Class>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#Mission -->
 
     <owl:Class rdf:about="&onto;Mission">
@@ -1100,7 +1180,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Paramedics -->
 
     <owl:Class rdf:about="&onto;Paramedics">
-        <rdfs:subClassOf rdf:resource="&onto;Infield_rescuer"/>
+        <rdfs:subClassOf rdf:resource="&onto;Authorities"/>
     </owl:Class>
     
 
@@ -1225,6 +1305,14 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#Safety_officer -->
+
+    <owl:Class rdf:about="&onto;Safety_officer">
+        <rdfs:subClassOf rdf:resource="&onto;Officer"/>
+    </owl:Class>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#Search -->
 
     <owl:Class rdf:about="&onto;Search">
@@ -1316,7 +1404,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Storm -->
 
     <owl:Class rdf:about="&onto;Storm">
-        <rdfs:subClassOf rdf:resource="&onto;Natural"/>
+        <rdfs:subClassOf rdf:resource="&onto;Meteorological"/>
     </owl:Class>
     
 
@@ -1594,6 +1682,14 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#Wildfire -->
+
+    <owl:Class rdf:about="&onto;Wildfire">
+        <rdfs:subClassOf rdf:resource="&onto;Climatological"/>
+    </owl:Class>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#Window -->
 
     <owl:Class rdf:about="&onto;Window">
@@ -1683,9 +1779,12 @@
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <owl:members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;Mission"/>
-            <rdf:Description rdf:about="&onto;Role"/>
-            <rdf:Description rdf:about="&onto;Team"/>
+            <rdf:Description rdf:about="&onto;BuildingPart"/>
+            <rdf:Description rdf:about="&onto;Device"/>
+            <rdf:Description rdf:about="&onto;Infrastructure"/>
+            <rdf:Description rdf:about="&onto;Unidentified"/>
+            <rdf:Description rdf:about="&onto;Vehicle"/>
+            <rdf:Description rdf:about="&onto;Victim"/>
         </owl:members>
     </rdf:Description>
     <rdf:Description>
@@ -1700,22 +1799,19 @@
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <owl:members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;Actor"/>
-            <rdf:Description rdf:about="&onto;Event"/>
-            <rdf:Description rdf:about="&onto;Location"/>
-            <rdf:Description rdf:about="&onto;Object"/>
-            <rdf:Description rdf:about="&onto;Organisation"/>
+            <rdf:Description rdf:about="&onto;Mission"/>
+            <rdf:Description rdf:about="&onto;Role"/>
+            <rdf:Description rdf:about="&onto;Team"/>
         </owl:members>
     </rdf:Description>
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <owl:members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;BuildingPart"/>
-            <rdf:Description rdf:about="&onto;Device"/>
-            <rdf:Description rdf:about="&onto;Infrastructure"/>
-            <rdf:Description rdf:about="&onto;Unidentified"/>
-            <rdf:Description rdf:about="&onto;Vehicle"/>
-            <rdf:Description rdf:about="&onto;Victim"/>
+            <rdf:Description rdf:about="&onto;Actor"/>
+            <rdf:Description rdf:about="&onto;Event"/>
+            <rdf:Description rdf:about="&onto;Location"/>
+            <rdf:Description rdf:about="&onto;Object"/>
+            <rdf:Description rdf:about="&onto;Organisation"/>
         </owl:members>
     </rdf:Description>
 </rdf:RDF>

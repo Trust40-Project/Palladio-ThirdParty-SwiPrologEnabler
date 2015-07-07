@@ -42,7 +42,7 @@ public class OWLOntologyDatabaseTest {
 		repoURL = "http://localhost:5820/tradr";
 	}
 	
-	//@Test
+	@Test
 	public void test1(){
 		try {
 			System.out.println("\n\n*********************Test 1************************");
@@ -70,7 +70,7 @@ public class OWLOntologyDatabaseTest {
 	
 	
 	
-	//@Test
+	@Test
 	public void test2() throws SQWRLException, SWRLParseException, KRDatabaseException{
 		try {
 			System.out.println("\n\n*********************Test 2************************");
@@ -103,7 +103,7 @@ public class OWLOntologyDatabaseTest {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void test3() throws SQWRLException, SWRLParseException, KRDatabaseException{
 		try {
 			System.out.println("\n\n*********************Test 3************************");
