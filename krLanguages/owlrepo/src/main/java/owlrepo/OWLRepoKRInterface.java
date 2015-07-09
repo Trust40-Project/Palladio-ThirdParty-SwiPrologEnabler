@@ -83,7 +83,7 @@ public class OWLRepoKRInterface implements KRInterface {
 	@Override
 	public Parser getParser(Reader source, SourceInfo info)
 			throws ParserException {
-		BufferedReader reader = new BufferedReader(source);
+		//BufferedReader reader = new BufferedReader(source);
 		
 		if (database == null){
 			try {
@@ -102,7 +102,7 @@ public class OWLRepoKRInterface implements KRInterface {
 		} 
 		
 		//create parser for this database onto and reader source
-		return new SWRLParser(database.getSWRLOntology(), reader, info);
+		return new SWRLParser(database.getSWRLOntology(), source, info);
 	}
 	
 	public File getOwlFile(){

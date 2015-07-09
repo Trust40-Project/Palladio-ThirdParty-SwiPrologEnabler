@@ -1,7 +1,9 @@
 package owlrepo.parser;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +33,7 @@ import owlrepo.language.SWRLVar;
 public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser {
 
 	org.swrlapi.parser.SWRLParser parser;
-	BufferedReader reader;
+	StringReader reader;
 	SourceInfo info;
 	String currentLine = "";
 	int line = -1;
@@ -45,9 +47,9 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 		this.swrlParserSupport = new SWRLParserSupport(swrlapiOWLOntology);
 	}
 	
-	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, BufferedReader reader, SourceInfo info) {
+	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, Reader reader, SourceInfo info) {
 		this(swrlapiOWLOntology);
-		this.reader = reader;
+		this.reader = (StringReader)reader;
 		this.info = info;
 	}
 	
@@ -59,12 +61,19 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 		try { 
 			//currentLine = reader.readLine();
 			//System.out.println("Parsing: "+currentLine);
-			do{
-				currentLine = reader.readLine();
-				line++;
-			    System.out.println("<"+currentLine+">");
-			}
-			while (currentLine != "null");
+			 StreamTokenizer tokenizer = new StreamTokenizer(reader);
+//			  while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
+//			if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
+//					System.out.println(tokenizer.sval);
+//						
+//		}}         
+
+			//do{
+			//	currentLine = reader.read();
+			//	line++;
+			   // System.out.println("<"+currentLine+">");
+			//}
+			//while (currentLine != "null");
 			if (currentLine!="null"){
 				rule = (SWRLRule) parse(currentLine, String.valueOf(line));
 			}
@@ -78,9 +87,6 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 			
 		} catch (SWRLParseException e) {
 			e.printStackTrace(); 
-			errors.add(new SWRLParserSourceInfo(info.getSource(), line, -1, e.getMessage()));
-		} catch (IOException e) {
-			e.printStackTrace();
 			errors.add(new SWRLParserSourceInfo(info.getSource(), line, -1, e.getMessage()));
 		}
 		
@@ -169,10 +175,10 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 		List<Term> terms = new LinkedList<Term>();
 		try {
 			parse();
-			String line = reader.readLine();
-			String[] termstrings = line.split(",");
-			for (String term: termstrings)
-				terms.add(parseTerm(term.trim()));
+		//	String line = reader.readLine();
+		//	String[] termstrings = line.split(",");
+		//	for (String term: termstrings)
+		//		terms.add(parseTerm(term.trim()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ParserException(e.getMessage());
