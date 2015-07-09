@@ -17,6 +17,7 @@
 
 package krTools;
 
+import java.io.File;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.Map;
@@ -139,4 +140,11 @@ public interface KRInterface {
 	 */
 	public boolean supportsSerialization();
 
+	/**
+	 * Passes a vocabulary file that is needed for the creation of the parser
+	 * @param the file that is being passed
+	 */
+	public void setVocabularyFile(File file);
+	
+	
 }

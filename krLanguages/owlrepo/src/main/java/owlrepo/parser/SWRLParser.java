@@ -20,7 +20,6 @@ import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.parser.SWRLParseException;
-import org.swrlapi.parser.SWRLParser;
 import org.swrlapi.parser.SWRLParserSupport;
 
 import owlrepo.language.SWRLDatabaseFormula;
@@ -29,9 +28,9 @@ import owlrepo.language.SWRLTerm;
 import owlrepo.language.SWRLUpdate;
 import owlrepo.language.SWRLVar;
 
-public class SQWRLParser extends SWRLParser implements Parser {
+public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser {
 
-	SWRLParser parser;
+	org.swrlapi.parser.SWRLParser parser;
 	BufferedReader reader;
 	SourceInfo info;
 	String currentLine = "";
@@ -40,32 +39,35 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	SWRLAPIOWLOntology onto ;
 	SWRLParserSupport swrlParserSupport;
 	
-	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology){
+	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology){
 		super(swrlapiOWLOntology);
 		errors = new ArrayList<SourceInfo>();
 		this.swrlParserSupport = new SWRLParserSupport(swrlapiOWLOntology);
 	}
 	
-	public SQWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, BufferedReader reader) {
+	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, BufferedReader reader, SourceInfo info) {
 		this(swrlapiOWLOntology);
 		this.reader = reader;
-	//	this.info = info;
+		this.info = info;
 	}
 	
 	private SWRLRule parse(){
 		SWRLRule rule =  null;
 		//until end of file
-		if (currentLine != null){
+		//if (currentLine != null){
 
 		try { 
 			//currentLine = reader.readLine();
 			//System.out.println("Parsing: "+currentLine);
-			while ((currentLine = reader.readLine()) != null){
+			do{
+				currentLine = reader.readLine();
+				line++;
 			    System.out.println("<"+currentLine+">");
-			line++;
-		//	if (currentLine!=null){
+			}
+			while (currentLine != "null");
+			if (currentLine!="null"){
 				rule = (SWRLRule) parse(currentLine, String.valueOf(line));
-			
+			}
 //			if (isSWRLRuleCorrectAndComplete(currentLine)) {
 //				//parse the line
 //				parse(currentLine, String.valueOf(line));
@@ -73,16 +75,15 @@ public class SQWRLParser extends SWRLParser implements Parser {
 //				System.out.println("Incomplete rule: "+currentLine+" :: "+isSWRLRuleCorrectButPossiblyIncomplete(currentLine));
 //				errors.add(new SQWRLParserSourceInfo(null, line, -1, "Incomplete rule: "+currentLine));
 //			}
-				break;
-			}
+			
 		} catch (SWRLParseException e) {
 			e.printStackTrace(); 
-			errors.add(new SQWRLParserSourceInfo(info.getSource(), line, -1, e.getMessage()));
+			errors.add(new SWRLParserSourceInfo(info.getSource(), line, -1, e.getMessage()));
 		} catch (IOException e) {
 			e.printStackTrace();
-			errors.add(new SQWRLParserSourceInfo(info.getSource(), line, -1, e.getMessage()));
+			errors.add(new SWRLParserSourceInfo(info.getSource(), line, -1, e.getMessage()));
 		}
-		}
+		
 //		 else
 //			System.out.println("EOF - by Parser -- by Reader");
 		return rule;
@@ -167,6 +168,7 @@ public class SQWRLParser extends SWRLParser implements Parser {
 	public List<Term> parseTerms() throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
 		try {
+			parse();
 			String line = reader.readLine();
 			String[] termstrings = line.split(",");
 			for (String term: termstrings)

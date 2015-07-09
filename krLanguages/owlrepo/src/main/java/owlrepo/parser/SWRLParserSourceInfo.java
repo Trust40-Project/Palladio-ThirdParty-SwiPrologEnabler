@@ -4,21 +4,21 @@ import java.io.File;
 
 import krTools.parser.SourceInfo;
 
-public class SQWRLParserSourceInfo implements SourceInfo {
+public class SWRLParserSourceInfo implements SourceInfo {
 	
 	private File sourceFile;
 	private int lineNr;
 	private int charPos;
 	private String msg;
 	
-	public SQWRLParserSourceInfo(){
+	public SWRLParserSourceInfo(){
 		
 	}
-	public SQWRLParserSourceInfo(File f){
+	public SWRLParserSourceInfo(File f){
 		this(f, 0, 0, "");
 	}
 	
-	public SQWRLParserSourceInfo(File f, int line, int charpos, String msg){
+	public SWRLParserSourceInfo(File f, int line, int charpos, String msg){
 		this.sourceFile = f;
 		this.lineNr = line;
 		this.charPos = charpos;
@@ -69,10 +69,10 @@ public class SQWRLParserSourceInfo implements SourceInfo {
 	public boolean equals(Object other) {
 		if (other == this) {
 			return true;
-		} else if (!(other instanceof SQWRLParserSourceInfo)) {
+		} else if (!(other instanceof SWRLParserSourceInfo)) {
 			return false;
 		}
-		SQWRLParserSourceInfo that = (SQWRLParserSourceInfo) other;
+		SWRLParserSourceInfo that = (SWRLParserSourceInfo) other;
 		if (this.lineNr != that.lineNr) {
 			return false;
 		} else if (this.charPos != that.charPos) {

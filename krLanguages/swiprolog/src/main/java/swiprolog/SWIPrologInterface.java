@@ -17,6 +17,7 @@
 
 package swiprolog;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Collection;
@@ -230,6 +231,12 @@ public final class SWIPrologInterface implements KRInterface {
 	@Override
 	public boolean supportsSerialization() {
 		return false;
+	}
+
+	@Override
+	public void setVocabularyFile(File file) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

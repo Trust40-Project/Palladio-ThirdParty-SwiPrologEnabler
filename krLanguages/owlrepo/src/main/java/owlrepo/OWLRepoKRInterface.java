@@ -27,7 +27,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owlrepo.database.OWLOntologyDatabase;
 import owlrepo.language.SWRLSubstitution;
-import owlrepo.parser.SQWRLParser;
+import owlrepo.parser.SWRLParser;
 
 public class OWLRepoKRInterface implements KRInterface {
 
@@ -84,22 +84,6 @@ public class OWLRepoKRInterface implements KRInterface {
 	public Parser getParser(Reader source, SourceInfo info)
 			throws ParserException {
 		BufferedReader reader = new BufferedReader(source);
-		String owlfilename = "";
-		try {
-			reader.mark(100);
-			String firstline = reader.readLine();
-			if (firstline!=null && firstline.endsWith(";")){
-				String[] firstl = firstline.split(";");
-				if (firstl.length >1)
-					this.repoUrl = firstl[1];
-				this.owlfile = new File(info.getSource().getParent()+File.separator+firstl[0]);
-				owlfilename = firstl[0].substring(0,firstl[0].length()-4);
-			}else
-				reader.reset();
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
-		
 		
 		if (database == null){
 			try {
@@ -107,7 +91,7 @@ public class OWLRepoKRInterface implements KRInterface {
 				if (owlfile==null){
 					database = (OWLOntologyDatabase) getDatabase(new HashSet<DatabaseFormula>());
 				}else {
-					database = new OWLOntologyDatabase(owlfilename, owlfile);
+					database = new OWLOntologyDatabase(owlfile.getName(), owlfile);
 				}
 			} catch (KRDatabaseException e) {
 				e.printStackTrace();
@@ -118,7 +102,7 @@ public class OWLRepoKRInterface implements KRInterface {
 		} 
 		
 		//create parser for this database onto and reader source
-		return new SQWRLParser(database.getSWRLOntology(), reader);
+		return new SWRLParser(database.getSWRLOntology(), reader, info);
 	}
 	
 	public File getOwlFile(){
@@ -155,6 +139,12 @@ public class OWLRepoKRInterface implements KRInterface {
 		return false;
 	}
 	
+	@Override
+	public void setVocabularyFile(File file){
+		//get the ontology file from the module
+		//use it for the parser
+		this.owlfile = file;
+	}
 	
 	
 

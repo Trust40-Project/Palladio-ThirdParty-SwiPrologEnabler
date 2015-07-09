@@ -27,7 +27,7 @@ import owlrepo.database.OWLOntologyDatabase;
 import owlrepo.database.RDFRepositoryDatabase;
 import owlrepo.language.SWRLDatabaseFormula;
 import owlrepo.language.SWRLQuery;
-import owlrepo.parser.SQWRLParser;
+import owlrepo.parser.SWRLParser;
 
 
 public class OWLOntologyDatabaseTest {
@@ -120,7 +120,7 @@ public class OWLOntologyDatabaseTest {
 	}
 	
 	private DatabaseFormula getRule(String ruletext) throws SWRLParseException{
-		SQWRLParser parser = new SQWRLParser(db.getSWRLOntology());
+		SWRLParser parser = new SWRLParser(db.getSWRLOntology());
 
 		SWRLRule rule = parser.parseSWRLRule(ruletext, false, "r1", "");
 

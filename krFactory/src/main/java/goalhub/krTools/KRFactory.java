@@ -30,6 +30,7 @@ import krTools.errors.exceptions.KRInterfaceNotSupportedException;
  * Factory of KR interfaces. Currently, the factory supports:
  * <ul>
  * <li>SWI Prolog v6.0.2</li>
+ * <li> OWL - API v. 4.0 </li>
  * </ul>
  */
 public class KRFactory {

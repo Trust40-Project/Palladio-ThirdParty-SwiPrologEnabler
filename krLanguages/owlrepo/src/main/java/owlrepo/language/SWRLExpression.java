@@ -18,7 +18,7 @@ import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.swrlapi.core.SWRLAPIFactory;
 
-import owlrepo.parser.SQWRLParserSourceInfo;
+import owlrepo.parser.SWRLParserSourceInfo;
 import uk.ac.manchester.cs.owl.owlapi.SWRLVariableImpl;
 
 public class SWRLExpression implements Expression{
@@ -161,7 +161,7 @@ public class SWRLExpression implements Expression{
 	@Override
 	public SourceInfo getSourceInfo() {
 		// TODO Auto-generated method stub
-		return new SQWRLParserSourceInfo();
+		return new SWRLParserSourceInfo();
 	}
 	
 	@Override

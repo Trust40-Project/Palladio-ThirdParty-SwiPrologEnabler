@@ -19,12 +19,12 @@ import org.swrlapi.parser.SWRLParseException;
 
 import owlrepo.language.SWRLExpression;
 import owlrepo.language.SWRLTranslator;
-import owlrepo.parser.SQWRLParser;
+import owlrepo.parser.SWRLParser;
 
 
 public class ParserTest {
 	
-	SQWRLParser parser = null;
+	SWRLParser parser = null;
 	 BufferedReader reader;
 	 SWRLRule r = null;
 	 SWRLAPIOWLOntology swrlapiOnto;
@@ -49,7 +49,7 @@ if (file.exists() && file.canRead()){
 	    pmg.setPrefix("tradr", "http://www.semanticweb.org/ontologies/tradr#");
 	   
 	    reader = new BufferedReader(new InputStreamReader(System.in));
-		parser= new SQWRLParser(swrlapiOnto, reader);
+		parser= new SWRLParser(swrlapiOnto, reader, null);
 }else
 	System.out.println("File not found or not accessible.");
 		}catch(Exception e){

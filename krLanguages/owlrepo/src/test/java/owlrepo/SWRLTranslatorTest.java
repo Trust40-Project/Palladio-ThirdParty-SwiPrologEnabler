@@ -13,7 +13,7 @@ import org.swrlapi.parser.SWRLParseException;
 
 import owlrepo.database.OWLOntologyDatabase;
 import owlrepo.language.SWRLTranslator;
-import owlrepo.parser.SQWRLParser;
+import owlrepo.parser.SWRLParser;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 
