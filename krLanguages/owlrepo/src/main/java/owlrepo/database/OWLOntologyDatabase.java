@@ -107,6 +107,7 @@ public class OWLOntologyDatabase implements Database {
 	      IRI ontologyIri = ontoIri.get();
 	      DefaultPrefixManager prefixManager = new DefaultPrefixManager();
 	      baseURI = ontologyIri.toString()+"#";
+	      prefixManager.setPrefix("", baseURI);
 	      prefixManager.setPrefix("onto", baseURI);
 
 	    

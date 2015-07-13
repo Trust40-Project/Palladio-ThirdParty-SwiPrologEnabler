@@ -1,6 +1,5 @@
 package owlrepo.language;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import krTools.language.Var;

@@ -48,7 +48,9 @@ public class SWRLExpression implements Expression{
 	}
 	
 	public SWRLExpression(SWRLAtom atom){
-		this.rule = df.getSWRLRule((Set<SWRLAtom>) atom, null); //body,head
+		Set<SWRLAtom> atoms = new HashSet<SWRLAtom>();
+		atoms.add(atom);
+		this.rule = df.getSWRLRule(atoms, null); //body,head
 		this.axiom = rule;
 		this.atom = atom;
 		this.expression = atom;
