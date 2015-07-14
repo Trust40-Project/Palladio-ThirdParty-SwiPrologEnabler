@@ -108,14 +108,6 @@ public abstract class PrologExpression implements Expression {
 	public boolean isClosed() {
 		return JPLUtils.getFreeVar(getTerm()).isEmpty();
 	}
-	
-	public DatabaseFormula toFormula() {
-		if(isClosed()){
-			return new PrologDBFormula(getTerm(), getSourceInfo());
-		} else {
-			return null;
-		}
-	}
 
 	/**
 	 * Returns a most general unifier, if it exists, that unifies this and the

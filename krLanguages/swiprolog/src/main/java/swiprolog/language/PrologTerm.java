@@ -19,6 +19,7 @@ package swiprolog.language;
 
 import java.util.Map;
 
+import krTools.language.DatabaseFormula;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.parser.SourceInfo;
@@ -53,11 +54,14 @@ public class PrologTerm extends PrologExpression implements Term {
 		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 		return new PrologTerm(term, getSourceInfo());
 	}
-
-	// @Override
-	// public Parameter convert() {
-	// return JPLUtils.convert(super.getTerm());
-	// }
+	
+	public DatabaseFormula toFormula() {
+		if(isClosed()){
+			return new PrologDBFormula(getTerm(), getSourceInfo());
+		} else {
+			return null;
+		}
+	}
 
 	@Override
 	public int hashCode() {

@@ -76,14 +76,6 @@ public interface Expression {
 	 * @return all free variables in Expression.
 	 */
 	Set<Var> getFreeVar();
-	
-	/**
-	 * Converts an {@link Expression} to an {@link DatabaseFormula}.
-	 *
-	 * @return A {@link DatabaseFormula} if this expression can be converted to a database formula;
-	 *         should return {@code null} otherwise (i.e. if there are free variables).
-	 */
-	DatabaseFormula toFormula();
 
 	/**
 	 * Creates a new term by applying a substitution to this. This instantiates
