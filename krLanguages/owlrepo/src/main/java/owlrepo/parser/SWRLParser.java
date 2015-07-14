@@ -2,10 +2,11 @@ package owlrepo.parser;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import krTools.errors.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
@@ -17,11 +18,15 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
 import org.apache.commons.io.IOUtils;
+import org.semanticweb.owlapi.model.SWRLArgument;
+import org.semanticweb.owlapi.model.SWRLDArgument;
+import org.semanticweb.owlapi.model.SWRLIArgument;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.parser.SWRLParseException;
 import org.swrlapi.parser.SWRLParserSupport;
+import org.swrlapi.parser.SWRLTokenizer;
 
 import owlrepo.language.SWRLDatabaseFormula;
 import owlrepo.language.SWRLQuery;
@@ -29,7 +34,7 @@ import owlrepo.language.SWRLTerm;
 import owlrepo.language.SWRLUpdate;
 import owlrepo.language.SWRLVar;
 
-public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser {
+public class SWRLParser implements Parser {
 
 	org.swrlapi.parser.SWRLParser parser;
 	SourceInfo info;
@@ -41,7 +46,7 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 	List<String> lines = null;
 	
 	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology){
-		super(swrlapiOWLOntology);
+		parser = new org.swrlapi.parser.SWRLParser(swrlapiOWLOntology);
 		errors = new ArrayList<SourceInfo>();
 		this.swrlParserSupport = new SWRLParserSupport(swrlapiOWLOntology);
 	}
@@ -57,21 +62,29 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 		this.info = info;
 	}
 	
-	private SWRLRule parseLine(){
+	private boolean parseCurrentLine(){
+		//takes the next from the List of parsed lines as Strings
+		currentLine = lines.get(lineNr); lineNr++;
+		
+		//process current line
+		currentLine = currentLine.trim();
+		if (!currentLine.isEmpty())
+			return true;
+		return false;
+	}
+	
+	private SWRLRule parseRule(String string){
 		SWRLRule rule =  null;
 		try { 
 
-			//takes the next from the List of parsed lines as Strings
-			currentLine = lines.get(lineNr); lineNr++;
-			
-			//process current line
-			currentLine = currentLine.trim();
-			if (!currentLine.isEmpty()){
+			if (!string.isEmpty()){
 				//TODO: to avoid second pass parse KR file -- find better alternative/add all possibilities
-				if (currentLine.startsWith("<?") || currentLine.startsWith("<!")) 
+				if (string.startsWith("<?") || string.startsWith("<!")) 
 					return rule;
 				//call SWRL parser
-				rule = parseRule(currentLine, "rule"+lineNr);
+				if (parser.isSWRLRuleCorrectAndComplete(string))
+					rule = parseRule(string, "rule"+lineNr);
+				
 			}
 //			if (isSWRLRuleCorrectAndComplete(currentLine)) {
 //				//parse the line
@@ -88,17 +101,47 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 		return rule;
 	}
 	
-			//it's not a swrl rule or contains undefined iri-s
-//			//use owl parser
-////			OWLParserFactory pf = new OWLParserFactoryImpl();
-////			OWLParser parser =  pf.createParser();
-////			parser.parse(null, null);
+	private SWRLArgument parseArgument(String string) {
+		SWRLArgument arg = null;
+		//it's not a swrl rule or contains undefined iri-s
 
+
+		if (!string.isEmpty()){
+			boolean isInHead = false;
+			//get private method of swrlparser we need - swrldargument
+			try {
+				SWRLTokenizer tokenizer = new SWRLTokenizer(string, false);
+				Method parseArgumentList = org.swrlapi.parser.SWRLParser.class.getDeclaredMethod("parseSWRLDArgument", SWRLTokenizer.class, boolean.class, boolean.class);
+				parseArgumentList.setAccessible(true);// Abracadabra 
+				SWRLDArgument parsedArg = (SWRLDArgument) parseArgumentList.invoke(parser, tokenizer, isInHead, isInHead);// now its OK
+				arg = parsedArg;
+			} catch (IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException | NoSuchMethodException | SecurityException | SWRLParseException ex) {
+				try{
+					//try parsing swrliargument
+					SWRLTokenizer tokenizer = new SWRLTokenizer(string, false);
+					Method parseArgumentList = org.swrlapi.parser.SWRLParser.class.getDeclaredMethod("parseSWRLIArgument", SWRLTokenizer.class, boolean.class);
+					parseArgumentList.setAccessible(true);// Abracadabra 
+					SWRLIArgument parsedArg = (SWRLIArgument) parseArgumentList.invoke(parser, tokenizer, isInHead);// now its OK
+					arg = parsedArg;
+
+				} catch (IllegalAccessException | IllegalArgumentException
+						| InvocationTargetException | NoSuchMethodException | SecurityException | SWRLParseException e) {
+					e.printStackTrace();
+					errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr-1, -1, e.getMessage()));
+					//throw new SWRLParseException(e.getMessage());
+				}
+			}
+//				System.out.println(arg);
+			}
+			return arg;
+		}
+	
 
 	public SWRLRule parseRule(String line, String name) throws SWRLParseException{
 //		public SWRLRule parseSWRLRule(String ruleText, boolean interactiveParseOnly, String ruleName, String comment)
 				//		throws SWRLParseException	
-		return parseSWRLRule(line, false, name, "nocomment");
+		return parser.parseSWRLRule(line, false, name, "nocomment");
 	}
 
 	@Override
@@ -114,18 +157,22 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 	
 	public DatabaseFormula parseDBF() throws ParserException {
 	//rule to list of dbformula
-		SWRLRule rule = parseLine();
-		if (rule!=null)
-		return new SWRLDatabaseFormula(rule);
-		else return null;
+		if (parseCurrentLine()){
+			SWRLRule rule = parseRule(currentLine);
+			if (rule!=null)
+				return new SWRLDatabaseFormula(rule);
+		}
+		return null;
 	}
 
 	@Override
 	public Update parseUpdate() throws ParserException {
 		//rule to update
-		SWRLRule rule = parseLine();
-		if (rule!=null)
-			return new SWRLUpdate(rule);
+		if (parseCurrentLine()){
+			SWRLRule rule = parseRule(currentLine);
+			if (rule!=null)
+				return new SWRLUpdate(rule);
+		}
 		return null;
 	}
 	
@@ -145,22 +192,21 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 	public Query parseQuery() throws ParserException {
 		SWRLRule rule = null;
 		
-		//parse term
-		String line = lines.get(lineNr); lineNr++;
-		SWRLTerm term;
-		try {
-			term = parseTerm(line);
-		} catch (SWRLParseException e) {
-			throw new ParserException(e.getMessage());
+		if (parseCurrentLine()){
+			//parse rule
+			rule = parseRule(currentLine);
+			//rule to query
+			if (rule!=null)
+				return new SWRLQuery(rule);
+			else {
+				//parse argument
+				SWRLArgument arg = parseArgument(currentLine);
+				if (arg != null)
+					//check if it was an argument or a rule
+					return new SWRLQuery(arg);
+			}
 		}
-		//check if it was a term or a rule
-		if (term!=null)
-			rule = term.getRule();
-		else
-			rule = parseLine();
-		//rule to query
-		if (rule!=null)
-			return new SWRLQuery(rule);
+		
 		return null;
 	}
 
@@ -168,7 +214,7 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 	@Override
 	public List<Term> parseTerms() throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
-		try {
+		try {//does not use currentLine, but instead splits the line by commas
 			if (lines!=null){
 				for (String line : lines){
 					String[] termstrings = line.split(",");
@@ -185,35 +231,45 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 	
 	private SWRLTerm parseTerm(String termstring) throws SWRLParseException{
 		SWRLTerm term = null;
-		if (termstring.startsWith("?")) {
-			//variable
-			term = parseVariable(termstring);
-		} else{
-			term = new SWRLTerm(parseLine());
+		if (!termstring.isEmpty()){
+			//parse rule
+			SWRLRule rule = parseRule(termstring);
+			//rule to term
+			if (rule!=null){
+				term = new SWRLTerm(rule);
+			}else {
+				//variable
+				term = new SWRLTerm(parseArgument(termstring));
+			}
+			System.out.println(term);
 		}
-		System.out.println(term);
 		return term;
 	}
 
-	private SWRLVar parseVariable(String string) throws SWRLParseException{
-		return new SWRLVar(swrlParserSupport.getSWRLVariable(string.substring(1,string.length())));
-	}
+//	private SWRLVar parseVariable(String string) throws SWRLParseException{
+//		return new SWRLVar(swrlParserSupport.getSWRLVariable(string.substring(1,string.length())));
+//	}
 	
 	@Override
 	public Term parseTerm() throws ParserException {
 		//rule to term
-			SWRLRule rule = parseLine();
+		if (parseCurrentLine()){
+			SWRLRule rule = parseRule(currentLine);
 			if (rule!=null)
 				return new SWRLTerm(rule);
+		}
 		return null;
 	}
 
 	@Override
 	public Var parseVar() throws ParserException {
 			//rule to var
-			SWRLRule rule = parseLine();
-			Set<SWRLVariable> vars = rule.getVariables();
-			return new SWRLVar(vars.iterator().next());
+		if (parseCurrentLine()){
+			SWRLArgument arg= parseArgument(currentLine);
+			if (arg instanceof SWRLVariable)
+				return new SWRLVar((SWRLVariable)arg);
+		}
+		return null;
 	}
 		
 	

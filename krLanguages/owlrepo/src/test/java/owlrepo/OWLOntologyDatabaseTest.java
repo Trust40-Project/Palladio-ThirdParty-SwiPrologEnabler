@@ -122,7 +122,7 @@ public class OWLOntologyDatabaseTest {
 	private DatabaseFormula getRule(String ruletext) throws SWRLParseException{
 		SWRLParser parser = new SWRLParser(db.getSWRLOntology());
 
-		SWRLRule rule = parser.parseSWRLRule(ruletext, false, "r1", "");
+		SWRLRule rule = parser.parseRule(ruletext, "r1");
 
 		DatabaseFormula formula = new SWRLDatabaseFormula(rule);
 		return formula;

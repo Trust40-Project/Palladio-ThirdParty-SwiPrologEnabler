@@ -8,6 +8,7 @@ import krTools.language.Substitution;
 import krTools.language.Update;
 import krTools.language.Var;
 
+import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.swrlapi.sqwrl.SQWRLQuery;
@@ -29,6 +30,10 @@ public class SWRLQuery extends SWRLExpression implements Query {
 	
 	public SWRLQuery(SWRLRule query){
 		super(query);
+	}
+	
+	public SWRLQuery(SWRLArgument term){
+		super(term);
 	}
 	
 	public String getQueryName(){

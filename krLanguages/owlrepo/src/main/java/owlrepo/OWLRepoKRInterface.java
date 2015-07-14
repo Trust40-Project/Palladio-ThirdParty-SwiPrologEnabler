@@ -2,6 +2,7 @@ package owlrepo;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -25,6 +26,11 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFHandlerException;
+import org.openrdf.rio.RDFParseException;
+import org.openrdf.rio.RDFParser;
+import org.openrdf.rio.Rio;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owlrepo.database.OWLOntologyDatabase;
@@ -118,8 +124,19 @@ public class OWLRepoKRInterface implements KRInterface {
 	@Override
 	public Parser getParser(Reader source, SourceInfo info)
 			throws ParserException {
+	
+		RDFFormat format = RDFFormat.forFileName(info.getSource().getPath());
+		RDFParser rdfParser = Rio.createParser(format);
+		try {
+			rdfParser.parse(source,  "");
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ParserException(e.getMessage());
+		}
+
 		//BufferedReader reader = new BufferedReader(source);
-		
+ 		if (database == null)
+			throw new ParserException("OWLREPO KR Interface was not correctly initialized with an owl file!");
 		//create parser for this database onto and reader source
 		return new SWRLParser(database.getSWRLOntology(), source, info);
 	}
