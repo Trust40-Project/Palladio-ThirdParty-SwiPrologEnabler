@@ -1,12 +1,14 @@
 package owlrepo;
 
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,7 +36,7 @@ public class OWLRepoKRInterface implements KRInterface {
 	private static OWLRepoKRInterface instance = null;
 	OWLOntologyDatabase database = null;
 	File owlfile = null;
-	String repoUrl = null;
+	URL repoUrl = null;
 
 
 	private OWLRepoKRInterface() throws KRInitFailedException {
@@ -56,8 +58,41 @@ public class OWLRepoKRInterface implements KRInterface {
 		return "owlrepo";
 	}
 
-	public void initialize() throws KRInitFailedException {
+	public void initialize(List<URI> uris) throws KRInitFailedException {
 
+		for (URI uri : uris){
+			if (uri.toString().startsWith("http"))
+				try {
+					this.repoUrl =  uri.toURL();
+				} catch (MalformedURLException e) {
+					throw new KRInitFailedException(e.getMessage());
+				}
+			else {
+				if (uri.isAbsolute()){
+					//get the ontology file from the module
+					this.owlfile = new File(uri);
+				} 
+					
+			}	 
+		}
+
+		//create a database to create a parser
+		if (database == null){
+			try {
+				
+				if (owlfile==null){
+					//database = (OWLOntologyDatabase) getDatabase(new HashSet<DatabaseFormula>());
+					throw new KRDatabaseException("Creation of OWL parser needs an OWL file set to the Interface");
+				}else {
+					database = new OWLOntologyDatabase(owlfile.getName(), owlfile);
+				}
+			} catch (KRDatabaseException e) {
+				throw new KRInitFailedException(e.getMessage());
+			} catch (OWLOntologyCreationException e) {
+				throw new KRInitFailedException(e.getMessage());
+			}
+		
+		} 
 		
 	}
 
@@ -85,22 +120,6 @@ public class OWLRepoKRInterface implements KRInterface {
 			throws ParserException {
 		//BufferedReader reader = new BufferedReader(source);
 		
-		if (database == null){
-			try {
-				
-				if (owlfile==null){
-					database = (OWLOntologyDatabase) getDatabase(new HashSet<DatabaseFormula>());
-				}else {
-					database = new OWLOntologyDatabase(owlfile.getName(), owlfile);
-				}
-			} catch (KRDatabaseException e) {
-				e.printStackTrace();
-			} catch (OWLOntologyCreationException e) {
-				e.printStackTrace();
-			}
-		
-		} 
-		
 		//create parser for this database onto and reader source
 		return new SWRLParser(database.getSWRLOntology(), source, info);
 	}
@@ -109,7 +128,7 @@ public class OWLRepoKRInterface implements KRInterface {
 		return this.owlfile;
 	}
 	
-	public String getRepoUrl(){
+	public URL getRepoUrl(){
 		return this.repoUrl;
 	}
 
@@ -138,14 +157,6 @@ public class OWLRepoKRInterface implements KRInterface {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
-	@Override
-	public void setVocabularyFile(File file){
-		//get the ontology file from the module
-		//use it for the parser
-		this.owlfile = file;
-	}
-	
 	
 
 }

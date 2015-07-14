@@ -20,8 +20,10 @@ package swiprolog;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -178,7 +180,7 @@ public final class SWIPrologInterface implements KRInterface {
 	 * existence_error is produced. FIXME: does nothing?!
 	 */
 	@Override
-	public void initialize() throws KRInitFailedException {
+	public void initialize(List<URI> uris) throws KRInitFailedException {
 
 	}
 
@@ -233,10 +235,5 @@ public final class SWIPrologInterface implements KRInterface {
 		return false;
 	}
 
-	@Override
-	public void setVocabularyFile(File file) {
-		// TODO Auto-generated method stub
-		
-	}
 
 }

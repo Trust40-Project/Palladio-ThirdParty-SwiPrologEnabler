@@ -19,7 +19,9 @@ package krTools;
 
 import java.io.File;
 import java.io.Reader;
+import java.net.URI;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,12 +61,14 @@ public interface KRInterface {
 
 	/**
 	 * Performs any initializations that need to be performed before the KR
-	 * interface can be used.
+	 * interface can be used. Pass on any URI (file or URL) from use cases that
+	 * is needed to initialize the interface. 
 	 *
+	 * @param set of URI-s that can be files, url-s or urn-s to be passed
 	 * @throws KRInitFailedException
 	 *             If initialization of the KR interface failed.
 	 */
-	void initialize() throws KRInitFailedException;
+	void initialize(List<URI> uris) throws KRInitFailedException;
 
 	/**
 	 * Resets the KR interface. Should clear and free all memory used by the
@@ -140,11 +144,5 @@ public interface KRInterface {
 	 */
 	public boolean supportsSerialization();
 
-	/**
-	 * Passes a vocabulary file that is needed for the creation of the parser
-	 * @param the file that is being passed
-	 */
-	public void setVocabularyFile(File file);
-	
-	
+
 }
