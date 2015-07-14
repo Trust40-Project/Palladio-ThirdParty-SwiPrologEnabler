@@ -30,17 +30,13 @@ import swiprolog.SWIPrologInterface;
 import swiprolog.dependency.PrologDependencyGraph;
 
 /**
- * Factory of KRIs. Currently, the factory supports:
- * <ul>
- * <li>SWI Prolog v6.0.2</li>
- * <li> OWL - API v. 4.0 </li>
- * </ul>
+ * Factory of Dependency Graphs for a specific KRI.
  */
 public class DependencyGraphFactory {
 	/**
 	 * A mapping of {@link KRInterface}s to {@link DependencyGraph}s.
 	 */
-	private static Map<Class<? extends KRInterface>, Class<? extends DependencyGraph<?>>> graphs;
+	private static Map<Class<? extends KRInterface>, Class<? extends DependencyGraph<?>>> graphs = new HashMap<>(); 
 
 	static {
 		graphs.put(SWIPrologInterface.class,PrologDependencyGraph.class);
@@ -72,14 +68,14 @@ public class DependencyGraphFactory {
 					graphs.get(kri.getClass()).newInstance() : null;
 			if (graph == null) {
 				throw new KRInterfaceNotSupportedException(
-						"Could not a dependency graph implementation for " + KRFactory.getName(kri)
+						"Could not find a dependency graph implementation for " + KRFactory.getName(kri)
 								+ " as these are available: "
 								+ graphs.keySet());
 			} else {
 				return graph;
 			}
 		} catch( IllegalAccessException | InstantiationException e ){
-			throw new KRInitFailedException("Failed to initialize a graph for " + KRFactory.getName(kri), e);
+			throw new KRInitFailedException("Failed to initialize a dependency graph for " + KRFactory.getName(kri), e);
 		}
 	}
 }
