@@ -17,43 +17,34 @@
 
 package goalhub.krTools;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import krTools.KRInterface;
-import krTools.errors.exceptions.KRException;
 import krTools.errors.exceptions.KRInitFailedException;
 import krTools.errors.exceptions.KRInterfaceNotSupportedException;
+import owlrepo.OWLRepoKRInterface;
+import swiprolog.SWIPrologInterface;
 
 /**
- * Factory of KR interfaces. Currently, the factory supports:
+ * Factory of KRIs. Currently, the factory supports:
  * <ul>
  * <li>SWI Prolog v6.0.2</li>
  * <li> OWL - API v. 4.0 </li>
  * </ul>
  */
 public class KRFactory {
-	/**
-	 * Static strings for names of supported KR Languages.
-	 */
-	public static String SWI_PROLOG;
-	public static String OWL_REPO;
+	// The names of the supported KRIs
+	public static String SWI_PROLOG = "SWI Prolog";
+	public static String OWL_REPO = "OWL Repo";
 
 	/**
-	 * A map of names to {@link KRInterface}s that are supported.
+	 * A map of names to the {@link KRInterface}s that are supported.
 	 */
-	private static Map<String, KRInterface> languages = null;
-	/**
-	 * The default interface that get be obtained by
-	 * {@link KRFactory#getDefaultLanguage()}.
-	 */
-	private static KRInterface defaultInterface;
-	private static KRInterface owlInterface;
-
-	// Initialize KR interfaces map and default language interface.
+	private static Map<String, Class<? extends KRInterface>> kr = new HashMap<>();
 	static {
-		init();
+		kr.put(SWI_PROLOG,SWIPrologInterface.class);
+		kr.put(OWL_REPO,OWLRepoKRInterface.class);
 	}
 
 	/**
@@ -63,111 +54,30 @@ public class KRFactory {
 	}
 
 	/**
-	 * Initialize the default values for the factory. Fails hard if SWI not
-	 * working.
-	 */
-	private static void init() {
-		if (languages == null) {
-			languages = new Hashtable<String, KRInterface>();
-			try {
-				defaultInterface = swiprolog.SWIPrologInterface.getInstance();
-				
-				owlInterface = owlrepo.OWLRepoKRInterface.getInstance();
-			} catch (KRInitFailedException e1) {
-				throw new IllegalStateException(
-						"Failed to load the default SWI Prolog language", e1);
-			}
-
-			// Add SWI Prolog and set as default.
-			try {
-				KRFactory.addInterface(defaultInterface);
-				KRFactory.addInterface(owlInterface);
-			} catch (KRException e) {
-				throw new IllegalStateException(
-						"SWI Prolog could not initialize properly", e);
-			}
-			
-			SWI_PROLOG = defaultInterface.getName();
-			OWL_REPO = owlInterface.getName();
-		}
-
-	}
-
-	/**
-	 * Provides an interface for an available knowledge representation
-	 * technology. Use {@link KRFactory#getSupportedInterfaces()} to get names
-	 * of supported interfaces.
+	 * Provides an available knowledge representation
+	 * technology. See the public static strings of this class for the supported KRTs.
 	 *
 	 * @param name
-	 *            The name of the interface, e.g., "swiprolog".
-	 * @return A KR interface implementation for the knowledge representation
-	 *         technology.
+	 *            The name of the KRT. 
+	 * @return A KR interface implementation.
 	 * @throws KRInterfaceNotSupportedException
-	 *             If interface is unknown.
+	 *             If the name does not map to a known interface.
 	 */
-	public static KRInterface getInterface(String name)
-			throws KRInterfaceNotSupportedException {
-		KRInterface krInterface = languages.get(name.toLowerCase());
-		if (krInterface == null) {
-			throw new KRInterfaceNotSupportedException(
-					"Could not find interface " + name
-							+ "; the following interfaces are available: "
-							+ languages.keySet());
-		}
-		return krInterface;
-	}
-
-	/**
-	 * Adds a KR interface to the list of supported language interfaces.
-	 *
-	 * @param A
-	 *            KR interface.
-	 * @throws KRException
-	 *             If KR interface is already present, or no (valid) interface
-	 *             was provided.
-	 */
-	public static void addInterface(KRInterface krInterface) throws KRException {
-		if (krInterface == null) {
-			throw new KRException("Cannot add null");
-		}
-		final String name = krInterface.getName().toLowerCase();
-		if (!languages.containsKey(name)) {
-			languages.put(name, krInterface);
-		} else {
-			throw new KRException("Interface " + name + " is already present");
+	public static KRInterface getKR(String name)
+			throws KRInterfaceNotSupportedException, KRInitFailedException {
+		try
+		{
+			KRInterface krInterface = kr.containsKey(name) ? kr.get(name).newInstance() : null;
+			if (krInterface == null) {
+				throw new KRInterfaceNotSupportedException(
+						"Could not find KRT " + name
+								+ " whilst these are available: "
+								+ kr.keySet());
+			} else {
+				return krInterface;
+			}
+		} catch( IllegalAccessException | InstantiationException e ){
+			throw new KRInitFailedException("Failed to initialize " + name, e);
 		}
 	}
-
-	/**
-	 * @return A set of names with supported KR interfaces.
-	 */
-	public static Set<String> getSupportedInterfaces() {
-		return languages.keySet();
-	}
-
-	/**
-	 * Returns the default KR interface.
-	 *
-	 * @return The default KR interface.
-	 * @throw KRInitFailedException If no default interface is not available.
-	 */
-	public static KRInterface getDefaultInterface()
-			throws KRInitFailedException {
-		if (defaultInterface == null) {
-			throw new KRInitFailedException(
-					"could not locate default interface.");
-		}
-		return defaultInterface;
-	}
-
-	/**
-	 * Sets the default KR interface.
-	 *
-	 * @param krInterface
-	 *            The KR interface that should be used as default.
-	 */
-	public static void setDefaultInterface(KRInterface krInterface) {
-		defaultInterface = krInterface;
-	}
-
 }

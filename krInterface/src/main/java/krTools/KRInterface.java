@@ -17,7 +17,6 @@
 
 package krTools;
 
-import java.io.File;
 import java.io.Reader;
 import java.net.URI;
 import java.util.Collection;
@@ -53,12 +52,6 @@ import krTools.parser.SourceInfo;
  * </ul>
  */
 public interface KRInterface {
-
-	/**
-	 * @return The name of the KR interface (no spaces or special chars allowed)
-	 */
-	String getName();
-
 	/**
 	 * Performs any initializations that need to be performed before the KR
 	 * interface can be used. Pass on any URI (file or URL) from use cases that
@@ -120,7 +113,7 @@ public interface KRInterface {
 	 * @return A substitution which binds all variables in the map to the
 	 *         associated terms.
 	 */
-	public Substitution getSubstitution(Map<Var, Term> map);
+	Substitution getSubstitution(Map<Var, Term> map);
 
 	/**
 	 * Reports the queries in the given set of queries that have not been
@@ -128,13 +121,13 @@ public interface KRInterface {
 	 * implicitly queries in the set of database formulas itself (e.g., as
 	 * condition in a rule).
 	 */
-	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries);
+	Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
 	 * Reports the formulas that have been defined in the set of database
 	 * formulas but are not used (queried).
 	 */
-	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
+	Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
 			Set<Query> queries);
 
 	/**
@@ -142,7 +135,5 @@ public interface KRInterface {
 	 *
 	 * @return true iff terms from this KR implementation can be serialized
 	 */
-	public boolean supportsSerialization();
-
-
+	boolean supportsSerialization();
 }

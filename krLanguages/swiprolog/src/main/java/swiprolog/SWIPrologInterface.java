@@ -17,7 +17,6 @@
 
 package swiprolog;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
@@ -25,7 +24,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import krTools.KRInterface;
@@ -56,24 +54,12 @@ public final class SWIPrologInterface implements KRInterface {
 	}
 
 	/**
-	 * use this for Singleton Design Pattern but this is not really a singleton
-	 * as {@link #reset()} erases all internal fields. In fact this is now more
-	 * a utility class except that we kept the getInstance(). FIXME: this
-	 * implies we now HAVE to REUSE THIS INSTANCE every time we launch a MAS and
-	 * RESET local fields INSTEAD of simply creating a NEW instance....
-	 */
-	private static SWIPrologInterface instance = null;
-	/**
 	 * Contains all databases that are maintained by SWI Prolog. The key is the
 	 * owner of the database. The value is a list of databases associated with
 	 * that agent. An owner that has no associated databases should be removed
 	 * from the map.
 	 */
 	private Map<String, SWIPrologDatabase> databases = new HashMap<String, SWIPrologDatabase>();
-	/**
-	 * Properties
-	 */
-	private final Properties properties;
 
 	/**
 	 * Creates new inference engine and empty set of databases.
@@ -81,7 +67,7 @@ public final class SWIPrologInterface implements KRInterface {
 	 * @throws KRInitFailedException
 	 *             If failed to create inference engine or database.
 	 */
-	private SWIPrologInterface() throws KRInitFailedException {
+	public SWIPrologInterface() throws KRInitFailedException {
 		// Initialize inference engine.
 		try {
 			SWIPrologDatabase.rawquery(JPLUtils.createCompound(
@@ -96,29 +82,6 @@ public final class SWIPrologInterface implements KRInterface {
 		// mode to false ensures that variables with initial '_' are treated as
 		// regular variables.
 		jpl.JPL.setDTMMode(false);
-
-		// TODO: This can be removed??
-		this.properties = new Properties();
-		this.properties.setProperty("EnableJPLQueryBugFix", "true");
-	}
-
-	/**
-	 * Returns THE SWIPrologLanguage instance.
-	 *
-	 * @return The instance of {@link SWIPrologInterface}.
-	 * @throws KRInitFailedException
-	 */
-	public static synchronized SWIPrologInterface getInstance()
-			throws KRInitFailedException {
-		if (SWIPrologInterface.instance == null) {
-			SWIPrologInterface.instance = new SWIPrologInterface();
-		}
-		return SWIPrologInterface.instance;
-	}
-
-	@Override
-	public final String getName() {
-		return "SWIProlog";
 	}
 
 	/**
@@ -143,7 +106,7 @@ public final class SWIPrologInterface implements KRInterface {
 			throws KRDatabaseException {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
-		SWIPrologDatabase database = new SWIPrologDatabase(theory);
+		SWIPrologDatabase database = new SWIPrologDatabase(theory,this);
 		// Add database to list of databases maintained by SWI Prolog and
 		// associated with name.
 		this.databases.put(database.getName(), database);
@@ -222,18 +185,8 @@ public final class SWIPrologInterface implements KRInterface {
 		return analyzer.getUnused();
 	}
 
-	/**
-	 * @return The name of this {@link SWIPrologInterface}.
-	 */
-	@Override
-	public String toString() {
-		return getName();
-	}
-
 	@Override
 	public boolean supportsSerialization() {
 		return false;
 	}
-
-
 }

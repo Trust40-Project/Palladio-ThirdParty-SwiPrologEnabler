@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
+import org.junit.Test;
+
 import jpl.Atom;
 import jpl.Compound;
 import jpl.Term;
@@ -30,17 +32,9 @@ import jpl.Variable;
 import krTools.errors.exceptions.KRInitFailedException;
 import krTools.language.Substitution;
 import krTools.language.Var;
-
-import org.junit.Before;
-import org.junit.Test;
+import swiprolog.SWIPrologInterface;
 
 public class TestUnification2 {
-
-	@Before
-	public void init() throws KRInitFailedException {
-		swiprolog.SWIPrologInterface.getInstance();
-	}
-
 	/**
 	 * Returns a substitution built from given variable and term.
 	 *
@@ -51,8 +45,8 @@ public class TestUnification2 {
 	 */
 	public Substitution getSubstitution(PrologVar var, jpl.Term term)
 			throws KRInitFailedException {
-		Substitution unifier = swiprolog.SWIPrologInterface.getInstance()
-				.getSubstitution(new HashMap<Var, krTools.language.Term>());
+		SWIPrologInterface swi = new SWIPrologInterface();
+		Substitution unifier = swi.getSubstitution(new HashMap<Var, krTools.language.Term>());
 		unifier.addBinding(var, new PrologTerm(term, null));
 		return unifier;
 	}
@@ -64,7 +58,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test1unify() throws KRInitFailedException {
-
 		// Construct a (twice)
 		jpl.Term a1 = new Atom("a");
 		// jpl.Term a2 = new Atom("a");
@@ -83,7 +76,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test2unify() {
-
 		// Construct X
 		Variable x = new Variable("X");
 		// Construct a
@@ -101,7 +93,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test3unify() {
-
 		// Construct X
 		Variable x = new Variable("X");
 
@@ -141,7 +132,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test4unify() {
-
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable y = new Variable("Y");
@@ -171,7 +161,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test5unify() {
-
 		// Construct f(a, X)
 		Atom a = new Atom("a");
 		Variable x = new Variable("X");
@@ -201,7 +190,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test6unify() {
-
 		// Construct f(a, X)
 		Atom a = new Atom("a");
 		Variable x = new Variable("X");
@@ -223,7 +211,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test7unify() {
-
 		// Construct f(a, X)
 		Variable x = new Variable("X");
 		jpl.Term[] args = { x, x };
@@ -243,7 +230,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test8unify() {
-
 		// Construct f(a, X)
 		Variable x = new Variable("X");
 		jpl.Term[] args = { x, x };
@@ -267,7 +253,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test9unify() {
-
 		// Construct f(g(Y), X, Y)
 		Variable y = new Variable("Y");
 		jpl.Term[] args = { y };
@@ -305,7 +290,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test10unify() {
-
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable y = new Variable("Y");
@@ -330,7 +314,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test11unify() {
-
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
@@ -354,7 +337,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test12unify() {
-
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
 
@@ -368,7 +350,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test13unify() {
-
 		// Construct f(X, Y)
 		Variable x = new Variable("X");
 		Variable x1 = new Variable("X");
@@ -385,7 +366,6 @@ public class TestUnification2 {
 
 		Map<String, Term> result = JPLUtils.mgu(fXX, FXX);
 		assertEquals(new Hashtable<String, jpl.Term>(), result);
-
 	}
 
 	@Test
@@ -401,7 +381,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test14unify() {
-
 		Term one = new Atom("1");
 		Term two = new Atom("2");
 		Variable x = new Variable("X");
@@ -420,7 +399,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test15unify() {
-
 		Term one = new Atom("1");
 		Term two = new Atom("2");
 		Compound three = new Atom("3");
@@ -439,7 +417,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void testAtom1Int1() {
-
 		Term one = new jpl.Integer(1);
 		Term one2 = new Atom("1");
 
@@ -453,7 +430,6 @@ public class TestUnification2 {
 	 */
 	@Test
 	public void test2Atom1Int1() {
-
 		Term one = new Atom("1");
 		Term one2 = new jpl.Integer(1);
 

@@ -22,13 +22,10 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.io.StringReader;
 
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.ParserException;
-
-import org.junit.Before;
 import org.junit.Test;
 
-import swiprolog.SWIPrologInterface;
+import krTools.errors.exceptions.KRInitFailedException;
+import krTools.errors.exceptions.ParserException;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
@@ -40,12 +37,6 @@ import swiprolog.visitor.Visitor4;
  *
  */
 public class ProgramTest {
-
-	@Before
-	public void init() throws KRInitFailedException {
-		SWIPrologInterface.getInstance();
-	}
-
 	/**
 	 * Create a new prolog4 validator for the test, using given string as input
 	 * stream.
@@ -87,5 +78,4 @@ public class ProgramTest {
 					e.getMessage());
 		}
 	}
-
 }

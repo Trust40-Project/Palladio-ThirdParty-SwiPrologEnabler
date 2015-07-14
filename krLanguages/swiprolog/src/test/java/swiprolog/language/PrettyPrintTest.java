@@ -18,24 +18,17 @@
 package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
-import jpl.Compound;
 
-import org.junit.Before;
 import org.junit.Test;
+
+import jpl.Compound;
 
 /**
  * Test the pretty printing of terms.
  */
 public class PrettyPrintTest {
-
-	@Before
-	public void setUp() throws Exception {
-		swiprolog.SWIPrologInterface.getInstance();
-	}
-
 	@Test
 	public void printConjunct() {
-
 		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("aap"),
 				new jpl.Atom("beer") };
 		Compound term = new jpl.Compound(",", args);
@@ -46,7 +39,6 @@ public class PrettyPrintTest {
 
 	@Test
 	public void printConjunct3() {
-
 		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("b"), new jpl.Atom("c") };
 		jpl.Term[] args2 = new jpl.Term[] { new jpl.Atom("a"),
 				new jpl.Compound(",", args) };
@@ -66,7 +58,6 @@ public class PrettyPrintTest {
 
 	@Test
 	public void printClause3() {
-
 		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("b"), new jpl.Atom("c") };
 		jpl.Compound body = new jpl.Compound(",", new jpl.Term[] {
 				new jpl.Atom("a"), new jpl.Compound(",", args) });
@@ -79,11 +70,9 @@ public class PrettyPrintTest {
 
 	@Test
 	public void printList() {
-
 		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("aap"),
 				new jpl.Atom("[]") };
 		Compound term = new jpl.Compound(".", args);
 		assertEquals("[aap]", JPLUtils.toString(term));
-
 	}
 }

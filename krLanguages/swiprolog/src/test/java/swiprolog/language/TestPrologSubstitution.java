@@ -55,8 +55,8 @@ public class TestPrologSubstitution {
 		Term result = JPLUtils.applySubst(solution, term);
 		assertTrue(result instanceof Compound);
 		Compound compound = (Compound) result;
-		assertEquals(Y, compound.arg0(0));
-		assertEquals(Z, compound.arg0(1));
+		assertEquals(Y, compound.arg(1));
+		assertEquals(Z, compound.arg(2));
 	}
 
 	@Test

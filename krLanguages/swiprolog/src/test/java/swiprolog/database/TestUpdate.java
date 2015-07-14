@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import swiprolog.SWIPrologInterface;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologUpdate;
@@ -42,9 +43,7 @@ import swiprolog.language.PrologUpdate;
  * @author W.Pasman 12mar2012
  *
  */
-
 public class TestUpdate {
-
 	// components enabling us to run the tests...
 	private KRInterface language;
 	private Database beliefbase;
@@ -56,11 +55,9 @@ public class TestUpdate {
 
 	@Before
 	public void setUp() throws Exception {
-		this.language = swiprolog.SWIPrologInterface.getInstance();
-
+		this.language = new SWIPrologInterface();
 		this.knowledgebase = this.language
 				.getDatabase(new LinkedHashSet<DatabaseFormula>());
-
 		this.beliefbase = this.language
 				.getDatabase(new LinkedHashSet<DatabaseFormula>());
 	}
@@ -165,6 +162,5 @@ public class TestUpdate {
 		PrologQuery query = new PrologQuery(this.kat, null);
 		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
-
 	}
 }

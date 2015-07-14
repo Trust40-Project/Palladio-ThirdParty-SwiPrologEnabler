@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import swiprolog.SWIPrologInterface;
 import swiprolog.language.PrologDBFormula;
 
 /**
@@ -28,7 +29,6 @@ import swiprolog.language.PrologDBFormula;
  */
 
 public class TestUpdate2 {
-
 	// components enabling us to run the tests...
 	private KRInterface language;
 
@@ -42,8 +42,7 @@ public class TestUpdate2 {
 
 	@Before
 	public void setUp() throws Exception {
-		this.language = swiprolog.SWIPrologInterface.getInstance();
-
+		this.language = new SWIPrologInterface();
 		fillKB();
 	}
 
@@ -67,10 +66,8 @@ public class TestUpdate2 {
 		kbtheory.add(new PrologDBFormula(this.k1, null));
 		kbtheory.add(new PrologDBFormula(this.k2, null));
 		this.knowledgebase = this.language.getDatabase(kbtheory);
-
 		this.beliefbase = this.language
 				.getDatabase(new LinkedHashSet<DatabaseFormula>());
-
 	}
 
 	/**
@@ -79,11 +76,9 @@ public class TestUpdate2 {
 	 * @throws KRDatabaseException
 	 */
 	private void fillKB2() throws KRDatabaseException {
-
 		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<DatabaseFormula>();
 		kbtheory2.add(new PrologDBFormula(this.k3, null));
 		this.knowledgebase = this.language.getDatabase(kbtheory2);
-
 		this.beliefbase = this.language
 				.getDatabase(new LinkedHashSet<DatabaseFormula>());
 	}
@@ -153,6 +148,5 @@ public class TestUpdate2 {
 		// PrologQuery query = new PrologQuery(k3);
 		// Set<Substitution> sol = beliefbase.query(query);
 		// assertEquals(1, sol.size());
-
 	}
 }

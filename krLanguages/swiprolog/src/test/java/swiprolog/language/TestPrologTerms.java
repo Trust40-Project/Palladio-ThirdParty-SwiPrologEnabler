@@ -18,19 +18,12 @@
 package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
-import jpl.Variable;
-import krTools.errors.exceptions.KRInitFailedException;
 
-import org.junit.Before;
 import org.junit.Test;
 
+import jpl.Variable;
+
 public class TestPrologTerms {
-
-	@Before
-	public void init() throws KRInitFailedException {
-		swiprolog.SWIPrologInterface.getInstance();
-	}
-
 	@Test
 	public void testToString() {
 		jpl.Term term = new jpl.Atom("Aap");
@@ -42,7 +35,6 @@ public class TestPrologTerms {
 	 */
 	@Test
 	public void testEqualVars() {
-
 		Variable X = new Variable("X");
 		Variable X1 = new Variable("X");
 
@@ -54,7 +46,6 @@ public class TestPrologTerms {
 	 */
 	@Test
 	public void testEqualPrologVars() {
-
 		PrologVar X = new PrologVar(new Variable("X"), null);
 		PrologVar X1 = new PrologVar(new Variable("X"), null);
 

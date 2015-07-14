@@ -40,12 +40,15 @@ import swiprolog.language.PrologSubstitution;
  *
  */
 public class SWIPrologDatabase implements Database {
-
 	/**
 	 * Name of this database; used to name a SWI-Prolog module that implements
 	 * the database.
 	 */
 	private final jpl.Atom name;
+	/** 
+	 * The KRI that is managing this database.
+	 */
+	private final SWIPrologInterface owner;
 	/**
 	 * Static int for representing unique number to be able to generate unique
 	 * database names.
@@ -58,7 +61,7 @@ public class SWIPrologDatabase implements Database {
 	 * @throws KRInitFailedException
 	 *             If database creation failed.
 	 */
-	public SWIPrologDatabase(Collection<DatabaseFormula> content)
+	public SWIPrologDatabase(Collection<DatabaseFormula> content, SWIPrologInterface owner)
 			throws KRDatabaseException {
 		int number;
 		synchronized (uniqueNumberCounter) {
@@ -67,29 +70,8 @@ public class SWIPrologDatabase implements Database {
 		// Name consists of (lower case) database type post-fixed with unique
 		// number.
 		this.name = new jpl.Atom("db" + number);
-
-		// FIXME: SWI Prolog needs access to various libaries at runtime and
-		// loads these
-		// dynamically; if many agents try to do this at the same time this
-		// gives access
-		// errors ('No permission to load'). We can now decide to fix this
-		// by loading these
-		// libraries upfront when we need them (that implies work to check
-		// whether we need
-		// a library of course). Benefit is that we ONLY need to synchronize
-		// creating of
-		// databases (this code) and NOT all calls to rawquery... We should
-		// check whether
-		// this impacts performance or not.
-		// FOr now, solved this issue by adding synchronized modifier to
-		// rawquery.
-
-		// EXAMPLE BELOW: only loads lists.pl but no other libraries.
-		// jpl.Term loadlists = JPLUtils.createCompound("ensure_loaded", new
-		// jpl.Atom("c:/program files/pl/library/lists.pl"));
-		// SWIQuery.rawquery(JPLUtils.createCompound(":", this.name,
-		// loadlists));
-		// }
+		
+		this.owner = owner;
 	}
 
 	@Override
@@ -98,7 +80,6 @@ public class SWIPrologDatabase implements Database {
 	}
 
 	/**
-	 *
 	 * @return atom with name of this database
 	 */
 	public jpl.Atom getJPLName() {
@@ -134,8 +115,7 @@ public class SWIPrologDatabase implements Database {
 		jpl.Term query = ((PrologQuery) pQuery).getTerm();
 		jpl.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
 		// We need to create conjunctive query with "true" as first conjunct and
-		// db_query
-		// as second conjunct as JPL query dbname:not(..) does not work
+		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
 		substSet.addAll(rawquery(JPLUtils.createCompound(",", new jpl.Atom(
 				"true"), db_query)));
@@ -285,7 +265,6 @@ public class SWIPrologDatabase implements Database {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static synchronized Set<PrologSubstitution> rawquery(jpl.Term query)
 			throws KRQueryFailedException {
-
 		// Create JPL query.
 		jpl.Query jplQuery = new jpl.Query(query);
 
@@ -318,9 +297,6 @@ public class SWIPrologDatabase implements Database {
 	 *         message.
 	 */
 	private static String handleRawqueryException(jpl.Query query, Throwable e) {
-		// free up the memory.
-		System.gc();
-
 		String warning = "swi prolog says the query " + query + " failed";
 		if (e instanceof Exception) {
 			String mess = e.getMessage();
@@ -402,14 +378,7 @@ public class SWIPrologDatabase implements Database {
 	 */
 	protected void cleanUp() throws KRDatabaseException {
 		eraseContent();
-		SWIPrologInterface instance;
-		try {
-			instance = SWIPrologInterface.getInstance();
-		} catch (KRInitFailedException e) {
-			throw new KRDatabaseException("swi prolog database cleanup failed",
-					e);
-		}
-		instance.removeDatabase(this);
+		this.owner.removeDatabase(this);
 	}
 
 	public void showStatistics() {
@@ -424,5 +393,4 @@ public class SWIPrologDatabase implements Database {
 	public String toString() {
 		return "<" + this.name + ">";
 	}
-
 }
