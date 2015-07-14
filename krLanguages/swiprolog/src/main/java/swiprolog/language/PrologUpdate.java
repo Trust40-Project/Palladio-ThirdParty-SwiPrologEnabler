@@ -64,9 +64,9 @@ public class PrologUpdate extends PrologExpression implements Update {
 		// is a database formula (which should have been checked by the parser).
 		for (jpl.Term conjunct : conjuncts) {
 			if (JPLUtils.getSignature(conjunct).equals("not/1")) {
-				negativeLiterals.add(new PrologDBFormula(conjunct.arg(1), info));
+				this.negativeLiterals.add(new PrologDBFormula(conjunct.arg(1), info));
 			} else if (!JPLUtils.getSignature(conjunct).equals("true/0")) {
-				positiveLiterals.add(new PrologDBFormula(conjunct, info));
+				this.positiveLiterals.add(new PrologDBFormula(conjunct, info));
 			}
 		}
 	}
@@ -78,7 +78,7 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 */
 	@Override
 	public List<DatabaseFormula> getAddList() {
-		return positiveLiterals;
+		return this.positiveLiterals;
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 */
 	@Override
 	public List<DatabaseFormula> getDeleteList() {
-		return negativeLiterals;
+		return this.negativeLiterals;
 	}
 
 	/**
@@ -103,10 +103,10 @@ public class PrologUpdate extends PrologExpression implements Update {
 		update.positiveLiterals = new ArrayList<DatabaseFormula>();
 		update.negativeLiterals = new ArrayList<DatabaseFormula>();
 
-		for (DatabaseFormula formula : positiveLiterals) {
+		for (DatabaseFormula formula : this.positiveLiterals) {
 			update.positiveLiterals.add(formula.applySubst(s));
 		}
-		for (DatabaseFormula formula : negativeLiterals) {
+		for (DatabaseFormula formula : this.negativeLiterals) {
 			update.negativeLiterals.add(formula.applySubst(s));
 		}
 

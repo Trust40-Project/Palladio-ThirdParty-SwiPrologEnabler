@@ -41,17 +41,17 @@ public class TestUpdate2 {
 
 	@Before
 	public void setUp() throws Exception {
-		language = new SwiPrologInterface();
+		this.language = new SwiPrologInterface();
 		fillKB();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		if (beliefbase != null) {
-			beliefbase.destroy();
+		if (this.beliefbase != null) {
+			this.beliefbase.destroy();
 		}
-		if (knowledgebase != null) {
-			knowledgebase.destroy();
+		if (this.knowledgebase != null) {
+			this.knowledgebase.destroy();
 		}
 	}
 
@@ -62,10 +62,10 @@ public class TestUpdate2 {
 	 */
 	private void fillKB() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory = new LinkedHashSet<DatabaseFormula>();
-		kbtheory.add(new PrologDBFormula(k1, null));
-		kbtheory.add(new PrologDBFormula(k2, null));
-		knowledgebase = language.getDatabase(kbtheory);
-		beliefbase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		kbtheory.add(new PrologDBFormula(this.k1, null));
+		kbtheory.add(new PrologDBFormula(this.k2, null));
+		this.knowledgebase = this.language.getDatabase(kbtheory);
+		this.beliefbase = this.language.getDatabase(new LinkedHashSet<DatabaseFormula>());
 	}
 
 	/**
@@ -75,9 +75,9 @@ public class TestUpdate2 {
 	 */
 	private void fillKB2() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<DatabaseFormula>();
-		kbtheory2.add(new PrologDBFormula(k3, null));
-		knowledgebase = language.getDatabase(kbtheory2);
-		beliefbase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		kbtheory2.add(new PrologDBFormula(this.k3, null));
+		this.knowledgebase = this.language.getDatabase(kbtheory2);
+		this.beliefbase = this.language.getDatabase(new LinkedHashSet<DatabaseFormula>());
 	}
 
 	/**
@@ -115,10 +115,10 @@ public class TestUpdate2 {
 	 */
 	@Test
 	public void testDeleteAll() throws KRQueryFailedException, KRDatabaseException {
-		beliefbase.destroy();
-		beliefbase = null;
-		knowledgebase.destroy();
-		knowledgebase = null;
+		this.beliefbase.destroy();
+		this.beliefbase = null;
+		this.knowledgebase.destroy();
+		this.knowledgebase = null;
 	}
 
 	/**
@@ -130,8 +130,8 @@ public class TestUpdate2 {
 	 */
 	@Test
 	public void testRecreateKbAndBb() throws KRQueryFailedException, KRDatabaseException {
-		beliefbase.destroy();
-		knowledgebase.destroy();
+		this.beliefbase.destroy();
+		this.knowledgebase.destroy();
 
 		// ok, now we can recreate the KB. But this time different.
 		fillKB2();

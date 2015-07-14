@@ -84,8 +84,8 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	 */
 	@Override
 	public File getSource() {
-		if (info != null) {
-			return info.getSource();
+		if (this.info != null) {
+			return this.info.getSource();
 		} else {
 			return null;
 		}
@@ -97,8 +97,8 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	 */
 	@Override
 	public int getLineNumber() {
-		if (info != null) {
-			return info.getLineNumber();
+		if (this.info != null) {
+			return this.info.getLineNumber();
 		} else {
 			return -1;
 		}
@@ -110,8 +110,8 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	 */
 	@Override
 	public int getCharacterPosition() {
-		if (info != null) {
-			return info.getCharacterPosition();
+		if (this.info != null) {
+			return this.info.getCharacterPosition();
 		} else {
 			return -1;
 		}
@@ -119,8 +119,8 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 
 	@Override
 	public int getStartIndex() {
-		if (info != null) {
-			return info.getStartIndex();
+		if (this.info != null) {
+			return this.info.getStartIndex();
 		} else {
 			return -1;
 		}
@@ -128,8 +128,8 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 
 	@Override
 	public int getStopIndex() {
-		if (info != null) {
-			return info.getStopIndex();
+		if (this.info != null) {
+			return this.info.getStopIndex();
 		} else {
 			return -1;
 		}
@@ -137,12 +137,12 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 
 	/** public getter for Source Info */
 	public SourceInfo getSourceInfo() {
-		return info;
+		return this.info;
 	}
 
 	@Override
 	public String toString() {
-		return "ParserException: " + getMessage() + " " + info;
+		return "ParserException: " + getMessage() + " " + this.info;
 	}
 
 	@Override
@@ -153,11 +153,11 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 			return false;
 		} else {
 			ParserException other = (ParserException) obj;
-			if (info == null) {
+			if (this.info == null) {
 				if (other.getSourceInfo() != null) {
 					return false;
 				}
-			} else if (!info.equals(other.getSourceInfo())) {
+			} else if (!this.info.equals(other.getSourceInfo())) {
 				return false;
 			}
 			if (getMessage() == null) {
@@ -175,7 +175,7 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((info == null) ? 0 : info.hashCode());
+		result = prime * result + ((this.info == null) ? 0 : this.info.hashCode());
 		result = prime * result + ((getMessage() == null) ? 0 : getMessage().hashCode());
 		return result;
 	}
@@ -185,11 +185,11 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 		if (equals(other)) {
 			return 0;
 		} else if (other.getSourceInfo() == null) {
-			return (info == null) ? 0 : -1;
-		} else if (info == null) {
+			return (this.info == null) ? 0 : -1;
+		} else if (this.info == null) {
 			return 1;
 		} else {
-			return before(info, other.getSourceInfo()) ? -1 : 1;
+			return before(this.info, other.getSourceInfo()) ? -1 : 1;
 		}
 	}
 

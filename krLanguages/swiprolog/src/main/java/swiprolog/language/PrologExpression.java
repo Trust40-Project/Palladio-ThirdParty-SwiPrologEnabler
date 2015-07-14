@@ -57,7 +57,7 @@ public abstract class PrologExpression implements Expression {
 	 * @return A {@link jpl.Term}.
 	 */
 	public jpl.Term getTerm() {
-		return term;
+		return this.term;
 	}
 
 	/**
@@ -66,7 +66,7 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public SourceInfo getSourceInfo() {
-		return info;
+		return this.info;
 	}
 
 	/**

@@ -14,7 +14,7 @@ public class SourceInfoObject implements SourceInfo {
 	private final String msg = new String();
 
 	public SourceInfoObject(File file, int lineNr, int charPos, int start, int end) {
-		sourceFile = file;
+		this.sourceFile = file;
 		this.lineNr = lineNr;
 		this.charPos = charPos;
 		this.start = start;
@@ -23,53 +23,53 @@ public class SourceInfoObject implements SourceInfo {
 
 	@Override
 	public File getSource() {
-		return sourceFile;
+		return this.sourceFile;
 	}
 
 	@Override
 	public int getLineNumber() {
-		return lineNr;
+		return this.lineNr;
 	}
 
 	@Override
 	public int getCharacterPosition() {
-		return charPos;
+		return this.charPos;
 	}
 
 	@Override
 	public int getStartIndex() {
-		return start;
+		return this.start;
 	}
 
 	@Override
 	public int getStopIndex() {
-		return end;
+		return this.end;
 	}
 
 	@Override
 	public String getMessage() {
-		return msg;
+		return this.msg;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("line ");
-		builder.append(lineNr);
+		builder.append(this.lineNr);
 		builder.append(", position ");
-		builder.append(charPos);
-		if (sourceFile != null) {
+		builder.append(this.charPos);
+		if (this.sourceFile != null) {
 			builder.append(" in ");
-			builder.append(sourceFile.getName());
+			builder.append(this.sourceFile.getName());
 		}
 		return builder.toString();
 	}
 
 	@Override
 	public int hashCode() {
-		int hash = (31 * lineNr) << 16 + charPos;
-		if (sourceFile != null) {
-			hash += sourceFile.hashCode();
+		int hash = (31 * this.lineNr) << 16 + this.charPos;
+		if (this.sourceFile != null) {
+			hash += this.sourceFile.hashCode();
 		}
 		return hash;
 	}
@@ -82,15 +82,15 @@ public class SourceInfoObject implements SourceInfo {
 			return false;
 		}
 		SourceInfoObject that = (SourceInfoObject) other;
-		if (lineNr != that.lineNr) {
+		if (this.lineNr != that.lineNr) {
 			return false;
-		} else if (charPos != that.charPos) {
+		} else if (this.charPos != that.charPos) {
 			return false;
 		}
-		if (sourceFile == null) {
+		if (this.sourceFile == null) {
 			return that.sourceFile == null;
 		} else {
-			return sourceFile.getAbsoluteFile().equals(that.sourceFile.getAbsoluteFile());
+			return this.sourceFile.getAbsoluteFile().equals(that.sourceFile.getAbsoluteFile());
 		}
 	}
 }

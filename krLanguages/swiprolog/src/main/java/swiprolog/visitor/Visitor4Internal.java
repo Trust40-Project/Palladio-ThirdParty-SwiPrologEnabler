@@ -94,15 +94,16 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			// happens if we are at EOF...
 			stop = start;
 		}
-		return new SourceInfoObject(source.getSource(), start.getLine(), start.getCharPositionInLine(),
-				source.getStartIndex() + start.getStartIndex() + 1, source.getStartIndex() + stop.getStopIndex() + 1);
+		return new SourceInfoObject(this.source.getSource(), start.getLine(), start.getCharPositionInLine(),
+				this.source.getStartIndex() + start.getStartIndex() + 1,
+				this.source.getStartIndex() + stop.getStopIndex() + 1);
 	}
 
 	private SourceInfo getSourceInfo(TerminalNode leaf) {
 		Token symbol = leaf.getSymbol();
-		return new SourceInfoObject(source.getSource(), symbol.getLine(), symbol.getCharPositionInLine(),
-				source.getStartIndex() + symbol.getStartIndex() + 1,
-				source.getStartIndex() + symbol.getStopIndex() + 1);
+		return new SourceInfoObject(this.source.getSource(), symbol.getLine(), symbol.getCharPositionInLine(),
+				this.source.getStartIndex() + symbol.getStartIndex() + 1,
+				this.source.getStartIndex() + symbol.getStopIndex() + 1);
 	}
 
 	/**
@@ -322,7 +323,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			}
 			return new PrologTerm(new jpl.Float(val), info);
 		} catch (NumberFormatException e) {
-			errors.add(new ParserException(
+			this.errors.add(new ParserException(
 					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString() + ":" + e.getMessage(), info));
 		}
 		// never return null as others may post process our output.
@@ -594,6 +595,6 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	 * @return
 	 */
 	public List<ParserException> getVisitorErrors() {
-		return errors;
+		return this.errors;
 	}
 }

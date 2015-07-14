@@ -50,6 +50,10 @@ public class PrologDatabase implements Database {
 	 */
 	private final SwiPrologInterface owner;
 	/**
+	 * A corresponding theory
+	 */
+	private final Theory theory;
+	/**
 	 * Static int for representing unique number to be able to generate unique
 	 * database names.
 	 */
@@ -68,21 +72,25 @@ public class PrologDatabase implements Database {
 		}
 		// Name consists of (lower case) database type post-fixed with unique
 		// number.
-		name = new jpl.Atom("db" + number);
-
+		this.name = new jpl.Atom("db" + number);
 		this.owner = owner;
+		this.theory = new Theory(content);
 	}
 
 	@Override
 	public String getName() {
-		return name.name();
+		return this.name.name();
 	}
 
 	/**
 	 * @return atom with name of this database
 	 */
 	public jpl.Atom getJPLName() {
-		return name;
+		return this.name;
+	}
+
+	public Theory getTheory() {
+		return this.theory;
 	}
 
 	/**
@@ -138,6 +146,7 @@ public class PrologDatabase implements Database {
 	@Override
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
 		insert(((PrologDBFormula) formula).getTerm());
+		this.theory.add(formula);
 	}
 
 	/**
@@ -157,9 +166,11 @@ public class PrologDatabase implements Database {
 	public void insert(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getDeleteList()) {
 			delete(formula);
+			this.theory.remove(formula);
 		}
 		for (DatabaseFormula formula : update.getAddList()) {
 			insert(formula);
+			this.theory.add(formula);
 		}
 	}
 
@@ -190,10 +201,12 @@ public class PrologDatabase implements Database {
 	@Override
 	public void delete(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getAddList()) {
-			delete((formula));
+			delete(formula);
+			this.theory.remove(formula);
 		}
 		for (DatabaseFormula formula : update.getDeleteList()) {
-			insert((formula));
+			insert(formula);
+			this.theory.add(formula);
 		}
 	}
 
@@ -215,6 +228,7 @@ public class PrologDatabase implements Database {
 	@Override
 	public void delete(DatabaseFormula formula) throws KRDatabaseException {
 		delete(((PrologDBFormula) formula).getTerm());
+		this.theory.remove(formula);
 	}
 
 	/**
@@ -332,9 +346,9 @@ public class PrologDatabase implements Database {
 		// Construct jpl term for above.
 		jpl.Variable predicate = new jpl.Variable("Predicate");
 		jpl.Variable head = new jpl.Variable("Head");
-		jpl.Term db_head = JPLUtils.createCompound(":", name, head);
+		jpl.Term db_head = JPLUtils.createCompound(":", this.name, head);
 		jpl.Term current = JPLUtils.createCompound("current_predicate", predicate, head);
-		jpl.Term db_current = JPLUtils.createCompound(":", name, current);
+		jpl.Term db_current = JPLUtils.createCompound(":", this.name, current);
 		jpl.Term built_in = JPLUtils.createCompound("predicate_property", db_head, new jpl.Atom("built_in"));
 		jpl.Term foreign = JPLUtils.createCompound("predicate_property", db_head, new jpl.Atom("foreign"));
 		jpl.Term imported_from = JPLUtils.createCompound("imported_from", new jpl.Variable("_"));
@@ -362,7 +376,7 @@ public class PrologDatabase implements Database {
 	 */
 	protected void cleanUp() throws KRDatabaseException {
 		eraseContent();
-		owner.removeDatabase(this);
+		this.owner.removeDatabase(this);
 	}
 
 	public void showStatistics() {
@@ -375,6 +389,6 @@ public class PrologDatabase implements Database {
 
 	@Override
 	public String toString() {
-		return "<" + name + ">";
+		return "<" + this.name + ">";
 	}
 }

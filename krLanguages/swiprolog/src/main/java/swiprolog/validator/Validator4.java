@@ -59,7 +59,7 @@ public class Validator4 {
 	 *            the {@link Visitor4} (that contains the parser)
 	 */
 	public Validator4(Visitor4 vis) {
-		visitor = vis;
+		this.visitor = vis;
 	}
 
 	/**
@@ -68,7 +68,7 @@ public class Validator4 {
 	 * @return {@link Update} or null if there is error.
 	 */
 	public Update updateOrEmpty() throws ParserException {
-		PrologTerm conj = visitor.visitPossiblyEmptyConjunct();
+		PrologTerm conj = this.visitor.visitPossiblyEmptyConjunct();
 		if (conj.toString().equals("true")) { // special case.
 			return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
 		} else {
@@ -83,13 +83,13 @@ public class Validator4 {
 	 * @return List<DatabaseFormula>, or {@code null} if a parser error occurs.
 	 */
 	public List<DatabaseFormula> program() throws ParserException {
-		List<PrologTerm> prologTerms = visitor.visitPrologtext();
+		List<PrologTerm> prologTerms = this.visitor.visitPrologtext();
 		List<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>(prologTerms.size());
 		for (PrologTerm t : prologTerms) {
 			try {
 				dbfs.add(SemanticTools.DBFormula(t));
 			} catch (ParserException e) {
-				errors.add(e);
+				this.errors.add(e);
 			}
 		}
 		return dbfs;
@@ -102,13 +102,13 @@ public class Validator4 {
 	 */
 	public List<Query> goalSection() throws ParserException {
 		List<Query> goals = new LinkedList<Query>();
-		for (PrologTerm t : visitor.visitPrologtext()) {
+		for (PrologTerm t : this.visitor.visitPrologtext()) {
 			// check that each term is a valid Prolog goal / query
 
 			try {
 				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(), t.getSourceInfo()), t.getSourceInfo()));
 			} catch (ParserException e) {
-				errors.add(e);
+				this.errors.add(e);
 			}
 		}
 		return goals;
@@ -120,7 +120,7 @@ public class Validator4 {
 	 * @return A {@link PrologQuery}, or {@code null} if an error occurred.
 	 */
 	public PrologQuery queryOrEmpty() throws ParserException {
-		return SemanticTools.toQuery(visitor.visitPossiblyEmptyDisjunct());
+		return SemanticTools.toQuery(this.visitor.visitPossiblyEmptyDisjunct());
 	}
 
 	/**
@@ -130,7 +130,7 @@ public class Validator4 {
 	 */
 	public Var var() throws ParserException {
 		PrologTerm term;
-		term = visitor.visitTerm0();
+		term = this.visitor.visitTerm0();
 		if (term.isVar()) {
 			return (PrologVar) term;
 		} else {
@@ -146,7 +146,7 @@ public class Validator4 {
 	 * @throws ParserException
 	 */
 	public PrologTerm term() throws ParserException {
-		return visitor.visitTerm0();
+		return this.visitor.visitTerm0();
 	}
 
 	/**
@@ -155,7 +155,7 @@ public class Validator4 {
 	 * @return A list of {@link Term}s.
 	 */
 	public List<Term> terms() throws ParserException {
-		PrologTerm t = visitor.visitTerm1000();
+		PrologTerm t = this.visitor.visitTerm1000();
 		List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
 		List<Term> terms = new ArrayList<Term>(original.size());
 		for (jpl.Term term : original) {
@@ -177,8 +177,8 @@ public class Validator4 {
 	 */
 	public SortedSet<ParserException> getErrors() {
 		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
-		allErrors.addAll(visitor.getErrors());
-		allErrors.addAll(errors);
+		allErrors.addAll(this.visitor.getErrors());
+		allErrors.addAll(this.errors);
 		return allErrors;
 	}
 

@@ -96,7 +96,7 @@ public final class SwiPrologInterface implements KRInterface {
 	 *          {@code null} if no database of the given type exists.
 	 */
 	protected PrologDatabase getDatabase(String name) {
-		return databases.get(name);
+		return this.databases.get(name);
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public final class SwiPrologInterface implements KRInterface {
 		PrologDatabase database = new PrologDatabase(theory, this);
 		// Add database to list of databases maintained by SWI Prolog and
 		// associated with name.
-		databases.put(database.getName(), database);
+		this.databases.put(database.getName(), database);
 
 		// Return new database.
 		return database;
@@ -117,7 +117,7 @@ public final class SwiPrologInterface implements KRInterface {
 	 * @param db
 	 */
 	public void removeDatabase(PrologDatabase db) {
-		databases.remove(db.getName());
+		this.databases.remove(db.getName());
 	}
 
 	/**
@@ -148,11 +148,11 @@ public final class SwiPrologInterface implements KRInterface {
 	 */
 	@Override
 	public void release() throws KRDatabaseException {
-		for (PrologDatabase db : databases.values()) {
+		for (PrologDatabase db : this.databases.values()) {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
 		}
-		databases = new HashMap<String, PrologDatabase>();
+		this.databases = new HashMap<String, PrologDatabase>();
 	}
 
 	@Override

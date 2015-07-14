@@ -57,13 +57,13 @@ public class PrologFilesTest {
 
 	public PrologFilesTest(String filename) throws IOException {
 		URL url = getClass().getResource(filename);
-		stream = new BufferedReader(new InputStreamReader(url.openStream()));
+		this.stream = new BufferedReader(new InputStreamReader(url.openStream()));
 		System.out.println("running test with file " + url);
 	}
 
 	@Test
 	public void readFile() throws IOException, ParserException {
-		Visitor4 visitor = new Visitor4(new Parser4(stream, null));
+		Visitor4 visitor = new Visitor4(new Parser4(this.stream, null));
 		visitor.visitPrologtext();
 	}
 }
