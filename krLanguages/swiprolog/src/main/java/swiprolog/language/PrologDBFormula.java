@@ -41,7 +41,6 @@ import swiprolog.database.PrologDatabase;
  */
 public class PrologDBFormula extends PrologExpression implements
 DatabaseFormula {
-
 	/**
 	 * Creates a Prolog database formula that can be part of a Prolog database.
 	 *
@@ -79,5 +78,4 @@ DatabaseFormula {
 	public Query toQuery() {
 		return new PrologQuery(getTerm(), getSourceInfo());
 	}
-
 }

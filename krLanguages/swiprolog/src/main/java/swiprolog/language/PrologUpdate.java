@@ -31,7 +31,6 @@ import krTools.parser.SourceInfo;
  * See {@link Update}.
  */
 public class PrologUpdate extends PrologExpression implements Update {
-
 	/**
 	 * List of literals that occur positively in the term used to construct this
 	 * update.
@@ -61,7 +60,6 @@ public class PrologUpdate extends PrologExpression implements Update {
 		super(term, info);
 
 		List<jpl.Term> conjuncts = JPLUtils.getOperands(",", term);
-
 		// Sort positive and negative literals, assuming that each conjunct
 		// is a database formula (which should have been checked by the parser).
 		for (jpl.Term conjunct : conjuncts) {
@@ -102,7 +100,7 @@ public class PrologUpdate extends PrologExpression implements Update {
 		Map<String, jpl.Term> jplSubstitution = (s == null) ? null
 				: ((PrologSubstitution) s).getJPLSolution();
 
-		jpl.Term term = JPLUtils.applySubst(jplSubstitution, this.getTerm());
+		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 		PrologUpdate update = new PrologUpdate(term, getSourceInfo());
 		update.positiveLiterals = new ArrayList<DatabaseFormula>();
 		update.negativeLiterals = new ArrayList<DatabaseFormula>();
@@ -132,7 +130,6 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 */
 	@Override
 	public Query toQuery() {
-		return new PrologQuery(this.getTerm(), getSourceInfo());
+		return new PrologQuery(getTerm(), getSourceInfo());
 	}
-
 }

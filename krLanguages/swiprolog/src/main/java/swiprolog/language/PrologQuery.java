@@ -28,7 +28,6 @@ import krTools.parser.SourceInfo;
  * A Prolog query.
  */
 public class PrologQuery extends PrologExpression implements Query {
-
 	/**
 	 * Creates a Prolog query.
 	 *
@@ -53,7 +52,7 @@ public class PrologQuery extends PrologExpression implements Query {
 		Map<String, jpl.Term> jplSubstitution = (s == null) ? null
 				: ((PrologSubstitution) s).getJPLSolution();
 		return new PrologQuery(JPLUtils.applySubst(jplSubstitution,
-				this.getTerm()), getSourceInfo());
+				getTerm()), getSourceInfo());
 	}
 
 	@Override
@@ -69,7 +68,6 @@ public class PrologQuery extends PrologExpression implements Query {
 	 */
 	@Override
 	public Update toUpdate() {
-		return new PrologUpdate(this.getTerm(), getSourceInfo());
+		return new PrologUpdate(getTerm(), getSourceInfo());
 	}
-
 }

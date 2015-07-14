@@ -108,13 +108,11 @@ public class PrologSubstitution implements Substitution {
 	@Override
 	public Set<Var> getVariables() {
 		Set<Var> variables = new LinkedHashSet<Var>();
-
 		// Build VariableTerm from jpl.Variable.
 		for (String varname : this.jplSubstitution.keySet()) {
 			jpl.Variable var = new Variable(varname);
 			variables.add(new PrologVar(var, null));
 		}
-
 		return variables;
 	}
 
@@ -154,8 +152,9 @@ public class PrologSubstitution implements Substitution {
 		jpl.Variable var = (jpl.Variable) ((PrologVar) variable).getTerm();
 		if (this.jplSubstitution.containsKey(var.name())) {
 			return this.jplSubstitution.remove(var.name()) != null;
+		} else {
+			return false;
 		}
-		return false;
 	}
 
 	@Override
@@ -244,5 +243,4 @@ public class PrologSubstitution implements Substitution {
 		}
 		return true;
 	}
-
 }

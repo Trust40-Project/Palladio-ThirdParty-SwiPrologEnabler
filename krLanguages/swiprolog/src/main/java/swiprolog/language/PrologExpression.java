@@ -19,8 +19,10 @@ package swiprolog.language;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+import krTools.language.DatabaseFormula;
 import krTools.language.Expression;
 import krTools.language.Substitution;
 import krTools.language.Var;
@@ -30,7 +32,6 @@ import krTools.parser.SourceInfo;
  * DOC
  */
 public abstract class PrologExpression implements Expression {
-
 	/**
 	 * A JPL term representing a Prolog expression.
 	 */
@@ -77,7 +78,7 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public boolean isVar() {
-		return this.getTerm().isVariable();
+		return getTerm().isVariable();
 	}
 
 	/**
@@ -87,15 +88,13 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public Set<Var> getFreeVar() {
-		ArrayList<jpl.Variable> jplvars = new ArrayList<jpl.Variable>(
-				JPLUtils.getFreeVar(this.getTerm()));
+		List<jpl.Variable> jplvars = new ArrayList<jpl.Variable>(
+				JPLUtils.getFreeVar(getTerm()));
 		Set<Var> variables = new LinkedHashSet<Var>();
-
 		// Build VariableTerm from jpl.Variable.
 		for (jpl.Variable var : jplvars) {
 			variables.add(new PrologVar(var, getSourceInfo()));
 		}
-
 		return variables;
 	}
 
@@ -107,7 +106,15 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public boolean isClosed() {
-		return JPLUtils.getFreeVar(this.getTerm()).isEmpty();
+		return JPLUtils.getFreeVar(getTerm()).isEmpty();
+	}
+	
+	public DatabaseFormula toFormula() {
+		if(isClosed()){
+			return new PrologDBFormula(getTerm(), getSourceInfo());
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -121,7 +128,7 @@ public abstract class PrologExpression implements Expression {
 	public Substitution mgu(Expression expression) {
 		jpl.Term otherterm = ((PrologExpression) expression).getTerm();
 		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(
-				this.getTerm(), otherterm));
+				getTerm(), otherterm));
 	}
 
 	/**
@@ -136,19 +143,19 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public String getSignature() {
-		return JPLUtils.getSignature(this.term);
+		return JPLUtils.getSignature(getTerm());
 	}
 
 	/**
 	 *
 	 */
 	public boolean isEmpty() {
-		return this.getSignature().equals("true/0");
+		return getSignature().equals("true/0");
 	}
 
 	@Override
 	public String toString() {
-		return JPLUtils.toString(this.term);
+		return JPLUtils.toString(getTerm());
 	}
 
 	@Override
@@ -165,15 +172,14 @@ public abstract class PrologExpression implements Expression {
 			return false;
 		}
 		PrologExpression other = (PrologExpression) obj;
-		if (this.term == null) {
-			if (other.term != null) {
+		if (getTerm() == null) {
+			if (other.getTerm() != null) {
 				return false;
 			}
 		} // JPL does not implement equals...
-		else if (!JPLUtils.equals(this.term, other.term)) {
+		else if (!JPLUtils.equals(getTerm(), other.getTerm())) {
 			return false;
 		}
 		return true;
 	}
-
 }

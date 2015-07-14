@@ -158,10 +158,10 @@ public class PrologDatabase implements Database {
 	@Override
 	public void insert(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getDeleteList()) {
-			delete((formula));
+			delete(formula);
 		}
 		for (DatabaseFormula formula : update.getAddList()) {
-			insert((formula));
+			insert(formula);
 		}
 	}
 
@@ -178,7 +178,7 @@ public class PrologDatabase implements Database {
 	 *            The database the term should be inserted into.
 	 * @throws KRDatabaseException
 	 */
-	public void insert(jpl.Term formula) throws KRDatabaseException {
+	private void insert(jpl.Term formula) throws KRDatabaseException {
 		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
 				formula);
 		try {
