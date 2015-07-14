@@ -55,7 +55,6 @@ import krTools.parser.SourceInfo;
  * </p>
  */
 public interface Expression {
-
 	/**
 	 * @return String of the form "{operator name}/{arity}" where arity is
 	 *         number of arguments associated with the operator.

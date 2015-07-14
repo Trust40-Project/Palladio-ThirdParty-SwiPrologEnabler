@@ -47,7 +47,6 @@ import krTools.database.Database;
  * </p>
  */
 public interface DatabaseFormula extends Expression {
-
 	@Override
 	DatabaseFormula applySubst(Substitution substitution);
 
@@ -66,5 +65,4 @@ public interface DatabaseFormula extends Expression {
 	 * @return A {@link Query}.
 	 */
 	Query toQuery();
-
 }

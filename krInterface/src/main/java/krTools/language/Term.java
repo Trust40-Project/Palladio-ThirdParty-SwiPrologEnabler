@@ -28,16 +28,6 @@ package krTools.language;
  * </p>
  */
 public interface Term extends Expression {
-
 	@Override
 	Term applySubst(Substitution substitution);
-	
-	/**
-	 * Converts an {@link Term} to an {@link DatabaseFormula}.
-	 *
-	 * @return A {@link DatabaseFormula} if this term can be converted to a database formula;
-	 *         should return {@code null} otherwise (i.e. if there are free variables).
-	 * @todo Remove this when we can...
-	 */
-	DatabaseFormula toFormula();
 }
