@@ -15,26 +15,22 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package krTools.errors.exceptions;
-
-import krTools.KRInterface;
+package krTools.exceptions;
 
 /**
- * A KR initialization exception should be thrown if the initialization of the
- * interface failed for some reason. See {@link KRInterface#initialize()}.
+ * Generic exception for throwing interface exceptions.
  */
-public class KRInitFailedException extends KRException {
+public class KRException extends Exception {
 
-	private static final long serialVersionUID = 4881505555016007638L;
+	private static final long serialVersionUID = 3963559073032366579L;
 
 	/**
 	 * Creates ...
 	 *
 	 * @param message
 	 */
-	public KRInitFailedException(String message) {
+	public KRException(String message) {
 		super(message);
-		assert message != null;
 	}
 
 	/**
@@ -43,9 +39,14 @@ public class KRInitFailedException extends KRException {
 	 * @param message
 	 * @param cause
 	 */
-	public KRInitFailedException(String message, Throwable cause) {
+	public KRException(String message, Throwable cause) {
 		super(message, cause);
-		assert message != null;
+	}
+
+	@Override
+	public String toString() {
+		return "<" + getClass().getSimpleName() + ": " + getMessage() + ", "
+				+ getCause() + ">";
 	}
 
 }

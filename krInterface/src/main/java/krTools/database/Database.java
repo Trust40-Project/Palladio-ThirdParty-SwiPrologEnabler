@@ -20,8 +20,8 @@ package krTools.database;
 import java.util.Set;
 
 import krTools.KRInterface;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRQueryFailedException;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;

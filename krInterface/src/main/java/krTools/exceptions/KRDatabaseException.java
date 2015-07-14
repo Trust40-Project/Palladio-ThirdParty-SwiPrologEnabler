@@ -15,22 +15,19 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package krTools.errors.exceptions;
+package krTools.exceptions;
 
 /**
- * A KR Query Failed exception should be thrown in case something bad happened
- * while a query evaluation is performed by the KR inference engine.
+ * A KR Database exception should be thrown in case a database could <i>not be
+ * created</i>, if content in the database could <i>not be updated</i>, e.g.,
+ * could not be added or removed, or something <i>bad happened while
+ * destroying</i> the database.
  */
-public class KRQueryFailedException extends KRException {
+public class KRDatabaseException extends KRException {
 
-	private static final long serialVersionUID = -7240306206190923813L;
+	private static final long serialVersionUID = 2132716415540874609L;
 
-	/**
-	 * Creates ...
-	 *
-	 * @param message
-	 */
-	public KRQueryFailedException(String message) {
+	public KRDatabaseException(String message) {
 		super(message);
 	}
 
@@ -40,7 +37,7 @@ public class KRQueryFailedException extends KRException {
 	 * @param message
 	 * @param cause
 	 */
-	public KRQueryFailedException(String message, Throwable cause) {
+	public KRDatabaseException(String message, Throwable cause) {
 		super(message, cause);
 	}
 

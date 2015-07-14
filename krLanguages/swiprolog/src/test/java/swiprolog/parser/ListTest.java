@@ -24,11 +24,10 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import krTools.errors.exceptions.ParserException;
-
 import org.antlr.v4.runtime.RecognitionException;
 import org.junit.Test;
 
+import krTools.exceptions.ParserException;
 import swiprolog.parser.Prolog4Parser.ListtermContext;
 
 /**

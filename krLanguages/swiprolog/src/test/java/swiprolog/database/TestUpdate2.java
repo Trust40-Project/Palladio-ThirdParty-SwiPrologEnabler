@@ -6,8 +6,8 @@ import java.util.Set;
 import jpl.Atom;
 import krTools.KRInterface;
 import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRQueryFailedException;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 
 import org.junit.After;

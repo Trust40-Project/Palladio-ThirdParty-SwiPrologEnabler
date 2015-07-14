@@ -22,7 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import jpl.Term;
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.ParserException;
 import krTools.parser.SourceInfo;
 
 import org.antlr.v4.runtime.ParserRuleContext;

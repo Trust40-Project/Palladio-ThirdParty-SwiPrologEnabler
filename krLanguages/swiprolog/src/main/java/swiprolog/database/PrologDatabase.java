@@ -23,9 +23,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.KRQueryFailedException;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
@@ -39,7 +39,7 @@ import swiprolog.language.PrologSubstitution;
 /**
  *
  */
-public class SWIPrologDatabase implements Database {
+public class PrologDatabase implements Database {
 	/**
 	 * Name of this database; used to name a SWI-Prolog module that implements
 	 * the database.
@@ -61,7 +61,7 @@ public class SWIPrologDatabase implements Database {
 	 * @throws KRInitFailedException
 	 *             If database creation failed.
 	 */
-	public SWIPrologDatabase(Collection<DatabaseFormula> content, SWIPrologInterface owner)
+	public PrologDatabase(Collection<DatabaseFormula> content, SWIPrologInterface owner)
 			throws KRDatabaseException {
 		int number;
 		synchronized (uniqueNumberCounter) {

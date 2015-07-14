@@ -15,14 +15,14 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package goalhub.krTools;
+package krFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import krTools.KRInterface;
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.KRInterfaceNotSupportedException;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.KRInterfaceNotSupportedException;
 import owlrepo.OWLRepoKRInterface;
 import swiprolog.SWIPrologInterface;
 
@@ -48,7 +48,7 @@ public class KRFactory {
 	}
 
 	/**
-	 * KRFactory is a utility class; constructor is hidden.
+	 * Utility class; constructor is hidden.
 	 */
 	private KRFactory() {
 	}
@@ -62,6 +62,8 @@ public class KRFactory {
 	 * @return A KR interface implementation.
 	 * @throws KRInterfaceNotSupportedException
 	 *             If the name does not map to a known interface.
+	 * @throws KRInitFailedException
+	 * 			   If the creation of the requested implementation failed.
 	 */
 	public static KRInterface getKR(String name)
 			throws KRInterfaceNotSupportedException, KRInitFailedException {
@@ -71,7 +73,7 @@ public class KRFactory {
 			if (krInterface == null) {
 				throw new KRInterfaceNotSupportedException(
 						"Could not find KRT " + name
-								+ " whilst these are available: "
+								+ " as these are available: "
 								+ kr.keySet());
 			} else {
 				return krInterface;
@@ -79,5 +81,15 @@ public class KRFactory {
 		} catch( IllegalAccessException | InstantiationException e ){
 			throw new KRInitFailedException("Failed to initialize " + name, e);
 		}
+	}
+	
+	public static String getName(KRInterface kri){
+		for( final String name : kr.keySet()){
+			final Class<? extends KRInterface> defined = kr.get(name);
+			if(defined.equals(kri)){
+				return name;
+			}
+		}
+		return null;
 	}
 }

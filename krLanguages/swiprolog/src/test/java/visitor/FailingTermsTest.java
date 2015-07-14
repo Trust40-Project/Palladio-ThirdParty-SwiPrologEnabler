@@ -22,11 +22,10 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.io.StringReader;
 
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.ParserException;
-
 import org.junit.Test;
 
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.ParserException;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Parser4;
 import swiprolog.visitor.Visitor4;

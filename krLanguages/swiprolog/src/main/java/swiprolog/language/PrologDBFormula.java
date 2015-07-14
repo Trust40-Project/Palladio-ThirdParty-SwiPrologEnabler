@@ -23,12 +23,12 @@ import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.parser.SourceInfo;
-import swiprolog.database.SWIPrologDatabase;
+import swiprolog.database.PrologDatabase;
 
 /**
  * <p>
  * A Prolog database formula is an expression that can be inserted into a
- * {@link SWIPrologDatabase}.
+ * {@link PrologDatabase}.
  * </p>
  *
  * <p>

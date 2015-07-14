@@ -6,7 +6,7 @@ import java.util.BitSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.ParserException;
 import krTools.parser.SourceInfo;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;

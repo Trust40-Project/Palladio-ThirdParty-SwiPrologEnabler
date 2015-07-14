@@ -18,7 +18,7 @@ package swiprolog.validator;
 
 import java.util.List;
 
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;

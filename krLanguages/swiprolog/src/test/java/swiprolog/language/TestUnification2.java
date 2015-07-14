@@ -29,7 +29,7 @@ import jpl.Atom;
 import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
-import krTools.errors.exceptions.KRInitFailedException;
+import krTools.exceptions.KRInitFailedException;
 import krTools.language.Substitution;
 import krTools.language.Var;
 import swiprolog.SWIPrologInterface;

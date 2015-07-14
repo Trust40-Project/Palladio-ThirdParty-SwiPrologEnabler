@@ -28,10 +28,10 @@ import java.util.Set;
 
 import krTools.KRInterface;
 import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.KRQueryFailedException;
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.KRQueryFailedException;
+import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
@@ -39,7 +39,7 @@ import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
-import swiprolog.database.SWIPrologDatabase;
+import swiprolog.database.PrologDatabase;
 import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologSubstitution;
@@ -59,7 +59,7 @@ public final class SWIPrologInterface implements KRInterface {
 	 * that agent. An owner that has no associated databases should be removed
 	 * from the map.
 	 */
-	private Map<String, SWIPrologDatabase> databases = new HashMap<String, SWIPrologDatabase>();
+	private Map<String, PrologDatabase> databases = new HashMap<String, PrologDatabase>();
 
 	/**
 	 * Creates new inference engine and empty set of databases.
@@ -70,7 +70,7 @@ public final class SWIPrologInterface implements KRInterface {
 	public SWIPrologInterface() throws KRInitFailedException {
 		// Initialize inference engine.
 		try {
-			SWIPrologDatabase.rawquery(JPLUtils.createCompound(
+			PrologDatabase.rawquery(JPLUtils.createCompound(
 					"set_prolog_flag", new jpl.Atom("debug_on_error"),
 					new jpl.Atom("false")));
 		} catch (KRQueryFailedException e) {
@@ -97,7 +97,7 @@ public final class SWIPrologInterface implements KRInterface {
 	 * @returns The database associated with a given agent of a given type, or
 	 *          {@code null} if no database of the given type exists.
 	 */
-	protected SWIPrologDatabase getDatabase(String name) {
+	protected PrologDatabase getDatabase(String name) {
 		return this.databases.get(name);
 	}
 
@@ -106,7 +106,7 @@ public final class SWIPrologInterface implements KRInterface {
 			throws KRDatabaseException {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
-		SWIPrologDatabase database = new SWIPrologDatabase(theory,this);
+		PrologDatabase database = new PrologDatabase(theory,this);
 		// Add database to list of databases maintained by SWI Prolog and
 		// associated with name.
 		this.databases.put(database.getName(), database);
@@ -119,7 +119,7 @@ public final class SWIPrologInterface implements KRInterface {
 	 *
 	 * @param db
 	 */
-	public void removeDatabase(SWIPrologDatabase db) {
+	public void removeDatabase(PrologDatabase db) {
 		this.databases.remove(db.getName());
 	}
 
@@ -152,11 +152,11 @@ public final class SWIPrologInterface implements KRInterface {
 	 */
 	@Override
 	public void release() throws KRDatabaseException {
-		for (SWIPrologDatabase db : this.databases.values()) {
+		for (PrologDatabase db : this.databases.values()) {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
 		}
-		this.databases = new HashMap<String, SWIPrologDatabase>();
+		this.databases = new HashMap<String, PrologDatabase>();
 	}
 
 	@Override

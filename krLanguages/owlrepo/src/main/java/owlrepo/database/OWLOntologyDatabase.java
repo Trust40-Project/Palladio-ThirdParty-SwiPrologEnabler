@@ -8,8 +8,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRQueryFailedException;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;

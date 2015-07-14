@@ -15,19 +15,23 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package krTools.errors.exceptions;
+package krTools.exceptions;
 
 /**
- * A KR Database exception should be thrown in case a database could <i>not be
- * created</i>, if content in the database could <i>not be updated</i>, e.g.,
- * could not be added or removed, or something <i>bad happened while
- * destroying</i> the database.
+ * A KR interface not supported exception should be thrown either if the
+ * interface does not support some functionality or the interface is not
+ * supported at all. See also package krTools.krFactory.
  */
-public class KRDatabaseException extends KRException {
+public class KRInterfaceNotSupportedException extends KRException {
 
-	private static final long serialVersionUID = 2132716415540874609L;
+	private static final long serialVersionUID = 4881505555016007638L;
 
-	public KRDatabaseException(String message) {
+	/**
+	 * Creates ...
+	 *
+	 * @param message
+	 */
+	public KRInterfaceNotSupportedException(String message) {
 		super(message);
 	}
 
@@ -37,7 +41,7 @@ public class KRDatabaseException extends KRException {
 	 * @param message
 	 * @param cause
 	 */
-	public KRDatabaseException(String message, Throwable cause) {
+	public KRInterfaceNotSupportedException(String message, Throwable cause) {
 		super(message, cause);
 	}
 

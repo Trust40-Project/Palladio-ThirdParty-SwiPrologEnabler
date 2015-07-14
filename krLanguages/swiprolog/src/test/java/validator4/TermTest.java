@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import jpl.Term;
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.ParserException;
 
 import org.junit.Test;
 

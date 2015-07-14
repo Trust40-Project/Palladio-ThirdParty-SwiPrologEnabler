@@ -23,11 +23,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
-import krTools.errors.exceptions.ParserException;
-
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
+import krTools.exceptions.ParserException;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;

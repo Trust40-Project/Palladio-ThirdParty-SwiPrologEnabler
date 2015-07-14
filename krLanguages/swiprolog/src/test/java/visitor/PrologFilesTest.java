@@ -25,13 +25,12 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 
-import krTools.errors.exceptions.ParserException;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import krTools.exceptions.ParserException;
 import swiprolog.parser.Parser4;
 import swiprolog.visitor.Visitor4;
 
