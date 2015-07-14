@@ -30,7 +30,7 @@ import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
-import swiprolog.SWIPrologInterface;
+import swiprolog.SwiPrologInterface;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
@@ -48,7 +48,7 @@ public class PrologDatabase implements Database {
 	/** 
 	 * The KRI that is managing this database.
 	 */
-	private final SWIPrologInterface owner;
+	private final SwiPrologInterface owner;
 	/**
 	 * Static int for representing unique number to be able to generate unique
 	 * database names.
@@ -61,7 +61,7 @@ public class PrologDatabase implements Database {
 	 * @throws KRInitFailedException
 	 *             If database creation failed.
 	 */
-	public PrologDatabase(Collection<DatabaseFormula> content, SWIPrologInterface owner)
+	public PrologDatabase(Collection<DatabaseFormula> content, SwiPrologInterface owner)
 			throws KRDatabaseException {
 		int number;
 		synchronized (uniqueNumberCounter) {

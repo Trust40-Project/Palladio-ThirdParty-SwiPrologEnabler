@@ -32,7 +32,7 @@ import jpl.Variable;
 import krTools.exceptions.KRInitFailedException;
 import krTools.language.Substitution;
 import krTools.language.Var;
-import swiprolog.SWIPrologInterface;
+import swiprolog.SwiPrologInterface;
 
 public class TestUnification2 {
 	/**
@@ -45,7 +45,7 @@ public class TestUnification2 {
 	 */
 	public Substitution getSubstitution(PrologVar var, jpl.Term term)
 			throws KRInitFailedException {
-		SWIPrologInterface swi = new SWIPrologInterface();
+		SwiPrologInterface swi = new SwiPrologInterface();
 		Substitution unifier = swi.getSubstitution(new HashMap<Var, krTools.language.Term>());
 		unifier.addBinding(var, new PrologTerm(term, null));
 		return unifier;

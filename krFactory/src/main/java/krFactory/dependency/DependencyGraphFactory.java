@@ -26,7 +26,7 @@ import krTools.KRInterface;
 import krTools.dependency.DependencyGraph;
 import krTools.exceptions.KRInitFailedException;
 import krTools.exceptions.KRInterfaceNotSupportedException;
-import swiprolog.SWIPrologInterface;
+import swiprolog.SwiPrologInterface;
 import swiprolog.dependency.PrologDependencyGraph;
 
 /**
@@ -39,7 +39,7 @@ public class DependencyGraphFactory {
 	private static Map<Class<? extends KRInterface>, Class<? extends DependencyGraph<?>>> graphs = new HashMap<>(); 
 
 	static {
-		graphs.put(SWIPrologInterface.class,PrologDependencyGraph.class);
+		graphs.put(SwiPrologInterface.class,PrologDependencyGraph.class);
 		//graphs.put(OWLRepoKRInterface.class); TODO
 	}
 

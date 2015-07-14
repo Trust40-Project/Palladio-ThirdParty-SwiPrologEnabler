@@ -14,7 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import swiprolog.SWIPrologInterface;
+import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologDBFormula;
 
 /**
@@ -42,7 +42,7 @@ public class TestUpdate2 {
 
 	@Before
 	public void setUp() throws Exception {
-		this.language = new SWIPrologInterface();
+		this.language = new SwiPrologInterface();
 		fillKB();
 	}
 

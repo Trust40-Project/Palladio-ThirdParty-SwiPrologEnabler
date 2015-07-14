@@ -20,7 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import swiprolog.SWIPrologInterface;
+import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologUpdate;
@@ -55,7 +55,7 @@ public class TestUpdate {
 
 	@Before
 	public void setUp() throws Exception {
-		this.language = new SWIPrologInterface();
+		this.language = new SwiPrologInterface();
 		this.knowledgebase = this.language
 				.getDatabase(new LinkedHashSet<DatabaseFormula>());
 		this.beliefbase = this.language

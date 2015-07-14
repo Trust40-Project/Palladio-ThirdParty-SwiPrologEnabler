@@ -24,7 +24,7 @@ import krTools.KRInterface;
 import krTools.exceptions.KRInitFailedException;
 import krTools.exceptions.KRInterfaceNotSupportedException;
 import owlrepo.OWLRepoKRInterface;
-import swiprolog.SWIPrologInterface;
+import swiprolog.SwiPrologInterface;
 
 /**
  * Factory of KRIs. Currently, the factory supports:
@@ -43,7 +43,7 @@ public class KRFactory {
 	 */
 	private static Map<String, Class<? extends KRInterface>> kr = new HashMap<>();
 	static {
-		kr.put(SWI_PROLOG,SWIPrologInterface.class);
+		kr.put(SWI_PROLOG,SwiPrologInterface.class);
 		kr.put(OWL_REPO,OWLRepoKRInterface.class);
 	}
 

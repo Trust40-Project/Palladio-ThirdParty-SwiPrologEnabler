@@ -48,7 +48,7 @@ import swiprolog.parser.KRInterfaceParser4;
 /**
  * Implementation of {@link KRInterface} for SWI Prolog.
  */
-public final class SWIPrologInterface implements KRInterface {
+public final class SwiPrologInterface implements KRInterface {
 	static {
 		SwiInstaller.init();
 	}
@@ -67,7 +67,7 @@ public final class SWIPrologInterface implements KRInterface {
 	 * @throws KRInitFailedException
 	 *             If failed to create inference engine or database.
 	 */
-	public SWIPrologInterface() throws KRInitFailedException {
+	public SwiPrologInterface() throws KRInitFailedException {
 		// Initialize inference engine.
 		try {
 			PrologDatabase.rawquery(JPLUtils.createCompound(
