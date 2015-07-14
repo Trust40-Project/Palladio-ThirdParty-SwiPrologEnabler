@@ -48,6 +48,7 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 	
 	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, Reader reader, SourceInfo info) {
 		this(swrlapiOWLOntology);
+
 		try {
 			lines = IOUtils.readLines(reader);
 		} catch (IOException e) {
@@ -59,6 +60,7 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 	private SWRLRule parseLine(){
 		SWRLRule rule =  null;
 		try { 
+
 			//takes the next from the List of parsed lines as Strings
 			currentLine = lines.get(lineNr); lineNr++;
 			
@@ -70,7 +72,6 @@ public class SWRLParser extends org.swrlapi.parser.SWRLParser implements Parser 
 					return rule;
 				//call SWRL parser
 				rule = parseRule(currentLine, "rule"+lineNr);
-
 			}
 //			if (isSWRLRuleCorrectAndComplete(currentLine)) {
 //				//parse the line
