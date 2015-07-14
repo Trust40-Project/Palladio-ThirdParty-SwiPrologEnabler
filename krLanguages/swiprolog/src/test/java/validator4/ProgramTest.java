@@ -22,13 +22,10 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.io.StringReader;
 
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.ParserException;
-
-import org.junit.Before;
 import org.junit.Test;
 
-import swiprolog.SWIPrologInterface;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.ParserException;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
@@ -40,12 +37,6 @@ import swiprolog.visitor.Visitor4;
  *
  */
 public class ProgramTest {
-
-	@Before
-	public void init() throws KRInitFailedException {
-		SWIPrologInterface.getInstance();
-	}
-
 	/**
 	 * Create a new prolog4 validator for the test, using given string as input
 	 * stream.
@@ -56,36 +47,26 @@ public class ProgramTest {
 	 * @throws IOException
 	 */
 	public Validator4 validator(String in) throws IOException {
-		return new Validator4(new Visitor4(new Parser4(new StringReader(in),
-				null)));
+		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test
-	public void testValidateBasicUpdate() throws IOException,
-	KRInitFailedException, ParserException {
+	public void testValidateBasicUpdate() throws IOException, KRInitFailedException, ParserException {
 		try {
 			validator("1").queryOrEmpty();
 			throw new IllegalStateException("parse of wrong query succeeded");
 		} catch (ParserException e) {
-			assertEquals(
-					ParserErrorMessages.NUMBER_NOT_AS_GOAL
-							.toReadableString("1"),
-					e.getMessage());
+			assertEquals(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString("1"), e.getMessage());
 		}
 	}
 
 	@Test
-	public void testVarAsGoal() throws IOException, KRInitFailedException,
-			ParserException {
+	public void testVarAsGoal() throws IOException, KRInitFailedException, ParserException {
 		try {
 			validator("X").queryOrEmpty();
 			throw new IllegalStateException("parse of wrong query succeeded");
 		} catch (ParserException e) {
-			assertEquals(
-					ParserErrorMessages.VARIABLES_NOT_AS_GOAL
-							.toReadableString("X"),
-					e.getMessage());
+			assertEquals(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString("X"), e.getMessage());
 		}
 	}
-
 }

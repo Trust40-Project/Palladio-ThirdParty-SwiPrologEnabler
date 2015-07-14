@@ -23,12 +23,12 @@ import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.parser.SourceInfo;
-import swiprolog.database.SWIPrologDatabase;
+import swiprolog.database.PrologDatabase;
 
 /**
  * <p>
  * A Prolog database formula is an expression that can be inserted into a
- * {@link SWIPrologDatabase}.
+ * {@link PrologDatabase}.
  * </p>
  *
  * <p>
@@ -39,9 +39,7 @@ import swiprolog.database.SWIPrologDatabase;
  * the check is only performed at compile time).
  * </p>
  */
-public class PrologDBFormula extends PrologExpression implements
-DatabaseFormula {
-
+public class PrologDBFormula extends PrologExpression implements DatabaseFormula {
 	/**
 	 * Creates a Prolog database formula that can be part of a Prolog database.
 	 *
@@ -58,8 +56,7 @@ DatabaseFormula {
 	public PrologDBFormula applySubst(Substitution substitution) {
 		Map<String, jpl.Term> jplSubstitution = (substitution == null) ? null
 				: ((PrologSubstitution) substitution).getJPLSolution();
-		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution,
-				getTerm()), getSourceInfo());
+		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
 	}
 
 	@Override
@@ -79,5 +76,4 @@ DatabaseFormula {
 	public Query toQuery() {
 		return new PrologQuery(getTerm(), getSourceInfo());
 	}
-
 }

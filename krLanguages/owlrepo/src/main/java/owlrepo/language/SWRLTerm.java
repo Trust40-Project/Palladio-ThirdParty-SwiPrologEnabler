@@ -2,10 +2,6 @@ package owlrepo.language;
 
 import java.util.Set;
 
-import krTools.language.Substitution;
-import krTools.language.Term;
-import krTools.language.Var;
-
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLDataPropertyAtom;
@@ -17,6 +13,9 @@ import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLSameIndividualAtom;
 import org.semanticweb.owlapi.model.SWRLUnaryAtom;
 import org.semanticweb.owlapi.model.SWRLVariable;
+
+import krTools.language.Substitution;
+import krTools.language.Term;
 
 public class SWRLTerm extends SWRLExpression implements Term {
 	

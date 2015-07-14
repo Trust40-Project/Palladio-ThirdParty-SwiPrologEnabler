@@ -46,7 +46,8 @@ import krTools.parser.SourceInfo;
  * {@link #getFreeVar}, {@link #applySubst}, and {@link #mgu}, however, only
  * make sense if variables are present in the language.
  * </p>
- * </ul> </p>
+ * </ul>
+ * </p>
  *
  * <p>
  * <b>Important</b>: {@link Expression} and other language elements such as
@@ -55,7 +56,6 @@ import krTools.parser.SourceInfo;
  * </p>
  */
 public interface Expression {
-
 	/**
 	 * @return String of the form "{operator name}/{arity}" where arity is
 	 *         number of arguments associated with the operator.
@@ -101,5 +101,4 @@ public interface Expression {
 	 *         used to construct this {@link Expression}.
 	 */
 	SourceInfo getSourceInfo();
-
 }

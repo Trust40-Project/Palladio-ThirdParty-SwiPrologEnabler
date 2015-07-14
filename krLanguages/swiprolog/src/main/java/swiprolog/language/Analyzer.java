@@ -68,22 +68,22 @@ public class Analyzer {
 	}
 
 	public void analyze() {
-		for (DatabaseFormula dbf : this.dbfs) {
+		for (DatabaseFormula dbf : dbfs) {
 			addDefinition(dbf);
 		}
-		for (Query query : this.queries) {
+		for (Query query : queries) {
 			addQuery(query);
 		}
-		this.undefined.addAll(this.used.keySet());
-		this.undefined.removeAll(this.definitions.keySet());
-		this.unused.addAll(this.definitions.keySet());
-		this.unused.removeAll(this.used.keySet());
+		undefined.addAll(used.keySet());
+		undefined.removeAll(definitions.keySet());
+		unused.addAll(definitions.keySet());
+		unused.removeAll(used.keySet());
 	}
 
 	public Set<Query> getUndefined() {
 		Set<Query> undefined = new HashSet<>();
 		for (String undf : this.undefined) {
-			undefined.addAll(this.used.get(undf));
+			undefined.addAll(used.get(undf));
 		}
 
 		return undefined;
@@ -92,7 +92,7 @@ public class Analyzer {
 	public Set<DatabaseFormula> getUnused() {
 		Set<DatabaseFormula> unused = new HashSet<>();
 		for (String df : this.unused) {
-			unused.addAll(this.definitions.get(df));
+			unused.addAll(definitions.get(df));
 		}
 
 		return unused;
@@ -121,13 +121,13 @@ public class Analyzer {
 		}
 		// Add a new definition node
 		List<PrologDBFormula> formulas;
-		if (this.definitions.containsKey(headSig)) {
-			formulas = this.definitions.get(headSig);
+		if (definitions.containsKey(headSig)) {
+			formulas = definitions.get(headSig);
 		} else {
 			formulas = new ArrayList<>();
 		}
 		formulas.add(new PrologDBFormula(headTerm, formula.getSourceInfo()));
-		this.definitions.put(headSig, formulas);
+		definitions.put(headSig, formulas);
 	}
 
 	/**
@@ -143,8 +143,7 @@ public class Analyzer {
 	public void addQuery(DatabaseFormula formula) {
 		// we may assume the formula is a single term, so we can just
 		// as well handle the inner term as a general term.
-		this.addQuery(((PrologDBFormula) formula).getTerm(),
-				formula.getSourceInfo());
+		this.addQuery(((PrologDBFormula) formula).getTerm(), formula.getSourceInfo());
 	}
 
 	private void addQuery(jpl.Term plTerm, SourceInfo info) {
@@ -155,25 +154,21 @@ public class Analyzer {
 		if (termSig.equals("not/1")) {
 			this.addQuery(plTerm.arg(1), info);
 			// unpack the conjunction, disjunction and forall /2-operators
-		} else if (termSig.equals(";/2") || termSig.equals(",/2")
-				|| termSig.equals("forall/2")) {
+		} else if (termSig.equals(";/2") || termSig.equals(",/2") || termSig.equals("forall/2")) {
 			this.addQuery(plTerm.arg(1), info);
 			this.addQuery(plTerm.arg(2), info);
 			// findall, setof aggregate and aggregate_all /3-operators only
 			// have a query in the second argument.
-		} else if (termSig.equals("findall/3") || termSig.equals("setof/3")
-				|| termSig.equals("aggregate/3")
+		} else if (termSig.equals("findall/3") || termSig.equals("setof/3") || termSig.equals("aggregate/3")
 				|| termSig.equals("aggregate_all/3")) {
 			this.addQuery(plTerm.arg(2), info);
 			// aggregate and aggregate_all /4-operators have the query in
 			// the third argument.
-		} else if (termSig.equals("aggregate/4")
-				|| termSig.equals("aggregate_all/4")) {
+		} else if (termSig.equals("aggregate/4") || termSig.equals("aggregate_all/4")) {
 			this.addQuery(plTerm.arg(3), info);
 		} else if (termSig.equals("predsort/3")) {
 			// first argument is name that will be called as name/3
-			jpl.Term stubfunc = new Compound(plTerm.arg(1).name(),
-					new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			jpl.Term stubfunc = new Compound(plTerm.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			this.addQuery(stubfunc, info);
 		} else {
 			// do nothing if the term is a built-in prolog operator
@@ -184,13 +179,13 @@ public class Analyzer {
 			// but needs to be added as a query node
 			// Add a new definition node
 			List<PrologQuery> formulas;
-			if (this.used.containsKey(termSig)) {
-				formulas = this.used.get(termSig);
+			if (used.containsKey(termSig)) {
+				formulas = used.get(termSig);
 			} else {
 				formulas = new ArrayList<>();
 			}
 			formulas.add(new PrologQuery(plTerm, info));
-			this.used.put(termSig, formulas);
+			used.put(termSig, formulas);
 		}
 	}
 

@@ -4,11 +4,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import krTools.language.Expression;
-import krTools.language.Substitution;
-import krTools.language.Var;
-import krTools.parser.SourceInfo;
-
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.SWRLArgument;
@@ -16,10 +11,12 @@ import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLDataFactory;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
-import org.swrlapi.core.SWRLAPIFactory;
 
+import krTools.language.Expression;
+import krTools.language.Substitution;
+import krTools.language.Var;
+import krTools.parser.SourceInfo;
 import owlrepo.parser.SWRLParserSourceInfo;
-import uk.ac.manchester.cs.owl.owlapi.SWRLVariableImpl;
 
 public class SWRLExpression implements Expression{
 

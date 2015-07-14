@@ -17,7 +17,6 @@
 
 package swiprolog;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
@@ -25,15 +24,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import krTools.KRInterface;
 import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.KRQueryFailedException;
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.KRQueryFailedException;
+import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
@@ -41,7 +39,7 @@ import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
-import swiprolog.database.SWIPrologDatabase;
+import swiprolog.database.PrologDatabase;
 import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologSubstitution;
@@ -50,30 +48,18 @@ import swiprolog.parser.KRInterfaceParser4;
 /**
  * Implementation of {@link KRInterface} for SWI Prolog.
  */
-public final class SWIPrologInterface implements KRInterface {
+public final class SwiPrologInterface implements KRInterface {
 	static {
 		SwiInstaller.init();
 	}
 
-	/**
-	 * use this for Singleton Design Pattern but this is not really a singleton
-	 * as {@link #reset()} erases all internal fields. In fact this is now more
-	 * a utility class except that we kept the getInstance(). FIXME: this
-	 * implies we now HAVE to REUSE THIS INSTANCE every time we launch a MAS and
-	 * RESET local fields INSTEAD of simply creating a NEW instance....
-	 */
-	private static SWIPrologInterface instance = null;
 	/**
 	 * Contains all databases that are maintained by SWI Prolog. The key is the
 	 * owner of the database. The value is a list of databases associated with
 	 * that agent. An owner that has no associated databases should be removed
 	 * from the map.
 	 */
-	private Map<String, SWIPrologDatabase> databases = new HashMap<String, SWIPrologDatabase>();
-	/**
-	 * Properties
-	 */
-	private final Properties properties;
+	private Map<String, PrologDatabase> databases = new HashMap<String, PrologDatabase>();
 
 	/**
 	 * Creates new inference engine and empty set of databases.
@@ -81,44 +67,19 @@ public final class SWIPrologInterface implements KRInterface {
 	 * @throws KRInitFailedException
 	 *             If failed to create inference engine or database.
 	 */
-	private SWIPrologInterface() throws KRInitFailedException {
+	public SwiPrologInterface() throws KRInitFailedException {
 		// Initialize inference engine.
 		try {
-			SWIPrologDatabase.rawquery(JPLUtils.createCompound(
-					"set_prolog_flag", new jpl.Atom("debug_on_error"),
-					new jpl.Atom("false")));
+			PrologDatabase.rawquery(
+					JPLUtils.createCompound("set_prolog_flag", new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
 		} catch (KRQueryFailedException e) {
-			throw new KRInitFailedException(
-					"swi prolog says it can't set the run mode", e);
+			throw new KRInitFailedException("swi prolog says it can't set the run mode", e);
 		}
 		// See http://www.swi-prolog.org/packages/jpl/release_notes.html for
 		// explanation why Don't Tell Me Mode needs to be false. Setting this
 		// mode to false ensures that variables with initial '_' are treated as
 		// regular variables.
 		jpl.JPL.setDTMMode(false);
-
-		// TODO: This can be removed??
-		this.properties = new Properties();
-		this.properties.setProperty("EnableJPLQueryBugFix", "true");
-	}
-
-	/**
-	 * Returns THE SWIPrologLanguage instance.
-	 *
-	 * @return The instance of {@link SWIPrologInterface}.
-	 * @throws KRInitFailedException
-	 */
-	public static synchronized SWIPrologInterface getInstance()
-			throws KRInitFailedException {
-		if (SWIPrologInterface.instance == null) {
-			SWIPrologInterface.instance = new SWIPrologInterface();
-		}
-		return SWIPrologInterface.instance;
-	}
-
-	@Override
-	public final String getName() {
-		return "SWIProlog";
 	}
 
 	/**
@@ -134,19 +95,18 @@ public final class SWIPrologInterface implements KRInterface {
 	 * @returns The database associated with a given agent of a given type, or
 	 *          {@code null} if no database of the given type exists.
 	 */
-	protected SWIPrologDatabase getDatabase(String name) {
-		return this.databases.get(name);
+	protected PrologDatabase getDatabase(String name) {
+		return databases.get(name);
 	}
 
 	@Override
-	public Database getDatabase(Collection<DatabaseFormula> theory)
-			throws KRDatabaseException {
+	public Database getDatabase(Collection<DatabaseFormula> theory) throws KRDatabaseException {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
-		SWIPrologDatabase database = new SWIPrologDatabase(theory);
+		PrologDatabase database = new PrologDatabase(theory, this);
 		// Add database to list of databases maintained by SWI Prolog and
 		// associated with name.
-		this.databases.put(database.getName(), database);
+		databases.put(database.getName(), database);
 
 		// Return new database.
 		return database;
@@ -156,8 +116,8 @@ public final class SWIPrologInterface implements KRInterface {
 	 *
 	 * @param db
 	 */
-	public void removeDatabase(SWIPrologDatabase db) {
-		this.databases.remove(db.getName());
+	public void removeDatabase(PrologDatabase db) {
+		databases.remove(db.getName());
 	}
 
 	/**
@@ -168,8 +128,7 @@ public final class SWIPrologInterface implements KRInterface {
 		try {
 			return new KRInterfaceParser4(r, info);
 		} catch (IOException e) {
-			throw new ParserException("could not parse the data as SWI prolog",
-					info, e);
+			throw new ParserException("could not parse the data as SWI prolog", info, e);
 		}
 	}
 
@@ -189,11 +148,11 @@ public final class SWIPrologInterface implements KRInterface {
 	 */
 	@Override
 	public void release() throws KRDatabaseException {
-		for (SWIPrologDatabase db : this.databases.values()) {
+		for (PrologDatabase db : databases.values()) {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
 		}
-		this.databases = new HashMap<String, SWIPrologDatabase>();
+		databases = new HashMap<String, PrologDatabase>();
 	}
 
 	@Override
@@ -215,25 +174,14 @@ public final class SWIPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
-			Set<Query> queries) {
+	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries) {
 		Analyzer analyzer = new Analyzer(dbfs, queries);
 		analyzer.analyze();
 		return analyzer.getUnused();
-	}
-
-	/**
-	 * @return The name of this {@link SWIPrologInterface}.
-	 */
-	@Override
-	public String toString() {
-		return getName();
 	}
 
 	@Override
 	public boolean supportsSerialization() {
 		return false;
 	}
-
-
 }

@@ -17,7 +17,6 @@
 
 package krTools;
 
-import java.io.File;
 import java.io.Reader;
 import java.net.URI;
 import java.util.Collection;
@@ -26,9 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
@@ -53,18 +52,13 @@ import krTools.parser.SourceInfo;
  * </ul>
  */
 public interface KRInterface {
-
-	/**
-	 * @return The name of the KR interface (no spaces or special chars allowed)
-	 */
-	String getName();
-
 	/**
 	 * Performs any initializations that need to be performed before the KR
 	 * interface can be used. Pass on any URI (file or URL) from use cases that
-	 * is needed to initialize the interface. 
+	 * is needed to initialize the interface.
 	 *
-	 * @param set of URI-s that can be files, url-s or urn-s to be passed
+	 * @param set
+	 *            of URI-s that can be files, url-s or urn-s to be passed
 	 * @throws KRInitFailedException
 	 *             If initialization of the KR interface failed.
 	 */
@@ -90,8 +84,7 @@ public interface KRInterface {
 	 *             If the database could not be created, or the content provided
 	 *             could not be added.
 	 */
-	Database getDatabase(Collection<DatabaseFormula> content)
-			throws KRDatabaseException;
+	Database getDatabase(Collection<DatabaseFormula> content) throws KRDatabaseException;
 
 	/**
 	 * Returns a parser for this KR language. Only initializes the parser but
@@ -120,7 +113,7 @@ public interface KRInterface {
 	 * @return A substitution which binds all variables in the map to the
 	 *         associated terms.
 	 */
-	public Substitution getSubstitution(Map<Var, Term> map);
+	Substitution getSubstitution(Map<Var, Term> map);
 
 	/**
 	 * Reports the queries in the given set of queries that have not been
@@ -128,21 +121,18 @@ public interface KRInterface {
 	 * implicitly queries in the set of database formulas itself (e.g., as
 	 * condition in a rule).
 	 */
-	public Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries);
+	Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
 	 * Reports the formulas that have been defined in the set of database
 	 * formulas but are not used (queried).
 	 */
-	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
-			Set<Query> queries);
+	Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
 	 * Check if terms in this KR implementation can be serialized.
 	 *
 	 * @return true iff terms from this KR implementation can be serialized
 	 */
-	public boolean supportsSerialization();
-
-
+	boolean supportsSerialization();
 }

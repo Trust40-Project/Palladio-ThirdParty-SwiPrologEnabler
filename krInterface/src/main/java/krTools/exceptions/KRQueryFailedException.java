@@ -15,23 +15,22 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package krTools.errors.exceptions;
+package krTools.exceptions;
 
 /**
- * A KR interface not supported exception should be thrown either if the
- * interface does not support some functionality or the interface is not
- * supported at all. See also package krTools.krFactory.
+ * A KR Query Failed exception should be thrown in case something bad happened
+ * while a query evaluation is performed by the KR inference engine.
  */
-public class KRInterfaceNotSupportedException extends KRException {
+public class KRQueryFailedException extends KRException {
 
-	private static final long serialVersionUID = 4881505555016007638L;
+	private static final long serialVersionUID = -7240306206190923813L;
 
 	/**
 	 * Creates ...
 	 *
 	 * @param message
 	 */
-	public KRInterfaceNotSupportedException(String message) {
+	public KRQueryFailedException(String message) {
 		super(message);
 	}
 
@@ -41,7 +40,7 @@ public class KRInterfaceNotSupportedException extends KRException {
 	 * @param message
 	 * @param cause
 	 */
-	public KRInterfaceNotSupportedException(String message, Throwable cause) {
+	public KRQueryFailedException(String message, Throwable cause) {
 		super(message, cause);
 	}
 

@@ -15,15 +15,14 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package krTools.errors.exceptions;
-
-import krTools.KRInterface;
+package krTools.exceptions;
 
 /**
- * A KR initialization exception should be thrown if the initialization of the
- * interface failed for some reason. See {@link KRInterface#initialize()}.
+ * A KR interface not supported exception should be thrown either if the
+ * interface does not support some functionality or the interface is not
+ * supported at all. See also package krTools.krFactory.
  */
-public class KRInitFailedException extends KRException {
+public class KRInterfaceNotSupportedException extends KRException {
 
 	private static final long serialVersionUID = 4881505555016007638L;
 
@@ -32,9 +31,8 @@ public class KRInitFailedException extends KRException {
 	 *
 	 * @param message
 	 */
-	public KRInitFailedException(String message) {
+	public KRInterfaceNotSupportedException(String message) {
 		super(message);
-		assert message != null;
 	}
 
 	/**
@@ -43,9 +41,8 @@ public class KRInitFailedException extends KRException {
 	 * @param message
 	 * @param cause
 	 */
-	public KRInitFailedException(String message, Throwable cause) {
+	public KRInterfaceNotSupportedException(String message, Throwable cause) {
 		super(message, cause);
-		assert message != null;
 	}
 
 }

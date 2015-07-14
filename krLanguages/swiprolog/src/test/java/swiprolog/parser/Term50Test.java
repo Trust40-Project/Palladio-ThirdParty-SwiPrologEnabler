@@ -46,8 +46,7 @@ public class Term50Test {
 		Prolog4Lexer lexer = new Prolog4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		Prolog4Parser parser = new Prolog4Parser(tokens);
-		parser.getInterpreter().setPredictionMode(
-				PredictionMode.LL_EXACT_AMBIG_DETECTION);
+		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
@@ -59,14 +58,12 @@ public class Term50Test {
 	 * Checks that two ':' separated texts (which should be term0 parse-able
 	 * texts) are parssed properly.
 	 */
-	private void checkParsesAsTerm50(String text1, String text2)
-			throws IOException {
+	private void checkParsesAsTerm50(String text1, String text2) throws IOException {
 		String text = text1 + ":" + text2;
 		Prolog4Parser parser = getParser(text);
 		ParseTree tree = parser.term50();
 		System.out.println(text + " -> " + tree.toStringTree(parser));
-		assertEquals("(term50 " + "(term0 " + text1 + ") : (term0 " + text2
-				+ "))", tree.toStringTree(parser));
+		assertEquals("(term50 " + "(term0 " + text1 + ") : (term0 " + text2 + "))", tree.toStringTree(parser));
 	}
 
 	@Test

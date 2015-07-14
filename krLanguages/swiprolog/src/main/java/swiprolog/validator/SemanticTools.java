@@ -18,7 +18,7 @@ package swiprolog.validator;
 
 import java.util.List;
 
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
@@ -44,17 +44,16 @@ public class SemanticTools {
 	 * that conjunct is good update.
 	 * </p>
 	 *
-	 * @param {@link PrologTerm} that is supposedly an update (ie conjunct of
-	 *        [not] dbFormula)
+	 * @param {@link
+	 * 			PrologTerm} that is supposedly an update (ie conjunct of [not]
+	 *            dbFormula)
 	 * @returns the original term (no conversion is performed)
 	 * @throws ParserException
 	 *             if term is no good Update.
 	 * @see #checkDBFormula
 	 */
-	public static PrologUpdate conj2Update(PrologTerm conjunct)
-			throws ParserException {
-		return new PrologUpdate(basicUpdateCheck(conjunct),
-				conjunct.getSourceInfo());
+	public static PrologUpdate conj2Update(PrologTerm conjunct) throws ParserException {
+		return new PrologUpdate(basicUpdateCheck(conjunct), conjunct.getSourceInfo());
 	}
 
 	/**
@@ -70,8 +69,7 @@ public class SemanticTools {
 	 *             </p>
 	 * @returns original conjunct (if term is good update)
 	 */
-	private static jpl.Term basicUpdateCheck(PrologTerm conjunct)
-			throws ParserException {
+	private static jpl.Term basicUpdateCheck(PrologTerm conjunct) throws ParserException {
 		List<jpl.Term> terms = JPLUtils.getOperands(",", conjunct.getTerm());
 		for (jpl.Term term : terms) {
 			if (JPLUtils.getSignature(term).equals("not/1")) {
@@ -85,9 +83,9 @@ public class SemanticTools {
 
 	/**
 	 * <p>
-	 * Converts given {@Link PrologTerm} into a {@link DatabaseFormula}
-	 * object made of it. Basic idea is that it checks that assert() will work
-	 * (not throw exceptions). This function checks only SINGLE formulas, not
+	 * Converts given {@Link PrologTerm} into a {@link DatabaseFormula} object
+	 * made of it. Basic idea is that it checks that assert() will work (not
+	 * throw exceptions). This function checks only SINGLE formulas, not
 	 * conjunctions. Use toDBFormulaList for that.
 	 * </p>
 	 * <p>
@@ -122,8 +120,7 @@ public class SemanticTools {
 	 * @throws ParserException
 	 *             If Prolog term is not a valid clause.
 	 */
-	public static DatabaseFormula DBFormula(PrologTerm term)
-			throws ParserException {
+	public static DatabaseFormula DBFormula(PrologTerm term) throws ParserException {
 		jpl.Term head, body;
 
 		if (term.getSignature().equals(":-/2")) {
@@ -135,29 +132,25 @@ public class SemanticTools {
 		}
 
 		if (head.isVariable()) {
-			throw new ParserException(
-					ParserErrorMessages.HEAD_CANT_BE_VAR.toReadableString(term
-							.toString()), term.getSourceInfo());
+			throw new ParserException(ParserErrorMessages.HEAD_CANT_BE_VAR.toReadableString(term.toString()),
+					term.getSourceInfo());
 		} else if (!JPLUtils.isPredication(head)) {
-			throw new ParserException(
-					ParserErrorMessages.HEAD_MUST_BE_CLAUSE.toReadableString(term
-							.toString()), term.getSourceInfo());
+			throw new ParserException(ParserErrorMessages.HEAD_MUST_BE_CLAUSE.toReadableString(term.toString()),
+					term.getSourceInfo());
 		}
 
 		String signature = JPLUtils.getSignature(head);
 		if (PrologOperators.prologBuiltin(signature)) {
-			throw new ParserException(
-					ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(term
-							.toString()), term.getSourceInfo());
+			throw new ParserException(ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(term.toString()),
+					term.getSourceInfo());
 		}
 
 		// check for special directives, and refuse those.
 		String name = signature.substring(0, signature.indexOf('/'));
 		if (PrologOperators.goalProtected(name)) {
 			throw new ParserException(
-					ParserErrorMessages.PROTECTED_PREDICATE.toReadableString(
-							head.toString(), term.toString()),
-							term.getSourceInfo());
+					ParserErrorMessages.PROTECTED_PREDICATE.toReadableString(head.toString(), term.toString()),
+					term.getSourceInfo());
 		}
 
 		// try to convert, it will throw if it fails.
@@ -177,31 +170,26 @@ public class SemanticTools {
 	 * @throws ParserException
 	 *             If t is not a well formed Prolog goal.
 	 */
-	public static jpl.Term toGoal(jpl.Term t, SourceInfo source)
-			throws ParserException {
+	public static jpl.Term toGoal(jpl.Term t, SourceInfo source) throws ParserException {
 		// 7.6.2.a use article 7.8.3
 		if (t.isVariable()) {
-			throw new ParserException(
-					ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString(JPLUtils
-							.toString(t)), source);
+			throw new ParserException(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
+					source);
 		}
 		// footnote of 7.6.2. If T is a number then there is no goal which
 		// corresponds to T.
 		if (t.isFloat() || t.isInteger()) {
-			throw new ParserException(
-					ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString(JPLUtils
-							.toString(t)), source);
+			throw new ParserException(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
+					source);
 		}
 		// 7.6.2.b
 		String sig = JPLUtils.getSignature(t);
 		if (PrologOperators.goalProtected(t.name())) {
 			throw new ParserException(
-					ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(JPLUtils
-							.toString(t)), source);
+					ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(JPLUtils.toString(t)), source);
 		} else if (sig.equals(":-/2")) {
-			throw new ParserException(
-					ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(JPLUtils
-							.toString(t)), source);
+			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
+					source);
 		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
 			toGoal(t.arg(1), source);
 			toGoal(t.arg(2), source);
@@ -229,9 +217,7 @@ public class SemanticTools {
 	 * @throws ParserException
 	 *             if prologTerm is not a good Query.
 	 */
-	public static PrologQuery toQuery(PrologTerm conjunction)
-			throws ParserException {
-		return new PrologQuery(toGoal(conjunction.getTerm(),
-				conjunction.getSourceInfo()), conjunction.getSourceInfo());
+	public static PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
+		return new PrologQuery(toGoal(conjunction.getTerm(), conjunction.getSourceInfo()), conjunction.getSourceInfo());
 	}
 }

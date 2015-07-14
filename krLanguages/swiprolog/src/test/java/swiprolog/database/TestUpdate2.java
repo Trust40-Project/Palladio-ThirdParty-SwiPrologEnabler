@@ -3,17 +3,17 @@ package swiprolog.database;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import jpl.Atom;
-import krTools.KRInterface;
-import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRQueryFailedException;
-import krTools.language.DatabaseFormula;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import jpl.Atom;
+import krTools.KRInterface;
+import krTools.database.Database;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRQueryFailedException;
+import krTools.language.DatabaseFormula;
+import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologDBFormula;
 
 /**
@@ -28,7 +28,6 @@ import swiprolog.language.PrologDBFormula;
  */
 
 public class TestUpdate2 {
-
 	// components enabling us to run the tests...
 	private KRInterface language;
 
@@ -42,18 +41,17 @@ public class TestUpdate2 {
 
 	@Before
 	public void setUp() throws Exception {
-		this.language = swiprolog.SWIPrologInterface.getInstance();
-
+		language = new SwiPrologInterface();
 		fillKB();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		if (this.beliefbase != null) {
-			this.beliefbase.destroy();
+		if (beliefbase != null) {
+			beliefbase.destroy();
 		}
-		if (this.knowledgebase != null) {
-			this.knowledgebase.destroy();
+		if (knowledgebase != null) {
+			knowledgebase.destroy();
 		}
 	}
 
@@ -64,13 +62,10 @@ public class TestUpdate2 {
 	 */
 	private void fillKB() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory = new LinkedHashSet<DatabaseFormula>();
-		kbtheory.add(new PrologDBFormula(this.k1, null));
-		kbtheory.add(new PrologDBFormula(this.k2, null));
-		this.knowledgebase = this.language.getDatabase(kbtheory);
-
-		this.beliefbase = this.language
-				.getDatabase(new LinkedHashSet<DatabaseFormula>());
-
+		kbtheory.add(new PrologDBFormula(k1, null));
+		kbtheory.add(new PrologDBFormula(k2, null));
+		knowledgebase = language.getDatabase(kbtheory);
+		beliefbase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
 	}
 
 	/**
@@ -79,13 +74,10 @@ public class TestUpdate2 {
 	 * @throws KRDatabaseException
 	 */
 	private void fillKB2() throws KRDatabaseException {
-
 		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<DatabaseFormula>();
-		kbtheory2.add(new PrologDBFormula(this.k3, null));
-		this.knowledgebase = this.language.getDatabase(kbtheory2);
-
-		this.beliefbase = this.language
-				.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		kbtheory2.add(new PrologDBFormula(k3, null));
+		knowledgebase = language.getDatabase(kbtheory2);
+		beliefbase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
 	}
 
 	/**
@@ -122,12 +114,11 @@ public class TestUpdate2 {
 	 * @throws KRDatabaseException
 	 */
 	@Test
-	public void testDeleteAll() throws KRQueryFailedException,
-	KRDatabaseException {
-		this.beliefbase.destroy();
-		this.beliefbase = null;
-		this.knowledgebase.destroy();
-		this.knowledgebase = null;
+	public void testDeleteAll() throws KRQueryFailedException, KRDatabaseException {
+		beliefbase.destroy();
+		beliefbase = null;
+		knowledgebase.destroy();
+		knowledgebase = null;
 	}
 
 	/**
@@ -138,10 +129,9 @@ public class TestUpdate2 {
 	 * @throws KRDatabaseException
 	 */
 	@Test
-	public void testRecreateKbAndBb() throws KRQueryFailedException,
-	KRDatabaseException {
-		this.beliefbase.destroy();
-		this.knowledgebase.destroy();
+	public void testRecreateKbAndBb() throws KRQueryFailedException, KRDatabaseException {
+		beliefbase.destroy();
+		knowledgebase.destroy();
 
 		// ok, now we can recreate the KB. But this time different.
 		fillKB2();
@@ -153,6 +143,5 @@ public class TestUpdate2 {
 		// PrologQuery query = new PrologQuery(k3);
 		// Set<Substitution> sol = beliefbase.query(query);
 		// assertEquals(1, sol.size());
-
 	}
 }

@@ -27,7 +27,6 @@ import krTools.parser.SourceInfo;
  * Represents a Prolog term.
  */
 public class PrologTerm extends PrologExpression implements Term {
-
 	/**
 	 * Creates a {@link PrologTerm} from a JPL term.
 	 *
@@ -49,16 +48,10 @@ public class PrologTerm extends PrologExpression implements Term {
 
 	@Override
 	public PrologTerm applySubst(Substitution s) {
-		Map<String, jpl.Term> jplSubstitution = (s == null) ? null
-				: ((PrologSubstitution) s).getJPLSolution();
-		jpl.Term term = JPLUtils.applySubst(jplSubstitution, this.getTerm());
+		Map<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 		return new PrologTerm(term, getSourceInfo());
 	}
-
-	// @Override
-	// public Parameter convert() {
-	// return JPLUtils.convert(super.getTerm());
-	// }
 
 	@Override
 	public int hashCode() {
@@ -67,8 +60,6 @@ public class PrologTerm extends PrologExpression implements Term {
 
 	@Override
 	public boolean equals(Object obj) {
-		return (obj instanceof PrologTerm)
-				&& this.getTerm().equals(((PrologTerm) obj).getTerm());
+		return (obj instanceof PrologTerm) && getTerm().equals(((PrologTerm) obj).getTerm());
 	}
-
 }

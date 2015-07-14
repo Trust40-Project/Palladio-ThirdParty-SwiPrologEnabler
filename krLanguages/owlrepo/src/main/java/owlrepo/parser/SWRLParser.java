@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import krTools.errors.exceptions.ParserException;
+import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Term;

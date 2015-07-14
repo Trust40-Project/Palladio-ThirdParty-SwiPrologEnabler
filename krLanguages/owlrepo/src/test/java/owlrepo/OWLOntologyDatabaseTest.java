@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import krTools.errors.exceptions.KRDatabaseException;
+import krTools.exceptions.KRDatabaseException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;

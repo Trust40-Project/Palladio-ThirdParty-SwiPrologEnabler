@@ -5,21 +5,21 @@ import static org.junit.Assert.assertEquals;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import jpl.Atom;
-import jpl.Term;
-import krTools.KRInterface;
-import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.KRQueryFailedException;
-import krTools.language.DatabaseFormula;
-import krTools.language.Substitution;
-import krTools.language.Update;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import jpl.Atom;
+import jpl.Term;
+import krTools.KRInterface;
+import krTools.database.Database;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.KRQueryFailedException;
+import krTools.language.DatabaseFormula;
+import krTools.language.Substitution;
+import krTools.language.Update;
+import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologUpdate;
@@ -42,9 +42,7 @@ import swiprolog.language.PrologUpdate;
  * @author W.Pasman 12mar2012
  *
  */
-
 public class TestUpdate {
-
 	// components enabling us to run the tests...
 	private KRInterface language;
 	private Database beliefbase;
@@ -56,29 +54,25 @@ public class TestUpdate {
 
 	@Before
 	public void setUp() throws Exception {
-		this.language = swiprolog.SWIPrologInterface.getInstance();
-
-		this.knowledgebase = this.language
-				.getDatabase(new LinkedHashSet<DatabaseFormula>());
-
-		this.beliefbase = this.language
-				.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		language = new SwiPrologInterface();
+		knowledgebase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		beliefbase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		if (this.beliefbase != null) {
-			this.beliefbase.destroy();
+		if (beliefbase != null) {
+			beliefbase.destroy();
 		}
-		if (this.knowledgebase != null) {
-			this.knowledgebase.destroy();
+		if (knowledgebase != null) {
+			knowledgebase.destroy();
 		}
 	}
 
 	@Test
 	public void testInitialQuery1() throws KRQueryFailedException {
 		PrologQuery query = new PrologQuery(new jpl.Atom("true"), null);
-		Set<Substitution> sol = this.beliefbase.query(query);
+		Set<Substitution> sol = beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
 
@@ -90,13 +84,12 @@ public class TestUpdate {
 	 * @throws KRInitFailedException
 	 */
 	@Test
-	public void testInsertFormula() throws KRQueryFailedException,
-	KRDatabaseException {
-		DatabaseFormula formula = new PrologDBFormula(this.aap, null);
-		this.beliefbase.insert(formula);
+	public void testInsertFormula() throws KRQueryFailedException, KRDatabaseException {
+		DatabaseFormula formula = new PrologDBFormula(aap, null);
+		beliefbase.insert(formula);
 
-		PrologQuery query = new PrologQuery(this.aap, null);
-		Set<Substitution> sol = this.beliefbase.query(query);
+		PrologQuery query = new PrologQuery(aap, null);
+		Set<Substitution> sol = beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
 
@@ -109,10 +102,9 @@ public class TestUpdate {
 	 */
 	@Test
 	public void testUpdate() throws KRQueryFailedException, KRDatabaseException {
-		Update update = new PrologUpdate(new jpl.Compound(",", new Term[] {
-				new jpl.Compound("not", new Term[] { this.aap }), this.beer }),
-				null);
-		this.beliefbase.insert(update);
+		Update update = new PrologUpdate(
+				new jpl.Compound(",", new Term[] { new jpl.Compound("not", new Term[] { aap }), beer }), null);
+		beliefbase.insert(update);
 
 		// assertEquals(1, beliefbase.getAllSentences().length);
 		// assertEquals(0, knowledgebase.getAllSentences().length);
@@ -122,8 +114,8 @@ public class TestUpdate {
 		// Set<Substitution> sol = beliefbase.query(query);
 		// assertEquals(sol.size(), 0);
 
-		PrologQuery query2 = new PrologQuery(this.beer, null);
-		Set<Substitution> sol2 = this.beliefbase.query(query2);
+		PrologQuery query2 = new PrologQuery(beer, null);
+		Set<Substitution> sol2 = beliefbase.query(query2);
 		assertEquals(1, sol2.size());
 	}
 
@@ -136,11 +128,9 @@ public class TestUpdate {
 	 * @throws KRDatabaseException
 	 */
 	@Test
-	public void testDeleteBeliefbase() throws KRQueryFailedException,
-			KRDatabaseException {
-		this.beliefbase.destroy();
-		this.beliefbase = this.language
-				.getDatabase(new LinkedHashSet<DatabaseFormula>());
+	public void testDeleteBeliefbase() throws KRQueryFailedException, KRDatabaseException {
+		beliefbase.destroy();
+		beliefbase = language.getDatabase(new LinkedHashSet<DatabaseFormula>());
 
 		// assertEquals(0, beliefbase.getAllSentences().length);
 	}
@@ -154,17 +144,15 @@ public class TestUpdate {
 	 * @throws KRDatabaseException
 	 */
 	@Test
-	public void testUseNewBeliefbase() throws KRQueryFailedException,
-	KRDatabaseException {
-		DatabaseFormula formula = new PrologDBFormula(this.kat, null);
-		this.beliefbase.insert(formula);
+	public void testUseNewBeliefbase() throws KRQueryFailedException, KRDatabaseException {
+		DatabaseFormula formula = new PrologDBFormula(kat, null);
+		beliefbase.insert(formula);
 
 		// assertEquals(1, beliefbase.getAllSentences().length);
 		// assertEquals(0, knowledgebase.getAllSentences().length);
 
-		PrologQuery query = new PrologQuery(this.kat, null);
-		Set<Substitution> sol = this.beliefbase.query(query);
+		PrologQuery query = new PrologQuery(kat, null);
+		Set<Substitution> sol = beliefbase.query(query);
 		assertEquals(1, sol.size());
-
 	}
 }

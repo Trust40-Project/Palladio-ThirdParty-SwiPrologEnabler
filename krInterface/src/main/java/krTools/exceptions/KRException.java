@@ -15,19 +15,21 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package krTools.errors.exceptions;
+package krTools.exceptions;
 
 /**
- * A KR Database exception should be thrown in case a database could <i>not be
- * created</i>, if content in the database could <i>not be updated</i>, e.g.,
- * could not be added or removed, or something <i>bad happened while
- * destroying</i> the database.
+ * Generic exception for throwing interface exceptions.
  */
-public class KRDatabaseException extends KRException {
+public class KRException extends Exception {
 
-	private static final long serialVersionUID = 2132716415540874609L;
+	private static final long serialVersionUID = 3963559073032366579L;
 
-	public KRDatabaseException(String message) {
+	/**
+	 * Creates ...
+	 *
+	 * @param message
+	 */
+	public KRException(String message) {
 		super(message);
 	}
 
@@ -37,8 +39,13 @@ public class KRDatabaseException extends KRException {
 	 * @param message
 	 * @param cause
 	 */
-	public KRDatabaseException(String message, Throwable cause) {
+	public KRException(String message, Throwable cause) {
 		super(message, cause);
+	}
+
+	@Override
+	public String toString() {
+		return "<" + getClass().getSimpleName() + ": " + getMessage() + ", " + getCause() + ">";
 	}
 
 }

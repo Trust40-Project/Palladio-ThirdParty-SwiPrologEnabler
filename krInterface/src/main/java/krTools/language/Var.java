@@ -40,5 +40,5 @@ public interface Var extends Term {
 	 * @param usedNames
 	 *            a set of Vars already in use.
 	 */
-	public Var getVariant(Set<Var> usedNames);
+	Var getVariant(Set<Var> usedNames);
 }

@@ -28,8 +28,6 @@ package krTools.language;
  * </p>
  */
 public interface Term extends Expression {
-
 	@Override
 	Term applySubst(Substitution substitution);
-
 }

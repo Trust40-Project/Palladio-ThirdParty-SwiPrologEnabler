@@ -32,13 +32,12 @@ import krTools.KRInterface;
  * </p>
  */
 public interface Substitution {
-
 	/**
 	 * Returns the set of {@link Var}s bound by this {@link Substitution}.
 	 *
 	 * @return The variables in the domain of this substitution.
 	 */
-	public Set<Var> getVariables();
+	Set<Var> getVariables();
 
 	/**
 	 * Returns the term to which the variable is bound, if any.
@@ -48,14 +47,14 @@ public interface Substitution {
 	 * @return term that is bound to variable in substitution, if such a binding
 	 *         exists, otherwise null.
 	 */
-	public Term get(Var var);
+	Term get(Var var);
 
 	/**
 	 * Extends the substitution with a new binding for a variable. It first
 	 * checks if variable has already been bound. If so, nothing happens, else
 	 * new binding is added.
 	 */
-	public void addBinding(Var var, Term term);
+	void addBinding(Var var, Term term);
 
 	/**
 	 * Combines two substitutions.
@@ -71,7 +70,7 @@ public interface Substitution {
 	 *         also returns {@code null} if the parameter substitution is equal
 	 *         to {@code null}.
 	 */
-	public Substitution combine(Substitution substitution);
+	Substitution combine(Substitution substitution);
 
 	/**
 	 * Removes the binding to a variable from this Substitution. The result of
@@ -83,7 +82,7 @@ public interface Substitution {
 	 * @return {@code true} iff the {@link Var} used to be bound by this
 	 *         {@link Substitution}.
 	 */
-	public boolean remove(Var var);
+	boolean remove(Var var);
 
 	/**
 	 * Removes all bindings in this {@link Substitution} that do not bind any of
@@ -95,7 +94,7 @@ public interface Substitution {
 	 * @return {@code true} if any binding was removed from this
 	 *         {@link Substitution}.
 	 */
-	public boolean retainAll(Collection<Var> variables);
+	boolean retainAll(Collection<Var> variables);
 
 	/**
 	 * create a copy of this substitution. The copy contains the same
@@ -103,6 +102,5 @@ public interface Substitution {
 	 * unaffected. The copy can be shallow - the terms referenced in this can be
 	 * referenced in the copy.
 	 */
-	public Substitution clone();
-
+	Substitution clone();
 }

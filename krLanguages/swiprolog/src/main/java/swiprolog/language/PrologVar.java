@@ -28,7 +28,6 @@ import krTools.parser.SourceInfo;
  * A Prolog variable.
  */
 public class PrologVar extends PrologTerm implements Var {
-
 	/**
 	 * Creates a variable.
 	 *
@@ -45,7 +44,7 @@ public class PrologVar extends PrologTerm implements Var {
 	 * Returns JPL variable.
 	 */
 	public jpl.Variable getVariable() {
-		return (jpl.Variable) super.getTerm();
+		return (jpl.Variable) getTerm();
 	}
 
 	@Override
@@ -60,7 +59,7 @@ public class PrologVar extends PrologTerm implements Var {
 	 * @return {@code true} if variable is anonymous, {@code false} otherwise.
 	 */
 	public boolean isAnonymous() {
-		return super.getTerm().name().equals("_");
+		return getTerm().name().equals("_");
 	}
 
 	@Override
@@ -89,5 +88,4 @@ public class PrologVar extends PrologTerm implements Var {
 
 		return newVar;
 	}
-
 }

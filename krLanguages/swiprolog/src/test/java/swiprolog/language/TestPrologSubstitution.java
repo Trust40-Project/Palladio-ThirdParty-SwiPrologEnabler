@@ -22,12 +22,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Hashtable;
 
+import org.junit.Test;
+
 import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
-
-import org.junit.Test;
-
 import swiprolog.SwiInstaller;
 
 public class TestPrologSubstitution {
@@ -55,30 +54,27 @@ public class TestPrologSubstitution {
 		Term result = JPLUtils.applySubst(solution, term);
 		assertTrue(result instanceof Compound);
 		Compound compound = (Compound) result;
-		assertEquals(Y, compound.arg0(0));
-		assertEquals(Z, compound.arg0(1));
+		assertEquals(Y, compound.arg(1));
+		assertEquals(Z, compound.arg(2));
 	}
 
 	@Test
 	public void testToString() {
 		Hashtable<String, Term> solution = new Hashtable<String, Term>();
-		PrologSubstitution substitution1 = PrologSubstitution
-				.getSubstitutionOrNull(solution);
+		PrologSubstitution substitution1 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertTrue(substitution1.getJPLSolution().isEmpty());
 
 		jpl.Variable var = new jpl.Variable("X");
 		jpl.Term term = new jpl.Atom("a");
 		solution.put(var.name(), term);
-		PrologSubstitution substitution2 = PrologSubstitution
-				.getSubstitutionOrNull(solution);
+		PrologSubstitution substitution2 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals(1, substitution2.getJPLSolution().size());
 		assertEquals(term, substitution2.getJPLSolution().get(var.name()));
 
 		jpl.Variable var1 = new jpl.Variable("Y");
 		jpl.Term term1 = new jpl.Atom("b");
 		solution.put(var1.name(), term1);
-		PrologSubstitution substitution3 = PrologSubstitution
-				.getSubstitutionOrNull(solution);
+		PrologSubstitution substitution3 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals(2, substitution3.getJPLSolution().size());
 		assertEquals(term, substitution3.getJPLSolution().get(var.name()));
 		assertEquals(term1, substitution3.getJPLSolution().get(var1.name()));
@@ -86,8 +82,7 @@ public class TestPrologSubstitution {
 		jpl.Variable var2 = new jpl.Variable("Z");
 		jpl.Variable var3 = new jpl.Variable("V");
 		solution.put(var2.name(), var3);
-		PrologSubstitution substitution4 = PrologSubstitution
-				.getSubstitutionOrNull(solution);
+		PrologSubstitution substitution4 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals(3, substitution4.getJPLSolution().size());
 		assertEquals(term, substitution4.getJPLSolution().get(var.name()));
 		assertEquals(term1, substitution4.getJPLSolution().get(var1.name()));

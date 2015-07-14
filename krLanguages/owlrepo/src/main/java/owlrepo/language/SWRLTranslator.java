@@ -27,7 +27,6 @@ import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLUnaryAtom;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
-import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 import org.swrlapi.builtins.arguments.SWRLBuiltInArgument;
 import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
@@ -86,7 +85,7 @@ public class SWRLTranslator {
 				}//else if SWRLDataRangeAtom
 			}
 			else if (atom instanceof SWRLBinaryAtom){
-				SWRLBinaryAtom batom = (SWRLBinaryAtom) atom;
+				SWRLBinaryAtom<?,?> batom = (SWRLBinaryAtom<?,?>) atom;
 				if (atom instanceof SWRLDataPropertyAtom || atom instanceof SWRLObjectPropertyAtom){
 					SWRLPredicate predicate = batom.getPredicate();
 					SWRLArgument arg1 = batom.getFirstArgument();

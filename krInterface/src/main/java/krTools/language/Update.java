@@ -49,7 +49,6 @@ import java.util.List;
  * </p>
  */
 public interface Update extends Expression {
-
 	/**
 	 * Returns the add list of this {@link Update} in the form of a list of
 	 * {@link DatabaseFormula}s. The formulas returned are positive literals.
@@ -86,5 +85,4 @@ public interface Update extends Expression {
 	 *         should return {@code null} otherwise.
 	 */
 	Query toQuery();
-
 }

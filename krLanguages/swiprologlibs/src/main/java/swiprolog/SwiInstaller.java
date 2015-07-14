@@ -55,16 +55,14 @@ public final class SwiInstaller {
 		try {
 			addFolderToLibraryPath(SwiPath.getAbsolutePath());
 		} catch (NoSuchFieldException | IllegalAccessException e) {
-			throw new IllegalStateException("Failed to initialize SWI Prolog",
-					e);
+			throw new IllegalStateException("Failed to initialize SWI Prolog", e);
 		}
 
 		/*
 		 * Let JPL know which SWI_HOME_DIR we're using; this negates the need
 		 * for a SWI_HOME_DIR environment var
 		 */
-		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath,
-				"--quiet", "--nosignals" });
+		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals" });
 
 		initialized = true;
 	}
@@ -134,8 +132,7 @@ public final class SwiInstaller {
 	 * @throws IllegalArgumentException
 	 */
 	private static void addFolderToLibraryPath(final String s)
-			throws NoSuchFieldException, SecurityException,
-			IllegalArgumentException, IllegalAccessException {
+			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		final Field field = ClassLoader.class.getDeclaredField("usr_paths");
 		field.setAccessible(true);
 		final String[] paths = (String[]) field.get(null);
@@ -148,8 +145,7 @@ public final class SwiInstaller {
 		System.arraycopy(paths, 0, tmp, 0, paths.length);
 		tmp[paths.length] = s;
 		field.set(null, tmp);
-		final String path = s + File.pathSeparator
-				+ System.getProperty("java.library.path");
+		final String path = s + File.pathSeparator + System.getProperty("java.library.path");
 		System.setProperty("java.library.path", path);
 	}
 
@@ -162,21 +158,17 @@ public final class SwiInstaller {
 	 * @throws IOException
 	 * @throws ZipException
 	 */
-	private static File unzipToTmp(String zipfilename)
-			throws URISyntaxException, ZipException, IOException {
-		File base = File.createTempFile("swilibs",
-				Long.toString(System.currentTimeMillis()));
+	private static File unzipToTmp(String zipfilename) throws URISyntaxException, ZipException, IOException {
+		File base = File.createTempFile("swilibs", Long.toString(System.currentTimeMillis()));
 		if (!base.delete()) {
 			throw new IOException("Could not delete temp file: " + base);
 		}
 		if (!base.mkdir()) {
-			throw new IOException("Can't create tmp directory for SWI at "
-					+ base);
+			throw new IOException("Can't create tmp directory for SWI at " + base);
 		}
 		deleteOnExit(base);
 
-		System.out.println("unzipping SWI prolog libraries (" + zipfilename
-				+ ") to " + base);
+		System.out.println("unzipping SWI prolog libraries (" + zipfilename + ") to " + base);
 
 		InputStream fis = Thread.currentThread().getContextClassLoader()
 				.getResourceAsStream("swiprolog/" + zipfilename);

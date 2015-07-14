@@ -18,12 +18,12 @@
 package swiprolog.language;
 
 import static org.junit.Assert.assertTrue;
-import krTools.errors.exceptions.KRQueryFailedException;
 
 import org.junit.Test;
 
+import krTools.exceptions.KRQueryFailedException;
 import swiprolog.SwiInstaller;
-import swiprolog.database.SWIPrologDatabase;
+import swiprolog.database.PrologDatabase;
 
 public class TestUtils {
 	static {
@@ -34,7 +34,7 @@ public class TestUtils {
 	public void testJPLAtom() throws KRQueryFailedException {
 		jpl.Atom constant = new jpl.Atom("Aap");
 		jpl.Term term = JPLUtils.createCompound("var", constant);
-		assertTrue(SWIPrologDatabase.rawquery(term).isEmpty());
+		assertTrue(PrologDatabase.rawquery(term).isEmpty());
 	}
 
 }

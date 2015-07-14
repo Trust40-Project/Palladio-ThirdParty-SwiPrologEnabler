@@ -23,14 +23,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import krTools.database.Database;
-import krTools.errors.exceptions.KRDatabaseException;
-import krTools.errors.exceptions.KRInitFailedException;
-import krTools.errors.exceptions.KRQueryFailedException;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
-import swiprolog.SWIPrologInterface;
+import swiprolog.SwiPrologInterface;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
@@ -39,13 +39,16 @@ import swiprolog.language.PrologSubstitution;
 /**
  *
  */
-public class SWIPrologDatabase implements Database {
-
+public class PrologDatabase implements Database {
 	/**
 	 * Name of this database; used to name a SWI-Prolog module that implements
 	 * the database.
 	 */
 	private final jpl.Atom name;
+	/**
+	 * The KRI that is managing this database.
+	 */
+	private final SwiPrologInterface owner;
 	/**
 	 * Static int for representing unique number to be able to generate unique
 	 * database names.
@@ -58,51 +61,28 @@ public class SWIPrologDatabase implements Database {
 	 * @throws KRInitFailedException
 	 *             If database creation failed.
 	 */
-	public SWIPrologDatabase(Collection<DatabaseFormula> content)
-			throws KRDatabaseException {
+	public PrologDatabase(Collection<DatabaseFormula> content, SwiPrologInterface owner) throws KRDatabaseException {
 		int number;
 		synchronized (uniqueNumberCounter) {
 			number = uniqueNumberCounter++;
 		}
 		// Name consists of (lower case) database type post-fixed with unique
 		// number.
-		this.name = new jpl.Atom("db" + number);
+		name = new jpl.Atom("db" + number);
 
-		// FIXME: SWI Prolog needs access to various libaries at runtime and
-		// loads these
-		// dynamically; if many agents try to do this at the same time this
-		// gives access
-		// errors ('No permission to load'). We can now decide to fix this
-		// by loading these
-		// libraries upfront when we need them (that implies work to check
-		// whether we need
-		// a library of course). Benefit is that we ONLY need to synchronize
-		// creating of
-		// databases (this code) and NOT all calls to rawquery... We should
-		// check whether
-		// this impacts performance or not.
-		// FOr now, solved this issue by adding synchronized modifier to
-		// rawquery.
-
-		// EXAMPLE BELOW: only loads lists.pl but no other libraries.
-		// jpl.Term loadlists = JPLUtils.createCompound("ensure_loaded", new
-		// jpl.Atom("c:/program files/pl/library/lists.pl"));
-		// SWIQuery.rawquery(JPLUtils.createCompound(":", this.name,
-		// loadlists));
-		// }
+		this.owner = owner;
 	}
 
 	@Override
 	public String getName() {
-		return this.name.name();
+		return name.name();
 	}
 
 	/**
-	 *
 	 * @return atom with name of this database
 	 */
 	public jpl.Atom getJPLName() {
-		return this.name;
+		return name;
 	}
 
 	/**
@@ -134,11 +114,9 @@ public class SWIPrologDatabase implements Database {
 		jpl.Term query = ((PrologQuery) pQuery).getTerm();
 		jpl.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
 		// We need to create conjunctive query with "true" as first conjunct and
-		// db_query
-		// as second conjunct as JPL query dbname:not(..) does not work
+		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		substSet.addAll(rawquery(JPLUtils.createCompound(",", new jpl.Atom(
-				"true"), db_query)));
+		substSet.addAll(rawquery(JPLUtils.createCompound(",", new jpl.Atom("true"), db_query)));
 		return substSet;
 	}
 
@@ -178,10 +156,10 @@ public class SWIPrologDatabase implements Database {
 	@Override
 	public void insert(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getDeleteList()) {
-			delete((formula));
+			delete(formula);
 		}
 		for (DatabaseFormula formula : update.getAddList()) {
-			insert((formula));
+			insert(formula);
 		}
 	}
 
@@ -198,14 +176,12 @@ public class SWIPrologDatabase implements Database {
 	 *            The database the term should be inserted into.
 	 * @throws KRDatabaseException
 	 */
-	public void insert(jpl.Term formula) throws KRDatabaseException {
-		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
-				formula);
+	private void insert(jpl.Term formula) throws KRDatabaseException {
+		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
 		try {
 			rawquery(JPLUtils.createCompound("assert", db_formula));
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("swi prolog says the insert failed",
-					e);
+			throw new KRDatabaseException("swi prolog says the insert failed", e);
 		}
 	}
 
@@ -255,13 +231,11 @@ public class SWIPrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	public void delete(jpl.Term formula) throws KRDatabaseException {
-		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
-				formula);
+		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
 		try {
 			rawquery(JPLUtils.createCompound("retract", db_formula));
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("swi prolog says the delete failed",
-					e);
+			throw new KRDatabaseException("swi prolog says the delete failed", e);
 		}
 	}
 
@@ -283,9 +257,7 @@ public class SWIPrologDatabase implements Database {
 	 * @throws KRQueryFailedException
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static synchronized Set<PrologSubstitution> rawquery(jpl.Term query)
-			throws KRQueryFailedException {
-
+	public static synchronized Set<PrologSubstitution> rawquery(jpl.Term query) throws KRQueryFailedException {
 		// Create JPL query.
 		jpl.Query jplQuery = new jpl.Query(query);
 
@@ -294,15 +266,13 @@ public class SWIPrologDatabase implements Database {
 		try {
 			solutions = jplQuery.allSolutions();
 		} catch (Throwable e) {
-			throw new KRQueryFailedException(handleRawqueryException(jplQuery,
-					e), e);
+			throw new KRQueryFailedException(handleRawqueryException(jplQuery, e), e);
 		}
 
 		// Convert to PrologSubstitution.
 		LinkedHashSet<PrologSubstitution> substitutions = new LinkedHashSet<PrologSubstitution>();
 		for (Hashtable<String, jpl.Term> solution : solutions) {
-			substitutions.add(PrologSubstitution
-					.getSubstitutionOrNull(solution));
+			substitutions.add(PrologSubstitution.getSubstitutionOrNull(solution));
 		}
 
 		return substitutions;
@@ -318,9 +288,6 @@ public class SWIPrologDatabase implements Database {
 	 *         message.
 	 */
 	private static String handleRawqueryException(jpl.Query query, Throwable e) {
-		// free up the memory.
-		System.gc();
-
 		String warning = "swi prolog says the query " + query + " failed";
 		if (e instanceof Exception) {
 			String mess = e.getMessage();
@@ -329,8 +296,7 @@ public class SWIPrologDatabase implements Database {
 				// JPL existence error. ASSUMES modules are queried.
 				int start = i + 29;
 				int end = mess.indexOf(")", start); // should be there
-				warning = warning + " because a predicate "
-						+ mess.substring(start, end).replace(',', '/')
+				warning = warning + " because a predicate " + mess.substring(start, end).replace(',', '/')
 						+ " has not been defined";
 			}
 		}
@@ -366,18 +332,13 @@ public class SWIPrologDatabase implements Database {
 		// Construct jpl term for above.
 		jpl.Variable predicate = new jpl.Variable("Predicate");
 		jpl.Variable head = new jpl.Variable("Head");
-		jpl.Term db_head = JPLUtils.createCompound(":", this.name, head);
-		jpl.Term current = JPLUtils.createCompound("current_predicate",
-				predicate, head);
-		jpl.Term db_current = JPLUtils.createCompound(":", this.name, current);
-		jpl.Term built_in = JPLUtils.createCompound("predicate_property",
-				db_head, new jpl.Atom("built_in"));
-		jpl.Term foreign = JPLUtils.createCompound("predicate_property",
-				db_head, new jpl.Atom("foreign"));
-		jpl.Term imported_from = JPLUtils.createCompound("imported_from",
-				new jpl.Variable("_"));
-		jpl.Term imported = JPLUtils.createCompound("predicate_property",
-				db_head, imported_from);
+		jpl.Term db_head = JPLUtils.createCompound(":", name, head);
+		jpl.Term current = JPLUtils.createCompound("current_predicate", predicate, head);
+		jpl.Term db_current = JPLUtils.createCompound(":", name, current);
+		jpl.Term built_in = JPLUtils.createCompound("predicate_property", db_head, new jpl.Atom("built_in"));
+		jpl.Term foreign = JPLUtils.createCompound("predicate_property", db_head, new jpl.Atom("foreign"));
+		jpl.Term imported_from = JPLUtils.createCompound("imported_from", new jpl.Variable("_"));
+		jpl.Term imported = JPLUtils.createCompound("predicate_property", db_head, imported_from);
 		jpl.Term not_built_in = JPLUtils.createCompound("not", built_in);
 		jpl.Term not_foreign = JPLUtils.createCompound("not", foreign);
 		jpl.Term not_imported = JPLUtils.createCompound("not", imported);
@@ -390,8 +351,7 @@ public class SWIPrologDatabase implements Database {
 		try {
 			rawquery(query);
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException(
-					"swi prolog says database contents could not be erased", e);
+			throw new KRDatabaseException("swi prolog says database contents could not be erased", e);
 		}
 	}
 
@@ -402,14 +362,7 @@ public class SWIPrologDatabase implements Database {
 	 */
 	protected void cleanUp() throws KRDatabaseException {
 		eraseContent();
-		SWIPrologInterface instance;
-		try {
-			instance = SWIPrologInterface.getInstance();
-		} catch (KRInitFailedException e) {
-			throw new KRDatabaseException("swi prolog database cleanup failed",
-					e);
-		}
-		instance.removeDatabase(this);
+		owner.removeDatabase(this);
 	}
 
 	public void showStatistics() {
@@ -422,7 +375,6 @@ public class SWIPrologDatabase implements Database {
 
 	@Override
 	public String toString() {
-		return "<" + this.name + ">";
+		return "<" + name + ">";
 	}
-
 }

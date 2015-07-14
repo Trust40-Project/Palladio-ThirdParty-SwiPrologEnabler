@@ -784,7 +784,8 @@ public final class PrologOperators {
 	 * Built-in operators are already defined in SWI Prolog, and one should not
 	 * try to redefine these by inserting or deleting these (even though SWI
 	 * Prolog allows redefining built-in operators, we do not consider this good
-	 * practice). </p>
+	 * practice).
+	 * </p>
 	 *
 	 * @returns {@code true} if signature is built-in Prolog function
 	 *          <em>and</em> is not a protected predicate, {@code false}
@@ -852,7 +853,8 @@ public final class PrologOperators {
 		}
 
 		// single quoted char.. is hard, quick and dirty fix.
-		if (name.matches("\'[a-zA-Z0-9\\\\\\#\\$\\&\\*\\+\\-\\.\\/\\:\\<\\=\\>\\?\\@\\^\\~\\!\\(\\)\\,\\;\\[\\]\\{\\}\\|\\%]+\'")) {
+		if (name.matches(
+				"\'[a-zA-Z0-9\\\\\\#\\$\\&\\*\\+\\-\\.\\/\\:\\<\\=\\>\\?\\@\\^\\~\\!\\(\\)\\,\\;\\[\\]\\{\\}\\|\\%]+\'")) {
 			return true;
 		}
 		// things '"hallo"' up to scary things like `''``/:-->$`

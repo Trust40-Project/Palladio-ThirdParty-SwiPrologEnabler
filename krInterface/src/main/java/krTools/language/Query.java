@@ -37,7 +37,6 @@ package krTools.language;
  */
 
 public interface Query extends Expression {
-
 	@Override
 	Query applySubst(Substitution substitution);
 
@@ -55,5 +54,4 @@ public interface Query extends Expression {
 	 *         should return {@code null} otherwise.
 	 */
 	Update toUpdate();
-
 }

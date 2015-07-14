@@ -23,11 +23,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
-import krTools.errors.exceptions.ParserException;
-
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
+import krTools.exceptions.ParserException;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
@@ -46,8 +45,7 @@ public class Term900Test {
 	 */
 	private Parser4 getParser(Reader textStream) throws IOException {
 		Parser4 parser = new Parser4(textStream, null);
-		parser.getInterpreter().setPredictionMode(
-				PredictionMode.LL_EXACT_AMBIG_DETECTION);
+		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
@@ -61,8 +59,7 @@ public class Term900Test {
 	 *
 	 * @throws ParserException
 	 */
-	private void checkParsesAsTerm0(String text1, String text2)
-			throws IOException, ParserException {
+	private void checkParsesAsTerm0(String text1, String text2) throws IOException, ParserException {
 		String text = text1 + ":" + text2;
 		Parser4 parser = getParser(text1);
 		Term0Context tree = parser.term0();
@@ -75,8 +72,7 @@ public class Term900Test {
 	 *
 	 * @throws ParserException
 	 */
-	private void checkParsesAsTerm1000(String text1, String text2)
-			throws IOException, ParserException {
+	private void checkParsesAsTerm1000(String text1, String text2) throws IOException, ParserException {
 		Parser4 parser = getParser(text1);
 		Term1000Context tree = parser.term1000();
 		System.out.println(text1 + " -> " + parser.toStringTree(tree));
@@ -85,36 +81,31 @@ public class Term900Test {
 
 	@Test
 	public void testTerm1() throws IOException, ParserException {
-		checkParsesAsTerm0(
-				"aap(1)",
+		checkParsesAsTerm0("aap(1)",
 				"(term0 aap ( (arglist (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1)))))))))) ))");
 	}
 
 	@Test
 	public void testList1() throws IOException, ParserException {
-		checkParsesAsTerm0(
-				"[1,2]",
+		checkParsesAsTerm0("[1,2]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) , (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 2))))))))))) ]))");
 	}
 
 	@Test
 	public void testList2() throws IOException, ParserException {
-		checkParsesAsTerm0(
-				"[1|X]",
+		checkParsesAsTerm0("[1|X]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) | X) ]))");
 	}
 
 	@Test
 	public void testList3() throws IOException, ParserException {
-		checkParsesAsTerm0(
-				"[1,2|X]",
+		checkParsesAsTerm0("[1,2|X]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) , (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 2))))))))) | X)) ]))");
 	}
 
 	// disabled, #3555, not clear why this is not allowed.
 	public void testList4() throws IOException, ParserException {
-		checkParsesAsTerm0(
-				"[1|2]",
+		checkParsesAsTerm0("[1|2]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) , (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 2))))))))) | X)) ]))");
 	}
 
@@ -131,9 +122,8 @@ public class Term900Test {
 			checkParsesAsTerm1000("1;2", "");
 			throw new IllegalStateException("incorrect success of parsing");
 		} catch (ParserException e) {
-			assertEquals(e.getMessage(),
-					ParserErrorMessages.FOUND_BUT_NEED.toReadableString("';'",
-							ParserErrorMessages.TERM900.toReadableString()));
+			assertEquals(e.getMessage(), ParserErrorMessages.FOUND_BUT_NEED.toReadableString("';'",
+					ParserErrorMessages.TERM900.toReadableString()));
 		}
 	}
 }
