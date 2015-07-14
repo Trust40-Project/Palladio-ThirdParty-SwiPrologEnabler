@@ -30,20 +30,18 @@ import com.complexible.stardog.api.ConnectionConfiguration;
 import com.complexible.stardog.api.admin.AdminConnection;
 import com.complexible.stardog.api.admin.AdminConnectionConfiguration;
 import com.complexible.stardog.protocols.snarl.SNARLProtocolConstants;
-import com.complexible.stardog.reasoning.api.ReasoningType;
 import com.complexible.stardog.sesame.StardogRepository;
 
 
 public class RDFRepositoryDatabase {
-
 	private static Server server = null;
 	private Repository repo;
 	private RepositoryConnection conn;
 	private NotifyingRepositoryConnection nconn;
 	private NotifyingRepositoryWrapper nrepo ;
-	private String baseURI;
+	//private String baseURI;
 	
-//	private OWLOntologyDatabase ontology;
+    //private OWLOntologyDatabase ontology;
 	private  String repo_url ;//= "http://localhost:8080/openrdf-sesame/tradr";
 	private  String username = "admin";
 	private  String password = "admin";

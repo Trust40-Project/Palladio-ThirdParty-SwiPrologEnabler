@@ -7,15 +7,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import krTools.database.Database;
-import krTools.exceptions.KRDatabaseException;
-import krTools.exceptions.KRQueryFailedException;
-import krTools.language.DatabaseFormula;
-import krTools.language.Query;
-import krTools.language.Substitution;
-import krTools.language.Term;
-import krTools.language.Update;
-
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -43,16 +34,22 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.core.SWRLAPIRenderer;
-import org.swrlapi.core.SWRLRuleEngine;
-import org.swrlapi.sqwrl.SQWRLQueryEngine;
 
+import com.google.common.base.Optional;
+
+import krTools.database.Database;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRQueryFailedException;
+import krTools.language.DatabaseFormula;
+import krTools.language.Query;
+import krTools.language.Substitution;
+import krTools.language.Term;
+import krTools.language.Update;
 import owlrepo.language.SWRLDatabaseFormula;
 import owlrepo.language.SWRLQuery;
 import owlrepo.language.SWRLSubstitution;
 import owlrepo.language.SWRLTerm;
 import owlrepo.language.SWRLTranslator;
-
-import com.google.common.base.Optional;
 
 public class OWLOntologyDatabase implements Database {
 	

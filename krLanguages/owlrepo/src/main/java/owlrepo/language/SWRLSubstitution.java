@@ -4,28 +4,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import krTools.language.Substitution;
-import krTools.language.Term;
-import krTools.language.Var;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.SWRLArgument;
-import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.swrlapi.sqwrl.values.SQWRLEntityResultValue;
 import org.swrlapi.sqwrl.values.SQWRLLiteralResultValue;
 import org.swrlapi.sqwrl.values.SQWRLResultValue;
 
+import krTools.language.Substitution;
+import krTools.language.Term;
+import krTools.language.Var;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 public class SWRLSubstitution implements Substitution {
-
 	HashMap<SWRLVariable, SWRLArgument> substitutions;
 	Set<SWRLVariable> variables;
 	OWLDataFactory df;

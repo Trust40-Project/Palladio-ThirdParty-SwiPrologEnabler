@@ -86,7 +86,7 @@ public class KRFactory {
 	public static String getName(KRInterface kri){
 		for( final String name : kr.keySet()){
 			final Class<? extends KRInterface> defined = kr.get(name);
-			if(defined.equals(kri)){
+			if(defined.equals(kri.getClass())){
 				return name;
 			}
 		}
