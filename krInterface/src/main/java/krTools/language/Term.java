@@ -37,6 +37,7 @@ public interface Term extends Expression {
 	 *
 	 * @return A {@link DatabaseFormula} if this term can be converted to a database formula;
 	 *         should return {@code null} otherwise (i.e. if there are free variables).
+	 * @todo Remove this when we can...
 	 */
 	DatabaseFormula toFormula();
 }
