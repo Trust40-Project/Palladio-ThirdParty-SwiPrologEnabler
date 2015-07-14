@@ -29,8 +29,7 @@ import jpl.Compound;
 public class PrettyPrintTest {
 	@Test
 	public void printConjunct() {
-		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("aap"),
-				new jpl.Atom("beer") };
+		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("aap"), new jpl.Atom("beer") };
 		Compound term = new jpl.Compound(",", args);
 		System.out.println("var1 toString=" + term);
 		assertEquals("aap , beer", JPLUtils.toString(term));
@@ -40,8 +39,7 @@ public class PrettyPrintTest {
 	@Test
 	public void printConjunct3() {
 		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("b"), new jpl.Atom("c") };
-		jpl.Term[] args2 = new jpl.Term[] { new jpl.Atom("a"),
-				new jpl.Compound(",", args) };
+		jpl.Term[] args2 = new jpl.Term[] { new jpl.Atom("a"), new jpl.Compound(",", args) };
 
 		Compound term = new jpl.Compound(",", args2);
 		assertEquals("a , b , c", JPLUtils.toString(term));
@@ -49,8 +47,7 @@ public class PrettyPrintTest {
 
 	@Test
 	public void printClause1() {
-		jpl.Term[] clauseargs = new jpl.Term[] { new jpl.Atom("head"),
-				new jpl.Atom("body") };
+		jpl.Term[] clauseargs = new jpl.Term[] { new jpl.Atom("head"), new jpl.Atom("body") };
 
 		Compound clause = new jpl.Compound(":-", clauseargs);
 		assertEquals("head :- body", JPLUtils.toString(clause));
@@ -59,8 +56,7 @@ public class PrettyPrintTest {
 	@Test
 	public void printClause3() {
 		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("b"), new jpl.Atom("c") };
-		jpl.Compound body = new jpl.Compound(",", new jpl.Term[] {
-				new jpl.Atom("a"), new jpl.Compound(",", args) });
+		jpl.Compound body = new jpl.Compound(",", new jpl.Term[] { new jpl.Atom("a"), new jpl.Compound(",", args) });
 
 		jpl.Term[] clauseargs = new jpl.Term[] { new jpl.Atom("head"), body };
 
@@ -70,8 +66,7 @@ public class PrettyPrintTest {
 
 	@Test
 	public void printList() {
-		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("aap"),
-				new jpl.Atom("[]") };
+		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("aap"), new jpl.Atom("[]") };
 		Compound term = new jpl.Compound(".", args);
 		assertEquals("[aap]", JPLUtils.toString(term));
 	}

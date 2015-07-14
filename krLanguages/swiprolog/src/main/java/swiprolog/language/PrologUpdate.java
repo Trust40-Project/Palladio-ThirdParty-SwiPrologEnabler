@@ -64,10 +64,9 @@ public class PrologUpdate extends PrologExpression implements Update {
 		// is a database formula (which should have been checked by the parser).
 		for (jpl.Term conjunct : conjuncts) {
 			if (JPLUtils.getSignature(conjunct).equals("not/1")) {
-				this.negativeLiterals.add(new PrologDBFormula(conjunct.arg(1),
-						info));
+				negativeLiterals.add(new PrologDBFormula(conjunct.arg(1), info));
 			} else if (!JPLUtils.getSignature(conjunct).equals("true/0")) {
-				this.positiveLiterals.add(new PrologDBFormula(conjunct, info));
+				positiveLiterals.add(new PrologDBFormula(conjunct, info));
 			}
 		}
 	}
@@ -79,7 +78,7 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 */
 	@Override
 	public List<DatabaseFormula> getAddList() {
-		return this.positiveLiterals;
+		return positiveLiterals;
 	}
 
 	/**
@@ -89,7 +88,7 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 */
 	@Override
 	public List<DatabaseFormula> getDeleteList() {
-		return this.negativeLiterals;
+		return negativeLiterals;
 	}
 
 	/**
@@ -97,18 +96,17 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 */
 	@Override
 	public PrologUpdate applySubst(Substitution s) {
-		Map<String, jpl.Term> jplSubstitution = (s == null) ? null
-				: ((PrologSubstitution) s).getJPLSolution();
+		Map<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
 
 		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 		PrologUpdate update = new PrologUpdate(term, getSourceInfo());
 		update.positiveLiterals = new ArrayList<DatabaseFormula>();
 		update.negativeLiterals = new ArrayList<DatabaseFormula>();
 
-		for (DatabaseFormula formula : this.positiveLiterals) {
+		for (DatabaseFormula formula : positiveLiterals) {
 			update.positiveLiterals.add(formula.applySubst(s));
 		}
-		for (DatabaseFormula formula : this.negativeLiterals) {
+		for (DatabaseFormula formula : negativeLiterals) {
 			update.negativeLiterals.add(formula.applySubst(s));
 		}
 

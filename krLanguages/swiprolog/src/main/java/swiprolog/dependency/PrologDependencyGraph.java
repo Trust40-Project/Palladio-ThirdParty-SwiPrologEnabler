@@ -53,8 +53,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 * @throws GOALUserError
 	 */
 	@Override
-	public void add(DatabaseFormula formula, boolean defined, boolean queried)
-			throws KRException {
+	public void add(DatabaseFormula formula, boolean defined, boolean queried) throws KRException {
 		jpl.Term term = ((PrologDBFormula) formula).getTerm();
 		String signature = term.name() + "/" + term.arity();
 
@@ -66,25 +65,20 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			if (defined) {
 				// List<PrologTerm> args = ((FuncTerm) term).getArguments();
 				// The first argument is the term that is being defined.
-				List<Node<PrologTerm>> definitionNode = addTerm(term.arg(1),
-						formula.getSourceInfo(), true, false);
+				List<Node<PrologTerm>> definitionNode = addTerm(term.arg(1), formula.getSourceInfo(), true, false);
 				// The other argument consists of terms that are queried.
-				List<Node<PrologTerm>> queryNodes = addTerm(term.arg(2),
-						formula.getSourceInfo(), false, true);
+				List<Node<PrologTerm>> queryNodes = addTerm(term.arg(2), formula.getSourceInfo(), false, true);
 				for (Node<PrologTerm> node : queryNodes) {
 					definitionNode.get(0).addDependency(node);
 				}
 			}
 			if (queried) {
-				throw new KRDatabaseException(
-						"a clause with main operator :-/2 cannot be queried.");
+				throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 			}
 		} else {
 			if (reserved(signature) && defined) {
-				throw new KRDatabaseException(
-						"attempt to redefine "
-								+ signature
-								+ "; Prolog built-in or reserved GOAL operators can not be redefined.");
+				throw new KRDatabaseException("attempt to redefine " + signature
+						+ "; Prolog built-in or reserved GOAL operators can not be redefined.");
 			} else {
 				addTerm(term, formula.getSourceInfo(), defined, queried);
 			}
@@ -98,8 +92,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	public void add(Query query) throws KRException {
 		jpl.Term term = ((PrologQuery) query).getTerm();
 		if (term.name().equals(":-") && term.arity() == 2) {
-			throw new KRDatabaseException(
-					"A clause with main operator :-/2 cannot be queried.");
+			throw new KRDatabaseException("A clause with main operator :-/2 cannot be queried.");
 		} else {
 			addTerm(term, query.getSourceInfo(), false, true);
 		}
@@ -116,8 +109,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 * @return The list of nodes associated with the term (either created or
 	 *         already existing nodes).
 	 */
-	private List<Node<PrologTerm>> addTerm(jpl.Term prologTerm,
-			SourceInfo source, boolean defined, boolean queried) {
+	private List<Node<PrologTerm>> addTerm(jpl.Term prologTerm, SourceInfo source, boolean defined, boolean queried) {
 		List<Node<PrologTerm>> nodes = new ArrayList<Node<PrologTerm>>();
 		Node<PrologTerm> node;
 		String signature;
@@ -175,25 +167,21 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			 * term.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			jpl.Term stubfunc = new Compound(term.arg(1).name(),
-					new jpl.Term[] { ANON_VAR });
+			jpl.Term stubfunc = new Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR });
 			terms.add(stubfunc);
-		} else if (signature.equals(";/2") || signature.equals(",/2")
-				|| signature.equals("forall/2")) {
+		} else if (signature.equals(";/2") || signature.equals(",/2") || signature.equals("forall/2")) {
 			// Unpack the conjunction, disjunction and forall /2-operators.
 			for (jpl.Term argument : term.args()) {
 				terms.addAll(unpack(argument));
 			}
 			// findall, setof aggregate and aggregate_all /3-operators only
 			// have a query in the second argument.
-		} else if (signature.equals("findall/3") || signature.equals("setof/3")
-				|| signature.equals("aggregate/3")
+		} else if (signature.equals("findall/3") || signature.equals("setof/3") || signature.equals("aggregate/3")
 				|| signature.equals("aggregate_all/3")) {
 			terms.addAll(unpack(term.arg(2)));
 			// aggregate and aggregate_all /4-operators have the query in
 			// the third argument.
-		} else if (signature.equals("aggregate/4")
-				|| signature.equals("aggregate_all/4")) {
+		} else if (signature.equals("aggregate/4") || signature.equals("aggregate_all/4")) {
 			terms.addAll(unpack(term.arg(3)));
 		} else if (signature.equals("predsort/3")) {
 			/*
@@ -202,8 +190,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			 * correct term. We will be using 3 anonymous variables.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			jpl.Term stubfunc = new Compound(term.arg(1).name(),
-					new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			jpl.Term stubfunc = new Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			terms.add(stubfunc);
 		} else {
 			terms.add(term);

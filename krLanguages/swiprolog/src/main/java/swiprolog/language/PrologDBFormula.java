@@ -39,8 +39,7 @@ import swiprolog.database.PrologDatabase;
  * the check is only performed at compile time).
  * </p>
  */
-public class PrologDBFormula extends PrologExpression implements
-DatabaseFormula {
+public class PrologDBFormula extends PrologExpression implements DatabaseFormula {
 	/**
 	 * Creates a Prolog database formula that can be part of a Prolog database.
 	 *
@@ -57,8 +56,7 @@ DatabaseFormula {
 	public PrologDBFormula applySubst(Substitution substitution) {
 		Map<String, jpl.Term> jplSubstitution = (substitution == null) ? null
 				: ((PrologSubstitution) substitution).getJPLSolution();
-		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution,
-				getTerm()), getSourceInfo());
+		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
 	}
 
 	@Override

@@ -30,7 +30,7 @@ import swiprolog.SwiPrologInterface;
  * Factory of KRIs. Currently, the factory supports:
  * <ul>
  * <li>SWI Prolog v6.0.2</li>
- * <li> OWL - API v. 4.0 </li>
+ * <li>OWL - API v. 4.0</li>
  * </ul>
  */
 public class KRFactory {
@@ -42,9 +42,10 @@ public class KRFactory {
 	 * A map of names to the {@link KRInterface}s that are supported.
 	 */
 	private static Map<String, Class<? extends KRInterface>> kr = new HashMap<>();
+
 	static {
-		kr.put(SWI_PROLOG,SwiPrologInterface.class);
-		kr.put(OWL_REPO,OWLRepoKRInterface.class);
+		kr.put(SWI_PROLOG, SwiPrologInterface.class);
+		kr.put(OWL_REPO, OWLRepoKRInterface.class);
 	}
 
 	/**
@@ -54,39 +55,35 @@ public class KRFactory {
 	}
 
 	/**
-	 * Provides an available knowledge representation
-	 * technology. See the public static strings of this class for the supported KRTs.
+	 * Provides an available knowledge representation technology. See the public
+	 * static strings of this class for the supported KRTs.
 	 *
 	 * @param name
-	 *            The name of the KRT. 
+	 *            The name of the KRT.
 	 * @return A KR interface implementation.
 	 * @throws KRInterfaceNotSupportedException
 	 *             If the name does not map to a known interface.
 	 * @throws KRInitFailedException
-	 * 			   If the creation of the requested implementation failed.
+	 *             If the creation of the requested implementation failed.
 	 */
-	public static KRInterface getKR(String name)
-			throws KRInterfaceNotSupportedException, KRInitFailedException {
-		try
-		{
+	public static KRInterface getKR(String name) throws KRInterfaceNotSupportedException, KRInitFailedException {
+		try {
 			KRInterface krInterface = kr.containsKey(name) ? kr.get(name).newInstance() : null;
 			if (krInterface == null) {
 				throw new KRInterfaceNotSupportedException(
-						"Could not find KRT " + name
-								+ " as these are available: "
-								+ kr.keySet());
+						"Could not find KRT " + name + " as these are available: " + kr.keySet());
 			} else {
 				return krInterface;
 			}
-		} catch( IllegalAccessException | InstantiationException e ){
+		} catch (IllegalAccessException | InstantiationException e) {
 			throw new KRInitFailedException("Failed to initialize " + name, e);
 		}
 	}
-	
-	public static String getName(KRInterface kri){
-		for( final String name : kr.keySet()){
+
+	public static String getName(KRInterface kri) {
+		for (final String name : kr.keySet()) {
 			final Class<? extends KRInterface> defined = kr.get(name);
-			if(defined.equals(kri.getClass())){
+			if (defined.equals(kri.getClass())) {
 				return name;
 			}
 		}

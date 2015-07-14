@@ -50,13 +50,11 @@ public class FailingTermsTest {
 	 * @throws KRInitFailedException
 	 * @throws ParserException
 	 */
-	private ParserException checkFailsAsTerm1000(String in, String expectedErr)
-			throws IOException {
+	private ParserException checkFailsAsTerm1000(String in, String expectedErr) throws IOException {
 		Visitor4 visitor = new Visitor4(new Parser4(new StringReader(in), null));
 		try {
 			visitor.visitTerm1000();
-			throw new IllegalStateException("parsing of " + in
-					+ " succeeds unexpectedly");
+			throw new IllegalStateException("parsing of " + in + " succeeds unexpectedly");
 		} catch (ParserException e) {
 			assertEquals(expectedErr, e.getMessage());
 			return e;
@@ -67,9 +65,8 @@ public class FailingTermsTest {
 	// this fails, I think correctly as {} has 1 parameter: see ISO p. 14. SWI
 	// does accept it though?
 	public void testEmptyCurlyList() throws IOException, KRInitFailedException {
-		ParserException exc = checkFailsAsTerm1000("{}",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'}'",
-						ParserErrorMessages.TERM1200.toReadableString()));
+		ParserException exc = checkFailsAsTerm1000("{}", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'}'",
+				ParserErrorMessages.TERM1200.toReadableString()));
 		assertEquals(1, exc.getLineNumber());
 		assertEquals(2, exc.getCharacterPosition());
 	}
@@ -77,8 +74,7 @@ public class FailingTermsTest {
 	@Test
 	// :- is term1200 and paramlist holds term1000
 	public void testTerm1200InList() throws IOException, KRInitFailedException {
-		checkFailsAsTerm1000(
-				"[asserta(bar(X) :- X), clause(bar(X), B)), [[B , call(X)]]]",
+		checkFailsAsTerm1000("[asserta(bar(X) :- X), clause(bar(X), B)), [[B , call(X)]]]",
 				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
 						ParserErrorMessages.TERM900.toReadableString()));
 	}
@@ -86,34 +82,28 @@ public class FailingTermsTest {
 	@Test
 	// :- is term1200 and paramlist holds term1000
 	public void testTerm1200InListB() throws IOException, KRInitFailedException {
-		checkFailsAsTerm1000("assert(a:-b,c)",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
-						ParserErrorMessages.TERM900.toReadableString()));
+		checkFailsAsTerm1000("assert(a:-b,c)", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
+				ParserErrorMessages.TERM900.toReadableString()));
 	}
 
 	@Test
 	// -- does not parse and results in 'extraneous input' message.
 	public void testUnknownOperator() throws IOException, KRInitFailedException {
-		checkFailsAsTerm1000(">>> (1)",
-				ParserErrorMessages.TOKEN_BAD.toReadableString("'>'"));
+		checkFailsAsTerm1000(">>> (1)", ParserErrorMessages.TOKEN_BAD.toReadableString("'>'"));
 	}
 
 	@Test
 	// . % can not accept , as operator.
-	public void testListWithoutFirstArgument() throws IOException,
-			KRInitFailedException {
-		checkFailsAsTerm1000("[,(var(X), X=1), [[X ]]]",
-				ParserErrorMessages.TOKEN_MISSING.toReadableString("']'"));
+	public void testListWithoutFirstArgument() throws IOException, KRInitFailedException {
+		checkFailsAsTerm1000("[,(var(X), X=1), [[X ]]]", ParserErrorMessages.TOKEN_MISSING.toReadableString("']'"));
 		// CHECK why is parser complaining about ] and not about ,?
 	}
 
 	@Test
 	// :- is fx operator, so can have only lower-prio ops on the right.
-	public void testDoubleImplication() throws IOException,
-			KRInitFailedException {
-		ParserException exc = checkFailsAsTerm1000(":- :- a",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
-						ParserErrorMessages.TERM900.toReadableString()));
+	public void testDoubleImplication() throws IOException, KRInitFailedException {
+		ParserException exc = checkFailsAsTerm1000(":- :- a", ParserErrorMessages.FOUND_BUT_NEED
+				.toReadableString("':-'", ParserErrorMessages.TERM900.toReadableString()));
 		assertEquals(1, exc.getCharacterPosition());
 		// CHECK Why isn't this position 3?
 	}

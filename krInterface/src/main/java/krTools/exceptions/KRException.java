@@ -45,8 +45,7 @@ public class KRException extends Exception {
 
 	@Override
 	public String toString() {
-		return "<" + getClass().getSimpleName() + ": " + getMessage() + ", "
-				+ getCause() + ">";
+		return "<" + getClass().getSimpleName() + ": " + getMessage() + ", " + getCause() + ">";
 	}
 
 }

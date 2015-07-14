@@ -30,8 +30,7 @@ import krTools.parser.SourceInfo;
  * parsing was interrupted for some reason.
  * </p>
  */
-public class ParserException extends Exception implements SourceInfo,
-		Comparable<ParserException> {
+public class ParserException extends Exception implements SourceInfo, Comparable<ParserException> {
 	private static final long serialVersionUID = 8224464835000074458L;
 
 	/**
@@ -85,8 +84,8 @@ public class ParserException extends Exception implements SourceInfo,
 	 */
 	@Override
 	public File getSource() {
-		if (this.info != null) {
-			return this.info.getSource();
+		if (info != null) {
+			return info.getSource();
 		} else {
 			return null;
 		}
@@ -98,8 +97,8 @@ public class ParserException extends Exception implements SourceInfo,
 	 */
 	@Override
 	public int getLineNumber() {
-		if (this.info != null) {
-			return this.info.getLineNumber();
+		if (info != null) {
+			return info.getLineNumber();
 		} else {
 			return -1;
 		}
@@ -111,8 +110,8 @@ public class ParserException extends Exception implements SourceInfo,
 	 */
 	@Override
 	public int getCharacterPosition() {
-		if (this.info != null) {
-			return this.info.getCharacterPosition();
+		if (info != null) {
+			return info.getCharacterPosition();
 		} else {
 			return -1;
 		}
@@ -120,8 +119,8 @@ public class ParserException extends Exception implements SourceInfo,
 
 	@Override
 	public int getStartIndex() {
-		if (this.info != null) {
-			return this.info.getStartIndex();
+		if (info != null) {
+			return info.getStartIndex();
 		} else {
 			return -1;
 		}
@@ -129,8 +128,8 @@ public class ParserException extends Exception implements SourceInfo,
 
 	@Override
 	public int getStopIndex() {
-		if (this.info != null) {
-			return this.info.getStopIndex();
+		if (info != null) {
+			return info.getStopIndex();
 		} else {
 			return -1;
 		}
@@ -138,12 +137,12 @@ public class ParserException extends Exception implements SourceInfo,
 
 	/** public getter for Source Info */
 	public SourceInfo getSourceInfo() {
-		return this.info;
+		return info;
 	}
 
 	@Override
 	public String toString() {
-		return "ParserException: " + getMessage() + " " + this.info;
+		return "ParserException: " + getMessage() + " " + info;
 	}
 
 	@Override
@@ -154,11 +153,11 @@ public class ParserException extends Exception implements SourceInfo,
 			return false;
 		} else {
 			ParserException other = (ParserException) obj;
-			if (this.info == null) {
+			if (info == null) {
 				if (other.getSourceInfo() != null) {
 					return false;
 				}
-			} else if (!this.info.equals(other.getSourceInfo())) {
+			} else if (!info.equals(other.getSourceInfo())) {
 				return false;
 			}
 			if (getMessage() == null) {
@@ -176,10 +175,8 @@ public class ParserException extends Exception implements SourceInfo,
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((this.info == null) ? 0 : this.info.hashCode());
-		result = prime * result
-				+ ((getMessage() == null) ? 0 : getMessage().hashCode());
+		result = prime * result + ((info == null) ? 0 : info.hashCode());
+		result = prime * result + ((getMessage() == null) ? 0 : getMessage().hashCode());
 		return result;
 	}
 
@@ -188,11 +185,11 @@ public class ParserException extends Exception implements SourceInfo,
 		if (equals(other)) {
 			return 0;
 		} else if (other.getSourceInfo() == null) {
-			return (this.info == null) ? 0 : -1;
-		} else if (this.info == null) {
+			return (info == null) ? 0 : -1;
+		} else if (info == null) {
 			return 1;
 		} else {
-			return before(this.info, other.getSourceInfo()) ? -1 : 1;
+			return before(info, other.getSourceInfo()) ? -1 : 1;
 		}
 	}
 
@@ -205,20 +202,13 @@ public class ParserException extends Exception implements SourceInfo,
 	 *         position of info2 object.
 	 */
 	private static boolean before(SourceInfo info1, SourceInfo info2) {
-		boolean source = info1.getSource() != null
-				&& info2.getSource() != null
-				&& (info1.getSource().getName()
-						.compareTo(info2.getSource().getName()) < 0);
-		boolean sourceEqual = info1.getSource() != null
-				&& info2.getSource() != null
-				&& (info1.getSource().getName()
-						.compareTo(info2.getSource().getName()) == 0);
-		boolean lineNr = sourceEqual
-				&& (info1.getLineNumber() < info2.getLineNumber());
+		boolean source = info1.getSource() != null && info2.getSource() != null
+				&& (info1.getSource().getName().compareTo(info2.getSource().getName()) < 0);
+		boolean sourceEqual = info1.getSource() != null && info2.getSource() != null
+				&& (info1.getSource().getName().compareTo(info2.getSource().getName()) == 0);
+		boolean lineNr = sourceEqual && (info1.getLineNumber() < info2.getLineNumber());
 		boolean lineNrEqual = (info1.getLineNumber() == info2.getLineNumber());
-		boolean position = sourceEqual
-				&& lineNrEqual
-				&& (info1.getCharacterPosition() < info2.getCharacterPosition());
+		boolean position = sourceEqual && lineNrEqual && (info1.getCharacterPosition() < info2.getCharacterPosition());
 		return source || lineNr || position;
 	}
 }

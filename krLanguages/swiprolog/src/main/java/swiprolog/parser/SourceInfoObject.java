@@ -13,9 +13,8 @@ public class SourceInfoObject implements SourceInfo {
 	private final int end;
 	private final String msg = new String();
 
-	public SourceInfoObject(File file, int lineNr, int charPos, int start,
-			int end) {
-		this.sourceFile = file;
+	public SourceInfoObject(File file, int lineNr, int charPos, int start, int end) {
+		sourceFile = file;
 		this.lineNr = lineNr;
 		this.charPos = charPos;
 		this.start = start;
@@ -24,53 +23,53 @@ public class SourceInfoObject implements SourceInfo {
 
 	@Override
 	public File getSource() {
-		return this.sourceFile;
+		return sourceFile;
 	}
 
 	@Override
 	public int getLineNumber() {
-		return this.lineNr;
+		return lineNr;
 	}
 
 	@Override
 	public int getCharacterPosition() {
-		return this.charPos;
+		return charPos;
 	}
 
 	@Override
 	public int getStartIndex() {
-		return this.start;
+		return start;
 	}
 
 	@Override
 	public int getStopIndex() {
-		return this.end;
+		return end;
 	}
 
 	@Override
 	public String getMessage() {
-		return this.msg;
+		return msg;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("line ");
-		builder.append(this.lineNr);
+		builder.append(lineNr);
 		builder.append(", position ");
-		builder.append(this.charPos);
-		if (this.sourceFile != null) {
+		builder.append(charPos);
+		if (sourceFile != null) {
 			builder.append(" in ");
-			builder.append(this.sourceFile.getName());
+			builder.append(sourceFile.getName());
 		}
 		return builder.toString();
 	}
 
 	@Override
 	public int hashCode() {
-		int hash = (31 * this.lineNr) << 16 + this.charPos;
-		if (this.sourceFile != null) {
-			hash += this.sourceFile.hashCode();
+		int hash = (31 * lineNr) << 16 + charPos;
+		if (sourceFile != null) {
+			hash += sourceFile.hashCode();
 		}
 		return hash;
 	}
@@ -83,16 +82,15 @@ public class SourceInfoObject implements SourceInfo {
 			return false;
 		}
 		SourceInfoObject that = (SourceInfoObject) other;
-		if (this.lineNr != that.lineNr) {
+		if (lineNr != that.lineNr) {
 			return false;
-		} else if (this.charPos != that.charPos) {
+		} else if (charPos != that.charPos) {
 			return false;
 		}
-		if (this.sourceFile == null) {
+		if (sourceFile == null) {
 			return that.sourceFile == null;
 		} else {
-			return this.sourceFile.getAbsoluteFile().equals(
-					that.sourceFile.getAbsoluteFile());
+			return sourceFile.getAbsoluteFile().equals(that.sourceFile.getAbsoluteFile());
 		}
 	}
 }

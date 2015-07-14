@@ -48,20 +48,17 @@ public class UpdateTest {
 	 * @throws IOException
 	 */
 	public Validator4 validator(String in) throws IOException {
-		return new Validator4(new Visitor4(new Parser4(new StringReader(in),
-				null)));
+		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test
-	public void testValidateBasicUpdate() throws IOException,
-			KRInitFailedException, ParserException {
+	public void testValidateBasicUpdate() throws IOException, KRInitFailedException, ParserException {
 		Update term = validator("aap").updateOrEmpty();
 		assertEquals(term, new PrologUpdate(new jpl.Atom("aap"), null));
 	}
 
 	@Test
-	public void testValidateTrueUpdate() throws IOException,
-			KRInitFailedException, ParserException {
+	public void testValidateTrueUpdate() throws IOException, KRInitFailedException, ParserException {
 		// special update. Should work and not throw that true is protected.
 		Update term = validator("true").updateOrEmpty();
 		assertEquals(term, new PrologUpdate(new jpl.Atom("true"), null));

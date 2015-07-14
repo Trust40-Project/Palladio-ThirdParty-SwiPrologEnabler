@@ -42,8 +42,7 @@ public class TokenErrorsTest {
 	 */
 	private Parser4 getParser(Reader textStream) throws IOException {
 		Parser4 parser = new Parser4(textStream, null);
-		parser.getInterpreter().setPredictionMode(
-				PredictionMode.LL_EXACT_AMBIG_DETECTION);
+		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
@@ -59,13 +58,11 @@ public class TokenErrorsTest {
 	 * @throws IOException
 	 * @throws ParserException
 	 */
-	private void failsParseAsProlog(String text, String errormess)
-			throws IOException, ParserException {
+	private void failsParseAsProlog(String text, String errormess) throws IOException, ParserException {
 		Parser4 parser = getParser(text);
 		try {
 			parser.prologtext();
-			throw new IllegalStateException("Parse of " + text
-					+ " should have failed");
+			throw new IllegalStateException("Parse of " + text + " should have failed");
 		} catch (ParserException e) {
 			assertEquals(errormess, e.getMessage());
 		}
@@ -73,40 +70,31 @@ public class TokenErrorsTest {
 
 	@Test
 	public void testNoEnd() throws IOException, ParserException {
-		failsParseAsProlog("kata",
-				ParserErrorMessages.TOKEN_MISSING.toReadableString("'.'"));
+		failsParseAsProlog("kata", ParserErrorMessages.TOKEN_MISSING.toReadableString("'.'"));
 	}
 
 	@Test
 	public void testTwoNames() throws IOException, ParserException {
-		failsParseAsProlog("kata kata.",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
-						"an atom 'kata'",
-						ParserErrorMessages.TERM200.toReadableString()));
+		failsParseAsProlog("kata kata.", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("an atom 'kata'",
+				ParserErrorMessages.TERM200.toReadableString()));
 	}
 
 	@Test
 	public void testExtraNumber() throws IOException, ParserException {
-		failsParseAsProlog("kata 1.",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
-						"a number '1'",
-						ParserErrorMessages.TERM200.toReadableString()));
+		failsParseAsProlog("kata 1.", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a number '1'",
+				ParserErrorMessages.TERM200.toReadableString()));
 	}
 
 	@Test
 	public void testExtraVariable() throws IOException, ParserException {
-		failsParseAsProlog("kata X.",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
-						"a variable 'X'",
-						ParserErrorMessages.TERM200.toReadableString()));
+		failsParseAsProlog("kata X.", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a variable 'X'",
+				ParserErrorMessages.TERM200.toReadableString()));
 
 	}
 
 	@Test
 	public void testExtraString() throws IOException, ParserException {
-		failsParseAsProlog("kata \"X\".",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
-						"a string \"X\"",
-						ParserErrorMessages.TERM200.toReadableString()));
+		failsParseAsProlog("kata \"X\".", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a string \"X\"",
+				ParserErrorMessages.TERM200.toReadableString()));
 	}
 }

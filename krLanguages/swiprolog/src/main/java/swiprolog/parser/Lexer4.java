@@ -14,46 +14,44 @@ public class Lexer4 extends Lexer {
 
 	public Lexer4(CharStream input, ANTLRErrorListener errorlistener) {
 		super(input);
-		this.lexer = getNewLexer(input);
-		this.lexer.removeErrorListeners();
-		this.lexer.addErrorListener(errorlistener);
+		lexer = getNewLexer(input);
+		lexer.removeErrorListeners();
+		lexer.addErrorListener(errorlistener);
 	}
 
 	@Override
 	public Token nextToken() {
-		return this.lexer.nextToken();
+		return lexer.nextToken();
 	}
 
 	@Override
 	public String[] getRuleNames() {
-		return this.lexer.getRuleNames();
+		return lexer.getRuleNames();
 	}
 
 	@Override
 	public String getGrammarFileName() {
-		return this.lexer.getGrammarFileName();
+		return lexer.getGrammarFileName();
 	}
 
 	@Override
 	public ATN getATN() {
-		return this.lexer.getATN();
+		return lexer.getATN();
 	}
 
 	@Override
 	public LexerATNSimulator getInterpreter() {
-		return this.lexer.getInterpreter();
+		return lexer.getInterpreter();
 	}
 
 	protected Prolog4Lexer getNewLexer(CharStream input) {
 		return new Prolog4Lexer(input) {
 			@Override
 			public void notifyListeners(LexerNoViableAltException e) {
-				String text = this._input.getText(Interval.of(
-						this._tokenStartCharIndex, this._input.index()));
+				String text = _input.getText(Interval.of(_tokenStartCharIndex, _input.index()));
 				String msg = this.getErrorDisplay(text);
 				ANTLRErrorListener listener = getErrorListenerDispatch();
-				listener.syntaxError(this, null, this._tokenStartLine,
-						this._tokenStartCharPositionInLine, msg, e);
+				listener.syntaxError(this, null, _tokenStartLine, _tokenStartCharPositionInLine, msg, e);
 			}
 		};
 	}

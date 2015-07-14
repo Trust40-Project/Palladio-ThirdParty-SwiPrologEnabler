@@ -70,12 +70,10 @@ public final class SwiPrologInterface implements KRInterface {
 	public SwiPrologInterface() throws KRInitFailedException {
 		// Initialize inference engine.
 		try {
-			PrologDatabase.rawquery(JPLUtils.createCompound(
-					"set_prolog_flag", new jpl.Atom("debug_on_error"),
-					new jpl.Atom("false")));
+			PrologDatabase.rawquery(
+					JPLUtils.createCompound("set_prolog_flag", new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
 		} catch (KRQueryFailedException e) {
-			throw new KRInitFailedException(
-					"swi prolog says it can't set the run mode", e);
+			throw new KRInitFailedException("swi prolog says it can't set the run mode", e);
 		}
 		// See http://www.swi-prolog.org/packages/jpl/release_notes.html for
 		// explanation why Don't Tell Me Mode needs to be false. Setting this
@@ -98,18 +96,17 @@ public final class SwiPrologInterface implements KRInterface {
 	 *          {@code null} if no database of the given type exists.
 	 */
 	protected PrologDatabase getDatabase(String name) {
-		return this.databases.get(name);
+		return databases.get(name);
 	}
 
 	@Override
-	public Database getDatabase(Collection<DatabaseFormula> theory)
-			throws KRDatabaseException {
+	public Database getDatabase(Collection<DatabaseFormula> theory) throws KRDatabaseException {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
-		PrologDatabase database = new PrologDatabase(theory,this);
+		PrologDatabase database = new PrologDatabase(theory, this);
 		// Add database to list of databases maintained by SWI Prolog and
 		// associated with name.
-		this.databases.put(database.getName(), database);
+		databases.put(database.getName(), database);
 
 		// Return new database.
 		return database;
@@ -120,7 +117,7 @@ public final class SwiPrologInterface implements KRInterface {
 	 * @param db
 	 */
 	public void removeDatabase(PrologDatabase db) {
-		this.databases.remove(db.getName());
+		databases.remove(db.getName());
 	}
 
 	/**
@@ -131,8 +128,7 @@ public final class SwiPrologInterface implements KRInterface {
 		try {
 			return new KRInterfaceParser4(r, info);
 		} catch (IOException e) {
-			throw new ParserException("could not parse the data as SWI prolog",
-					info, e);
+			throw new ParserException("could not parse the data as SWI prolog", info, e);
 		}
 	}
 
@@ -152,11 +148,11 @@ public final class SwiPrologInterface implements KRInterface {
 	 */
 	@Override
 	public void release() throws KRDatabaseException {
-		for (PrologDatabase db : this.databases.values()) {
+		for (PrologDatabase db : databases.values()) {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
 		}
-		this.databases = new HashMap<String, PrologDatabase>();
+		databases = new HashMap<String, PrologDatabase>();
 	}
 
 	@Override
@@ -178,8 +174,7 @@ public final class SwiPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
-			Set<Query> queries) {
+	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries) {
 		Analyzer analyzer = new Analyzer(dbfs, queries);
 		analyzer.analyze();
 		return analyzer.getUnused();

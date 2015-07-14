@@ -19,7 +19,6 @@ package swiprolog.language;
 
 import java.util.Map;
 
-import krTools.language.DatabaseFormula;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.parser.SourceInfo;
@@ -49,18 +48,9 @@ public class PrologTerm extends PrologExpression implements Term {
 
 	@Override
 	public PrologTerm applySubst(Substitution s) {
-		Map<String, jpl.Term> jplSubstitution = (s == null) ? null
-				: ((PrologSubstitution) s).getJPLSolution();
+		Map<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
 		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 		return new PrologTerm(term, getSourceInfo());
-	}
-	
-	public DatabaseFormula toFormula() {
-		if(isClosed()){
-			return new PrologDBFormula(getTerm(), getSourceInfo());
-		} else {
-			return null;
-		}
 	}
 
 	@Override
@@ -70,7 +60,6 @@ public class PrologTerm extends PrologExpression implements Term {
 
 	@Override
 	public boolean equals(Object obj) {
-		return (obj instanceof PrologTerm)
-				&& getTerm().equals(((PrologTerm) obj).getTerm());
+		return (obj instanceof PrologTerm) && getTerm().equals(((PrologTerm) obj).getTerm());
 	}
 }

@@ -55,9 +55,10 @@ public interface KRInterface {
 	/**
 	 * Performs any initializations that need to be performed before the KR
 	 * interface can be used. Pass on any URI (file or URL) from use cases that
-	 * is needed to initialize the interface. 
+	 * is needed to initialize the interface.
 	 *
-	 * @param set of URI-s that can be files, url-s or urn-s to be passed
+	 * @param set
+	 *            of URI-s that can be files, url-s or urn-s to be passed
 	 * @throws KRInitFailedException
 	 *             If initialization of the KR interface failed.
 	 */
@@ -83,8 +84,7 @@ public interface KRInterface {
 	 *             If the database could not be created, or the content provided
 	 *             could not be added.
 	 */
-	Database getDatabase(Collection<DatabaseFormula> content)
-			throws KRDatabaseException;
+	Database getDatabase(Collection<DatabaseFormula> content) throws KRDatabaseException;
 
 	/**
 	 * Returns a parser for this KR language. Only initializes the parser but
@@ -127,8 +127,7 @@ public interface KRInterface {
 	 * Reports the formulas that have been defined in the set of database
 	 * formulas but are not used (queried).
 	 */
-	Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
-			Set<Query> queries);
+	Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
 	 * Check if terms in this KR implementation can be serialized.

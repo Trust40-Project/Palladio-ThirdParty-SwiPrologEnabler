@@ -32,9 +32,10 @@ import krTools.language.Query;
  * <p>
  * A dependency graph is a directed graph that consists of nodes that represent
  * an expression from the KR language used. An edge from one node to another
- * represents a dependency between the expressions from the KR language associated
- * with the nodes. The dependency between the nodes is that the evaluation of the
- * first expression depends on the evaluation of the second expression.
+ * represents a dependency between the expressions from the KR language
+ * associated with the nodes. The dependency between the nodes is that the
+ * evaluation of the first expression depends on the evaluation of the second
+ * expression.
  * </p>
  * <p>
  * For example, if the KR language is Prolog, then a clause p(X) :- q(X) that is
@@ -43,13 +44,13 @@ import krTools.language.Query;
  * </p>
  * <p>
  * A dependency graph is used to verify that predicates are both used as well as
- * defined in an agent program. These graphs are also used for computing a so-called
- * view associated with a module. A view indicates which predicates are used within
- * the module.
+ * defined in an agent program. These graphs are also used for computing a
+ * so-called view associated with a module. A view indicates which predicates
+ * are used within the module.
  * </p>
  * <p>
- * Each node represents a unique <i>signature</i>, i.e. a pair name/arity, that is
- * used to store the nodes in a hash map.
+ * Each node represents a unique <i>signature</i>, i.e. a pair name/arity, that
+ * is used to store the nodes in a hash map.
  * </p>
  *
  * @author Koen Hindriks
@@ -79,8 +80,7 @@ public abstract class DependencyGraph<T extends Expression> {
 	 *            Indicates whether the formula represents a query.
 	 * @throws KRException
 	 */
-	public abstract void add(DatabaseFormula formula, boolean defined,
-			boolean queried) throws KRException;
+	public abstract void add(DatabaseFormula formula, boolean defined, boolean queried) throws KRException;
 
 	/**
 	 * Adds a {@link Query} to this {@link DependencyGraph}. If a query is a
@@ -165,12 +165,10 @@ public abstract class DependencyGraph<T extends Expression> {
 				}
 				if (!node.isBasic()) {
 					buffer.append("\n    = depends on =>  ");
-					Iterator<Node<T>> dependencyIterator = node
-							.getDependencies().iterator();
+					Iterator<Node<T>> dependencyIterator = node.getDependencies().iterator();
 					buffer.append(dependencyIterator.next().getSignature());
 					while (dependencyIterator.hasNext()) {
-						buffer.append(" , "
-								+ dependencyIterator.next().getSignature());
+						buffer.append(" , " + dependencyIterator.next().getSignature());
 					}
 				}
 				buffer.append("\n");

@@ -49,23 +49,21 @@ public class PrologFilesTest {
 	 */
 	@Parameters
 	public static Collection<String> data() {
-		return Arrays
-				.asList(new String[] { "/prolog/test.pl", "/prolog/test-1.pl",
-						"/prolog/test-2.pl", "/prolog/test-3.pl" });
+		return Arrays.asList(
+				new String[] { "/prolog/test.pl", "/prolog/test-1.pl", "/prolog/test-2.pl", "/prolog/test-3.pl" });
 	}
 
 	private final Reader stream;
 
 	public PrologFilesTest(String filename) throws IOException {
 		URL url = getClass().getResource(filename);
-		this.stream = new BufferedReader(
-				new InputStreamReader(url.openStream()));
+		stream = new BufferedReader(new InputStreamReader(url.openStream()));
 		System.out.println("running test with file " + url);
 	}
 
 	@Test
 	public void readFile() throws IOException, ParserException {
-		Visitor4 visitor = new Visitor4(new Parser4(this.stream, null));
+		Visitor4 visitor = new Visitor4(new Parser4(stream, null));
 		visitor.visitPrologtext();
 	}
 }

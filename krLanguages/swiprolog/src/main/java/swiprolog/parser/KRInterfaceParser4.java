@@ -54,46 +54,46 @@ public class KRInterfaceParser4 implements Parser {
 	 *             {@link ParserException}.
 	 */
 	public KRInterfaceParser4(Reader r, SourceInfo info) throws IOException {
-		this.validator = new Validator4(new Visitor4(new Parser4(r, info)));
+		validator = new Validator4(new Visitor4(new Parser4(r, info)));
 	}
 
 	@Override
 	public Update parseUpdate() throws ParserException {
-		return this.validator.updateOrEmpty();
+		return validator.updateOrEmpty();
 	}
 
 	@Override
 	public List<DatabaseFormula> parseDBFs() throws ParserException {
-		return this.validator.program();
+		return validator.program();
 	}
 
 	@Override
 	public List<Query> parseQueries() throws ParserException {
-		return this.validator.goalSection();
+		return validator.goalSection();
 	}
 
 	@Override
 	public Query parseQuery() throws ParserException {
-		return this.validator.queryOrEmpty();
+		return validator.queryOrEmpty();
 	}
 
 	@Override
 	public Var parseVar() throws ParserException {
-		return this.validator.var();
+		return validator.var();
 	}
 
 	@Override
 	public Term parseTerm() throws ParserException {
-		return this.validator.term();
+		return validator.term();
 	}
 
 	@Override
 	public List<Term> parseTerms() throws ParserException {
-		return this.validator.terms();
+		return validator.terms();
 	}
 
 	@Override
 	public List<SourceInfo> getErrors() {
-		return new ArrayList<SourceInfo>(this.validator.getErrors());
+		return new ArrayList<SourceInfo>(validator.getErrors());
 	}
 }

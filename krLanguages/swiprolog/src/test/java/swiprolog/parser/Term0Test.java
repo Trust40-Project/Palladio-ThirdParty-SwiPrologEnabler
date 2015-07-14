@@ -42,8 +42,7 @@ public class Term0Test {
 	 */
 	private Parser4 getParser(Reader textStream) throws IOException {
 		Parser4 parser = new Parser4(textStream, null);
-		parser.getInterpreter().setPredictionMode(
-				PredictionMode.LL_EXACT_AMBIG_DETECTION);
+		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
@@ -51,8 +50,7 @@ public class Term0Test {
 		return getParser(new StringReader(text));
 	}
 
-	private void checkParsesAsTerm0(String text) throws IOException,
-			ParserException {
+	private void checkParsesAsTerm0(String text) throws IOException, ParserException {
 		Parser4 parser = getParser(text);
 		Term0Context tree = parser.term0();
 		System.out.println(text + " -> " + parser.toStringTree(tree));

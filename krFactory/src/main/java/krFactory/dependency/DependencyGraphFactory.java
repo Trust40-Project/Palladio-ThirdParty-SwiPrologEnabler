@@ -36,11 +36,11 @@ public class DependencyGraphFactory {
 	/**
 	 * A mapping of {@link KRInterface}s to {@link DependencyGraph}s.
 	 */
-	private static Map<Class<? extends KRInterface>, Class<? extends DependencyGraph<?>>> graphs = new HashMap<>(); 
+	private static Map<Class<? extends KRInterface>, Class<? extends DependencyGraph<?>>> graphs = new HashMap<>();
 
 	static {
-		graphs.put(SwiPrologInterface.class,PrologDependencyGraph.class);
-		//graphs.put(OWLRepoKRInterface.class); TODO
+		graphs.put(SwiPrologInterface.class, PrologDependencyGraph.class);
+		// graphs.put(OWLRepoKRInterface.class); TODO
 	}
 
 	/**
@@ -53,28 +53,25 @@ public class DependencyGraphFactory {
 	 * Provides a dependency graph for a certain knowledge representation.
 	 *
 	 * @param kri
-	 *            The knowledge representation interface. 
+	 *            The knowledge representation interface.
 	 * @return A DependencyGraph implementation.
 	 * @throws KRInterfaceNotSupportedException
 	 *             If the interface does not map to a known implementation.
 	 * @throws KRInitFailedException
-	 * 			   If the creation of the requested implementation failed.
+	 *             If the creation of the requested implementation failed.
 	 */
 	public static DependencyGraph<?> getDependencyGraph(KRInterface kri)
 			throws KRInterfaceNotSupportedException, KRInitFailedException {
-		try
-		{
-			DependencyGraph<?> graph = graphs.containsKey(kri.getClass()) ? 
-					graphs.get(kri.getClass()).newInstance() : null;
+		try {
+			DependencyGraph<?> graph = graphs.containsKey(kri.getClass()) ? graphs.get(kri.getClass()).newInstance()
+					: null;
 			if (graph == null) {
-				throw new KRInterfaceNotSupportedException(
-						"Could not find a dependency graph implementation for " + KRFactory.getName(kri)
-								+ " as these are available: "
-								+ graphs.keySet());
+				throw new KRInterfaceNotSupportedException("Could not find a dependency graph implementation for "
+						+ KRFactory.getName(kri) + " as these are available: " + graphs.keySet());
 			} else {
 				return graph;
 			}
-		} catch( IllegalAccessException | InstantiationException e ){
+		} catch (IllegalAccessException | InstantiationException e) {
 			throw new KRInitFailedException("Failed to initialize a dependency graph for " + KRFactory.getName(kri), e);
 		}
 	}

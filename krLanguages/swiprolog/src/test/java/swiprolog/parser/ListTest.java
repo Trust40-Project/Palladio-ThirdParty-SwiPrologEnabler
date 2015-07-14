@@ -43,8 +43,7 @@ public class ListTest {
 		return new Parser4(new StringReader(text), null);
 	}
 
-	private void checkParsesAsList(String... items) throws IOException,
-			ParserException {
+	private void checkParsesAsList(String... items) throws IOException, ParserException {
 		String text = "[" + list2String(",", items) + "]";
 		Parser4 parser = getParser(text);
 		ListtermContext tree = parser.listterm();
@@ -78,8 +77,7 @@ public class ListTest {
 	 * @return
 	 */
 	private String item2String(String term) {
-		return "(expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 "
-				+ term + ")))))))))";
+		return "(expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 " + term + ")))))))))";
 	}
 
 	/**
@@ -104,14 +102,12 @@ public class ListTest {
 		if (items.size() == 1) {
 			return "(items " + item2String(items.get(0)) + ")";
 		} else {
-			return "(items " + item2String(items.get(0)) + " , "
-					+ items2String(items.subList(1, items.size())) + ")";
+			return "(items " + item2String(items.get(0)) + " , " + items2String(items.subList(1, items.size())) + ")";
 		}
 	}
 
 	@Test
-	public void testLisEmptyList() throws IOException, RecognitionException,
-			ParserException {
+	public void testLisEmptyList() throws IOException, RecognitionException, ParserException {
 		checkParsesAsList();
 	}
 

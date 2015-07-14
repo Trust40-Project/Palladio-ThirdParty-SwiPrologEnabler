@@ -22,7 +22,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import krTools.language.DatabaseFormula;
 import krTools.language.Expression;
 import krTools.language.Substitution;
 import krTools.language.Var;
@@ -58,7 +57,7 @@ public abstract class PrologExpression implements Expression {
 	 * @return A {@link jpl.Term}.
 	 */
 	public jpl.Term getTerm() {
-		return this.term;
+		return term;
 	}
 
 	/**
@@ -67,7 +66,7 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public SourceInfo getSourceInfo() {
-		return this.info;
+		return info;
 	}
 
 	/**
@@ -88,8 +87,7 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public Set<Var> getFreeVar() {
-		List<jpl.Variable> jplvars = new ArrayList<jpl.Variable>(
-				JPLUtils.getFreeVar(getTerm()));
+		List<jpl.Variable> jplvars = new ArrayList<jpl.Variable>(JPLUtils.getFreeVar(getTerm()));
 		Set<Var> variables = new LinkedHashSet<Var>();
 		// Build VariableTerm from jpl.Variable.
 		for (jpl.Variable var : jplvars) {
@@ -119,8 +117,7 @@ public abstract class PrologExpression implements Expression {
 	@Override
 	public Substitution mgu(Expression expression) {
 		jpl.Term otherterm = ((PrologExpression) expression).getTerm();
-		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(
-				getTerm(), otherterm));
+		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(getTerm(), otherterm));
 	}
 
 	/**

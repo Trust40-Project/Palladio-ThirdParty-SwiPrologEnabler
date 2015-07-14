@@ -46,7 +46,8 @@ import krTools.parser.SourceInfo;
  * {@link #getFreeVar}, {@link #applySubst}, and {@link #mgu}, however, only
  * make sense if variables are present in the language.
  * </p>
- * </ul> </p>
+ * </ul>
+ * </p>
  *
  * <p>
  * <b>Important</b>: {@link Expression} and other language elements such as

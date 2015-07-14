@@ -43,8 +43,7 @@ public class TestUnification2 {
 	 * @return
 	 * @throws KRInitFailedException
 	 */
-	public Substitution getSubstitution(PrologVar var, jpl.Term term)
-			throws KRInitFailedException {
+	public Substitution getSubstitution(PrologVar var, jpl.Term term) throws KRInitFailedException {
 		SwiPrologInterface swi = new SwiPrologInterface();
 		Substitution unifier = swi.getSubstitution(new HashMap<Var, krTools.language.Term>());
 		unifier.addBinding(var, new PrologTerm(term, null));
@@ -324,8 +323,7 @@ public class TestUnification2 {
 		jpl.Term fX = new jpl.Compound("f", new Term[] { x });
 
 		// Construct f(g(X))
-		jpl.Term fgX = new jpl.Compound("f", new Term[] { new jpl.Compound("g",
-				new Term[] { x1 }) });
+		jpl.Term fgX = new jpl.Compound("f", new Term[] { new jpl.Compound("g", new Term[] { x1 }) });
 
 		Map<String, Term> result = JPLUtils.mgu(fX, fgX);
 

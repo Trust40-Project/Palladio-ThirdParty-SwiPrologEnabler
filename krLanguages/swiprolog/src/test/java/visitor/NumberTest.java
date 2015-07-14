@@ -48,8 +48,7 @@ public class NumberTest {
 	 * @throws KRInitFailedException
 	 * @throws ParserException
 	 */
-	private void checkVisitsAsTerm0(String text) throws IOException,
-	KRInitFailedException, ParserException {
+	private void checkVisitsAsTerm0(String text) throws IOException, KRInitFailedException, ParserException {
 		checkVisitsAsTerm0(text, text);
 	}
 
@@ -64,8 +63,7 @@ public class NumberTest {
 	 * @throws KRInitFailedException
 	 * @throws ParserException
 	 */
-	private void checkVisitsAsTerm0(String in, String out)
-			throws KRInitFailedException, IOException, ParserException {
+	private void checkVisitsAsTerm0(String in, String out) throws KRInitFailedException, IOException, ParserException {
 		Visitor4 visitor = new Visitor4(new Parser4(new StringReader(in), null));
 		PrologTerm term = visitor.visitTerm0();
 
@@ -74,52 +72,42 @@ public class NumberTest {
 	}
 
 	@Test
-	public void testFloat() throws IOException, KRInitFailedException,
-	ParserException {
+	public void testFloat() throws IOException, KRInitFailedException, ParserException {
 		checkVisitsAsTerm0("100.3");
 	}
 
 	@Test
-	public void testFloat2() throws IOException, KRInitFailedException,
-	ParserException {
+	public void testFloat2() throws IOException, KRInitFailedException, ParserException {
 		checkVisitsAsTerm0("100.3e13", "1.003E15");
 	}
 
 	@Test
-	public void testFloat3() throws IOException, KRInitFailedException,
-	ParserException {
+	public void testFloat3() throws IOException, KRInitFailedException, ParserException {
 		checkVisitsAsTerm0("0.3e13", "3.0E12");
 	}
 
 	@Test
-	public void testInteger() throws IOException, KRInitFailedException,
-	ParserException {
+	public void testInteger() throws IOException, KRInitFailedException, ParserException {
 		checkVisitsAsTerm0("12345");
 	}
 
 	@Test
-	public void testBigInteger() throws IOException, KRInitFailedException,
-	ParserException {
-		checkVisitsAsTerm0(
-				"123456789012345678901234567890123456789012345678901234567890",
-				"1.2345678901234567E59");
+	public void testBigInteger() throws IOException, KRInitFailedException, ParserException {
+		checkVisitsAsTerm0("123456789012345678901234567890123456789012345678901234567890", "1.2345678901234567E59");
 	}
 
 	@Test
-	public void testAlmostMaxInt() throws IOException, KRInitFailedException,
-	ParserException {
+	public void testAlmostMaxInt() throws IOException, KRInitFailedException, ParserException {
 		checkVisitsAsTerm0("2147483647", "2147483647");
 	}
 
 	@Test
-	public void testMaxInt() throws IOException, KRInitFailedException,
-	ParserException {
+	public void testMaxInt() throws IOException, KRInitFailedException, ParserException {
 		checkVisitsAsTerm0("2147483648", "2.147483648E9");
 	}
 
 	@Test(expected = ParserException.class)
-	public void testHugeNumber() throws IOException, KRInitFailedException,
-	ParserException {
+	public void testHugeNumber() throws IOException, KRInitFailedException, ParserException {
 		checkVisitsAsTerm0("12.1e738273", "1.2345678901234567E59");
 	}
 

@@ -47,35 +47,26 @@ public class ProgramTest {
 	 * @throws IOException
 	 */
 	public Validator4 validator(String in) throws IOException {
-		return new Validator4(new Visitor4(new Parser4(new StringReader(in),
-				null)));
+		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test
-	public void testValidateBasicUpdate() throws IOException,
-	KRInitFailedException, ParserException {
+	public void testValidateBasicUpdate() throws IOException, KRInitFailedException, ParserException {
 		try {
 			validator("1").queryOrEmpty();
 			throw new IllegalStateException("parse of wrong query succeeded");
 		} catch (ParserException e) {
-			assertEquals(
-					ParserErrorMessages.NUMBER_NOT_AS_GOAL
-							.toReadableString("1"),
-					e.getMessage());
+			assertEquals(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString("1"), e.getMessage());
 		}
 	}
 
 	@Test
-	public void testVarAsGoal() throws IOException, KRInitFailedException,
-			ParserException {
+	public void testVarAsGoal() throws IOException, KRInitFailedException, ParserException {
 		try {
 			validator("X").queryOrEmpty();
 			throw new IllegalStateException("parse of wrong query succeeded");
 		} catch (ParserException e) {
-			assertEquals(
-					ParserErrorMessages.VARIABLES_NOT_AS_GOAL
-							.toReadableString("X"),
-					e.getMessage());
+			assertEquals(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString("X"), e.getMessage());
 		}
 	}
 }

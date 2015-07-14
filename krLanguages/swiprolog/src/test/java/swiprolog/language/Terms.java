@@ -18,9 +18,10 @@
 package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
-import krTools.language.Term;
 
 import org.junit.Test;
+
+import krTools.language.Term;
 
 public class Terms {
 
