@@ -41,7 +41,7 @@ public class SWRLParserUtil {
 			term = obj+"("+subj+")";
 		}else
 			term = pred + "(" + subj + ", "+ obj + ")";
-		System.out.println(term);
+	//	System.out.println(term);
 		try {
 			rule = parser.parseSWRLRule(term, false, "term", "triple");
 		} catch (SWRLParseException e) {

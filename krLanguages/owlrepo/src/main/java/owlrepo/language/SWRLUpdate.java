@@ -8,6 +8,7 @@ import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
 
+import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLRule;
 
 
@@ -15,6 +16,10 @@ public class SWRLUpdate extends SWRLExpression implements Update {
 
 	public SWRLUpdate(SWRLRule axiom) {
 		super(axiom);
+	}
+
+	public SWRLUpdate(SWRLArgument term){
+		super(term);
 	}
 
 	/**
