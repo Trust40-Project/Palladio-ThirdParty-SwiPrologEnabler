@@ -78,6 +78,9 @@ public class OWLOntologyDatabase implements Database {
 	private boolean firstInsert = true;
 	private Collection<Statement> baseStm ;
     private SWRLAPIRenderer renderer;
+    private DefaultPrefixManager prefixManager ;
+    private String goalOntoPath = "../krTools/krLanguages/owlrepo/src/main/resources/agentOntology.owl";
+    
     
     public OWLOntologyDatabase(String name, File file) throws OWLOntologyCreationException{
     	this.name = name;
@@ -102,17 +105,19 @@ public class OWLOntologyDatabase implements Database {
 	      OWLOntologyID ontoId = owlontology.getOntologyID();
 	      Optional<IRI> ontoIri = ontoId.getOntologyIRI();
 	      IRI ontologyIri = ontoIri.get();
-	      DefaultPrefixManager prefixManager = new DefaultPrefixManager();
+	      this.prefixManager = new DefaultPrefixManager();
 	      baseURI = ontologyIri.toString()+"#";
 	      prefixManager.setDefaultPrefix(baseURI);
 	      prefixManager.setPrefix("onto", baseURI);
 	    
+	      addGOALAgentOntology(goalOntoPath);
+
 	      //create swrl ontology
 	      swrlontology = SWRLAPIFactory.createOntology(owlontology, prefixManager);
 	      SWRLAPIFactory.updatePrefixManager(owlontology, prefixManager);
 	      swrlontology.getPrefixManager().setDefaultPrefix(baseURI);
-	     // renderer = SWRLAPIFactory.createSWRLAPIRenderer(swrlontology);  
-			
+	     // renderer = SWRLAPIFactory.createSWRLAPIRenderer(swrlontology);  	
+	      
 	      StatementCollector stc = new StatementCollector();		
 			RioRenderer render = new RioRenderer(owlontology, stc, manager.getOntologyFormat(owlontology), (Resource)null);
 			try {
@@ -126,6 +131,20 @@ public class OWLOntologyDatabase implements Database {
 //  		consumer.statementWithResourceValue(subject, predicate, object);
   		//OWLRDFConsumer to get contents of repo
   	
+    }
+    
+    private void addGOALAgentOntology(String path) throws OWLOntologyCreationException{
+    	OWLOntologyManager goalManager = OWLManager.createOWLOntologyManager();
+//    	File currentDirectory = new File(new File(".").getAbsolutePath());
+//    	try {
+//			System.out.println(currentDirectory.getCanonicalPath());
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+    	OWLOntology goalOntology = goalManager.loadOntologyFromOntologyDocument(new File(path));
+    	prefixManager.setPrefix("goal", "http://ii.tudelft.nl/goal#");
+    	Set<OWLAxiom> goalAxioms = goalOntology.getTBoxAxioms(null);
+    	manager.addAxioms(owlontology, goalAxioms);
     }
     
     public void setupRepo(String repoUrl){
