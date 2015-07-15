@@ -215,10 +215,21 @@ public class SWRLParser implements Parser {
 	@Override
 	public Update parseUpdate() throws ParserException {
 		//rule to update
+		SWRLRule rule = null;
+
 		if (parseCurrentLine()){
-			SWRLRule rule = parseRule(currentLine);
+			//parse rule
+			rule = parseRule(currentLine);
+			//rule to query
 			if (rule!=null)
 				return new SWRLUpdate(rule);
+			else {
+				//parse argument
+				SWRLArgument arg = parseArgument(currentLine);
+				if (arg != null)
+					//check if it was an argument or a rule
+					return new SWRLUpdate(arg);
+			}
 		}
 		return null;
 	}
@@ -284,9 +295,13 @@ public class SWRLParser implements Parser {
 				term = new SWRLTerm(rule);
 			}else {
 				//variable
-				term = new SWRLTerm(parseArgument(termstring));
+				SWRLArgument arg = parseArgument(termstring);
+				if (arg instanceof SWRLVariable)
+					term = new SWRLVar((SWRLVariable)arg);
+				else
+					term = new SWRLTerm(arg);
 			}
-			System.out.println(term);
+			//System.out.println(term);
 		}
 		return term;
 	}
