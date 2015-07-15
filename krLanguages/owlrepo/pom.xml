@@ -12,8 +12,8 @@
   <artifactId>owlrepo</artifactId>
   <name>owl repo impl</name>
   <packaging>jar</packaging>
-  <version>1.0</version>
-	<url>https://github.com/goalhub/krTools/tree/master/krLanguages/owlrepo</url>
+  <version>1.0.0-SNAPSHOT</version>
+  <url>https://github.com/goalhub/krTools/tree/master/krLanguages/owlrepo</url>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
