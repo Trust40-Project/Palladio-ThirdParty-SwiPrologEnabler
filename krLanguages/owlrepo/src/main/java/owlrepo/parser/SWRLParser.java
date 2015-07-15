@@ -121,7 +121,7 @@ public class SWRLParser implements Parser {
 		return rule;
 	}
 
-	private SWRLArgument parseArgument(String string) {
+	private SWRLArgument parseArgument(String string) throws ParserException {
 		SWRLArgument arg = null;
 		//it's not a swrl rule or contains undefined iri-s
 
@@ -147,8 +147,8 @@ public class SWRLParser implements Parser {
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException | NoSuchMethodException | SecurityException | SWRLParseException e) {
 					e.printStackTrace();
-					errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr-1, -1, e.getMessage()));
-					//throw new SWRLParseException(e.getMessage());
+					//errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr-1, -1, e.getMessage()));
+					throw new ParserException(e.getMessage());
 				}
 			}
 			//				System.out.println(arg);
@@ -272,20 +272,16 @@ public class SWRLParser implements Parser {
 	@Override
 	public List<Term> parseTerms() throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
-		try {//does not use currentLine, but instead splits the line by commas
+		//does not use currentLine, but instead splits the line by commas
 			while (parseCurrentLine()){
 				String[] termstrings = currentLine.split(",");
 				for (String term: termstrings)
 					terms.add(parseTerm(term.trim()));
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new ParserException(e.getMessage());
-		}
 		return terms;
 	}
 
-	private SWRLTerm parseTerm(String termstring) throws SWRLParseException{
+	private SWRLTerm parseTerm(String termstring) throws ParserException{
 		SWRLTerm term = null;
 		if (!termstring.isEmpty()){
 			//parse rule

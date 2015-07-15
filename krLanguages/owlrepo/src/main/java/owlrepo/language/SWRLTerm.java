@@ -115,6 +115,8 @@ public class SWRLTerm extends SWRLExpression implements Term {
 
 	@Override 
 	public String toString(){
+		if (rule!=null)
+			return rule.toString();
 		if (atom != null)
 			return atom.toString();
 		if (argument != null)
