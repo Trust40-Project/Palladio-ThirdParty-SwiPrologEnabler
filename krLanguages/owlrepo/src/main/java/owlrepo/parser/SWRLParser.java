@@ -1,5 +1,6 @@
 package owlrepo.parser;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -51,8 +52,7 @@ public class SWRLParser implements Parser {
 	List<SourceInfo> errors;
 	SWRLAPIOWLOntology onto ;
 	SWRLParserSupport swrlParserSupport;
-	List<String> lines = null;
-	Reader reader = null;
+	BufferedReader reader = null;
 	List<RDFFormat> formats = null;
 	SWRLParserUtil parserUtil;
 
@@ -66,24 +66,30 @@ public class SWRLParser implements Parser {
 
 	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, List<RDFFormat> formats, Reader reader, SourceInfo info) {
 		this(swrlapiOWLOntology);
-		this.reader = reader;
+		this.reader = new BufferedReader(reader);
 		this.formats = formats;
-		try {
-			lines = IOUtils.readLines(reader);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
 		this.info = info;
 	}
 
 	private boolean parseCurrentLine(){
 		//takes the next from the List of parsed lines as Strings
-		currentLine = lines.get(lineNr); lineNr++;
-
-		//process current line
-		currentLine = currentLine.trim();
-		if (!currentLine.isEmpty())
+		try {
+			currentLine = reader.readLine();
+			//System.out.println("current line: "+currentLine);
+			lineNr++;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		//lines.get(lineNr); lineNr++;
+		if (currentLine!= null){
+			if (currentLine.isEmpty())
+				return parseCurrentLine();
+			//process current line
+			currentLine = currentLine.trim();
 			return true;
+		}
 		return false;
 	}
 
@@ -118,7 +124,6 @@ public class SWRLParser implements Parser {
 	private SWRLArgument parseArgument(String string) {
 		SWRLArgument arg = null;
 		//it's not a swrl rule or contains undefined iri-s
-
 
 		if (!string.isEmpty()){
 			boolean isInHead = false;
@@ -174,11 +179,11 @@ public class SWRLParser implements Parser {
 	private List<SWRLRule> parseRDF() throws ParserException{
 		List<SWRLRule> triples = new LinkedList<SWRLRule>();
 		String text = "";
-		for (String line : lines){
-			if (line.startsWith("<?") || line.startsWith("<!")) 
+		while (parseCurrentLine()){
+			if (currentLine.startsWith("<?") || currentLine.startsWith("<!")) 
 				return null;
-			text+=line+"\n";
-		}	
+			text+=currentLine+"\n";
+		}
 		//System.out.println(text);
 		for (int i=1; i<this.formats.size(); i++){
 			StringReader sreader = new StringReader(text);
@@ -257,12 +262,10 @@ public class SWRLParser implements Parser {
 	public List<Term> parseTerms() throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
 		try {//does not use currentLine, but instead splits the line by commas
-			if (lines!=null){
-				for (String line : lines){
-					String[] termstrings = line.split(",");
-					for (String term: termstrings)
-						terms.add(parseTerm(term.trim()));
-				}
+			while (parseCurrentLine()){
+				String[] termstrings = currentLine.split(",");
+				for (String term: termstrings)
+					terms.add(parseTerm(term.trim()));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
