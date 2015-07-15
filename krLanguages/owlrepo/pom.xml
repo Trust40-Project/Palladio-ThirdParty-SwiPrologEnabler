@@ -13,7 +13,7 @@
   <name>owl repo impl</name>
   <packaging>jar</packaging>
   <version>1.0</version>
-  <url>http://maven.apache.org</url>
+	<url>https://github.com/goalhub/krTools/tree/master/krLanguages/owlrepo</url>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,14 +44,11 @@
   	<system>Github Issues</system>
   </issueManagement>
   
-  
   <scm>
   	<connection>scm:git:git@github.com:goalhub/krTools.git</connection>
   	<developerConnection>scm:git:git@github.com:goalhub/krTools.git</developerConnection>
   	<url>https://github.com:goalhub/krTools</url>
   </scm>
-  
-  
   
   
   <dependencies>
@@ -226,7 +223,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.9</version>
+				<version>2.10</version>
 				<executions>
 					<execution>
 						<id>analyze</id>
@@ -245,7 +242,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.2</version>
+				<version>3.3</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -255,7 +252,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.1</version>
+				<version>2.10.3</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -269,7 +266,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.4</version>
+				<version>2.5</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -282,19 +279,33 @@
 			</plugin>
 
 			<plugin>
-		      <groupId>org.apache.maven.plugins</groupId>
-		      <artifactId>maven-jar-plugin</artifactId>
-		      <version>2.5</version>
+		    	<groupId>org.apache.maven.plugins</groupId>
+		      	<artifactId>maven-jar-plugin</artifactId>
+		      	<version>2.6</version>
+		      	<configuration>
+		        	<archive>                   
+		        		<manifest>
+		            		<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+		                	<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+		            	</manifest>
+		        	</archive>
+		    	</configuration>
 		    </plugin>
 			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.5.2</version>
+				<version>2.5.4</version>
 				<configuration>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+		                	<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
 				</configuration>
 				<executions>
 					<execution>
