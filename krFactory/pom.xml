@@ -71,7 +71,7 @@
 	<dependency>
 			<groupId>com.github.goalhub.krTools.krLanguages</groupId>
 			<artifactId>owlrepo</artifactId>
-			<version>1.0</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
