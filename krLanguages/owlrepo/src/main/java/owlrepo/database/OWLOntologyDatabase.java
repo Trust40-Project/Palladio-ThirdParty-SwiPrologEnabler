@@ -104,13 +104,13 @@ public class OWLOntologyDatabase implements Database {
 	      IRI ontologyIri = ontoIri.get();
 	      DefaultPrefixManager prefixManager = new DefaultPrefixManager();
 	      baseURI = ontologyIri.toString()+"#";
-	      prefixManager.setPrefix("", baseURI);
+	      prefixManager.setDefaultPrefix(baseURI);
 	      prefixManager.setPrefix("onto", baseURI);
-
 	    
 	      //create swrl ontology
 	      swrlontology = SWRLAPIFactory.createOntology(owlontology, prefixManager);
 	      SWRLAPIFactory.updatePrefixManager(owlontology, prefixManager);
+	      swrlontology.getPrefixManager().setDefaultPrefix(baseURI);
 	     // renderer = SWRLAPIFactory.createSWRLAPIRenderer(swrlontology);  
 			
 	      StatementCollector stc = new StatementCollector();		

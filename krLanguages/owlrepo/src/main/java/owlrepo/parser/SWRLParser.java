@@ -2,6 +2,7 @@ package owlrepo.parser;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -18,6 +19,13 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
 import org.apache.commons.io.IOUtils;
+import org.openrdf.model.Statement;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFHandlerException;
+import org.openrdf.rio.RDFParseException;
+import org.openrdf.rio.RDFParser;
+import org.openrdf.rio.Rio;
+import org.openrdf.rio.helpers.StatementCollector;
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLDArgument;
 import org.semanticweb.owlapi.model.SWRLIArgument;
@@ -44,16 +52,22 @@ public class SWRLParser implements Parser {
 	SWRLAPIOWLOntology onto ;
 	SWRLParserSupport swrlParserSupport;
 	List<String> lines = null;
-	
+	Reader reader = null;
+	List<RDFFormat> formats = null;
+	SWRLParserUtil parserUtil;
+
 	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology){
 		parser = new org.swrlapi.parser.SWRLParser(swrlapiOWLOntology);
 		errors = new ArrayList<SourceInfo>();
+		this.onto = swrlapiOWLOntology;
 		this.swrlParserSupport = new SWRLParserSupport(swrlapiOWLOntology);
+		this.parserUtil = new SWRLParserUtil(parser, onto.getPrefixManager());
 	}
-	
-	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, Reader reader, SourceInfo info) {
-		this(swrlapiOWLOntology);
 
+	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, List<RDFFormat> formats, Reader reader, SourceInfo info) {
+		this(swrlapiOWLOntology);
+		this.reader = reader;
+		this.formats = formats;
 		try {
 			lines = IOUtils.readLines(reader);
 		} catch (IOException e) {
@@ -61,18 +75,18 @@ public class SWRLParser implements Parser {
 		}
 		this.info = info;
 	}
-	
+
 	private boolean parseCurrentLine(){
 		//takes the next from the List of parsed lines as Strings
 		currentLine = lines.get(lineNr); lineNr++;
-		
+
 		//process current line
 		currentLine = currentLine.trim();
 		if (!currentLine.isEmpty())
 			return true;
 		return false;
 	}
-	
+
 	private SWRLRule parseRule(String string){
 		SWRLRule rule =  null;
 		try { 
@@ -84,23 +98,23 @@ public class SWRLParser implements Parser {
 				//call SWRL parser
 				if (parser.isSWRLRuleCorrectAndComplete(string))
 					rule = parseRule(string, "rule"+lineNr);
-				
+
 			}
-//			if (isSWRLRuleCorrectAndComplete(currentLine)) {
-//				//parse the line
-//				parse(currentLine, String.valueOf(line));
-//			} else {
-//				System.out.println("Incomplete rule: "+currentLine+" :: "+isSWRLRuleCorrectButPossiblyIncomplete(currentLine));
-//				errors.add(new SQWRLParserSourceInfo(null, line, -1, "Incomplete rule: "+currentLine));
-//			}
-			
+			//			if (isSWRLRuleCorrectAndComplete(currentLine)) {
+			//				//parse the line
+			//				parse(currentLine, String.valueOf(line));
+			//			} else {
+			//				System.out.println("Incomplete rule: "+currentLine+" :: "+isSWRLRuleCorrectButPossiblyIncomplete(currentLine));
+			//				errors.add(new SQWRLParserSourceInfo(null, line, -1, "Incomplete rule: "+currentLine));
+			//			}
+
 		} catch (SWRLParseException e) {
 			e.printStackTrace(); 
 			errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr-1, -1, e.getMessage()));
 		}
 		return rule;
 	}
-	
+
 	private SWRLArgument parseArgument(String string) {
 		SWRLArgument arg = null;
 		//it's not a swrl rule or contains undefined iri-s
@@ -132,36 +146,64 @@ public class SWRLParser implements Parser {
 					//throw new SWRLParseException(e.getMessage());
 				}
 			}
-//				System.out.println(arg);
-			}
-			return arg;
+			//				System.out.println(arg);
 		}
-	
+		return arg;
+	}
+
 
 	public SWRLRule parseRule(String line, String name) throws SWRLParseException{
-//		public SWRLRule parseSWRLRule(String ruleText, boolean interactiveParseOnly, String ruleName, String comment)
-				//		throws SWRLParseException	
+		//		public SWRLRule parseSWRLRule(String ruleText, boolean interactiveParseOnly, String ruleName, String comment)
+		//		throws SWRLParseException	
 		return parser.parseSWRLRule(line, false, name, "nocomment");
 	}
 
 	@Override
 	public List<DatabaseFormula> parseDBFs() throws ParserException {
 		//rule to list of dbformula
-			List<DatabaseFormula> dbfs = new LinkedList<DatabaseFormula>();
-			DatabaseFormula dbf;
-			while((dbf = parseDBF()) != null){
-				dbfs.add(dbf);
+		List<DatabaseFormula> dbfs = new LinkedList<DatabaseFormula>();
+		List<SWRLRule> parsed = parseRDF();
+		//TODO!!
+		if (parsed != null)
+			for (SWRLRule triple: parsed){
+				dbfs.add(new SWRLDatabaseFormula(triple));
 			}
-			return dbfs;
+		return dbfs;
+	}
+
+	private List<SWRLRule> parseRDF() throws ParserException{
+		List<SWRLRule> triples = new LinkedList<SWRLRule>();
+		String text = "";
+		for (String line : lines){
+			if (line.startsWith("<?") || line.startsWith("<!")) 
+				return null;
+			text+=line+"\n";
+		}	
+		//System.out.println(text);
+		for (int i=1; i<this.formats.size(); i++){
+			StringReader sreader = new StringReader(text);
+			//first is always the owl file
+			RDFFormat format = this.formats.get(i);
+			RDFParser rdfParser = Rio.createParser(format);
+			List<Statement> statements = new ArrayList<Statement>();
+			StatementCollector collector = new StatementCollector(statements);
+			rdfParser.setRDFHandler(collector);
+			try {
+				if (!sreader.ready()) System.out.println("Reader not ready");
+				sreader.mark(1);
+				rdfParser.parse(sreader, onto.getPrefixManager().getDefaultPrefix());
+				for (Statement stm : statements){
+				//	System.out.println(stm);
+					//convert it into a SWRLRule or DBFormula somehow	
+					triples.add(parserUtil.getSWRLRule(stm));
+				}
+				sreader.reset();
+			} catch (RDFParseException | RDFHandlerException | IOException | SWRLParseException e) {
+				e.printStackTrace();
+				throw new ParserException(e.getMessage());
+			}
 		}
-	
-	public DatabaseFormula parseDBF() throws ParserException {
-	//rule to list of dbformula
-		if (parseCurrentLine()){
-			SWRLRule rule = parseRule(currentLine);
-			if (rule!=null)
-				return new SWRLDatabaseFormula(rule);
-		}
+
 		return null;
 	}
 
@@ -175,11 +217,11 @@ public class SWRLParser implements Parser {
 		}
 		return null;
 	}
-	
-	
+
+
 	@Override
 	public List<Query> parseQueries() throws ParserException {
-			List<Query> queries = new LinkedList<Query>();
+		List<Query> queries = new LinkedList<Query>();
 		Query q;
 		while((q=parseQuery())!=null){
 			queries.add(q);
@@ -191,7 +233,7 @@ public class SWRLParser implements Parser {
 	@Override
 	public Query parseQuery() throws ParserException {
 		SWRLRule rule = null;
-		
+
 		if (parseCurrentLine()){
 			//parse rule
 			rule = parseRule(currentLine);
@@ -206,11 +248,11 @@ public class SWRLParser implements Parser {
 					return new SWRLQuery(arg);
 			}
 		}
-		
+
 		return null;
 	}
 
-	
+
 	@Override
 	public List<Term> parseTerms() throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
@@ -228,7 +270,7 @@ public class SWRLParser implements Parser {
 		}
 		return terms;
 	}
-	
+
 	private SWRLTerm parseTerm(String termstring) throws SWRLParseException{
 		SWRLTerm term = null;
 		if (!termstring.isEmpty()){
@@ -246,10 +288,10 @@ public class SWRLParser implements Parser {
 		return term;
 	}
 
-//	private SWRLVar parseVariable(String string) throws SWRLParseException{
-//		return new SWRLVar(swrlParserSupport.getSWRLVariable(string.substring(1,string.length())));
-//	}
-	
+	//	private SWRLVar parseVariable(String string) throws SWRLParseException{
+	//		return new SWRLVar(swrlParserSupport.getSWRLVariable(string.substring(1,string.length())));
+	//	}
+
 	@Override
 	public Term parseTerm() throws ParserException {
 		//rule to term
@@ -263,7 +305,7 @@ public class SWRLParser implements Parser {
 
 	@Override
 	public Var parseVar() throws ParserException {
-			//rule to var
+		//rule to var
 		if (parseCurrentLine()){
 			SWRLArgument arg= parseArgument(currentLine);
 			if (arg instanceof SWRLVariable)
@@ -271,12 +313,12 @@ public class SWRLParser implements Parser {
 		}
 		return null;
 	}
-		
-	
+
+
 	public List<SourceInfo> getErrors() {
 		return errors;
 	}	
-	
-	
+
+
 
 }
