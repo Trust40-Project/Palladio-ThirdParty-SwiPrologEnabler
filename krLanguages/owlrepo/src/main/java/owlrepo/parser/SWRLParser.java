@@ -72,7 +72,7 @@ public class SWRLParser implements Parser {
 		this.info = info;
 	}
 
-	private boolean parseCurrentLine(){
+	private boolean parseCurrentLine() throws ParserException{
 		//takes the next from the List of parsed lines as Strings
 		try {
 			currentLine = reader.readLine();
@@ -80,6 +80,7 @@ public class SWRLParser implements Parser {
 			lineNr++;
 		} catch (IOException e) {
 			e.printStackTrace();
+			throw new ParserException(e.getMessage());
 		}
 		
 		//lines.get(lineNr); lineNr++;
@@ -121,7 +122,7 @@ public class SWRLParser implements Parser {
 		return rule;
 	}
 
-	private SWRLArgument parseArgument(String string) throws ParserException {
+	private SWRLArgument parseArgument(String string) {
 		SWRLArgument arg = null;
 		//it's not a swrl rule or contains undefined iri-s
 
@@ -147,8 +148,7 @@ public class SWRLParser implements Parser {
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException | NoSuchMethodException | SecurityException | SWRLParseException e) {
 					e.printStackTrace();
-					//errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr-1, -1, e.getMessage()));
-					throw new ParserException(e.getMessage());
+					errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr-1, -1, e.getCause().getMessage()));
 				}
 			}
 			//				System.out.println(arg);
@@ -264,24 +264,31 @@ public class SWRLParser implements Parser {
 					return new SWRLQuery(arg);
 			}
 		}
-
-		return null;
+		throw new ParserException("Could not create query: parsing is finished (returns null)");
+		//return null;
 	}
 
-
+	/**
+	 * parses the reader given to the parser on creation, tries to create a list of terms
+	 * @throws ParserException in case of: IOException of passed Reader
+	 * @return list of terms parsed, or empty list
+	 */
 	@Override
 	public List<Term> parseTerms() throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
 		//does not use currentLine, but instead splits the line by commas
 			while (parseCurrentLine()){
 				String[] termstrings = currentLine.split(",");
-				for (String term: termstrings)
-					terms.add(parseTerm(term.trim()));
+				for (String term: termstrings){
+					Term pterm = parseTerm(term.trim());
+					if (pterm!=null)
+						terms.add(pterm);
+				}
 			}
 		return terms;
 	}
 
-	private SWRLTerm parseTerm(String termstring) throws ParserException{
+	private SWRLTerm parseTerm(String termstring){
 		SWRLTerm term = null;
 		if (!termstring.isEmpty()){
 			//parse rule
@@ -292,6 +299,7 @@ public class SWRLParser implements Parser {
 			}else {
 				//variable
 				SWRLArgument arg = parseArgument(termstring);
+				if (arg != null)
 				if (arg instanceof SWRLVariable)
 					term = new SWRLVar((SWRLVariable)arg);
 				else
@@ -306,14 +314,16 @@ public class SWRLParser implements Parser {
 	//		return new SWRLVar(swrlParserSupport.getSWRLVariable(string.substring(1,string.length())));
 	//	}
 
+	/**
+	 * parses the reader given to the parser on creation, tries to create a term
+	 * @throws ParserException in case of: IOException of passed Reader
+	 * @return a Term parsed, or null
+	 */
 	@Override
 	public Term parseTerm() throws ParserException {
 		//rule to term
-		if (parseCurrentLine()){
-			SWRLRule rule = parseRule(currentLine);
-			if (rule!=null)
-				return new SWRLTerm(rule);
-		}
+		if (parseCurrentLine())
+			return parseTerm(currentLine);
 		return null;
 	}
 

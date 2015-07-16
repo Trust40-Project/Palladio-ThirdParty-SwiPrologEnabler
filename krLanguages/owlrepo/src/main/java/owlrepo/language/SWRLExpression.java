@@ -93,7 +93,9 @@ public class SWRLExpression implements Expression{
 	public Set<Var> getFreeVar() {
 		HashSet<Var> vars = new HashSet<Var>();
 		if (this.type==3){//argument
-			vars.add(getFreeVar(this.argument));			
+			Var fvar = getFreeVar(this.argument);
+			if (fvar!=null)
+				vars.add(fvar);			
 		}else if (this.type == 2 ){//atom
 			for (SWRLArgument arg: this.atom.getAllArguments()){
 				vars.add(getFreeVar(arg));

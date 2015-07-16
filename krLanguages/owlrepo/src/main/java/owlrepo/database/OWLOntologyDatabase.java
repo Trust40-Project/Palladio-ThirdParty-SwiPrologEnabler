@@ -2,10 +2,21 @@ package owlrepo.database;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import krTools.database.Database;
+import krTools.exceptions.KRDatabaseException;
+import krTools.exceptions.KRQueryFailedException;
+import krTools.language.DatabaseFormula;
+import krTools.language.Query;
+import krTools.language.Substitution;
+import krTools.language.Term;
+import krTools.language.Update;
 
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
@@ -35,21 +46,13 @@ import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.core.SWRLAPIRenderer;
 
-import com.google.common.base.Optional;
-
-import krTools.database.Database;
-import krTools.exceptions.KRDatabaseException;
-import krTools.exceptions.KRQueryFailedException;
-import krTools.language.DatabaseFormula;
-import krTools.language.Query;
-import krTools.language.Substitution;
-import krTools.language.Term;
-import krTools.language.Update;
 import owlrepo.language.SWRLDatabaseFormula;
 import owlrepo.language.SWRLQuery;
 import owlrepo.language.SWRLSubstitution;
 import owlrepo.language.SWRLTerm;
 import owlrepo.language.SWRLTranslator;
+
+import com.google.common.base.Optional;
 
 public class OWLOntologyDatabase implements Database {
 	
@@ -79,7 +82,7 @@ public class OWLOntologyDatabase implements Database {
 	private Collection<Statement> baseStm ;
     private SWRLAPIRenderer renderer;
     private DefaultPrefixManager prefixManager ;
-    private String goalOntoPath = "../krTools/krLanguages/owlrepo/src/main/resources/agentOntology.owl";
+    private URL goalOntoPath = this.getClass().getResource("/agentOntology.owl");
     
     
     public OWLOntologyDatabase(String name, File file) throws OWLOntologyCreationException{
@@ -133,18 +136,17 @@ public class OWLOntologyDatabase implements Database {
   	
     }
     
-    private void addGOALAgentOntology(String path) throws OWLOntologyCreationException{
+    private void addGOALAgentOntology(URL path) throws OWLOntologyCreationException{
     	OWLOntologyManager goalManager = OWLManager.createOWLOntologyManager();
-//    	File currentDirectory = new File(new File(".").getAbsolutePath());
-//    	try {
-//			System.out.println(currentDirectory.getCanonicalPath());
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-    	OWLOntology goalOntology = goalManager.loadOntologyFromOntologyDocument(new File(path));
-    	prefixManager.setPrefix("goal", "http://ii.tudelft.nl/goal#");
-    	Set<OWLAxiom> goalAxioms = goalOntology.getTBoxAxioms(null);
-    	manager.addAxioms(owlontology, goalAxioms);
+		try {
+			OWLOntology goalOntology = goalManager.loadOntologyFromOntologyDocument(new File(path.toURI()));
+			prefixManager.setPrefix("goal", "http://ii.tudelft.nl/goal#");
+	    	Set<OWLAxiom> goalAxioms = goalOntology.getTBoxAxioms(null);
+	    	manager.addAxioms(owlontology, goalAxioms);
+		} catch (URISyntaxException e) {
+			throw new OWLOntologyCreationException(e.getMessage());
+		}
+    	
     }
     
     public void setupRepo(String repoUrl){
