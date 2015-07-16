@@ -89,6 +89,9 @@ public class SWRLParser implements Parser {
 				return parseCurrentLine();
 			// process current line
 			currentLine = currentLine.trim();
+			if (currentLine.startsWith("(") && currentLine.endsWith(")"))
+				currentLine = currentLine
+						.substring(1, currentLine.length() - 1);
 			return true;
 		}
 		return false;
@@ -104,9 +107,11 @@ public class SWRLParser implements Parser {
 				if (string.startsWith("<?") || string.startsWith("<!"))
 					return rule;
 				// call SWRL parser
-				if (parser.isSWRLRuleCorrectAndComplete(string))
+				if (string.contains("(")) {// we know it's a term, not an
+											// argument
+					// if (parser.isSWRLRuleCorrectAndComplete(string))
 					rule = parseRule(string, "rule" + lineNr);
-
+				}
 			}
 			// if (isSWRLRuleCorrectAndComplete(currentLine)) {
 			// //parse the line
@@ -119,8 +124,8 @@ public class SWRLParser implements Parser {
 
 		} catch (SWRLParseException e) {
 			e.printStackTrace();
-			errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr - 1,
-					-1, e.getMessage()));
+			errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr, -1, e
+					.getMessage()));
 		}
 		return rule;
 	}
@@ -243,7 +248,7 @@ public class SWRLParser implements Parser {
 			// rule to query
 			if (rule != null)
 				return new SWRLUpdate(rule);
-			else {
+			else if (errors.isEmpty()) {
 				// parse argument
 				SWRLArgument arg = parseArgument(currentLine);
 				if (arg != null)
@@ -274,7 +279,7 @@ public class SWRLParser implements Parser {
 			// rule to query
 			if (rule != null)
 				return new SWRLQuery(rule);
-			else {
+			else if (errors.isEmpty()) {
 				// parse argument
 				SWRLArgument arg = parseArgument(currentLine);
 				if (arg != null)
@@ -318,7 +323,7 @@ public class SWRLParser implements Parser {
 			// rule to term
 			if (rule != null) {
 				term = new SWRLTerm(rule);
-			} else {
+			} else if (errors.isEmpty()) {
 				// variable
 				SWRLArgument arg = parseArgument(termstring);
 				if (arg != null)
