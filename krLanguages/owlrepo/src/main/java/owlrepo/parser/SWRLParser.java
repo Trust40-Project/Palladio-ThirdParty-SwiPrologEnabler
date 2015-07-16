@@ -19,7 +19,6 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
-import org.apache.commons.io.IOUtils;
 import org.openrdf.model.Statement;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
@@ -50,13 +49,13 @@ public class SWRLParser implements Parser {
 	String currentLine = "";
 	int lineNr = 0;
 	List<SourceInfo> errors;
-	SWRLAPIOWLOntology onto ;
+	SWRLAPIOWLOntology onto;
 	SWRLParserSupport swrlParserSupport;
 	BufferedReader reader = null;
 	List<RDFFormat> formats = null;
 	SWRLParserUtil parserUtil;
 
-	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology){
+	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology) {
 		parser = new org.swrlapi.parser.SWRLParser(swrlapiOWLOntology);
 		errors = new ArrayList<SourceInfo>();
 		this.onto = swrlapiOWLOntology;
@@ -64,146 +63,167 @@ public class SWRLParser implements Parser {
 		this.parserUtil = new SWRLParserUtil(parser, onto.getPrefixManager());
 	}
 
-	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, List<RDFFormat> formats, Reader reader, SourceInfo info) {
+	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology,
+			List<RDFFormat> formats, Reader reader, SourceInfo info) {
 		this(swrlapiOWLOntology);
 		this.reader = new BufferedReader(reader);
 		this.formats = formats;
-		
+
 		this.info = info;
 	}
 
-	private boolean parseCurrentLine() throws ParserException{
-		//takes the next from the List of parsed lines as Strings
+	private boolean parseCurrentLine() throws ParserException {
+		// takes the next from the List of parsed lines as Strings
 		try {
 			currentLine = reader.readLine();
-			//System.out.println("current line: "+currentLine);
+			// System.out.println("current line: "+currentLine);
 			lineNr++;
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new ParserException(e.getMessage());
 		}
-		
-		//lines.get(lineNr); lineNr++;
-		if (currentLine!= null){
+
+		// lines.get(lineNr); lineNr++;
+		if (currentLine != null) {
 			if (currentLine.isEmpty())
 				return parseCurrentLine();
-			//process current line
+			// process current line
 			currentLine = currentLine.trim();
 			return true;
 		}
 		return false;
 	}
 
-	private SWRLRule parseRule(String string){
-		SWRLRule rule =  null;
-		try { 
+	private SWRLRule parseRule(String string) {
+		SWRLRule rule = null;
+		try {
 
-			if (!string.isEmpty()){
-				//TODO: to avoid second pass parse KR file -- find better alternative/add all possibilities
-				if (string.startsWith("<?") || string.startsWith("<!")) 
+			if (!string.isEmpty()) {
+				// TODO: to avoid second pass parse KR file -- find better
+				// alternative/add all possibilities
+				if (string.startsWith("<?") || string.startsWith("<!"))
 					return rule;
-				//call SWRL parser
+				// call SWRL parser
 				if (parser.isSWRLRuleCorrectAndComplete(string))
-					rule = parseRule(string, "rule"+lineNr);
+					rule = parseRule(string, "rule" + lineNr);
 
 			}
-			//			if (isSWRLRuleCorrectAndComplete(currentLine)) {
-			//				//parse the line
-			//				parse(currentLine, String.valueOf(line));
-			//			} else {
-			//				System.out.println("Incomplete rule: "+currentLine+" :: "+isSWRLRuleCorrectButPossiblyIncomplete(currentLine));
-			//				errors.add(new SQWRLParserSourceInfo(null, line, -1, "Incomplete rule: "+currentLine));
-			//			}
+			// if (isSWRLRuleCorrectAndComplete(currentLine)) {
+			// //parse the line
+			// parse(currentLine, String.valueOf(line));
+			// } else {
+			// System.out.println("Incomplete rule: "+currentLine+" :: "+isSWRLRuleCorrectButPossiblyIncomplete(currentLine));
+			// errors.add(new SQWRLParserSourceInfo(null, line, -1,
+			// "Incomplete rule: "+currentLine));
+			// }
 
 		} catch (SWRLParseException e) {
-			e.printStackTrace(); 
-			errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr-1, -1, e.getMessage()));
+			e.printStackTrace();
+			errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr - 1,
+					-1, e.getMessage()));
 		}
 		return rule;
 	}
 
 	private SWRLArgument parseArgument(String string) {
 		SWRLArgument arg = null;
-		//it's not a swrl rule or contains undefined iri-s
+		// it's not a swrl rule or contains undefined iri-s
 
-		if (!string.isEmpty()){
+		if (!string.isEmpty()) {
 			boolean isInHead = false;
-			//get private method of swrlparser we need - swrldargument
+			// get private method of swrlparser we need - swrldargument
 			try {
 				SWRLTokenizer tokenizer = new SWRLTokenizer(string, false);
-				Method parseArgumentList = org.swrlapi.parser.SWRLParser.class.getDeclaredMethod("parseSWRLDArgument", SWRLTokenizer.class, boolean.class, boolean.class);
-				parseArgumentList.setAccessible(true);// Abracadabra 
-				SWRLDArgument parsedArg = (SWRLDArgument) parseArgumentList.invoke(parser, tokenizer, isInHead, isInHead);// now its OK
+				Method parseArgumentList = org.swrlapi.parser.SWRLParser.class
+						.getDeclaredMethod("parseSWRLDArgument",
+								SWRLTokenizer.class, boolean.class,
+								boolean.class);
+				parseArgumentList.setAccessible(true);// Abracadabra
+				SWRLDArgument parsedArg = (SWRLDArgument) parseArgumentList
+						.invoke(parser, tokenizer, isInHead, isInHead);// now
+																		// its
+																		// OK
 				arg = parsedArg;
 			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException | NoSuchMethodException | SecurityException | SWRLParseException ex) {
-				try{
-					//try parsing swrliargument
+					| InvocationTargetException | NoSuchMethodException
+					| SecurityException | SWRLParseException ex) {
+				try {
+					// try parsing swrliargument
 					SWRLTokenizer tokenizer = new SWRLTokenizer(string, false);
-					Method parseArgumentList = org.swrlapi.parser.SWRLParser.class.getDeclaredMethod("parseSWRLIArgument", SWRLTokenizer.class, boolean.class);
-					parseArgumentList.setAccessible(true);// Abracadabra 
-					SWRLIArgument parsedArg = (SWRLIArgument) parseArgumentList.invoke(parser, tokenizer, isInHead);// now its OK
+					Method parseArgumentList = org.swrlapi.parser.SWRLParser.class
+							.getDeclaredMethod("parseSWRLIArgument",
+									SWRLTokenizer.class, boolean.class);
+					parseArgumentList.setAccessible(true);// Abracadabra
+					SWRLIArgument parsedArg = (SWRLIArgument) parseArgumentList
+							.invoke(parser, tokenizer, isInHead);// now its OK
 					arg = parsedArg;
 
 				} catch (IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException | NoSuchMethodException | SecurityException | SWRLParseException e) {
-					e.printStackTrace();
-					errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr-1, -1, e.getCause().getMessage()));
+						| InvocationTargetException | NoSuchMethodException
+						| SecurityException | SWRLParseException e) {
+					// e.printStackTrace();
+					System.out.println("Tried to read as argument: " + string);
+					errors.add(new SWRLParserSourceInfo(info.getSource(),
+							lineNr - 1, -1, e.getCause().getMessage()));
 				}
 			}
-			//				System.out.println(arg);
+			// System.out.println(arg);
 		}
 		return arg;
 	}
 
-
-	public SWRLRule parseRule(String line, String name) throws SWRLParseException{
-		//		public SWRLRule parseSWRLRule(String ruleText, boolean interactiveParseOnly, String ruleName, String comment)
-		//		throws SWRLParseException	
+	public SWRLRule parseRule(String line, String name)
+			throws SWRLParseException {
+		// public SWRLRule parseSWRLRule(String ruleText, boolean
+		// interactiveParseOnly, String ruleName, String comment)
+		// throws SWRLParseException
 		return parser.parseSWRLRule(line, false, name, "nocomment");
 	}
 
 	@Override
 	public List<DatabaseFormula> parseDBFs() throws ParserException {
-		//rule to list of dbformula
+		// rule to list of dbformula
 		List<DatabaseFormula> dbfs = new LinkedList<DatabaseFormula>();
 		List<SWRLRule> parsed = parseRDF();
-		//TODO!!
+		// TODO!!
 		if (parsed != null)
-			for (SWRLRule triple: parsed){
+			for (SWRLRule triple : parsed) {
 				dbfs.add(new SWRLDatabaseFormula(triple));
 			}
 		return dbfs;
 	}
 
-	private List<SWRLRule> parseRDF() throws ParserException{
+	private List<SWRLRule> parseRDF() throws ParserException {
 		List<SWRLRule> triples = new LinkedList<SWRLRule>();
 		String text = "";
-		while (parseCurrentLine()){
-			if (currentLine.startsWith("<?") || currentLine.startsWith("<!")) 
+		while (parseCurrentLine()) {
+			if (currentLine.startsWith("<?") || currentLine.startsWith("<!"))
 				return null;
-			text+=currentLine+"\n";
+			text += currentLine + "\n";
 		}
-		//System.out.println(text);
-		for (int i=1; i<this.formats.size(); i++){
+		// System.out.println(text);
+		for (int i = 1; i < this.formats.size(); i++) {
 			StringReader sreader = new StringReader(text);
-			//first is always the owl file
+			// first is always the owl file
 			RDFFormat format = this.formats.get(i);
 			RDFParser rdfParser = Rio.createParser(format);
 			List<Statement> statements = new ArrayList<Statement>();
 			StatementCollector collector = new StatementCollector(statements);
 			rdfParser.setRDFHandler(collector);
 			try {
-				if (!sreader.ready()) System.out.println("Reader not ready");
+				if (!sreader.ready())
+					System.out.println("Reader not ready");
 				sreader.mark(1);
-				rdfParser.parse(sreader, onto.getPrefixManager().getDefaultPrefix());
-				for (Statement stm : statements){
-				//	System.out.println(stm);
-					//convert it into a SWRLRule or DBFormula somehow	
+				rdfParser.parse(sreader, onto.getPrefixManager()
+						.getDefaultPrefix());
+				for (Statement stm : statements) {
+					// System.out.println(stm);
+					// convert it into a SWRLRule or DBFormula somehow
 					triples.add(parserUtil.getSWRLRule(stm));
 				}
 				sreader.reset();
-			} catch (RDFParseException | RDFHandlerException | IOException | SWRLParseException e) {
+			} catch (RDFParseException | RDFHandlerException | IOException
+					| SWRLParseException e) {
 				e.printStackTrace();
 				throw new ParserException(e.getMessage());
 			}
@@ -214,114 +234,119 @@ public class SWRLParser implements Parser {
 
 	@Override
 	public Update parseUpdate() throws ParserException {
-		//rule to update
+		// rule to update
 		SWRLRule rule = null;
 
-		if (parseCurrentLine()){
-			//parse rule
+		if (parseCurrentLine()) {
+			// parse rule
 			rule = parseRule(currentLine);
-			//rule to query
-			if (rule!=null)
+			// rule to query
+			if (rule != null)
 				return new SWRLUpdate(rule);
 			else {
-				//parse argument
+				// parse argument
 				SWRLArgument arg = parseArgument(currentLine);
 				if (arg != null)
-					//check if it was an argument or a rule
+					// check if it was an argument or a rule
 					return new SWRLUpdate(arg);
 			}
 		}
 		return null;
 	}
 
-
 	@Override
 	public List<Query> parseQueries() throws ParserException {
 		List<Query> queries = new LinkedList<Query>();
 		Query q;
-		while((q=parseQuery())!=null){
+		while ((q = parseQuery()) != null) {
 			queries.add(q);
 		}
 		return queries;
 	}
 
-
 	@Override
 	public Query parseQuery() throws ParserException {
 		SWRLRule rule = null;
 
-		if (parseCurrentLine()){
-			//parse rule
+		if (parseCurrentLine()) {
+			// parse rule
 			rule = parseRule(currentLine);
-			//rule to query
-			if (rule!=null)
+			// rule to query
+			if (rule != null)
 				return new SWRLQuery(rule);
 			else {
-				//parse argument
+				// parse argument
 				SWRLArgument arg = parseArgument(currentLine);
 				if (arg != null)
-					//check if it was an argument or a rule
+					// check if it was an argument or a rule
 					return new SWRLQuery(arg);
 			}
 		}
-		throw new ParserException("Could not create query: parsing is finished (returns null)");
-		//return null;
+		throw new ParserException(
+				"Could not create query: parsing is finished (returns null)");
+		// return null;
 	}
 
 	/**
-	 * parses the reader given to the parser on creation, tries to create a list of terms
-	 * @throws ParserException in case of: IOException of passed Reader
+	 * parses the reader given to the parser on creation, tries to create a list
+	 * of terms
+	 * 
+	 * @throws ParserException
+	 *             in case of: IOException of passed Reader
 	 * @return list of terms parsed, or empty list
 	 */
 	@Override
 	public List<Term> parseTerms() throws ParserException {
 		List<Term> terms = new LinkedList<Term>();
-		//does not use currentLine, but instead splits the line by commas
-			while (parseCurrentLine()){
-				String[] termstrings = currentLine.split(",");
-				for (String term: termstrings){
-					Term pterm = parseTerm(term.trim());
-					if (pterm!=null)
-						terms.add(pterm);
-				}
+		// does not use currentLine, but instead splits the line by commas
+		while (parseCurrentLine()) {
+			String[] termstrings = currentLine.split(",");
+			for (String term : termstrings) {
+				Term pterm = parseTerm(term.trim());
+				if (pterm != null)
+					terms.add(pterm);
 			}
+		}
 		return terms;
 	}
 
-	private SWRLTerm parseTerm(String termstring){
+	private SWRLTerm parseTerm(String termstring) {
 		SWRLTerm term = null;
-		if (!termstring.isEmpty()){
-			//parse rule
+		if (!termstring.isEmpty()) {
+			// parse rule
 			SWRLRule rule = parseRule(termstring);
-			//rule to term
-			if (rule!=null){
+			// rule to term
+			if (rule != null) {
 				term = new SWRLTerm(rule);
-			}else {
-				//variable
+			} else {
+				// variable
 				SWRLArgument arg = parseArgument(termstring);
 				if (arg != null)
-				if (arg instanceof SWRLVariable)
-					term = new SWRLVar((SWRLVariable)arg);
-				else
-					term = new SWRLTerm(arg);
+					if (arg instanceof SWRLVariable)
+						term = new SWRLVar((SWRLVariable) arg);
+					else
+						term = new SWRLTerm(arg);
 			}
-			//System.out.println(term);
+			// System.out.println(term);
 		}
 		return term;
 	}
 
-	//	private SWRLVar parseVariable(String string) throws SWRLParseException{
-	//		return new SWRLVar(swrlParserSupport.getSWRLVariable(string.substring(1,string.length())));
-	//	}
+	// private SWRLVar parseVariable(String string) throws SWRLParseException{
+	// return new
+	// SWRLVar(swrlParserSupport.getSWRLVariable(string.substring(1,string.length())));
+	// }
 
 	/**
 	 * parses the reader given to the parser on creation, tries to create a term
-	 * @throws ParserException in case of: IOException of passed Reader
+	 * 
+	 * @throws ParserException
+	 *             in case of: IOException of passed Reader
 	 * @return a Term parsed, or null
 	 */
 	@Override
 	public Term parseTerm() throws ParserException {
-		//rule to term
+		// rule to term
 		if (parseCurrentLine())
 			return parseTerm(currentLine);
 		return null;
@@ -329,20 +354,17 @@ public class SWRLParser implements Parser {
 
 	@Override
 	public Var parseVar() throws ParserException {
-		//rule to var
-		if (parseCurrentLine()){
-			SWRLArgument arg= parseArgument(currentLine);
+		// rule to var
+		if (parseCurrentLine()) {
+			SWRLArgument arg = parseArgument(currentLine);
 			if (arg instanceof SWRLVariable)
-				return new SWRLVar((SWRLVariable)arg);
+				return new SWRLVar((SWRLVariable) arg);
 		}
 		return null;
 	}
 
-
 	public List<SourceInfo> getErrors() {
 		return errors;
-	}	
-
-
+	}
 
 }
