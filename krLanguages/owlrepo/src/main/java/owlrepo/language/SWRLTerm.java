@@ -43,6 +43,10 @@ public class SWRLTerm extends SWRLExpression implements Term {
 		this.atom = null;
 	}
 
+	public SWRLTerm(String string) {
+		super(string);
+	}
+
 	public SWRLAtom getAtom() {
 		return this.atom;
 	}
