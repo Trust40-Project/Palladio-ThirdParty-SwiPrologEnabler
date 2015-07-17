@@ -137,6 +137,22 @@ public class PrologDatabase implements Database {
 	}
 
 	/**
+	 * Inserts a set of like {@link #insert(DatabaseFormula)}, but does not add
+	 * them to the theory. This makes sure that they will not show up when the
+	 * set of formulas in this base is requested, and that they cannot be
+	 * modified either (because the theory is always checked for that).
+	 *
+	 * @param knowledge
+	 *            the set of knowledge that should be imposed on this database.
+	 * @throws KRDatabaseException
+	 */
+	public void addKnowledge(Set<DatabaseFormula> knowledge) throws KRDatabaseException {
+		for (DatabaseFormula formula : knowledge) {
+			insert(((PrologDBFormula) formula).getTerm());
+		}
+	}
+
+	/**
 	 * <p>
 	 * Inserts formula into SWI prolog database without any checks. You are
 	 * responsible for creating legal SWI prolog query. The formula will be
@@ -144,7 +160,7 @@ public class PrologDatabase implements Database {
 	 * like <br>
 	 * <tt>insert(&lt;database label>:&lt;formula>)</tt>
 	 * </p>
-	 * ASSUMES formula can be argument of assert (fact, rules). <br>
+	 * ASSUMES formula can be argument of assert (fact, rules).
 	 *
 	 * @param formula
 	 *            is the PrologTerm to be inserted into database. appropriate
@@ -153,8 +169,9 @@ public class PrologDatabase implements Database {
 	 */
 	@Override
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
-		insert(((PrologDBFormula) formula).getTerm());
-		this.theory.add(formula);
+		if (this.theory.add(formula)) {
+			insert(((PrologDBFormula) formula).getTerm());
+		}
 	}
 
 	/**
@@ -173,12 +190,14 @@ public class PrologDatabase implements Database {
 	@Override
 	public void insert(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getDeleteList()) {
-			delete(formula);
-			this.theory.remove(formula);
+			if (this.theory.remove(formula)) {
+				delete(formula);
+			}
 		}
 		for (DatabaseFormula formula : update.getAddList()) {
-			insert(formula);
-			this.theory.add(formula);
+			if (this.theory.add(formula)) {
+				insert(formula);
+			}
 		}
 	}
 
@@ -209,12 +228,14 @@ public class PrologDatabase implements Database {
 	@Override
 	public void delete(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getAddList()) {
-			delete(formula);
-			this.theory.remove(formula);
+			if (this.theory.remove(formula)) {
+				delete(formula);
+			}
 		}
 		for (DatabaseFormula formula : update.getDeleteList()) {
-			insert(formula);
-			this.theory.add(formula);
+			if (this.theory.add(formula)) {
+				insert(formula);
+			}
 		}
 	}
 
@@ -235,8 +256,9 @@ public class PrologDatabase implements Database {
 	 */
 	@Override
 	public void delete(DatabaseFormula formula) throws KRDatabaseException {
-		delete(((PrologDBFormula) formula).getTerm());
-		this.theory.remove(formula);
+		if (this.theory.remove(formula)) {
+			delete(((PrologDBFormula) formula).getTerm());
+		}
 	}
 
 	/**
@@ -252,7 +274,7 @@ public class PrologDatabase implements Database {
 	 *            The database the term should be deleted from.
 	 * @throws KRDatabaseException
 	 */
-	public void delete(jpl.Term formula) throws KRDatabaseException {
+	private void delete(jpl.Term formula) throws KRDatabaseException {
 		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
 		try {
 			rawquery(JPLUtils.createCompound("retract", db_formula));
@@ -385,14 +407,6 @@ public class PrologDatabase implements Database {
 	protected void cleanUp() throws KRDatabaseException {
 		eraseContent();
 		this.owner.removeDatabase(this);
-	}
-
-	public void showStatistics() {
-		try {
-			rawquery(new jpl.Atom("statistics"));
-		} catch (RuntimeException | KRQueryFailedException e) {
-			System.out.println("Cannot retrieve statistics: " + e.getMessage());
-		}
 	}
 
 	@Override
