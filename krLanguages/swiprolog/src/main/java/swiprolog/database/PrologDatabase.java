@@ -22,6 +22,7 @@ import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import jpl.Atom;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRInitFailedException;
@@ -75,6 +76,13 @@ public class PrologDatabase implements Database {
 		this.name = new jpl.Atom("db" + number);
 		this.owner = owner;
 		this.theory = new Theory(content);
+
+		try {
+			// Create SWI Prolog module that will act as our database.
+			rawquery(JPLUtils.createCompound(":", getJPLName(), new Atom("true")));
+		} catch (KRQueryFailedException e) {
+			throw new KRDatabaseException("Unable to create a Prolog database module", e);
+		}
 	}
 
 	@Override
@@ -390,5 +398,29 @@ public class PrologDatabase implements Database {
 	@Override
 	public String toString() {
 		return "<" + this.name + ">";
+	}
+
+	@Override
+	public int hashCode() {
+		return JPLUtils.hashCode(this.name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		PrologDatabase other = (PrologDatabase) obj;
+		if (this.name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!JPLUtils.equals(this.name, other.name)) {
+			return false;
+		}
+		return true;
 	}
 }
