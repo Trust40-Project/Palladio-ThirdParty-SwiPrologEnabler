@@ -76,7 +76,7 @@ public class PrologDatabase implements Database {
 
 		try {
 			// Create SWI Prolog module that will act as our database.
-			// FIXME: this is an expensive operation that is know run for
+			// FIXME: this is an expensive operation that is now run for
 			// knowledge bases as well, and might be run for bases in a mental
 			// model that will never be used anyway too.
 			rawquery(JPLUtils.createCompound(":", getJPLName(), new Atom("true")));
@@ -190,14 +190,10 @@ public class PrologDatabase implements Database {
 	@Override
 	public void insert(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getDeleteList()) {
-			if (this.theory.remove(formula)) {
-				delete(formula);
-			}
+			delete(formula);
 		}
 		for (DatabaseFormula formula : update.getAddList()) {
-			if (this.theory.add(formula)) {
-				insert(formula);
-			}
+			insert(formula);
 		}
 	}
 
@@ -228,14 +224,10 @@ public class PrologDatabase implements Database {
 	@Override
 	public void delete(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getAddList()) {
-			if (this.theory.remove(formula)) {
-				delete(formula);
-			}
+			delete(formula);
 		}
 		for (DatabaseFormula formula : update.getDeleteList()) {
-			if (this.theory.add(formula)) {
-				insert(formula);
-			}
+			insert(formula);
 		}
 	}
 
