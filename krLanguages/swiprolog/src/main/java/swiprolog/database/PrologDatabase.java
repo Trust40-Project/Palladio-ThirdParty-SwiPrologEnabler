@@ -37,9 +37,6 @@ import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologSubstitution;
 
-/**
- *
- */
 public class PrologDatabase implements Database {
 	/**
 	 * Name of this database; used to name a SWI-Prolog module that implements
@@ -79,6 +76,9 @@ public class PrologDatabase implements Database {
 
 		try {
 			// Create SWI Prolog module that will act as our database.
+			// FIXME: this is an expensive operation that is know run for
+			// knowledge bases as well, and might be run for bases in a mental
+			// model that will never be used anyway too.
 			rawquery(JPLUtils.createCompound(":", getJPLName(), new Atom("true")));
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("Unable to create a Prolog database module", e);
