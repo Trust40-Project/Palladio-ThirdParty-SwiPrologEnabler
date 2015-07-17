@@ -85,9 +85,9 @@ public class SWRLExpression implements Expression {
 	 * @param string
 	 */
 	public SWRLExpression(String string) {
-		this.type = -1; // error
 		this.argument = df.getSWRLLiteralArgument(df.getOWLLiteral(string));
 		this.expression = argument;
+		this.type = -1; // error
 	}
 
 	public String getSignature() {
@@ -109,6 +109,10 @@ public class SWRLExpression implements Expression {
 
 	public OWLAxiom getAxiom() {
 		return this.axiom;
+	}
+
+	public boolean isUndefined() {
+		return (this.type == -1);
 	}
 
 	public boolean isTerm() {
@@ -158,7 +162,7 @@ public class SWRLExpression implements Expression {
 				if (fvar != null)
 					vars.add(fvar);
 			}
-		} else { // rule
+		} else if (this.isRule()) { // rule
 			for (SWRLVariable v : rule.getVariables()) {
 				vars.add(new SWRLVar(v));
 			}

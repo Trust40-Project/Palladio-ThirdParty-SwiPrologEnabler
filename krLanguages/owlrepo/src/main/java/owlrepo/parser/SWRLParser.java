@@ -80,7 +80,7 @@ public class SWRLParser implements Parser {
 		this.formats = formats;
 		this.info = info;
 		errors.clear();
-		undefined.clear();
+		// undefined.clear();
 	}
 
 	private boolean parseCurrentLine() throws ParserException {
@@ -135,13 +135,17 @@ public class SWRLParser implements Parser {
 
 		} catch (SWRLParseException e) {
 			// e.printStackTrace();// term not in vocabulary
-			// System.out.println("undefined " + string);
+			System.out.println(e.getMessage());
 			undefined.add(string);
 			// errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr, -1,
 			// e
 			// .getMessage()));
 		}
 		return rule;
+	}
+
+	public SourceInfo getInfo() {
+		return this.info;
 	}
 
 	public Set<String> getUndefined() {
@@ -275,9 +279,15 @@ public class SWRLParser implements Parser {
 				if (arg != null)
 					// check if it was an argument or a rule
 					return new SWRLUpdate(arg);
+				else
+					return new SWRLUpdate(currentLine);
 			}
 		}
-		throw new ParserException("Cannot create update from: " + currentLine);
+		return new SWRLUpdate(onto.getOWLDataFactory()
+				.getSWRLIndividualArgument(
+						onto.getOWLDataFactory().getOWLAnonymousIndividual()));
+		// throw new ParserException("Cannot create update from: " +
+		// currentLine);
 	}
 
 	@Override
@@ -306,6 +316,8 @@ public class SWRLParser implements Parser {
 				if (arg != null)
 					// check if it was an argument or a rule
 					return new SWRLQuery(arg);
+				else
+					return new SWRLQuery(currentLine);
 			}
 		}
 		throw new ParserException(
@@ -347,11 +359,13 @@ public class SWRLParser implements Parser {
 			} else if (errors.isEmpty()) {
 				// variable
 				SWRLArgument arg = parseArgument(termstring);
-				if (arg != null)
+				if (arg != null) {
 					if (arg instanceof SWRLVariable)
 						term = new SWRLVar((SWRLVariable) arg);
 					else
 						term = new SWRLTerm(arg);
+				} else
+					term = new SWRLTerm(termstring);
 			}
 			// System.out.println(term);
 		}
@@ -383,8 +397,11 @@ public class SWRLParser implements Parser {
 		// rule to var
 		if (parseCurrentLine()) {
 			SWRLArgument arg = parseArgument(currentLine);
-			if (arg instanceof SWRLVariable)
-				return new SWRLVar((SWRLVariable) arg);
+			if (arg != null) {
+				if (arg instanceof SWRLVariable)
+					return new SWRLVar((SWRLVariable) arg);
+			} else
+				return new SWRLVar(currentLine);
 		}
 		return null;
 	}

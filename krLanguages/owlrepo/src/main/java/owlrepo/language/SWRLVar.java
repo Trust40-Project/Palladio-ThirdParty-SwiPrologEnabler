@@ -20,6 +20,10 @@ public class SWRLVar extends SWRLTerm implements Var {
 		this.var = var;
 	}
 
+	public SWRLVar(String string) {
+		super(string);
+	}
+
 	public SWRLVariable getVar() {
 		return this.var;
 	}
