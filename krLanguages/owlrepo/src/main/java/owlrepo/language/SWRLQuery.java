@@ -33,6 +33,17 @@ public class SWRLQuery extends SWRLExpression implements Query {
 		super(term);
 	}
 
+	/**
+	 * used only for creating a query out of an undefined term string that the
+	 * parser could not parse (not in ontology) used only by
+	 * OWLRepoKRInterface.getUndefined
+	 * 
+	 * @param string
+	 */
+	public SWRLQuery(String string) {
+		super(string);
+	}
+
 	public String getQueryName() {
 		return this.queryName;
 	}

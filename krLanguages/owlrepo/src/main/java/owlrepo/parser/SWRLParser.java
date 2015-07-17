@@ -7,8 +7,10 @@ import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
@@ -54,6 +56,7 @@ public class SWRLParser implements Parser {
 	BufferedReader reader = null;
 	List<RDFFormat> formats = null;
 	SWRLParserUtil parserUtil;
+	Set<String> undefined = new HashSet<String>();
 
 	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology) {
 		parser = new org.swrlapi.parser.SWRLParser(swrlapiOWLOntology);
@@ -72,11 +75,19 @@ public class SWRLParser implements Parser {
 		this.info = info;
 	}
 
+	public void parse(List<RDFFormat> formats, Reader reader, SourceInfo info) {
+		this.reader = new BufferedReader(reader);
+		this.formats = formats;
+		this.info = info;
+		errors.clear();
+		undefined.clear();
+	}
+
 	private boolean parseCurrentLine() throws ParserException {
 		// takes the next from the List of parsed lines as Strings
 		try {
 			currentLine = reader.readLine();
-			// System.out.println("current line: "+currentLine);
+			// System.out.println("current line: " + currentLine);
 			lineNr++;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -123,11 +134,18 @@ public class SWRLParser implements Parser {
 			// }
 
 		} catch (SWRLParseException e) {
-			e.printStackTrace();
-			errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr, -1, e
-					.getMessage()));
+			// e.printStackTrace();// term not in vocabulary
+			// System.out.println("undefined " + string);
+			undefined.add(string);
+			// errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr, -1,
+			// e
+			// .getMessage()));
 		}
 		return rule;
+	}
+
+	public Set<String> getUndefined() {
+		return this.undefined;
 	}
 
 	private SWRLArgument parseArgument(String string) {
@@ -167,9 +185,12 @@ public class SWRLParser implements Parser {
 						| InvocationTargetException | NoSuchMethodException
 						| SecurityException | SWRLParseException e) {
 					// e.printStackTrace();
-					System.out.println("Tried to read as argument: " + string);
-					errors.add(new SWRLParserSourceInfo(info.getSource(),
-							lineNr - 1, -1, e.getCause().getMessage()));
+					// System.out.println("Tried to read as argument: " +
+					// string);
+					return onto.getOWLDataFactory().getSWRLLiteralArgument(
+							onto.getOWLDataFactory().getOWLLiteral(string));
+					// errors.add(new SWRLParserSourceInfo(info.getSource(),
+					// lineNr - 1, -1, e.getCause().getMessage()));
 				}
 			}
 			// System.out.println(arg);
@@ -256,7 +277,7 @@ public class SWRLParser implements Parser {
 					return new SWRLUpdate(arg);
 			}
 		}
-		return null;
+		throw new ParserException("Cannot create update from: " + currentLine);
 	}
 
 	@Override
