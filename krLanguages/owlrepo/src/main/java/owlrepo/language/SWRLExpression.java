@@ -13,6 +13,7 @@ import krTools.parser.SourceInfo;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -21,7 +22,6 @@ import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLClassAtom;
 import org.semanticweb.owlapi.model.SWRLDArgument;
-import org.semanticweb.owlapi.model.SWRLDataFactory;
 import org.semanticweb.owlapi.model.SWRLDataPropertyAtom;
 import org.semanticweb.owlapi.model.SWRLDataRangeAtom;
 import org.semanticweb.owlapi.model.SWRLDifferentIndividualsAtom;
@@ -46,7 +46,7 @@ public class SWRLExpression implements Expression {
 	SWRLArgument argument;
 	int type = -1;
 
-	SWRLDataFactory df = new OWLDataFactoryImpl();
+	OWLDataFactory df = new OWLDataFactoryImpl();
 
 	public SWRLExpression(OWLAxiom axiom) {
 		this.axiom = axiom;
@@ -77,8 +77,30 @@ public class SWRLExpression implements Expression {
 		this.type = 3;
 	}
 
+	/**
+	 * used only for creating a query out of an undefined term string that the
+	 * parser could not parse (not in ontology) used only by
+	 * OWLRepoKRInterface.getUndefined
+	 * 
+	 * @param string
+	 */
+	public SWRLExpression(String string) {
+		this.type = -1; // error
+		this.argument = df.getSWRLLiteralArgument(df.getOWLLiteral(string));
+		this.expression = argument;
+	}
+
 	public String getSignature() {
-		return rule.getSignature().toArray().toString();
+		// System.out.println("get signature " + expression.toString());
+		if (this.isArgument())
+			return argument.getSignature().toString();
+		else if (this.isTerm())
+			return atom.getSignature().toString();
+		else if (this.isRule())
+			return rule.getSignature().toString();
+		else
+			return expression.toString().substring(0,
+					expression.toString().indexOf("^^"));
 	}
 
 	public SWRLRule getRule() {
@@ -99,6 +121,10 @@ public class SWRLExpression implements Expression {
 
 	public boolean isVar() {
 		return (this.argument != null && this.argument instanceof SWRLVariable);
+	}
+
+	public boolean isRule() {
+		return (this.type == 1);
 	}
 
 	public boolean isIndividual() {
@@ -269,9 +295,23 @@ public class SWRLExpression implements Expression {
 
 	}
 
+	public Set<SWRLTerm> getTermSet() {
+		Set<SWRLTerm> terms = new HashSet<SWRLTerm>();
+		if (this.isArgument() || (this.isTerm()))
+			terms.add((SWRLTerm) this);
+		else {
+			Set<SWRLAtom> atoms = rule.getBody();
+			atoms.addAll(rule.getHead());
+			for (SWRLAtom atom : atoms) {
+				terms.add(new SWRLTerm(atom));
+			}
+		}
+		return terms;
+	}
+
 	@Override
 	public String toString() {
-		if (rule != null) {
+		if (this.isRule()) {
 			SWRLTranslator trans = new SWRLTranslator();
 			return trans.getRuleText(rule);
 		}
