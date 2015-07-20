@@ -34,7 +34,10 @@ public class SWRLUpdate extends SWRLExpression implements Update {
 	public Update applySubst(Substitution substitution) {
 		SWRLExpression exp = (SWRLExpression) super.applySubst(substitution);
 		if (exp.isRule())
-			return ((SWRLQuery) exp).toUpdate();
+			if (exp instanceof SWRLUpdate)
+				return (SWRLUpdate)exp;
+			else if (exp instanceof SWRLQuery)
+				return ((SWRLQuery) exp).toUpdate();
 		else if (exp.isArgument())
 			return new SWRLUpdate(exp.argument);
 		return this;
