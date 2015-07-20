@@ -45,7 +45,7 @@ public interface Database {
 	/**
 	 * Defines the inference mechanism associated with a KRlanguage. The GOAL
 	 * programming language requires that at least this method is specified in
-	 * order to be able to effectively operate with the KRlanguage.
+	 * order to be able to effectively operate with the KR language.
 	 *
 	 * @return Set of substitutions. This set is empty if there are no
 	 *         solutions. If there is a one solution without substitutions,
@@ -61,7 +61,7 @@ public interface Database {
 	 * <p>
 	 * After addition of the formula, the database should entail the information
 	 * added (and, if applicable, no longer entail the information removed from
-	 * the database, e.g., when a negated fact is "inserted" by removing the
+	 * the database, e.g., if a negated fact is "inserted" by removing the
 	 * fact from the database).
 	 * </p>
 	 *

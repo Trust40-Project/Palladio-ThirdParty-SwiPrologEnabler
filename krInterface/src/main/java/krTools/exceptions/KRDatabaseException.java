@@ -27,15 +27,19 @@ public class KRDatabaseException extends KRException {
 
 	private static final long serialVersionUID = 2132716415540874609L;
 
+	/**
+	 * Constructor of KRDatabaseException with a given message
+	 * @param message as string for this exception
+	 */
 	public KRDatabaseException(String message) {
 		super(message);
 	}
 
 	/**
-	 * Creates ...
+	 * Creates a KRDatabaseException with a given message and cause.
 	 *
-	 * @param message
-	 * @param cause
+	 * @param message as string
+	 * @param cause as Throwable
 	 */
 	public KRDatabaseException(String message, Throwable cause) {
 		super(message, cause);

@@ -25,9 +25,10 @@ import krTools.parser.SourceInfo;
  * Exception to catch exceptions thrown by a parser.
  *
  * <p>
- * A parser exception should be thrown in case anything went wrong during
- * initialization of the parser, e.g., due to a problem with the source, or if
- * parsing was interrupted for some reason.
+ * A parser exception should be thrown in case anything went wrong during:
+ * initialization of the parser, e.g., due to a problem with the source, 
+ * parsing encountered a serious error and could not construct any expression,
+ * or if parsing was interrupted for some reason.
  * </p>
  */
 public class ParserException extends Exception implements SourceInfo, Comparable<ParserException> {
@@ -92,7 +93,7 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	}
 
 	/**
-	 * @return Line number where exception occurred, or {@code null} if no line
+	 * @return Line number where exception occurred, or {@code -1} if no line
 	 *         nr is available.
 	 */
 	@Override
@@ -105,7 +106,7 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	}
 
 	/**
-	 * @return Character position where exception occurred, or {@code null} if
+	 * @return Character position where exception occurred, or {@code -1} if
 	 *         no position is available.
 	 */
 	@Override
@@ -135,7 +136,10 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 		}
 	}
 
-	/** public getter for Source Info */
+	/** 
+	 * public getter for Source Info 
+	 * @return the source info attached to this parser exception
+	 **/
 	public SourceInfo getSourceInfo() {
 		return this.info;
 	}
@@ -194,6 +198,7 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	}
 
 	/**
+	 * Checks wether the position if the first source info is before the second one.
 	 * @param info1
 	 *            A source info object.
 	 * @param info2

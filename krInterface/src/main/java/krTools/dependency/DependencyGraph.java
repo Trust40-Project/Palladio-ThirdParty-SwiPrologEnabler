@@ -96,7 +96,7 @@ public abstract class DependencyGraph<T extends Expression> {
 	/**
 	 * Returns the definitions in the program that are never used.
 	 *
-	 * @return A list of all definitions that are unused.
+	 * @return A list of all expressions that are unused.
 	 */
 	public List<? extends Expression> getUnusedDefinitions() {
 		List<T> unusedDefinitions = new LinkedList<>();

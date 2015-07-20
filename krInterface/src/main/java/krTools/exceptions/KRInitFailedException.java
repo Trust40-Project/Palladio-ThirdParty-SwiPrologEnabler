@@ -28,9 +28,9 @@ public class KRInitFailedException extends KRException {
 	private static final long serialVersionUID = 4881505555016007638L;
 
 	/**
-	 * Creates ...
+	 * Creates a KRInitFailedException with a given message
 	 *
-	 * @param message
+	 * @param message as string 
 	 */
 	public KRInitFailedException(String message) {
 		super(message);
@@ -38,10 +38,10 @@ public class KRInitFailedException extends KRException {
 	}
 
 	/**
-	 * Creates ...
+	 * Creates a KRInitFailedException with a message and a cause.
 	 *
-	 * @param message
-	 * @param cause
+	 * @param message as a string message
+	 * @param cause as a Throwable cause
 	 */
 	public KRInitFailedException(String message, Throwable cause) {
 		super(message, cause);

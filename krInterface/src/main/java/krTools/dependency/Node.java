@@ -62,8 +62,9 @@ public class Node<T extends Expression> {
 	private final List<Node<T>> dependencies = new LinkedList<>();
 
 	/**
+	 * Constructor of a Node with a given signature.
 	 * @param signature
-	 *            The node signature.
+	 *            The node signature string.
 	 */
 	public Node(String signature) {
 		this.signature = signature;
@@ -93,14 +94,26 @@ public class Node<T extends Expression> {
 		this.queries.add(expression);
 	}
 
+	/**
+	 * Getter for the signature of this Node.
+	 * @return the signature string
+	 */
 	public String getSignature() {
 		return this.signature;
 	}
 
+	/**
+	 * Getter for the definitions of this Node.
+	 * @return the list of definitions.
+	 */
 	public List<T> getDefinitions() {
 		return this.definitions;
-	}
-
+	}	
+	
+	/**
+	 * Getter for the queries of this Node.
+	 * @return the list of queries
+	 */
 	public List<T> getQueries() {
 		return this.queries;
 	}
@@ -123,18 +136,34 @@ public class Node<T extends Expression> {
 		this.dependencies.add(node);
 	}
 
+	/**
+	 * Getter for the dependencies of this Node.
+	 * @return the dependencies as a list of nodes 
+	 */
 	public List<Node<T>> getDependencies() {
 		return this.dependencies;
 	}
 
+	/**
+	 * Checks if the node is defined
+	 * @return boolean true if the node's definitions is not empty 
+	 */
 	public boolean isDefined() {
 		return !this.definitions.isEmpty();
 	}
 
+	/**
+	 * Checks if the node is queried.
+	 * @return boolean true if the node's queries is not empty
+	 */
 	public boolean isQueried() {
 		return !this.queries.isEmpty();
 	}
 
+	/**
+	 * Checks if the node is basic (has no dependencies)
+	 * @return boolean true if the node is basic 
+	 */
 	public boolean isBasic() {
 		return this.dependencies.isEmpty();
 	}

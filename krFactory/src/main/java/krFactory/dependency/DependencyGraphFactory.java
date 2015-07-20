@@ -30,7 +30,7 @@ import swiprolog.SwiPrologInterface;
 import swiprolog.dependency.PrologDependencyGraph;
 
 /**
- * Factory of Dependency Graphs for a specific KRI.
+ * Factory of Dependency Graphs for a specific KR Interface.
  */
 public class DependencyGraphFactory {
 	/**

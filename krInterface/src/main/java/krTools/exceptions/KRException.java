@@ -25,19 +25,19 @@ public class KRException extends Exception {
 	private static final long serialVersionUID = 3963559073032366579L;
 
 	/**
-	 * Creates ...
+	 * Creates a KRException with a given message
 	 *
-	 * @param message
+	 * @param message as a string
 	 */
 	public KRException(String message) {
 		super(message);
 	}
 
 	/**
-	 * Creates ...
+	 * Creates a KRException with a given message and cause
 	 *
-	 * @param message
-	 * @param cause
+	 * @param message as string
+	 * @param cause as Throwable
 	 */
 	public KRException(String message, Throwable cause) {
 		super(message, cause);

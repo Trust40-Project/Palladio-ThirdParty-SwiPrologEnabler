@@ -42,13 +42,15 @@ import krTools.parser.SourceInfo;
  * <p>
  * A knowledge representation interface should provide the following services:
  * <ul>
- * <li>retrieving the name of the interface.</li>
- * <li>initializing the interface to enable use of it.</li>
+ * <li>initializing the interface with a list of references to enable its use.</li>
  * <li>resetting the interface.</li>
  * <li>creating a database.</li>
  * <li>providing a parser for parsing source (files) represented in the KR
  * language.</li>
  * <li>mapping a map of variables and terms to a substitution.</li>
+ * <li>getting the queries from the given set of queries that have not been defined. </li>
+ * <li>getting the formulas that have been defined in the set of database formulas but are not used (queried).</li>
+ * <li>checking if the expressions of the KR Language support serialization. </li>
  * </ul>
  */
 public interface KRInterface {
@@ -92,7 +94,7 @@ public interface KRInterface {
 	 * the input.
 	 *
 	 * @param source
-	 *            The source that is to be parsed.
+	 *            A reader of the source that is to be parsed.
 	 * @param info
 	 *            the {@link SourceInfo}. This is needed as this parser will be
 	 *            used as subparser, and then it needs to be able to create
@@ -130,7 +132,9 @@ public interface KRInterface {
 	Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
-	 * Check if terms in this KR implementation can be serialized.
+	 * Check if the expressions of this KR implementation can be serialized 
+	 * (converted into a byte stream for easy transmission and then converted back 
+	 * into the original object).
 	 *
 	 * @return true iff terms from this KR implementation can be serialized
 	 */

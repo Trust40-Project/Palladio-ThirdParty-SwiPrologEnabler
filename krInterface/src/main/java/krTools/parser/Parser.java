@@ -29,7 +29,7 @@ import krTools.language.Var;
 
 /**
  * Interface for a parser for the KR language.
- *
+ * This class defines the requirements that 
  * <p>
  * Also see: {@link KRInterface#getParser(java.io.Reader)}.
  */
