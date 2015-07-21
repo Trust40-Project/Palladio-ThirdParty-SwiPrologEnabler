@@ -200,12 +200,14 @@ public class OWLOntologyDatabase implements Database {
 	public OWLOntologyDatabase(String name, Collection<DatabaseFormula> content)
 			throws OWLOntologyCreationException {
 		this(name);
-		this.allFormulas.addAll(content);
-		Iterator<DatabaseFormula> iterator = content.iterator();
-		while (iterator.hasNext()) {
-			SWRLDatabaseFormula formula = (SWRLDatabaseFormula) (iterator
-					.next());
-			manager.addAxiom(owlontology, formula.getRule());
+		if (content != null) {
+			this.allFormulas.addAll(content);
+			Iterator<DatabaseFormula> iterator = content.iterator();
+			while (iterator.hasNext()) {
+				SWRLDatabaseFormula formula = (SWRLDatabaseFormula) (iterator
+						.next());
+				manager.addAxiom(owlontology, formula.getRule());
+			}
 		}
 	}
 

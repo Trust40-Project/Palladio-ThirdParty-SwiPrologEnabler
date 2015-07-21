@@ -30,9 +30,18 @@
     
 
 
-    <!-- http://ii.tudelft.nl/goal#receivedFrom -->
+    <!-- http://ii.tudelft.nl/goal#receivedBy -->
 
-    <owl:ObjectProperty rdf:about="http://ii.tudelft.nl/goal#receivedFrom">
+    <owl:ObjectProperty rdf:about="http://ii.tudelft.nl/goal#receivedBy">
+        <rdfs:range rdf:resource="http://ii.tudelft.nl/goal#Agent"/>
+        <rdfs:domain rdf:resource="http://ii.tudelft.nl/goal#Message"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ii.tudelft.nl/goal#sentBy -->
+
+    <owl:ObjectProperty rdf:about="http://ii.tudelft.nl/goal#sentBy">
         <rdfs:range rdf:resource="http://ii.tudelft.nl/goal#Agent"/>
         <rdfs:domain rdf:resource="http://ii.tudelft.nl/goal#Message"/>
     </owl:ObjectProperty>
@@ -55,15 +64,6 @@
     <owl:DatatypeProperty rdf:about="http://ii.tudelft.nl/goal#content">
         <rdfs:domain rdf:resource="http://ii.tudelft.nl/goal#Message"/>
         <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://ii.tudelft.nl/goal#me -->
-
-    <owl:DatatypeProperty rdf:about="http://ii.tudelft.nl/goal#me">
-        <rdfs:domain rdf:resource="http://ii.tudelft.nl/goal#Agent"/>
-        <rdfs:range rdf:resource="&xsd;boolean"/>
     </owl:DatatypeProperty>
     
 

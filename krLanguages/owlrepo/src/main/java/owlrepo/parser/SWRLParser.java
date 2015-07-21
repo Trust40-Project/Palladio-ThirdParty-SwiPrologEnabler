@@ -135,11 +135,10 @@ public class SWRLParser implements Parser {
 
 		} catch (SWRLParseException e) {
 			// e.printStackTrace();// term not in vocabulary
-			System.out.println(e.getMessage());
+			// System.out.println(e.getMessage());
 			undefined.add(string);
-			// errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr, -1,
-			// e
-			// .getMessage()));
+			errors.add(new SWRLParserSourceInfo(info.getSource(), lineNr, -1, e
+					.getMessage()));
 		}
 		return rule;
 	}
@@ -313,11 +312,14 @@ public class SWRLParser implements Parser {
 			else if (errors.isEmpty()) {
 				// parse argument
 				SWRLArgument arg = parseArgument(currentLine);
-				if (arg != null)
+				if (arg != null && arg instanceof SWRLVariable)
 					// check if it was an argument or a rule
 					return new SWRLQuery(arg);
 				else
-					return new SWRLQuery(currentLine);
+					errors.add(new SWRLParserSourceInfo(info.getSource(),
+							lineNr, -1, "Could not create query from: "
+									+ currentLine));
+				return new SWRLQuery(arg);
 			}
 		}
 		throw new ParserException(
