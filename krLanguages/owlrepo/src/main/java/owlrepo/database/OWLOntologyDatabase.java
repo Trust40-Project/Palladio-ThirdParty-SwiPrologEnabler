@@ -2,8 +2,6 @@ package owlrepo.database;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -82,8 +80,6 @@ public class OWLOntologyDatabase implements Database {
 	private Collection<Statement> baseStm;
 	private SWRLAPIRenderer renderer;
 	private DefaultPrefixManager prefixManager;
-	private URL goalOntoPath = this.getClass()
-			.getResource("/agentOntology.owl");
 
 	private Set<DatabaseFormula> allFormulas = new HashSet<DatabaseFormula>();
 
@@ -116,8 +112,6 @@ public class OWLOntologyDatabase implements Database {
 		prefixManager.setDefaultPrefix(baseURI);
 		prefixManager.setPrefix("onto", baseURI);
 
-		addGOALAgentOntology(goalOntoPath);
-
 		// create swrl ontology
 		swrlontology = SWRLAPIFactory
 				.createOntology(owlontology, prefixManager);
@@ -139,21 +133,6 @@ public class OWLOntologyDatabase implements Database {
 		// OWLOntologyLoaderConfiguration() );
 		// consumer.statementWithResourceValue(subject, predicate, object);
 		// OWLRDFConsumer to get contents of repo
-
-	}
-
-	private void addGOALAgentOntology(URL path)
-			throws OWLOntologyCreationException {
-		OWLOntologyManager goalManager = OWLManager.createOWLOntologyManager();
-		try {
-			OWLOntology goalOntology = goalManager
-					.loadOntologyFromOntologyDocument(new File(path.toURI()));
-			prefixManager.setPrefix("goal", "http://ii.tudelft.nl/goal#");
-			Set<OWLAxiom> goalAxioms = goalOntology.getTBoxAxioms(null);
-			manager.addAxioms(owlontology, goalAxioms);
-		} catch (URISyntaxException e) {
-			throw new OWLOntologyCreationException(e.getMessage());
-		}
 
 	}
 

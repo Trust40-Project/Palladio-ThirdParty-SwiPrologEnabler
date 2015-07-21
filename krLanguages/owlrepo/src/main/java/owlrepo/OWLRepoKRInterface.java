@@ -91,7 +91,8 @@ public class OWLRepoKRInterface implements KRInterface {
 	public Database getDatabase(Collection<DatabaseFormula> content)
 			throws KRDatabaseException {
 		try {
-			database = new OWLOntologyDatabase("knowledge", content);
+			database = new OWLOntologyDatabase(
+					"http://ii.tudelft.nl/goal/knowledge", content);
 		} catch (OWLOntologyCreationException e) {
 			throw new KRDatabaseException(
 					"Failed to create OWL Ontology Database", e);
@@ -100,6 +101,18 @@ public class OWLRepoKRInterface implements KRInterface {
 		// associated with name.
 		// databases.put(database.getName(), database);
 
+		// Return new database.
+		return database;
+	}
+
+	public Database getMessageDatabase(File onto) throws KRDatabaseException {
+		try {
+			database = new OWLOntologyDatabase(
+					"http://ii.tudelft.nl/goal/message", onto);
+		} catch (OWLOntologyCreationException e) {
+			throw new KRDatabaseException(
+					"Failed to create OWL Ontology Database", e);
+		}
 		// Return new database.
 		return database;
 	}
