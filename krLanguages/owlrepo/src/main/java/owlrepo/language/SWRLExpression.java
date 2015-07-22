@@ -64,8 +64,9 @@ public class SWRLExpression implements Expression {
 
 	public SWRLExpression(SWRLAtom atom) {
 		Set<SWRLAtom> atoms = new HashSet<SWRLAtom>();
+		Set<SWRLAtom> head = atoms;
 		atoms.add(atom);
-		this.rule = df.getSWRLRule(atoms, null); // body,head
+		this.rule = df.getSWRLRule(atoms, head); // body,head
 		this.axiom = rule;
 		this.atom = atom;
 		this.expression = atom;
@@ -312,6 +313,11 @@ public class SWRLExpression implements Expression {
 			Collection<SWRLArgument> thisArgs = thisTerm.getAllArguments();
 			Collection<SWRLArgument> otherArgs =otherTerm.getAllArguments();
 			if (thisArgs.size() == otherArgs.size()){
+				// We suppose the terms will be unifiable,
+				// and check for proven wrong
+				boolean unifTerms = true;
+				SWRLSubstitution termSubst = new SWRLSubstitution();
+
 				//if they have the same number of arguments
 				Iterator<SWRLArgument> it1 = thisArgs.iterator();
 				Iterator<SWRLArgument> it2 = otherArgs.iterator();
@@ -325,9 +331,8 @@ public class SWRLExpression implements Expression {
 						if (argThis.isVariable()) {
 							// if the first argument is variable, get mguVar
 							// with other
-							// add the mgu of two swrl arguments
-							substitution.addSWRLSubstitution(argThis
-									.mguVar(argOther));
+							// collect the mgu of two swrl arguments
+							termSubst = argThis.mguVar(argOther);
 						} else {
 							// if this argument is not variable, it is literal
 							// argument
@@ -338,30 +343,55 @@ public class SWRLExpression implements Expression {
 								// if not equal literal, than terms are not
 								// matching and break
 								if (!argThis.equals(argOther))
-									break;
-							}
-
+									//terms are not equal coz this parameter is not matching
+									unifTerms=false;
+							} else
+								// other argument is variable
+								termSubst.addSWRLSubstitution(argOther.mguVar(argThis));
 						}
 					}
-				}
+				} // end-while
+					//now we can check if the terms were ok to unify
+					if (unifTerms)
+						//add the collected substitution only if all parameters match
+						substitution.addSWRLSubstitution(termSubst);
+
 			}
 		}
 		return substitution;
 
 	}
 	
-	protected SWRLSubstitution mguRule(SWRLExpression exp) {
+	
+	protected SWRLSubstitution mguRuleTerm(SWRLExpression exp){
+		//this = rule, exp = term
 		SWRLSubstitution substitution = new SWRLSubstitution();
 
-		// if both rules (atoms)
-		SWRLRule thisRule = this.rule;
-
+		//get mgu of Term-Term for each term in body
+		for (SWRLAtom atom : this.rule.getBody())
+			substitution.addSWRLSubstitution( (new SWRLTerm(atom)).mguTerm(exp));
+		//and in head
+		for (SWRLAtom atom : this.rule.getHead())
+			substitution.addSWRLSubstitution( (new SWRLTerm(atom)).mguTerm(exp));
+		
+		return substitution;
+	}
+	
+	protected SWRLSubstitution mguRule(SWRLExpression exp) {
+		SWRLSubstitution substitution = new SWRLSubstitution();
+		//this is rule
 		// if other expression is a term (cannot be var or arg)
 		if (exp.isTerm()) {
-			SWRLAtom otherTerm = exp.atom;
+			//get rule-term mgu
+			substitution.addSWRLSubstitution(this.mguRuleTerm(exp));
 
 		} else if (exp.isRule()) {
-
+			//both rules, for each atom in other, call mgu of this and atom 
+			SWRLRule otherRule = exp.rule;
+			for (SWRLAtom atom : otherRule.getBody())
+				substitution.addSWRLSubstitution(this.mguRuleTerm(new SWRLTerm(atom)));
+			for (SWRLAtom atom : otherRule.getHead())
+				substitution.addSWRLSubstitution(this.mguRuleTerm(new SWRLTerm(atom)));
 		}
 
 		return substitution;
@@ -376,14 +406,19 @@ public class SWRLExpression implements Expression {
 			if (this.isVar()) {
 				// get mgu of var/var or var/arg (literal)
 				substitution.addSWRLSubstitution(this.mguVar(exp));
-				
-			} else if (this.isTerm() && !this.getFreeVar().isEmpty()
-					&& exp.isTerm()) {
-				// both terms and this has variables
-				// get mgu for arguments of first with second - use mguVar
-				substitution.addSWRLSubstitution(this.mguTerm(exp));
-
-			} else if (this.isRule() && !this.getFreeVar().isEmpty()) {
+			} else if (exp.isVar()) {
+				// get mgu of var/var or var/arg (literal)
+				substitution.addSWRLSubstitution(exp.mguVar(this));
+			} else if (this.isTerm()) {
+				if (exp.isTerm()) {
+					// both terms and this has variables
+					// get mgu for arguments of first with second - use mguVar
+					substitution.addSWRLSubstitution(this.mguTerm(exp));
+				} else if (exp.isRule()) {
+					// term-rule
+					substitution.addSWRLSubstitution(exp.mguRuleTerm(this));
+				}
+			} else if (this.isRule()) {
 				// both rules and this has variables
 				// get mgu for each term - argument - use mguTerm
 				substitution.addSWRLSubstitution(this.mguRule(exp));
@@ -392,6 +427,8 @@ public class SWRLExpression implements Expression {
 				// do nothing, return empty
 			}
 		}
+		// call the inverse - stack overflow ?
+		// substitution.addSWRLSubstitution((SWRLSubstitution) exp.mgu(this));
 		return substitution;
 
 	}
