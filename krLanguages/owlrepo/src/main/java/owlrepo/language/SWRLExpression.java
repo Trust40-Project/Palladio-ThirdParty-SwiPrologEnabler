@@ -2,6 +2,7 @@ package owlrepo.language;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -286,16 +287,112 @@ public class SWRLExpression implements Expression {
 		return newset;
 	}
 
-	public Substitution mgu(Expression expression) {
-		SWRLExpression exp = (SWRLExpression) expression;
-		if (this.isVar() && expression.isVar()) {
-			if (!this.equals(expression))
-				return new SWRLSubstitution((SWRLVariable) this.argument,
-						(SWRLVariable) exp.argument);
-		} else if (this.isTerm() && exp.isTerm()) {
-
+	protected SWRLSubstitution mguVar(SWRLExpression exp) {
+		SWRLArgument thisVar = this.argument;
+		SWRLArgument otherArg = exp.argument;
+		if (exp.isVar()) {
+			// both variables
+			return new SWRLSubstitution((SWRLVariable) thisVar,
+					(SWRLVariable) otherArg);
+		} else if (exp.isArgument()) {
+			// variable to argument (literal)
+			return new SWRLSubstitution((SWRLVariable) thisVar, otherArg);
 		}
 		return new SWRLSubstitution();
+	}
+	
+	protected SWRLSubstitution mguTerm(SWRLExpression exp){
+		SWRLSubstitution substitution = new SWRLSubstitution();
+
+		// if both terms (atoms)
+		SWRLAtom thisTerm = this.atom;
+		SWRLAtom otherTerm = exp.atom;
+		if (thisTerm.getPredicate().equals(otherTerm.getPredicate())) {
+			// it is the same predicate
+			Collection<SWRLArgument> thisArgs = thisTerm.getAllArguments();
+			Collection<SWRLArgument> otherArgs =otherTerm.getAllArguments();
+			if (thisArgs.size() == otherArgs.size()){
+				//if they have the same number of arguments
+				Iterator<SWRLArgument> it1 = thisArgs.iterator();
+				Iterator<SWRLArgument> it2 = otherArgs.iterator();
+				while (it1.hasNext() && it2.hasNext()){
+					// extract the arguments from both terms (wrap it in terms,
+					// as we cannot pass arguments here)
+					SWRLTerm argThis = new SWRLTerm(it1.next());
+					SWRLTerm argOther = new SWRLTerm(it2.next());
+					// if the two arguments are not the same
+					if (!argThis.equals(argOther)) {
+						if (argThis.isVariable()) {
+							// if the first argument is variable, get mguVar
+							// with other
+							// add the mgu of two swrl arguments
+							substitution.addSWRLSubstitution(argThis
+									.mguVar(argOther));
+						} else {
+							// if this argument is not variable, it is literal
+							// argument
+							// check if other argument is variable it is fine
+							// if not, then other argument is equal literal
+							// argument
+							if (!argOther.isVariable()) {
+								// if not equal literal, than terms are not
+								// matching and break
+								if (!argThis.equals(argOther))
+									break;
+							}
+
+						}
+					}
+				}
+			}
+		}
+		return substitution;
+
+	}
+	
+	protected SWRLSubstitution mguRule(SWRLExpression exp) {
+		SWRLSubstitution substitution = new SWRLSubstitution();
+
+		// if both rules (atoms)
+		SWRLRule thisRule = this.rule;
+
+		// if other expression is a term (cannot be var or arg)
+		if (exp.isTerm()) {
+			SWRLAtom otherTerm = exp.atom;
+
+		} else if (exp.isRule()) {
+
+		}
+
+		return substitution;
+	}
+
+	public Substitution mgu(Expression expression) {
+		SWRLSubstitution substitution = new SWRLSubstitution();
+		SWRLExpression exp = (SWRLExpression) expression;
+		// if expressions are equal, return empty substitution
+		if (!this.equals(expression)) {
+			// otherwise treat by case
+			if (this.isVar()) {
+				// get mgu of var/var or var/arg (literal)
+				substitution.addSWRLSubstitution(this.mguVar(exp));
+				
+			} else if (this.isTerm() && !this.getFreeVar().isEmpty()
+					&& exp.isTerm()) {
+				// both terms and this has variables
+				// get mgu for arguments of first with second - use mguVar
+				substitution.addSWRLSubstitution(this.mguTerm(exp));
+
+			} else if (this.isRule() && !this.getFreeVar().isEmpty()) {
+				// both rules and this has variables
+				// get mgu for each term - argument - use mguTerm
+				substitution.addSWRLSubstitution(this.mguRule(exp));
+				
+			} else if (this.isUndefined() || exp.isUndefined()) {
+				// do nothing, return empty
+			}
+		}
+		return substitution;
 
 	}
 

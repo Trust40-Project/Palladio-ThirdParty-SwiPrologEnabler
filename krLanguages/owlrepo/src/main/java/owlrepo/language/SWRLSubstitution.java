@@ -115,6 +115,14 @@ public class SWRLSubstitution implements Substitution {
 		variables = substitutions.keySet();
 	}
 
+	public void addSWRLSubstitution(SWRLSubstitution subst) {
+		for (SWRLVariable var : subst.getSWRLVariables()) {
+			SWRLArgument arg = subst.getSWRLArgument(var);
+			substitutions.put(var, arg);
+		}
+		variables = substitutions.keySet();
+	}
+
 	public SWRLArgument getSWRLArgument(SWRLVariable var) {
 		return substitutions.get(var);
 	}

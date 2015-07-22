@@ -28,9 +28,13 @@ public class SWRLQuery extends SWRLExpression implements Query {
 	public SWRLQuery(SWRLRule query) {
 		super(query);
 	}
-
-	public SWRLQuery(SWRLArgument term) {
+	
+	public SWRLQuery(SWRLAtom term){
 		super(term);
+	}
+
+	public SWRLQuery(SWRLArgument arg) {
+		super(arg);
 	}
 
 	/**
