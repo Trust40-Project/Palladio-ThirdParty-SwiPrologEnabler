@@ -1,10 +1,12 @@
 package owlrepo.language;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import krTools.language.Expression;
@@ -397,9 +399,56 @@ public class SWRLExpression implements Expression {
 		return substitution;
 	}
 
+	public SWRLExpression renameVars() {
+		Random randomGenerator = new Random();
+		int uniqueId =  randomGenerator.nextInt(100000);
+		// rename vars
+		Set<Var> freeVars = this.getFreeVar();
+		//find where is the variable
+		//construct new required terms
+		//with new unique variable
+		if (this.isVar()){
+			SWRLVariable v = (SWRLVariable)this.argument;
+			String[] vIri = v.getIRI().toString().split("#");
+			if (vIri.length == 2){
+				String newv = vIri[0] + "#" + uniqueId + vIri[1];
+				return new SWRLVar(newv);
+			}
+		}else if (this.isTerm()){
+			SWRLAtom atom = this.atom;
+			List<SWRLArgument> newArgs = new ArrayList<SWRLArgument>();
+			for (SWRLArgument arg : atom.getAllArguments()){
+				if (arg instanceof SWRLVar)
+					newArgs.add((new SWRLTerm(arg).renameVars()).argument);
+				newArgs.add(arg);
+			}	
+			SWRLPredicate pred = atom.getPredicate();
+			//depending on the type
+			// return new SWRLTerm(df.getSWRL)
+		}else if (this.isRule()){
+			
+		}
+		
+		
+		return this;
+	}
+
 	public Substitution mgu(Expression expression) {
 		SWRLSubstitution substitution = new SWRLSubstitution();
 		SWRLExpression exp = (SWRLExpression) expression;
+
+		// check for variables with the same name - reify
+		boolean needReification = false;
+		for (Var v : exp.getFreeVar())
+			if (this.getFreeVar().contains(v))
+				needReification = true;
+		for (Var v : this.getFreeVar())
+			if (exp.getFreeVar().contains(v))
+				needReification = true;
+		// buggy for now
+		// if (needReification) {
+		// this.renameVars().mgu(exp.renameVars());
+		// }
 		// if expressions are equal, return empty substitution
 		if (!this.equals(expression)) {
 			// otherwise treat by case
