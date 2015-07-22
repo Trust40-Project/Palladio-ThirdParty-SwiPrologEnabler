@@ -91,9 +91,9 @@ public class OWLRepoKRInterface implements KRInterface {
 	public Database getDatabase(Collection<DatabaseFormula> content)
 			throws KRDatabaseException {
 		try {
-			database = new OWLOntologyDatabase(
-					"http://ii.tudelft.nl/goal/knowledge", content);
-		} catch (OWLOntologyCreationException e) {
+			database = getDatabase();
+			database.insertAll(content);
+		} catch (KRInitFailedException e) {
 			throw new KRDatabaseException(
 					"Failed to create OWL Ontology Database", e);
 		}

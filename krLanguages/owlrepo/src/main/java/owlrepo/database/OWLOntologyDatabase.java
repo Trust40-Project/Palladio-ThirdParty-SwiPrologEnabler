@@ -172,32 +172,6 @@ public class OWLOntologyDatabase implements Database {
 		return this.baseURI;
 	}
 
-	public OWLOntologyDatabase(String name) throws OWLOntologyCreationException {
-		this(name, (File) null);
-	}
-
-	public OWLOntologyDatabase(String name, Collection<DatabaseFormula> content)
-			throws OWLOntologyCreationException {
-		this(name);
-		if (content != null) {
-			this.allFormulas.addAll(content);
-			Iterator<DatabaseFormula> iterator = content.iterator();
-			while (iterator.hasNext()) {
-				SWRLDatabaseFormula formula = (SWRLDatabaseFormula) (iterator
-						.next());
-				manager.addAxiom(owlontology, formula.getRule());
-			}
-		}
-	}
-
-	public OWLOntologyDatabase(String name, File owlfile, String repourl)
-			throws OWLOntologyCreationException {
-		// first set it up the onto with the file
-		this(name, owlfile);
-		// then start the repo
-		setupRepo(repourl);
-	}
-
 	public OWLOntologyManager getOntologyManager() {
 		return this.manager;
 	}
