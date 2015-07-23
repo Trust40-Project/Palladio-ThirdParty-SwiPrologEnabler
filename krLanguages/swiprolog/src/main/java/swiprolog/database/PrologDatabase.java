@@ -73,6 +73,11 @@ public class PrologDatabase implements Database {
 			// knowledge bases as well, and might be run for bases in a mental
 			// model that will never be used anyway too.
 			rawquery(JPLUtils.createCompound(":", getJPLName(), new Atom("true")));
+			if (content != null) {
+				for (DatabaseFormula dbf : content) {
+					insert(((PrologDBFormula) dbf).getTerm());
+				}
+			}
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("Unable to create a Prolog database module", e);
 		}
@@ -119,7 +124,6 @@ public class PrologDatabase implements Database {
 	@Override
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
 		Set<Substitution> substSet = new LinkedHashSet<Substitution>();
-
 		jpl.Term query = ((PrologQuery) pQuery).getTerm();
 		jpl.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
 		// We need to create conjunctive query with "true" as first conjunct and

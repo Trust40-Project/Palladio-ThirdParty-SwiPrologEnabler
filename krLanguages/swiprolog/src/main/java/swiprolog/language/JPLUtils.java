@@ -561,10 +561,6 @@ public class JPLUtils {
 			// and that side can be printed without brackets.
 			// but if the x side has same prio that's only possible if there
 			// were brackets.
-			// System.out.println("getting spec of
-			// "+label+"/"+arguments.size()+"="+GetSpec());
-			// System.out.println("prio of arg "+argumentnumber+" "+arg+" =
-			// "+argprio);
 			PrologOperators.Fixity spec = JPLUtils.getFixity(term);
 			if (spec == null) {
 				return argexpression.toString(); // no spec, no op.
