@@ -51,29 +51,22 @@ public class PrologDatabase implements Database {
 	 * A corresponding theory
 	 */
 	private final Theory theory;
-	/**
-	 * Static int for representing unique number to be able to generate unique
-	 * database names.
-	 */
-	private static Integer uniqueNumberCounter = 0;
 
 	/**
+	 * @param name
+	 *            A human-readable name for the database.
 	 * @param content
-	 *            the theory containing initial database contents
+	 *            The theory containing initial database contents.
+	 * @param owner
+	 *            The interface instance that creates this database.
 	 * @throws KRInitFailedException
 	 *             If database creation failed.
 	 */
-	public PrologDatabase(Collection<DatabaseFormula> content, SwiPrologInterface owner) throws KRDatabaseException {
-		int number;
-		synchronized (uniqueNumberCounter) {
-			number = uniqueNumberCounter++;
-		}
-		// Name consists of (lower case) database type post-fixed with unique
-		// number.
-		this.name = new jpl.Atom("db" + number);
+	public PrologDatabase(String name, Collection<DatabaseFormula> content, SwiPrologInterface owner)
+			throws KRDatabaseException {
+		this.name = new jpl.Atom(name);
 		this.owner = owner;
 		this.theory = new Theory(content);
-
 		try {
 			// Create SWI Prolog module that will act as our database.
 			// FIXME: this is an expensive operation that is now run for

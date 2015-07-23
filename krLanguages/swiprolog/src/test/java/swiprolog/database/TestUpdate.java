@@ -55,8 +55,8 @@ public class TestUpdate {
 	@Before
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
-		this.knowledgebase = this.language.getDatabase(new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase = this.language.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 	}
 
 	@After
@@ -131,7 +131,7 @@ public class TestUpdate {
 	@Test
 	public void testDeleteBeliefbase() throws KRQueryFailedException, KRDatabaseException {
 		this.beliefbase.destroy();
-		this.beliefbase = this.language.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 
 		// assertEquals(0, beliefbase.getAllSentences().length);
 	}

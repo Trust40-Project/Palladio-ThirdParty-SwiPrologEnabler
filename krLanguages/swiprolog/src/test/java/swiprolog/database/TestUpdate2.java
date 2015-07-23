@@ -61,11 +61,11 @@ public class TestUpdate2 {
 	 * @throws KRDatabaseException
 	 */
 	private void fillKB() throws KRDatabaseException {
-		Set<DatabaseFormula> kbtheory = new LinkedHashSet<DatabaseFormula>();
+		Set<DatabaseFormula> kbtheory = new LinkedHashSet<DatabaseFormula>(2);
 		kbtheory.add(new PrologDBFormula(this.k1, null));
 		kbtheory.add(new PrologDBFormula(this.k2, null));
-		this.knowledgebase = this.language.getDatabase(kbtheory);
-		this.beliefbase = this.language.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory);
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 	}
 
 	/**
@@ -74,10 +74,10 @@ public class TestUpdate2 {
 	 * @throws KRDatabaseException
 	 */
 	private void fillKB2() throws KRDatabaseException {
-		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<DatabaseFormula>();
+		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<DatabaseFormula>(1);
 		kbtheory2.add(new PrologDBFormula(this.k3, null));
-		this.knowledgebase = this.language.getDatabase(kbtheory2);
-		this.beliefbase = this.language.getDatabase(new LinkedHashSet<DatabaseFormula>());
+		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory2);
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 	}
 
 	/**
