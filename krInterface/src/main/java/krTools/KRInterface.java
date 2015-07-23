@@ -78,6 +78,8 @@ public interface KRInterface {
 	/**
 	 * Creates new database from the content provided.
 	 *
+	 * @param name
+	 * 			  A human-readable name for the database
 	 * @param content
 	 *            A list of {@link DatabaseFormula}s that should be inserted in
 	 *            database; possibly null.
@@ -86,7 +88,7 @@ public interface KRInterface {
 	 *             If the database could not be created, or the content provided
 	 *             could not be added.
 	 */
-	Database getDatabase(Collection<DatabaseFormula> content) throws KRDatabaseException;
+	Database getDatabase(String name, Collection<DatabaseFormula> content) throws KRDatabaseException;
 
 	/**
 	 * Returns a parser for this KR language. Only initializes the parser but

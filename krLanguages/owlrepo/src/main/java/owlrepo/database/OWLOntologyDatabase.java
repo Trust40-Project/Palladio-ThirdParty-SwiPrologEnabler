@@ -43,6 +43,7 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.core.SWRLAPIRenderer;
+import org.swrlapi.sqwrl.exceptions.SQWRLException;
 
 import owlrepo.language.SWRLDatabaseFormula;
 import owlrepo.language.SWRLQuery;
@@ -84,7 +85,7 @@ public class OWLOntologyDatabase implements Database {
 	private Set<DatabaseFormula> allFormulas = new HashSet<DatabaseFormula>();
 
 	public OWLOntologyDatabase(String name, File file)
-			throws OWLOntologyCreationException {
+			throws KRDatabaseException {
 		this.name = name;
 
 		// KB is shared
@@ -94,12 +95,16 @@ public class OWLOntologyDatabase implements Database {
 		// create owl ontology and its manager
 		manager = OWLManager.createOWLOntologyManager();
 
+		try{
 		// insert ontology from file into in-memory owlontology object
 		if (file != null)
 			owlontology = manager.loadOntologyFromOntologyDocument(file);
 		else
 			owlontology = manager.createOntology(IRI.create(name));
 
+		}catch (OWLOntologyCreationException ex) {
+			throw new KRDatabaseException("Could not create OWL DB: "+ex.getMessage(), ex.getCause());
+		}
 		// reasoner = reasonerFactory.createReasoner(owlontology);
 		owlfactory = manager.getOWLDataFactory();
 
@@ -115,6 +120,11 @@ public class OWLOntologyDatabase implements Database {
 		// create swrl ontology
 		swrlontology = SWRLAPIFactory
 				.createOntology(owlontology, prefixManager);
+		try {
+			swrlontology.processOntology();
+		} catch (SQWRLException e1) {
+			throw new KRDatabaseException("Could not create OWL DB: "+e1.getMessage(), e1.getCause());
+		}
 		SWRLAPIFactory.updatePrefixManager(owlontology, prefixManager);
 		swrlontology.getPrefixManager().setDefaultPrefix(baseURI);
 		// renderer = SWRLAPIFactory.createSWRLAPIRenderer(swrlontology);
@@ -127,6 +137,7 @@ public class OWLOntologyDatabase implements Database {
 			baseStm = stc.getStatements();
 		} catch (IOException e) {
 			e.printStackTrace();
+			throw new KRDatabaseException(e.getMessage(), e.getCause());
 		}
 
 		// OWLRDFConsumer consumer = new OWLRDFConsumer( owlontology, new
@@ -137,9 +148,28 @@ public class OWLOntologyDatabase implements Database {
 	}
 
 	public Set<DatabaseFormula> getAllDBFormulas() {
-		for (OWLAxiom axiom : swrlontology.getOWLAxioms())
-			this.allFormulas.add(new SWRLDatabaseFormula(axiom));
 		return this.allFormulas;
+	}
+
+	public Set<OWLAxiom> getAllOWLAxioms() {
+		Set<OWLAxiom> allAxioms = new HashSet<OWLAxiom>();
+		for (OWLAxiom axiom : owlontology.getABoxAxioms(null)) {
+			allAxioms.add(axiom);
+			// System.out.println(axiom);
+		}
+//		for (OWLAxiom axiom : owlontology.getTBoxAxioms(null)) {
+//			allAxioms.add(axiom);
+//			// System.out.println(axiom);
+//		}
+//		for (OWLAxiom axiom : owlontology.getRBoxAxioms(null)) {
+//			allAxioms.add(axiom);
+//			// System.out.println(axiom);
+//		}
+		for (SWRLRule rule : swrlontology.getSWRLAPIRules()) {
+			allAxioms.add(rule);
+			// System.out.println(rule);
+		}
+		return allAxioms;
 	}
 
 	public void setupRepo(String repoUrl) {
@@ -289,6 +319,8 @@ public class OWLOntologyDatabase implements Database {
 
 	public void insertAll(Set<OWLAxiom> axioms) throws KRDatabaseException {
 		manager.addAxioms(owlontology, axioms);
+		for (OWLAxiom axiom : getAllOWLAxioms())
+			allFormulas.add(new SWRLDatabaseFormula(axiom));
 	}
 
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
@@ -300,6 +332,10 @@ public class OWLOntologyDatabase implements Database {
 			String ruletext = form.toString();
 			// renderer.renderSWRLRule(rule);
 			// System.out.println("Inserting to db: "+ruletext);
+
+			// unfortunately the only way to insert a rule is by creating it
+			// again
+			// letting swrl parse it from text representation
 			rule = swrlontology.createSWRLRule("rulename", ruletext);
 
 			manager.addAxiom(owlontology, rule);

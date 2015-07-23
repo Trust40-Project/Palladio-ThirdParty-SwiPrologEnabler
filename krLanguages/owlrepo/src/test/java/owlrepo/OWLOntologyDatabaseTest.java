@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.RDF;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.swrlapi.parser.SWRLParseException;
 import org.swrlapi.sqwrl.SQWRLQuery;
@@ -96,7 +95,7 @@ public class OWLOntologyDatabaseTest {
 			 query("onto:RobotTeam(?x) -> sqwrl:select(?x)");
 			
 			
-		} catch (OWLOntologyCreationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}finally{
 			db.destroy();
@@ -114,7 +113,7 @@ public class OWLOntologyDatabaseTest {
 			query("onto:Image(?x) ^ onto:reference(?x,?t) -> sqwrl:select(?x)");
 			
 			db.destroy();
-		} catch (OWLOntologyCreationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

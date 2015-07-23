@@ -220,12 +220,30 @@ public class SWRLTranslator {
 			return ((SWRLLiteralArgument)arg).getLiteral().getLiteral();
 			
 		}else if (arg instanceof SWRLIndividualArgument){
-			 return ((SWRLIndividualArgument)arg).getIndividual().toString();
+			return getShortForm((OWLEntity) (arg));
 		}
 		else if (arg instanceof SWRLBuiltInArgument){
 			return ((SWRLBuiltInArgument)arg).getBoundVariableName();
 		}
+		
 		return "";
+	}
+	
+	public String getShortForm(OWLEntity entity){
+		if (entity!=null){
+			String pred = entity.toString();
+			String shortpred = pred.substring(1, pred.indexOf('#')+1);
+			if (!prefixManager.getPrefixName2PrefixMap().containsValue(shortpred))
+				prefixManager.setPrefix("", shortpred);
+
+			return prefixManager.getShortForm(entity);
+			
+		}
+		return "";
+//		else{
+//			//swrl builtin
+//			return prefixManager.getShortForm(IRI.create(pred));
+//		}
 	}
 	
 	public String translate(SWRLPredicate predicate){
@@ -240,20 +258,8 @@ public class SWRLTranslator {
 			entity = (OWLEntity)(OWLObjectPropertyExpression)predicate;
 
 		}
-		String pred = predicate.toString();
-
-		if (entity!=null){
-			String shortpred = pred.substring(1, pred.indexOf('#')+1);
-			if (!prefixManager.getPrefixName2PrefixMap().containsValue(shortpred))
-				prefixManager.setPrefix("onto", shortpred);
-
-			return prefixManager.getShortForm(entity);
-			
-		}
-		else{
-			//swrl builtin
-			return prefixManager.getShortForm(IRI.create(pred));
-		}
+		return getShortForm((OWLEntity) predicate);
+		
 	}
 	
 	

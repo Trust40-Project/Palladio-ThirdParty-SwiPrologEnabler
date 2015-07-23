@@ -3,7 +3,6 @@ package owlrepo;
 import java.io.File;
 
 import org.junit.Test;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.swrlapi.parser.SWRLParseException;
 
@@ -21,7 +20,7 @@ public class SWRLTranslatorTest {
 		File file = new File("src/test/resources/tradrIndivrdf.owl");
 		  db = new OWLOntologyDatabase("myonto", file);
 
-		}catch (OWLOntologyCreationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

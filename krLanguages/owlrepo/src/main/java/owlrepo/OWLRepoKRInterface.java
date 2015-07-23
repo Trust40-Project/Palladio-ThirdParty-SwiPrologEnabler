@@ -26,7 +26,6 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
 import org.openrdf.rio.RDFFormat;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owlrepo.database.OWLOntologyDatabase;
 import owlrepo.language.SWRLQuery;
@@ -58,11 +57,12 @@ public class OWLRepoKRInterface implements KRInterface {
 			}
 		}
 
-		getDatabase();
+		getDatabase("parser");
 
 	}
 
-	private OWLOntologyDatabase getDatabase() throws KRInitFailedException {
+	private OWLOntologyDatabase getDatabase(String name)
+			throws KRInitFailedException {
 		// create a database to create a parser
 		if (database == null) {
 			try {
@@ -72,13 +72,11 @@ public class OWLRepoKRInterface implements KRInterface {
 					throw new KRDatabaseException(
 							"Creation of OWL parser needs an OWL file set to the Interface");
 				} else {
-					database = new OWLOntologyDatabase(owlfile.getName(),
+					database = new OWLOntologyDatabase(name,
 							owlfile);
 				}
 			} catch (KRDatabaseException e) {
-				throw new KRInitFailedException(e.getMessage());
-			} catch (OWLOntologyCreationException e) {
-				throw new KRInitFailedException(e.getMessage());
+				throw new KRInitFailedException(e.getMessage(), e.getCause());
 			}
 		}
 		return database;
@@ -88,10 +86,10 @@ public class OWLRepoKRInterface implements KRInterface {
 		database.destroy();
 	}
 
-	public Database getDatabase(Collection<DatabaseFormula> content)
+	public Database getDatabase(String name, Collection<DatabaseFormula> content)
 			throws KRDatabaseException {
 		try {
-			database = getDatabase();
+			database = getDatabase(name);
 			database.insertAll(content);
 		} catch (KRInitFailedException e) {
 			throw new KRDatabaseException(
@@ -106,13 +104,9 @@ public class OWLRepoKRInterface implements KRInterface {
 	}
 
 	public Database getMessageDatabase(File onto) throws KRDatabaseException {
-		try {
-			database = new OWLOntologyDatabase(
+		database = new OWLOntologyDatabase(
 					"http://ii.tudelft.nl/goal/message", onto);
-		} catch (OWLOntologyCreationException e) {
-			throw new KRDatabaseException(
-					"Failed to create OWL Ontology Database", e);
-		}
+
 		// Return new database.
 		return database;
 	}
@@ -126,18 +120,13 @@ public class OWLRepoKRInterface implements KRInterface {
 			throw new ParserException(
 					"OWLREPO KR Interface was not correctly initialized with an owl file!");
 
-		try {
-			// create parser for this database onto and reader source
-			if (this.parser == null) {
-				this.parser = new SWRLParser(getDatabase().getSWRLOntology(),
-						formats, source, info);
-			} else
-				this.parser.parse(formats, source, info);
-			return parser;
-		} catch (KRInitFailedException e) {
-			e.printStackTrace();
-			throw new ParserException(e.getMessage());
-		}
+		// create parser for this database onto and reader source
+		if (this.parser == null) {
+			this.parser = new SWRLParser(database.getSWRLOntology(), formats,
+					source, info);
+		} else
+			this.parser.parse(formats, source, info);
+		return parser;
 	}
 
 	public List<RDFFormat> getAllFormats() {

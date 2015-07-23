@@ -15,11 +15,15 @@ import krTools.language.Var;
 import krTools.parser.SourceInfo;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDataRange;
+import org.semanticweb.owlapi.model.OWLIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
@@ -55,6 +59,45 @@ public class SWRLExpression implements Expression {
 		this.axiom = axiom;
 		this.expression = axiom;
 		this.type = 0;
+		// since we get OWLAxiom, we need to construct SWRL constructs
+		if (axiom instanceof OWLIndividualAxiom) { // atom - term
+			SWRLAtom atom = null;
+			if (axiom instanceof OWLClassAssertionAxiom){
+				OWLClassAssertionAxiom classAxiom = (OWLClassAssertionAxiom)axiom;
+				atom = df.getSWRLClassAtom(classAxiom.getClassExpression(), df
+						.getSWRLIndividualArgument(classAxiom.getIndividual()));
+			} else if (axiom instanceof OWLDataPropertyAssertionAxiom){
+				OWLDataPropertyAssertionAxiom dpropAxiom = (OWLDataPropertyAssertionAxiom) axiom;
+				atom = df.getSWRLDataPropertyAtom(dpropAxiom.getProperty(),
+						df.getSWRLIndividualArgument(dpropAxiom.getSubject()),
+						df.getSWRLLiteralArgument(dpropAxiom.getObject()));
+			} else if (axiom instanceof OWLObjectPropertyAssertionAxiom){
+				OWLObjectPropertyAssertionAxiom opropAxiom = (OWLObjectPropertyAssertionAxiom) axiom;
+				atom = df.getSWRLObjectPropertyAtom(opropAxiom.getProperty(),
+						df.getSWRLIndividualArgument(opropAxiom.getSubject()),
+						df.getSWRLIndividualArgument(opropAxiom.getObject()));
+			}
+			if (atom != null) {
+				// this(atom);
+				Set<SWRLAtom> atoms = new HashSet<SWRLAtom>();
+				Set<SWRLAtom> head = atoms;
+				atoms.add(atom);
+				this.rule = df.getSWRLRule(atoms, new HashSet<SWRLAtom>()); // body,head
+				this.axiom = rule;
+				this.atom = atom;
+				this.expression = atom;
+				this.type = 2;
+			}
+			else {
+				//something went wrong
+				System.out.println("Could not construct term from axiom "+axiom);
+			}
+		} else if (axiom instanceof SWRLRule) { // in case it's a rule
+			this.rule = (SWRLRule) axiom;
+			this.axiom = rule;
+			this.expression = rule;
+			this.type = 1;
+		}
 	}
 
 	public SWRLExpression(SWRLRule rule) {
@@ -68,7 +111,7 @@ public class SWRLExpression implements Expression {
 		Set<SWRLAtom> atoms = new HashSet<SWRLAtom>();
 		Set<SWRLAtom> head = atoms;
 		atoms.add(atom);
-		this.rule = df.getSWRLRule(atoms, head); // body,head
+		this.rule = df.getSWRLRule(atoms, new HashSet<SWRLAtom>()); // body,head
 		this.axiom = rule;
 		this.atom = atom;
 		this.expression = atom;
@@ -498,7 +541,7 @@ public class SWRLExpression implements Expression {
 
 	@Override
 	public String toString() {
-		if (this.isRule()) {
+		if (this.rule != null) {
 			SWRLTranslator trans = new SWRLTranslator();
 			return trans.getRuleText(rule);
 		}
