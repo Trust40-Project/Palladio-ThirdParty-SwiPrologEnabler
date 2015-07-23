@@ -20,6 +20,7 @@ package swiprolog.language;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,9 +36,7 @@ import swiprolog.parser.PrologOperators;
  * Analyzer to identify unused and undefined predicates.
  */
 public class Analyzer {
-
 	private static final Term ANON_VAR = new jpl.Variable("_");
-
 	/**
 	 * Map of definitions.
 	 */
@@ -46,13 +45,11 @@ public class Analyzer {
 	 * Map of queries.
 	 */
 	private final Map<String, List<PrologQuery>> used = new LinkedHashMap<String, List<PrologQuery>>();
-
 	/**
 	 * Input
 	 */
 	private final Set<DatabaseFormula> dbfs;
 	private final Set<Query> queries;
-
 	/**
 	 * Output
 	 */
@@ -85,7 +82,6 @@ public class Analyzer {
 		for (String undf : this.undefined) {
 			undefined.addAll(this.used.get(undf));
 		}
-
 		return undefined;
 	}
 
@@ -94,7 +90,6 @@ public class Analyzer {
 		for (String df : this.unused) {
 			unused.addAll(this.definitions.get(df));
 		}
-
 		return unused;
 	}
 
@@ -107,27 +102,33 @@ public class Analyzer {
 		jpl.Term term = plFormula.getTerm();
 		jpl.Term headTerm = term;
 		// The :- function needs special attention.
-		if (term.name().equals(":-") && term.arity() == 2) {
+		if (term.name().equals(":-") && term.arity() == 1) {
+			// Directive: the first argument is a query.
+			addQuery(new PrologQuery(term.arg(1), formula.getSourceInfo()));
+		} else if (term.name().equals(":-") && term.arity() == 2) {
 			// The first argument is the only defined term.
 			headTerm = term.arg(1);
 			// The other argument is a conjunction of queried terms.
-			this.addQuery(new PrologQuery(term.arg(2), formula.getSourceInfo()));
+			addQuery(new PrologQuery(term.arg(2), formula.getSourceInfo()));
 		}
 
 		String headSig = headTerm.name() + "/" + headTerm.arity();
+		if (headSig.equals("//2")) {
+			// the term is already as signature itself
+			headSig = headTerm.arg(1) + "/" + headTerm.arg(2);
+		}
 		// Ignore built-in operators.
-		if (PrologOperators.prologBuiltin(headSig)) {
-			return;
+		if (!PrologOperators.prologBuiltin(headSig)) {
+			// Add a new definition node
+			List<PrologDBFormula> formulas;
+			if (this.definitions.containsKey(headSig)) {
+				formulas = this.definitions.get(headSig);
+			} else {
+				formulas = new ArrayList<>();
+			}
+			formulas.add(new PrologDBFormula(headTerm, formula.getSourceInfo()));
+			this.definitions.put(headSig, formulas);
 		}
-		// Add a new definition node
-		List<PrologDBFormula> formulas;
-		if (this.definitions.containsKey(headSig)) {
-			formulas = this.definitions.get(headSig);
-		} else {
-			formulas = new ArrayList<>();
-		}
-		formulas.add(new PrologDBFormula(headTerm, formula.getSourceInfo()));
-		this.definitions.put(headSig, formulas);
 	}
 
 	/**
@@ -143,38 +144,36 @@ public class Analyzer {
 	public void addQuery(DatabaseFormula formula) {
 		// we may assume the formula is a single term, so we can just
 		// as well handle the inner term as a general term.
-		this.addQuery(((PrologDBFormula) formula).getTerm(), formula.getSourceInfo());
+		addQuery(((PrologDBFormula) formula).getTerm(), formula.getSourceInfo());
 	}
 
 	private void addQuery(jpl.Term plTerm, SourceInfo info) {
 		// check if the term needs to be unpacked
 		String termSig = plTerm.name() + "/" + plTerm.arity();
-
 		// there is only one /1 operator we need to unpack: not/1
 		if (termSig.equals("not/1")) {
-			this.addQuery(plTerm.arg(1), info);
-			// unpack the conjunction, disjunction and forall /2-operators
+			addQuery(plTerm.arg(1), info);
 		} else if (termSig.equals(";/2") || termSig.equals(",/2") || termSig.equals("forall/2")) {
-			this.addQuery(plTerm.arg(1), info);
-			this.addQuery(plTerm.arg(2), info);
-			// findall, setof aggregate and aggregate_all /3-operators only
-			// have a query in the second argument.
+			// unpack the conjunction, disjunction and forall /2-operators
+			addQuery(plTerm.arg(1), info);
+			addQuery(plTerm.arg(2), info);
 		} else if (termSig.equals("findall/3") || termSig.equals("setof/3") || termSig.equals("aggregate/3")
 				|| termSig.equals("aggregate_all/3")) {
-			this.addQuery(plTerm.arg(2), info);
+			// findall, setof aggregate and aggregate_all /3-operators only
+			// have a query in the second argument.
+			addQuery(plTerm.arg(2), info);
+		} else if (termSig.equals("aggregate/4") || termSig.equals("aggregate_all/4")) {
 			// aggregate and aggregate_all /4-operators have the query in
 			// the third argument.
-		} else if (termSig.equals("aggregate/4") || termSig.equals("aggregate_all/4")) {
-			this.addQuery(plTerm.arg(3), info);
+			addQuery(plTerm.arg(3), info);
 		} else if (termSig.equals("predsort/3")) {
 			// first argument is name that will be called as name/3
 			jpl.Term stubfunc = new Compound(plTerm.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
-			this.addQuery(stubfunc, info);
-		} else {
-			// do nothing if the term is a built-in prolog operator
-			if (PrologOperators.prologBuiltin(termSig)) {
-				return;
-			}
+			addQuery(stubfunc, info);
+		} else if (termSig.equals("dynamic/1")) {
+			// recognize predicate declarations
+			addDefinition(new PrologDBFormula(plTerm.arg(1), info));
+		} else if (!PrologOperators.prologBuiltin(termSig)) {
 			// if we get here, the term should not be unpacked
 			// but needs to be added as a query node
 			// Add a new definition node
@@ -182,11 +181,10 @@ public class Analyzer {
 			if (this.used.containsKey(termSig)) {
 				formulas = this.used.get(termSig);
 			} else {
-				formulas = new ArrayList<>();
+				formulas = new LinkedList<>();
 			}
 			formulas.add(new PrologQuery(plTerm, info));
 			this.used.put(termSig, formulas);
 		}
 	}
-
 }
