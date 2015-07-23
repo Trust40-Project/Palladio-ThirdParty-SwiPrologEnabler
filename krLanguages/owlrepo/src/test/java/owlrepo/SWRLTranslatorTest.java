@@ -26,9 +26,30 @@ public class SWRLTranslatorTest {
 	}
 	
 	@Test
-	public void test() throws SWRLParseException {
-	 SWRLRule rule = db.getSWRLOntology().createSWRLRule( "onto:Team_leader(?x)",
+	public void test_FULL_RULE() throws SWRLParseException {
+	 SWRLRule rule = db.getSWRLOntology().createSWRLRule( "rule1",
+						"onto:Team_leader(?x) -> onto:Human(?x) ^ onto:isHeadOf(?x, onto:RescueTeam1)");
+	 System.out.println("Read: "+rule);
+	 
+	 trans = new SWRLTranslator(db.getSWRLOntology(), rule);
+	 System.out.println("SPARQL:::: \n"+trans.translateToSPARQL());
+	}
+	
+	@Test
+	public void test_HEAD() throws SWRLParseException {
+	 SWRLRule rule = db.getSWRLOntology().createSWRLRule( "rule2",
 			 "onto:Human(?x) ^ onto:isHeadOf(?x, ?t)");
+	 System.out.println("Read: "+rule);
+	 
+	 trans = new SWRLTranslator(db.getSWRLOntology(), rule);
+	 System.out.println("SPARQL:::: \n"+trans.translateToSPARQL());
+	}
+	
+	@Test
+	public void test_NO_FREE_VARS() throws SWRLParseException {
+	 SWRLRule rule = db.getSWRLOntology().createSWRLRule( "rule3",
+			 "onto:Team_leader(onto:John_Smith)");
+	 System.out.println("Read: "+rule);
 
 	 trans = new SWRLTranslator(db.getSWRLOntology(), rule);
 	 System.out.println("SPARQL:::: \n"+trans.translateToSPARQL());

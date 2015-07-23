@@ -76,7 +76,7 @@ public class SWRLQuery extends SWRLExpression implements Query {
 	 *         content of this {@link SWRLQuery}.
 	 */
 	public Update toUpdate() {
-		return null;
+		return new SWRLUpdate(rule);
 	}
 
 	// @Override

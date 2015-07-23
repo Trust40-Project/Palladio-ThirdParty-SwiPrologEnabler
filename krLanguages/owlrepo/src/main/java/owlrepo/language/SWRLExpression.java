@@ -80,7 +80,6 @@ public class SWRLExpression implements Expression {
 			if (atom != null) {
 				// this(atom);
 				Set<SWRLAtom> atoms = new HashSet<SWRLAtom>();
-				Set<SWRLAtom> head = atoms;
 				atoms.add(atom);
 				this.rule = df.getSWRLRule(atoms, new HashSet<SWRLAtom>()); // body,head
 				this.axiom = rule;

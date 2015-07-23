@@ -2,6 +2,8 @@ package owlrepo.database;
 
 import java.util.Collection;
 
+import krTools.exceptions.KRQueryFailedException;
+
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
@@ -9,6 +11,7 @@ import org.openrdf.query.BooleanQuery;
 import org.openrdf.query.GraphQuery;
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.QueryResult;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.Update;
@@ -23,6 +26,8 @@ import org.openrdf.rio.helpers.StatementCollector;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.rio.RioRenderer;
 
+import com.complexible.common.openrdf.query.BooleanQueryResult;
+import com.complexible.common.openrdf.query.BooleanQueryResultImpl;
 import com.complexible.common.protocols.server.Server;
 import com.complexible.common.protocols.server.ServerException;
 import com.complexible.stardog.Stardog;
@@ -156,7 +161,18 @@ public class RDFRepositoryDatabase {
 		return nrepo.getValueFactory();
 	}
 	
-	public TupleQueryResult query(String queryString){
+	public QueryResult query(String queryString) throws KRQueryFailedException {
+		if (queryString.contains("ASK")) {
+			return queryBoolean(queryString);
+		} else if (queryString.contains("SELECT")) {
+			return queryTuple(queryString);
+		} else {
+			throw new KRQueryFailedException("Did not recognize SPARQL query: "
+					+ queryString);
+		}
+	}
+
+	public TupleQueryResult queryTuple(String queryString) throws KRQueryFailedException {
 		 TupleQueryResult result = null;
 		 try { 
 			 System.out.println("QUERYING...");
@@ -165,11 +181,23 @@ public class RDFRepositoryDatabase {
           System.out.println("RESULT: "+result.hasNext());
           
           }catch(Exception e){
-        	  e.printStackTrace();
+        	  throw new KRQueryFailedException(e.getMessage());
           }
 		 return result;
 	}
 	
+	public BooleanQueryResult queryBoolean(String queryString) throws KRQueryFailedException {
+		boolean result = false;
+		try {
+			BooleanQuery booleanQuery = nconn.prepareBooleanQuery(
+					QueryLanguage.SPARQL, queryString);
+			result = booleanQuery.evaluate();
+		} catch (Exception e) {
+      	   throw new KRQueryFailedException(e.getMessage());
+		}
+		return new BooleanQueryResultImpl(result);
+	}
+
 	public void insert(Collection<Statement> stms){
 		try {
 		//	nconn.begin();
@@ -232,7 +260,7 @@ public class RDFRepositoryDatabase {
 		//	conn.close();
 			nconn.close();
 			repo.shutDown();
-			//nrepo.shutDown();
+			nrepo.shutDown();
 			if (server!=null)
 				server.stop();
 		} catch (RepositoryException e) {

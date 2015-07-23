@@ -63,8 +63,8 @@ public class OWLRepoKRInterface implements KRInterface {
 
 	private OWLOntologyDatabase getDatabase(String name)
 			throws KRInitFailedException {
-		// create a database to create a parser
-		if (database == null) {
+		// create a database with the initializing ontology
+		// if (database == null) {
 			try {
 				if (owlfile == null) {
 					// database = (OWLOntologyDatabase) getDatabase(new
@@ -78,7 +78,7 @@ public class OWLRepoKRInterface implements KRInterface {
 			} catch (KRDatabaseException e) {
 				throw new KRInitFailedException(e.getMessage(), e.getCause());
 			}
-		}
+		// }
 		return database;
 	}
 
@@ -103,12 +103,10 @@ public class OWLRepoKRInterface implements KRInterface {
 		return database;
 	}
 
-	public Database getMessageDatabase(File onto) throws KRDatabaseException {
-		database = new OWLOntologyDatabase(
-					"http://ii.tudelft.nl/goal/message", onto);
-
+	public Database getDatabase(String name, File onto) throws KRDatabaseException {
+		return new OWLOntologyDatabase(name, onto);
 		// Return new database.
-		return database;
+		// used for message base, that does NOT need to know the KR terms.
 	}
 
 	@Override

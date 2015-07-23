@@ -16,7 +16,6 @@ import org.semanticweb.owlapi.model.SWRLBinaryAtom;
 import org.semanticweb.owlapi.model.SWRLBuiltInAtom;
 import org.semanticweb.owlapi.model.SWRLClassAtom;
 import org.semanticweb.owlapi.model.SWRLDArgument;
-import org.semanticweb.owlapi.model.SWRLDataFactory;
 import org.semanticweb.owlapi.model.SWRLDataPropertyAtom;
 import org.semanticweb.owlapi.model.SWRLIArgument;
 import org.semanticweb.owlapi.model.SWRLIndividualArgument;
@@ -31,8 +30,6 @@ import org.swrlapi.builtins.arguments.SWRLBuiltInArgument;
 import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.core.SWRLAPIRenderer;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 public class SWRLTranslator {
 	
@@ -69,9 +66,16 @@ public class SWRLTranslator {
 			String prefix = prefixManager.getPrefix(prefixName);
 			SPARQLquery += "PREFIX "+prefixName+" <"+prefix+">\n";
 		}
-		
-		SPARQLquery += "SELECT * WHERE {\n";
+		if (rule.getVariables().isEmpty()) {
+			// ASK query
+			SPARQLquery += "ASK {";
 
+		} else {
+			// SELECT query
+
+			SPARQLquery += "SELECT * WHERE {\n";
+		}
+		
 		Iterator<SWRLAtom> it = rule.getBody().iterator();
 		while (it.hasNext())
 		{
@@ -81,7 +85,8 @@ public class SWRLTranslator {
 					SWRLClassAtom classatom = (SWRLClassAtom)atom;
 					OWLClassExpression classexp = classatom.getPredicate();
 					SWRLIArgument argument = classatom.getArgument();
-					SPARQLquery += translate(argument) + " rdf:type "+classexp.toString()+".\n";
+					SPARQLquery += translate(argument) + " rdf:type "
+							+ getShortForm(classexp.asOWLClass()) + ".\n";
 				}//else if SWRLDataRangeAtom
 			}
 			else if (atom instanceof SWRLBinaryAtom){
@@ -90,7 +95,8 @@ public class SWRLTranslator {
 					SWRLPredicate predicate = batom.getPredicate();
 					SWRLArgument arg1 = batom.getFirstArgument();
 					SWRLArgument arg2 = batom.getSecondArgument();
-					SPARQLquery += translate(arg1) + " "+predicate.toString() +" "+translate(arg2)+".\n";
+					SPARQLquery += translate(arg1) + " " + translate(predicate)
+							+ " " + translate(arg2) + ".\n";
 				}//else if SWRLDifferentIndividualsAtom or SameIndividualAtom
 			}
 			else if (atom instanceof SWRLBuiltInAtom){
@@ -98,7 +104,7 @@ public class SWRLTranslator {
 				SWRLBuiltInAtom builtin = (SWRLBuiltInAtom) atom;
 				IRI pred = builtin.getPredicate();
 				String operator = "";
-				SWRLDataFactory df = new OWLDataFactoryImpl();
+				// SWRLDataFactory df = new OWLDataFactoryImpl();
 				List<SWRLDArgument> args= builtin.getArguments();
 
 				String prefix = prefixManager.getShortForm(pred);//getPrefixIRI(pred).;
@@ -162,6 +168,7 @@ public class SWRLTranslator {
 			
 		}
 		SPARQLquery = SPARQLquery + SPARQLfilter +  "}";
+
 		System.out.println(SPARQLquery);
 		return SPARQLquery;
 	}
@@ -217,10 +224,10 @@ public class SWRLTranslator {
 			return "?"+var.getIRI().getShortForm();
 		}
 		else if (arg instanceof SWRLLiteralArgument){
-			return ((SWRLLiteralArgument)arg).getLiteral().getLiteral();
+			return "\""+((SWRLLiteralArgument)arg).getLiteral().getLiteral()+ "\"";
 			
 		}else if (arg instanceof SWRLIndividualArgument){
-			return getShortForm((OWLEntity) (arg));
+			return getShortForm((OWLEntity) ((SWRLIndividualArgument)arg).getIndividual());
 		}
 		else if (arg instanceof SWRLBuiltInArgument){
 			return ((SWRLBuiltInArgument)arg).getBoundVariableName();

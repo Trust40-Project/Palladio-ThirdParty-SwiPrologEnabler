@@ -21,6 +21,7 @@ import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryResult;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.event.RepositoryConnectionListener;
@@ -42,7 +43,6 @@ import org.semanticweb.owlapi.rio.RioRenderer;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
-import org.swrlapi.core.SWRLAPIRenderer;
 import org.swrlapi.sqwrl.exceptions.SQWRLException;
 
 import owlrepo.language.SWRLDatabaseFormula;
@@ -51,6 +51,7 @@ import owlrepo.language.SWRLSubstitution;
 import owlrepo.language.SWRLTerm;
 import owlrepo.language.SWRLTranslator;
 
+import com.complexible.common.openrdf.query.BooleanQueryResult;
 import com.google.common.base.Optional;
 
 public class OWLOntologyDatabase implements Database {
@@ -77,9 +78,9 @@ public class OWLOntologyDatabase implements Database {
 	private RepositoryConnectionListener local_listener;
 	private RepositoryConnectionListener shared_listener;
 
-	private boolean firstInsert = true;
+	// private boolean firstInsert = true;
 	private Collection<Statement> baseStm;
-	private SWRLAPIRenderer renderer;
+	// private SWRLAPIRenderer renderer;
 	private DefaultPrefixManager prefixManager;
 
 	private Set<DatabaseFormula> allFormulas = new HashSet<DatabaseFormula>();
@@ -96,11 +97,11 @@ public class OWLOntologyDatabase implements Database {
 		manager = OWLManager.createOWLOntologyManager();
 
 		try{
-		// insert ontology from file into in-memory owlontology object
-		if (file != null)
-			owlontology = manager.loadOntologyFromOntologyDocument(file);
-		else
-			owlontology = manager.createOntology(IRI.create(name));
+			// insert ontology from file into in-memory owlontology object
+			if (file != null)
+				owlontology = manager.loadOntologyFromOntologyDocument(file);
+			else
+				owlontology = manager.createOntology(IRI.create(name));
 
 		}catch (OWLOntologyCreationException ex) {
 			throw new KRDatabaseException("Could not create OWL DB: "+ex.getMessage(), ex.getCause());
@@ -115,7 +116,6 @@ public class OWLOntologyDatabase implements Database {
 		this.prefixManager = new DefaultPrefixManager();
 		baseURI = ontologyIri.toString() + "#";
 		prefixManager.setDefaultPrefix(baseURI);
-		prefixManager.setPrefix("onto", baseURI);
 
 		// create swrl ontology
 		swrlontology = SWRLAPIFactory
@@ -125,8 +125,10 @@ public class OWLOntologyDatabase implements Database {
 		} catch (SQWRLException e1) {
 			throw new KRDatabaseException("Could not create OWL DB: "+e1.getMessage(), e1.getCause());
 		}
+		prefixManager.setPrefix("", baseURI);
 		SWRLAPIFactory.updatePrefixManager(owlontology, prefixManager);
 		swrlontology.getPrefixManager().setDefaultPrefix(baseURI);
+		swrlontology.getPrefixManager().setPrefix("", baseURI);
 		// renderer = SWRLAPIFactory.createSWRLAPIRenderer(swrlontology);
 
 		StatementCollector stc = new StatementCollector();
@@ -139,6 +141,8 @@ public class OWLOntologyDatabase implements Database {
 			e.printStackTrace();
 			throw new KRDatabaseException(e.getMessage(), e.getCause());
 		}
+
+		setupRepo(null);
 
 		// OWLRDFConsumer consumer = new OWLRDFConsumer( owlontology, new
 		// OWLOntologyLoaderConfiguration() );
@@ -157,14 +161,14 @@ public class OWLOntologyDatabase implements Database {
 			allAxioms.add(axiom);
 			// System.out.println(axiom);
 		}
-//		for (OWLAxiom axiom : owlontology.getTBoxAxioms(null)) {
-//			allAxioms.add(axiom);
-//			// System.out.println(axiom);
-//		}
-//		for (OWLAxiom axiom : owlontology.getRBoxAxioms(null)) {
-//			allAxioms.add(axiom);
-//			// System.out.println(axiom);
-//		}
+		// for (OWLAxiom axiom : owlontology.getTBoxAxioms(null)) {
+		// allAxioms.add(axiom);
+		// // System.out.println(axiom);
+		// }
+		// for (OWLAxiom axiom : owlontology.getRBoxAxioms(null)) {
+		// allAxioms.add(axiom);
+		// // System.out.println(axiom);
+		// }
 		for (SWRLRule rule : swrlontology.getSWRLAPIRules()) {
 			allAxioms.add(rule);
 			// System.out.println(rule);
@@ -222,32 +226,11 @@ public class OWLOntologyDatabase implements Database {
 		Set<Substitution> qresult = new HashSet<Substitution>();
 		SWRLQuery qr = (SWRLQuery) (query);
 
-		// try {
-		// System.out.println("Drools Query Engine results:");
-		// SQWRLResult result = queryEngine.runSQWRLQuery(qr.getQueryName(),
-		// qr.toString());
-		// for (String col: result.getColumnNames()){
-		// System.out.println(col);
-		// for(SQWRLResultValue val : result.getColumn(col)){
-		// if (val.isIndividual())
-		// System.out.println(val.asEntityResult().getIRI());
-		// else if (val.isLiteral())
-		// System.out.println(val.asLiteralResult().getValue());
-		// else if (val.isEntity())
-		// System.out.println(val.asEntityResult().getIRI());
-		// }
-		// }
-		//
-		// } catch (SQWRLException e1) {
-		// e1.printStackTrace();
-		// //throw new KRQueryFailedException(e1.getMessage());
-		// }
-
 		SWRLTranslator transl = new SWRLTranslator(this.swrlontology,
 				qr.getRule());
 
 		try {
-			TupleQueryResult rdfresult = null;
+			QueryResult rdfresult = null;
 			String querySPARQL = transl.translateToSPARQL();
 			if (this.shareddb != null && this.shareddb.isOpen()) {
 				System.out.println("Querying shared db:");
@@ -257,48 +240,46 @@ public class OWLOntologyDatabase implements Database {
 				rdfresult = this.localdb.query(querySPARQL);
 			}
 
-			while (rdfresult.hasNext()) {
-				BindingSet bindingSet = rdfresult.next();
-				Set<String> bindings = bindingSet.getBindingNames();
-				Iterator<String> it = bindings.iterator();
-				while (it.hasNext()) {
-					String name = it.next();
-					Value val = bindingSet.getValue(name);
-					SWRLArgument valueArgument = null;
+			if (rdfresult instanceof TupleQueryResult) {
+				TupleQueryResult tupleResult = (TupleQueryResult) rdfresult;
 
-					if (val instanceof Literal) {
-						valueArgument = // SWRL.constant(val.stringValue());
-						owlfactory.getSWRLLiteralArgument(owlfactory
-								.getOWLLiteral(val.stringValue()));
-					} else if (val instanceof Resource) {
-						valueArgument = // SWRL.individual(val.stringValue());
-						owlfactory.getSWRLIndividualArgument(owlfactory
-								.getOWLNamedIndividual(IRI.create(val
-										.stringValue())));
+				while (tupleResult.hasNext()) {
+					BindingSet bindingSet = tupleResult.next();
+					Set<String> bindings = bindingSet.getBindingNames();
+					Iterator<String> it = bindings.iterator();
+					while (it.hasNext()) {
+						String name = it.next();
+						Value val = bindingSet.getValue(name);
+						SWRLArgument valueArgument = null;
+
+						if (val instanceof Literal) {
+							valueArgument = // SWRL.constant(val.stringValue());
+							owlfactory.getSWRLLiteralArgument(owlfactory
+									.getOWLLiteral(val.stringValue()));
+						} else if (val instanceof Resource) {
+							valueArgument = // SWRL.individual(val.stringValue());
+							owlfactory.getSWRLIndividualArgument(owlfactory
+									.getOWLNamedIndividual(IRI.create(val
+											.stringValue())));
+						}
+						System.out.println(name + " : " + val);
+						qresult.add(new SWRLSubstitution(
+								// SWRL.variable(name)
+								owlfactory.getSWRLVariable(IRI.create(name)),
+								valueArgument));
 					}
-					System.out.println(name + " : " + val);
-					qresult.add(new SWRLSubstitution(
-							// SWRL.variable(name)
-							owlfactory.getSWRLVariable(IRI.create(name)),
-							valueArgument));
 				}
+			} else if (rdfresult instanceof BooleanQueryResult) {
+				BooleanQueryResult booleanResult = (BooleanQueryResult) rdfresult;
+				boolean res;
+				if (booleanResult.hasNext()) {
+					res = booleanResult.next();
+					System.out.println("RESULT::: " + res);
+				}
+				qresult.add(new SWRLSubstitution());
 			}
+			rdfresult.close();
 
-			// System.out.println("Query: "+qr.getRule().toString());
-			// //run query name, text
-			// SQWRLResult result =
-			// queryEngine.runSQWRLQuery(qr.getQueryName());
-			// if (!result.isEmpty()){
-			// for (String columnName : result.getColumnNames()){
-			// System.out.println(columnName+": "+result.getColumn(columnName).toString());
-			// List<SQWRLResultValue> values = result.getColumn(columnName);
-			// for (int i=0; i<values.size();i++){
-			// qresult.add(new
-			// SWRLSubstitution(owlfactory.getSWRLVariable(IRI.create(columnName)),
-			// values.get(i)));}
-			// }
-			//
-			// }
 		} catch (Exception e) {
 			throw new KRQueryFailedException(e.getMessage());
 		}
@@ -331,7 +312,7 @@ public class OWLOntologyDatabase implements Database {
 
 			String ruletext = form.toString();
 			// renderer.renderSWRLRule(rule);
-			// System.out.println("Inserting to db: "+ruletext);
+			System.out.println("Inserting to db: " + ruletext);
 
 			// unfortunately the only way to insert a rule is by creating it
 			// again
@@ -399,6 +380,7 @@ public class OWLOntologyDatabase implements Database {
 	}
 
 	public void insert(Update update) throws KRDatabaseException {
+		// TODO : is it used and when and complete!
 		OWLOntologyChange ch = null;
 		manager.applyChange(ch);
 	}
