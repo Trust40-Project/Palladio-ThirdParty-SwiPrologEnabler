@@ -263,7 +263,6 @@ public final class PrologOperators {
 		OP_PRIOS.put("day_of_the_week/2", 0);
 
 		// SWI Prolog chapter 4.5: term type verification
-
 		OP_PRIOS.put("var/1", 0);
 		OP_PRIOS.put("nonvar/1", 0);
 		OP_PRIOS.put("integer/1", 0);
@@ -311,7 +310,6 @@ public final class PrologOperators {
 		OP_PRIOS.put("phrase/3", 0);
 
 		// SWI 6.0.2 new A.17
-
 		OP_PRIOS.put("is_ordset/1", 0);
 		OP_PRIOS.put("ord_empty/1", 0);
 		OP_PRIOS.put("ord_seteq/2", 0);
@@ -663,7 +661,6 @@ public final class PrologOperators {
 		// SWI6.1.1 Attribute manipulation predicates
 		OP_PRIOS.put("get_attr/3", 0);
 		OP_PRIOS.put("put_attr/3", 0);
-
 	}
 
 	static {
@@ -682,7 +679,7 @@ public final class PrologOperators {
 		PROTECTED_OPS.add("^");
 
 		// prolog file handling directives, ISO 7.4.2
-		PROTECTED_OPS.add("dynamic");
+		// PROTECTED_OPS.add("dynamic");
 		PROTECTED_OPS.add("multifile");
 		PROTECTED_OPS.add("discontiguous");
 		PROTECTED_OPS.add("op");
@@ -771,9 +768,7 @@ public final class PrologOperators {
 		PROTECTED_OPS.add("atan2");
 		PROTECTED_OPS.add("div");
 		PROTECTED_OPS.add("random_float");
-
 		// PROTECTED_OPS.add("flag");
-
 	}
 
 	// constructor is not allowed. Static utility method.

@@ -140,7 +140,7 @@ public class SemanticTools {
 		}
 
 		String signature = JPLUtils.getSignature(head);
-		if (PrologOperators.prologBuiltin(signature)) {
+		if (!signature.equals(":-/1") && PrologOperators.prologBuiltin(signature)) {
 			throw new ParserException(ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(term.toString()),
 					term.getSourceInfo());
 		}

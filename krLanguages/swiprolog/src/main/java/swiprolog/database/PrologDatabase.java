@@ -198,8 +198,8 @@ public class PrologDatabase implements Database {
 	}
 
 	/**
-	 * Creates JPL term that wraps given term inside
-	 * "assert(databaseName:term)".
+	 * Creates JPL term that wraps given term inside "assert(databaseName:term)"
+	 * for clauses, and just databaseName:term for directives (without the :-).
 	 * <p>
 	 * Prefix notation is used below to construct the assert term.
 	 * </p>
@@ -211,9 +211,14 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	private void insert(jpl.Term formula) throws KRDatabaseException {
-		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
 		try {
-			rawquery(JPLUtils.createCompound("assert", db_formula));
+			if (formula.name().equals(":-") && formula.arity() == 1) { // directive
+				jpl.Term query = JPLUtils.createCompound(":", getJPLName(), formula.arg(1));
+				rawquery(query);
+			} else { // clause
+				jpl.Term dbformula = JPLUtils.createCompound(":", getJPLName(), formula);
+				rawquery(JPLUtils.createCompound("assert", dbformula));
+			}
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("swi prolog says the insert failed", e);
 		}
