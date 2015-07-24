@@ -142,13 +142,15 @@ public class SemanticTools {
 		String signature = JPLUtils.getSignature(head);
 		if (signature.equals(":-/1")) {
 			jpl.Term directive = term.getTerm().arg(1);
+			signature = JPLUtils.getSignature(directive);
 			if (JPLUtils.getSignature(directive).equals("dynamic/1")) {
 				signature = directive.arg(1).arg(1) + "/" + directive.arg(1).arg(2);
-			} else {
-				signature = "";
+				if (PrologOperators.prologBuiltin(signature)) {
+					throw new ParserException(ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(signature),
+							term.getSourceInfo());
+				}
 			}
-		}
-		if (PrologOperators.prologBuiltin(signature)) {
+		} else if (PrologOperators.prologBuiltin(signature)) {
 			throw new ParserException(ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(signature),
 					term.getSourceInfo());
 		}
