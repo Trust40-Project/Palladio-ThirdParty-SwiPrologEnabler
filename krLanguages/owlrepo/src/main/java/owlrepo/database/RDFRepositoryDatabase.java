@@ -135,6 +135,7 @@ public class RDFRepositoryDatabase {
 			 StatementCollector stc = new StatementCollector();
 			 RioRenderer render = new RioRenderer(ontology, stc, ontology.getOWLOntologyManager().getOntologyFormat(ontology), (Resource)null);
 			 render.render();
+			 nconn.begin();
 			 nconn.add(stc.getStatements()); 
 			 nconn.commit();
 		 }
@@ -201,9 +202,9 @@ public class RDFRepositoryDatabase {
 
 	public void insert(Collection<Statement> stms){
 		try {
-		//	nconn.begin();
-			conn.add(stms, (Resource) null);
-			conn.commit();
+			//nconn.begin();
+			nconn.add(stms, (Resource) null);
+			nconn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}
@@ -212,8 +213,9 @@ public class RDFRepositoryDatabase {
 	public void delete(Collection<Statement> stms){
 		
 		try {
+			//nconn.begin();
 			nconn.remove(stms, (Resource) null);
-			
+			nconn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}
@@ -260,10 +262,8 @@ public class RDFRepositoryDatabase {
 		try {
 		//	conn.close();
 			nconn.close();
-			repo.shutDown();
+		//	repo.shutDown();
 			nrepo.shutDown();
-			if (server!=null)
-				server.stop();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}

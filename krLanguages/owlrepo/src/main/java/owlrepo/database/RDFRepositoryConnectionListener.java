@@ -60,7 +60,7 @@ public class RDFRepositoryConnectionListener implements RepositoryConnectionList
 		Collection<Statement> sts = new ArrayList<Statement>(); 
 		sts.add(s);
 		//System.out.println("Insert "+s);
-		db.insert(sts);
+		//db.insert(sts);
 	}
 
 	@Override

@@ -156,6 +156,10 @@ public class SWRLExpression implements Expression {
 	public OWLAxiom getAxiom() {
 		return this.axiom;
 	}
+	
+	public SWRLAtom getAtom() {
+		return this.atom;
+	}
 
 	public boolean isUndefined() {
 		return (this.type == -1);

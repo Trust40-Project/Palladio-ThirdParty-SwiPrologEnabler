@@ -20,7 +20,9 @@ import krTools.language.Update;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryResult;
 import org.openrdf.query.TupleQueryResult;
@@ -32,12 +34,12 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
+import org.semanticweb.owlapi.model.SWRLPredicate;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.rio.RioRenderer;
@@ -217,16 +219,18 @@ public class OWLOntologyDatabase implements Database {
 		return this.swrlontology;
 	}
 
+	@Override
 	public String getName() {
 		return owlontology.getOntologyID().toString();
 	}
 
+	@Override
 	public Set<Substitution> query(Query query) throws KRQueryFailedException {
 		Set<Substitution> qresult = new HashSet<Substitution>();
 		SWRLQuery qr = (SWRLQuery) (query);
 
 		System.out.println("QUERYING:::: "+query.toString());
-		
+
 		SWRLTranslator transl = new SWRLTranslator(this.swrlontology,
 				qr.getRule());
 
@@ -255,13 +259,13 @@ public class OWLOntologyDatabase implements Database {
 
 						if (val instanceof Literal) {
 							valueArgument = // SWRL.constant(val.stringValue());
-							owlfactory.getSWRLLiteralArgument(owlfactory
-									.getOWLLiteral(val.stringValue()));
+									owlfactory.getSWRLLiteralArgument(owlfactory
+											.getOWLLiteral(val.stringValue()));
 						} else if (val instanceof Resource) {
 							valueArgument = // SWRL.individual(val.stringValue());
-							owlfactory.getSWRLIndividualArgument(owlfactory
-									.getOWLNamedIndividual(IRI.create(val
-											.stringValue())));
+									owlfactory.getSWRLIndividualArgument(owlfactory
+											.getOWLNamedIndividual(IRI.create(val
+													.stringValue())));
 						}
 						System.out.println(name + " : " + val);
 						qresult.add(new SWRLSubstitution(
@@ -276,8 +280,9 @@ public class OWLOntologyDatabase implements Database {
 				if (booleanResult.hasNext()) {
 					res = booleanResult.next();
 					System.out.println("RESULT::: " + res);
+					if (res) //only add empty substitution if result is true
+						qresult.add(new SWRLSubstitution());
 				}
-				qresult.add(new SWRLSubstitution());
 			}
 			rdfresult.close();
 
@@ -305,52 +310,102 @@ public class OWLOntologyDatabase implements Database {
 			allFormulas.add(new SWRLDatabaseFormula(axiom));
 	}
 
+	@Override
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
 		this.allFormulas.add(formula);
+		Collection<Statement> statements = new HashSet<Statement>();
+
 		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
-		SWRLRule rule = form.getRule();
-		try {
+		if( form.isArgument()){
+			return; //cannot insert argument without predicate
+		}else if (form.isTerm()){
+			SWRLAtom atom = form.getAtom();
+			//if it has no variables // cannot insert smth with variables
+			if (form.getFreeVar().isEmpty()){
+				ValueFactory vf = getRepo().getValueFactory();
+				Collection<SWRLArgument> args = atom.getAllArguments();
+				SWRLPredicate predt = atom.getPredicate();
 
-			String ruletext = form.toString();
-			// renderer.renderSWRLRule(rule);
-			System.out.println("Inserting to db: " + ruletext);
+				Resource subj = null;
+				URI pred = null;
+				Value obj = null;
+				//unary
+				if (args.size() == 1){
+					String subjstring = args.iterator().next().toString();
+					subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
+					pred = vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+					obj = vf.createURI(predt.toString());	 
+				} 
+				//binary
+				else if (args.size() == 2) {
+					String subjstring = args.iterator().next().toString();
+					subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
+					pred = vf.createURI(predt.toString());
+					String objstring = args.iterator().next().toString();
+					if (objstring.contains("#"))
+						obj = vf.createURI(objstring);
+					else {
+						if (objstring.contains("xsd")){
+							//we need correct type creation
+				
+						}
+						obj = vf.createLiteral(objstring);
+					}
+				}
+				Statement st = vf.createStatement(subj, pred, obj);
+				statements.add(st);
 
-			manager.addAxiom(owlontology, rule);
+			} else
+				throw new KRDatabaseException("Cannot insert term with variable: "+formula);
+		}else if (form.isRule()){
 
-			// unfortunately the only way to insert a rule is by creating it
-			// again
-			// letting swrl parse it from text representation
-			rule = swrlontology.createSWRLRule("rulename", ruletext);
+			SWRLRule rule = form.getRule();
+			try {
+
+				String ruletext = form.toString();
+				// renderer.renderSWRLRule(rule);
+				System.out.println("Inserting to db: " + ruletext);
+
+				manager.addAxiom(owlontology, rule);
+				swrlontology.processOntology();
+				// unfortunately the only way to insert a rule is by creating it
+				// again
+				// letting swrl parse it from text representation
+				rule = swrlontology.createSWRLRule("rulename", ruletext);
 
 
-			StatementCollector stc = new StatementCollector();
-			// org.semanticweb.owlapi.rdf.model.RDFTranslator trans = new
-			// RDFTranslator(manager, owlontology, false);
-			// trans.visit(form.getRule());
-			// RDFGraph graph = trans.getGraph();
-			//
-			RioRenderer render = new RioRenderer(owlontology, stc,
-					manager.getOntologyFormat(owlontology), (Resource) null);
-			render.render();
-			// Iterator<Statement> stit= stc.getStatements().iterator();
-			// while(stit.hasNext())
-			// System.out.println(stit.next().toString());
-			Collection<Statement> statements = stc.getStatements();
+				StatementCollector stc = new StatementCollector();
+				// org.semanticweb.owlapi.rdf.model.RDFTranslator trans = new
+				// RDFTranslator(manager, owlontology, false);
+				// trans.visit(form.getRule());
+				// RDFGraph graph = trans.getGraph();
+				//
+				RioRenderer render = new RioRenderer(owlontology, stc,
+						manager.getOntologyFormat(owlontology), (Resource) null);
+				render.render();
+				// Iterator<Statement> stit= stc.getStatements().iterator();
+				// while(stit.hasNext())
+				// System.out.println(stit.next().toString());
+				statements.addAll(stc.getStatements());
 
-			statements.removeAll(baseStm);
-
-			if (this.SHARED_MODE) {
-				System.out.println("Inserting into shared db: " + formula);
-				insertShared(statements);
-			} else {
-				System.out.println("Inserting into local db: " + formula);
-				insertLocal(statements);
+				statements.removeAll(baseStm);
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new KRDatabaseException(e.getMessage());
 			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new KRDatabaseException(e.getMessage());
 		}
+
+
+		if (this.SHARED_MODE) {
+			System.out.println("Inserting into shared db: " + formula);
+			insertShared(statements);
+		} else {
+			System.out.println("Inserting into local db: " + formula);
+			insertLocal(statements);
+		}
+
+
+
 	}
 
 	public DatabaseFormula getDBFormula(Term term) throws KRDatabaseException {
@@ -381,10 +436,14 @@ public class OWLOntologyDatabase implements Database {
 			shareddb.insert(statements);
 	}
 
+	@Override
 	public void insert(Update update) throws KRDatabaseException {
-		// TODO : is it used and when and complete!
-		OWLOntologyChange ch = null;
-		manager.applyChange(ch);
+		for (DatabaseFormula formula : update.getDeleteList()) {
+			delete(formula);
+		}
+		for (DatabaseFormula formula : update.getAddList()) {
+			insert(formula);
+		}
 	}
 
 	public void updateDB() {
@@ -399,26 +458,36 @@ public class OWLOntologyDatabase implements Database {
 		}
 	}
 
+	@Override
 	public void delete(DatabaseFormula formula) throws KRDatabaseException {
 		allFormulas.remove(formula);
+		System.out.println("DELETING::: "+formula);
 		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
 		OWLAxiom axiom = form.getAxiom();
 		manager.removeAxiom(owlontology, axiom);
 	}
 
+	@Override
 	public void delete(Update update) throws KRDatabaseException {
-		// TODO!
+		for (DatabaseFormula formula : update.getAddList()) {
+			delete(formula);
+		}
+		for (DatabaseFormula formula : update.getDeleteList()) {
+			insert(formula);
+		}
 	}
 
 	public void deleteAll(Set<OWLAxiom> axioms) {
 		manager.removeAxioms(owlontology, axioms);
 	}
 
+	@Override
 	public void destroy() throws KRDatabaseException {
 		manager.removeOntology(owlontology);
 		if (localdb != null)
 			localdb.shutdown();
-		// reasoner.dispose();
+		//		if (server!=null)
+		//			server.stop();
 	}
 
 }
