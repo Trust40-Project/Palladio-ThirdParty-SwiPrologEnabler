@@ -57,23 +57,22 @@ public class OWLRepoKRInterface implements KRInterface {
 			}
 		}
 
-		getDatabase("parser");
+		getDatabase("parser", this.owlfile);
 
 	}
 
-	private OWLOntologyDatabase getDatabase(String name)
+	public OWLOntologyDatabase getDatabase(String name, File file)
 			throws KRInitFailedException {
 		// create a database with the initializing ontology
 		// if (database == null) {
 			try {
-				if (owlfile == null) {
-					// database = (OWLOntologyDatabase) getDatabase(new
-					// HashSet<DatabaseFormula>());
+				if (file == null) {
+					// database = (OWLOntologyDatabase) getDatabase(new HashSet<DatabaseFormula>());
 					throw new KRDatabaseException(
 							"Creation of OWL parser needs an OWL file set to the Interface");
 				} else {
 					database = new OWLOntologyDatabase(name,
-							owlfile);
+							file);
 					if (!name.equals("parser")) //in case it is needed for parser, do not set up real triplestores
 						database.setupRepo(repoUrl);
 				}
@@ -91,7 +90,7 @@ public class OWLRepoKRInterface implements KRInterface {
 	public Database getDatabase(String name, Collection<DatabaseFormula> content)
 			throws KRDatabaseException {
 		try {
-			database = getDatabase(name);
+			database = getDatabase(name, this.owlfile);
 			database.insertAll(content);
 		} catch (KRInitFailedException e) {
 			throw new KRDatabaseException(
@@ -103,12 +102,6 @@ public class OWLRepoKRInterface implements KRInterface {
 
 		// Return new database.
 		return database;
-	}
-
-	public Database getDatabase(String name, File onto) throws KRDatabaseException {
-		return new OWLOntologyDatabase(name, onto);
-		// Return new database.
-		// used for message base, that does NOT need to know the KR terms.
 	}
 
 	@Override
