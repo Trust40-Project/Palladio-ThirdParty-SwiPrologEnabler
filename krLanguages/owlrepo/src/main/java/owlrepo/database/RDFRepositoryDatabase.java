@@ -1,5 +1,6 @@
 package owlrepo.database;
 
+import java.net.URL;
 import java.util.Collection;
 
 import krTools.exceptions.KRQueryFailedException;
@@ -47,7 +48,7 @@ public class RDFRepositoryDatabase {
 	//private String baseURI;
 	
     //private OWLOntologyDatabase ontology;
-	private  String repo_url ;//= "http://localhost:8080/openrdf-sesame/tradr";
+	private  URL repo_url ;//= "http://localhost:8080/openrdf-sesame/tradr";
 	private  String username = "admin";
 	private  String password = "admin";
 	
@@ -70,7 +71,7 @@ public class RDFRepositoryDatabase {
 		
 		return server;
 	}
-	public RDFRepositoryDatabase(String name, OWLOntology ontology, String baseURI, String url, RepositoryConnectionListener listener) {
+	public RDFRepositoryDatabase(String name, OWLOntology ontology, String baseURI, URL url, RepositoryConnectionListener listener) {
 		this.repo_url = url;
 
 		try{
@@ -113,7 +114,7 @@ public class RDFRepositoryDatabase {
 			repo = new StardogRepository(ConnectionConfiguration
 					.to("tradr")
 					.reasoning(true)
-					.server(repo_url)
+					.server(repo_url.toString())
 					);
 			System.out.println("Set up shared repo:"+name+" at "+repo_url+"tradr");
 			this.SHARED_MODE = true;

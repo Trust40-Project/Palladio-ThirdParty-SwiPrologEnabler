@@ -1,6 +1,7 @@
 package owlrepo;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -107,7 +108,7 @@ public class OWLOntologyDatabaseTest {
 		try {
 			System.out.println("\n\n*********************Test 3************************");
 			 db = new OWLOntologyDatabase("tradr", file);
-			 db.setupRepo("http://localhost:5820/");
+			 db.setupRepo(new URL("http://localhost:5820/"));
 			 db.insert(getRule("onto:Image(?x) ^ onto:reference(?x,?t) -> onto:showOnMap(?x, \"true\")"));
 
 			query("onto:Image(?x) ^ onto:reference(?x,?t) -> sqwrl:select(?x)");

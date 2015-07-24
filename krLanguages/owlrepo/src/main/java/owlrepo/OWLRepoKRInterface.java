@@ -74,6 +74,8 @@ public class OWLRepoKRInterface implements KRInterface {
 				} else {
 					database = new OWLOntologyDatabase(name,
 							owlfile);
+					if (!name.equals("parser")) //in case it is needed for parser, do not set up real triplestores
+						database.setupRepo(repoUrl);
 				}
 			} catch (KRDatabaseException e) {
 				throw new KRInitFailedException(e.getMessage(), e.getCause());

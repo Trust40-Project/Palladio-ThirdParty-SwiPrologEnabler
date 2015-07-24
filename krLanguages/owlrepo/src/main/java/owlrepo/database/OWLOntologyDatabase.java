@@ -2,6 +2,7 @@ package owlrepo.database;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -142,8 +143,6 @@ public class OWLOntologyDatabase implements Database {
 			throw new KRDatabaseException(e.getMessage(), e.getCause());
 		}
 
-		setupRepo(null);
-
 		// OWLRDFConsumer consumer = new OWLRDFConsumer( owlontology, new
 		// OWLOntologyLoaderConfiguration() );
 		// consumer.statementWithResourceValue(subject, predicate, object);
@@ -176,7 +175,7 @@ public class OWLOntologyDatabase implements Database {
 		return allAxioms;
 	}
 
-	public void setupRepo(String repoUrl) {
+	public void setupRepo(URL repoUrl) {
 		// set up RDF repository = triple store local + shared
 
 		if (repoUrl != null) {
@@ -226,6 +225,8 @@ public class OWLOntologyDatabase implements Database {
 		Set<Substitution> qresult = new HashSet<Substitution>();
 		SWRLQuery qr = (SWRLQuery) (query);
 
+		System.out.println("QUERYING:::: "+query.toString());
+		
 		SWRLTranslator transl = new SWRLTranslator(this.swrlontology,
 				qr.getRule());
 
@@ -314,12 +315,13 @@ public class OWLOntologyDatabase implements Database {
 			// renderer.renderSWRLRule(rule);
 			System.out.println("Inserting to db: " + ruletext);
 
+			manager.addAxiom(owlontology, rule);
+
 			// unfortunately the only way to insert a rule is by creating it
 			// again
 			// letting swrl parse it from text representation
 			rule = swrlontology.createSWRLRule("rulename", ruletext);
 
-			manager.addAxiom(owlontology, rule);
 
 			StatementCollector stc = new StatementCollector();
 			// org.semanticweb.owlapi.rdf.model.RDFTranslator trans = new
