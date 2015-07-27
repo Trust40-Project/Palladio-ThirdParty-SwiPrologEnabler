@@ -203,8 +203,8 @@ public class RDFRepositoryDatabase {
 	public void insert(Collection<Statement> stms){
 		try {
 			//nconn.begin();
-			nconn.add(stms, (Resource) null);
-			nconn.commit();
+			conn.add(stms, (Resource) null);
+			conn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}

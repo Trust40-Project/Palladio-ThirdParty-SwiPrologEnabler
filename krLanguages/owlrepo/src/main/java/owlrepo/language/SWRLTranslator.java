@@ -87,6 +87,8 @@ public class SWRLTranslator {
 					SWRLIArgument argument = classatom.getArgument();
 					SPARQLquery += translate(argument) + " rdf:type "
 							+ getShortForm(classexp.asOWLClass()) + ".\n";
+					System.out.println(SPARQLquery);
+
 				}//else if SWRLDataRangeAtom
 			}
 			else if (atom instanceof SWRLBinaryAtom){
@@ -97,6 +99,8 @@ public class SWRLTranslator {
 					SWRLArgument arg2 = batom.getSecondArgument();
 					SPARQLquery += translate(arg1) + " " + translate(predicate)
 							+ " " + translate(arg2) + ".\n";
+					System.out.println(SPARQLquery);
+
 				}//else if SWRLDifferentIndividualsAtom or SameIndividualAtom
 			}
 			else if (atom instanceof SWRLBuiltInAtom){
@@ -136,6 +140,7 @@ public class SWRLTranslator {
 						SPARQLfilter += "\nFILTER ("+ translate(args.get(0)) + operator + translate(args.get(1)) +")\n";
 					else if (args.size() == 3)
 						SPARQLfilter += "\nBIND ("+ translate(args.get(1)) + operator + translate(args.get(2)) +" AS " + translate(args.get(0)) +")\n";
+					System.out.println(SPARQLquery);
 
 				}
 				else if (op.equalsIgnoreCase("owl")){
@@ -145,6 +150,8 @@ public class SWRLTranslator {
 						SPARQLfilter += "\nFILTER ( !sameTerm("+ translate(args.get(0)) + ", " + translate(args.get(1)) +")\n";
 						
 					}
+					System.out.println(SPARQLquery);
+
 				}
 				/*else if (op == "sqwrl"){
 					//sqwrl operators
@@ -265,7 +272,7 @@ public class SWRLTranslator {
 			entity = (OWLEntity)(OWLObjectPropertyExpression)predicate;
 
 		}
-		return getShortForm((OWLEntity) predicate);
+		return getShortForm(entity);
 		
 	}
 	

@@ -41,6 +41,7 @@ import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLPredicate;
 import org.semanticweb.owlapi.model.SWRLRule;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.rio.RioRenderer;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
@@ -158,7 +159,7 @@ public class OWLOntologyDatabase implements Database {
 
 	public Set<OWLAxiom> getAllOWLAxioms() {
 		Set<OWLAxiom> allAxioms = new HashSet<OWLAxiom>();
-		for (OWLAxiom axiom : owlontology.getABoxAxioms(null)) {
+		for (OWLAxiom axiom : owlontology.getABoxAxioms(Imports.EXCLUDED)) {
 			allAxioms.add(axiom);
 			// System.out.println(axiom);
 		}
@@ -170,10 +171,10 @@ public class OWLOntologyDatabase implements Database {
 		// allAxioms.add(axiom);
 		// // System.out.println(axiom);
 		// }
-		for (SWRLRule rule : swrlontology.getSWRLAPIRules()) {
-			allAxioms.add(rule);
-			// System.out.println(rule);
-		}
+//		for (SWRLRule rule : swrlontology.getSWRLAPIRules()) {
+//			allAxioms.add(rule);
+//			// System.out.println(rule);
+//		}
 		return allAxioms;
 	}
 
@@ -221,7 +222,7 @@ public class OWLOntologyDatabase implements Database {
 
 	@Override
 	public String getName() {
-		return owlontology.getOntologyID().toString();
+		return this.name;
 	}
 
 	@Override
@@ -319,44 +320,7 @@ public class OWLOntologyDatabase implements Database {
 		if( form.isArgument()){
 			return; //cannot insert argument without predicate
 		}else if (form.isTerm()){
-			SWRLAtom atom = form.getAtom();
-			//if it has no variables // cannot insert smth with variables
-			if (form.getFreeVar().isEmpty()){
-				ValueFactory vf = getRepo().getValueFactory();
-				Collection<SWRLArgument> args = atom.getAllArguments();
-				SWRLPredicate predt = atom.getPredicate();
-
-				Resource subj = null;
-				URI pred = null;
-				Value obj = null;
-				//unary
-				if (args.size() == 1){
-					String subjstring = args.iterator().next().toString();
-					subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
-					pred = vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-					obj = vf.createURI(predt.toString());	 
-				} 
-				//binary
-				else if (args.size() == 2) {
-					String subjstring = args.iterator().next().toString();
-					subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
-					pred = vf.createURI(predt.toString());
-					String objstring = args.iterator().next().toString();
-					if (objstring.contains("#"))
-						obj = vf.createURI(objstring);
-					else {
-						if (objstring.contains("xsd")){
-							//we need correct type creation
-				
-						}
-						obj = vf.createLiteral(objstring);
-					}
-				}
-				Statement st = vf.createStatement(subj, pred, obj);
-				statements.add(st);
-
-			} else
-				throw new KRDatabaseException("Cannot insert term with variable: "+formula);
+			statements.add(createStatement(form));
 		}else if (form.isRule()){
 
 			SWRLRule rule = form.getRule();
@@ -395,7 +359,8 @@ public class OWLOntologyDatabase implements Database {
 			}
 		}
 
-
+		//		for (Statement st : statements)
+		//			System.out.println("INSERTING::: "+st);
 		if (this.SHARED_MODE) {
 			System.out.println("Inserting into shared db: " + formula);
 			insertShared(statements);
@@ -403,9 +368,77 @@ public class OWLOntologyDatabase implements Database {
 			System.out.println("Inserting into local db: " + formula);
 			insertLocal(statements);
 		}
+	}
 
 
+	private Statement createStatement(SWRLDatabaseFormula form) throws KRDatabaseException{
+		Resource subj = null;
+		URI pred = null;
+		Value obj = null;
+		SWRLAtom atom = form.getAtom();
+		ValueFactory vf = getRepo().getValueFactory();
 
+		//if it has no variables // cannot insert smth with variables
+		if (form.getFreeVar().isEmpty()){
+			Collection<SWRLArgument> args = atom.getAllArguments();
+			SWRLPredicate predt = atom.getPredicate();
+
+			//unary
+			if (args.size() == 1){
+				String subjstring = args.iterator().next().toString();
+				subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
+				pred = vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+				obj = vf.createURI(predt.toString());	 
+			} 
+			//binary
+			else if (args.size() == 2) {
+				Iterator<SWRLArgument> it = args.iterator();
+				String subjstring = it.next().toString();
+				subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
+				String predstring = predt.toString();
+				pred = vf.createURI(predstring.substring(1, predstring.length()-1));
+				String objstring = it.next().toString();
+				if (objstring.contains("#"))
+					obj = vf.createURI(objstring);
+				else {
+					if (objstring.contains("xsd")){
+						//we need correct type creation
+						String type = objstring;
+						objstring = objstring.split("\"")[1];
+						if (type.contains("xsd:string"))
+							obj = vf.createLiteral(objstring);//.substring(1, objstring.length()-1));
+						else if (type.contains("xsd:byte")){
+							byte b = Byte.parseByte(objstring);
+							obj = vf.createLiteral(b);
+						}else if (type.contains("xsd:boolean")){
+							boolean b = Boolean.parseBoolean(objstring);
+							obj = vf.createLiteral(b);
+						}else if (type.contains("xsd:float")){
+							float f = Float.parseFloat(objstring);
+							obj = vf.createLiteral(f);
+						}else if (type.contains("xsd:double")){
+							double d = Double.parseDouble(objstring);
+							obj = vf.createLiteral(d);
+						}else if (type.contains("xsd:int") || type.contains("xsd:integer")){
+							int i = Integer.parseInt(objstring);
+							obj = vf.createLiteral(i);
+						}else if (type.contains("xsd:long")){
+							long l = Long.parseLong(objstring);
+							obj = vf.createLiteral(l);
+						}else if (type.contains("xsd:short")){
+							short s = Short.parseShort(objstring);
+							obj = vf.createLiteral(s);
+						}
+					} else{
+						obj = vf.createLiteral(objstring);
+					}
+				}
+			}
+		} else
+			throw new KRDatabaseException("Cannot insert term with variable: "+form);
+
+		System.out.println("TRIPLE: "+subj + ", "+pred + ", "+obj);
+		return  vf.createStatement(subj, pred, obj);
 	}
 
 	public DatabaseFormula getDBFormula(Term term) throws KRDatabaseException {
@@ -479,6 +512,12 @@ public class OWLOntologyDatabase implements Database {
 
 	public void deleteAll(Set<OWLAxiom> axioms) {
 		manager.removeAxioms(owlontology, axioms);
+		for (OWLAxiom axiom : getAllOWLAxioms())
+			allFormulas.add(new SWRLDatabaseFormula(axiom));
+	}
+	
+	public boolean isOpen(){
+		return localdb.isOpen();
 	}
 
 	@Override

@@ -76,7 +76,12 @@ public class SWRLQuery extends SWRLExpression implements Query {
 	 *         content of this {@link SWRLQuery}.
 	 */
 	public Update toUpdate() {
-		return new SWRLUpdate(rule);
+		if (this.isArgument())
+			return new SWRLUpdate(this.argument);
+		else if (this.isTerm())
+			return new SWRLUpdate(this.atom);
+		else 
+			return new SWRLUpdate(rule);
 	}
 
 	// @Override
