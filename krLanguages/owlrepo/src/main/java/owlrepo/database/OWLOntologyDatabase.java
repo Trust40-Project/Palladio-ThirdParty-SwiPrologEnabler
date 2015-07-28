@@ -172,10 +172,10 @@ public class OWLOntologyDatabase implements Database {
 		// allAxioms.add(axiom);
 		// // System.out.println(axiom);
 		// }
-//		for (SWRLRule rule : swrlontology.getSWRLAPIRules()) {
-//			allAxioms.add(rule);
-//			// System.out.println(rule);
-//		}
+		// for (SWRLRule rule : swrlontology.getSWRLAPIRules()) {
+		// allAxioms.add(rule);
+		// // System.out.println(rule);
+		// }
 		return allAxioms;
 	}
 
@@ -319,43 +319,41 @@ public class OWLOntologyDatabase implements Database {
 		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
 		if( form.isArgument()){
 			return; //cannot insert argument without predicate
-			// }else if (form.isTerm()){
-			// statements.add(createStatement(form));
-			// }else if (form.isRule()){
-		} else {
+		} else if (form.isTerm()) {
+			statements.add(createStatement(form.getAtom()));
+		} else if (form.isRule()) {
 			SWRLRule rule = form.getRule();
-			try {
+			if (rule.getHead().isEmpty()) {
+				// we only have body, which is a conjunction of atoms
+				for (SWRLAtom atom : rule.getBody()) {
+					statements.add(createStatement(atom));
+				}
+			} else {
+				try {
 
-				String ruletext = form.toString();
-				// renderer.renderSWRLRule(rule);
-			//	System.out.println("Inserting to db: " + ruletext);
+					String ruletext = form.toString();
+					// System.out.println("Inserting to db: " + ruletext);
 
-				manager.addAxiom(owlontology, rule);
-				swrlontology.processOntology();
-				// unfortunately the only way to insert a rule is by creating it
-				// again
-				// letting swrl parse it from text representation
-				rule = swrlontology.createSWRLRule("rulename", ruletext);
+					manager.addAxiom(owlontology, rule);
+					swrlontology.processOntology();
+					// unfortunately the only way to insert a rule is by
+					// creating it
+					// letting swrl parse it from text representation
+					rule = swrlontology.createSWRLRule("rulename", ruletext);
 
-
-				StatementCollector stc = new StatementCollector();
-				// org.semanticweb.owlapi.rdf.model.RDFTranslator trans = new
-				// RDFTranslator(manager, owlontology, false);
-				// trans.visit(form.getRule());
-				// RDFGraph graph = trans.getGraph();
-				//
-				RioRenderer render = new RioRenderer(owlontology, stc,
-						manager.getOntologyFormat(owlontology), (Resource) null);
-				render.render();
-				// Iterator<Statement> stit= stc.getStatements().iterator();
-				// while(stit.hasNext())
-				// System.out.println(stit.next().toString());
-				statements.addAll(stc.getStatements());
-
-				statements.removeAll(baseStm);
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new KRDatabaseException(e.getMessage());
+					// we render the full ontology
+					StatementCollector stc = new StatementCollector();
+					RioRenderer render = new RioRenderer(owlontology, stc,
+							manager.getOntologyFormat(owlontology),
+							(Resource) null);
+					render.render();
+					statements.addAll(stc.getStatements());
+					// and remove the already existing statements
+					statements.removeAll(baseStm);
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new KRDatabaseException(e.getMessage());
+				}
 			}
 		}
 
@@ -371,100 +369,89 @@ public class OWLOntologyDatabase implements Database {
 	}
 
 
-	private Statement createStatement(SWRLDatabaseFormula form) throws KRDatabaseException{
+	private Statement createStatement(SWRLAtom atom) throws KRDatabaseException {
 		Resource subj = null;
 		URI pred = null;
 		Value obj = null;
-		SWRLAtom atom = form.getAtom();
 		ValueFactory vf = getRepo().getValueFactory();
 
 		//if it has no variables // cannot insert smth with variables
-		if (form.getFreeVar().isEmpty()){
-			Collection<SWRLArgument> args = atom.getAllArguments();
-			SWRLPredicate predt = atom.getPredicate();
+		Collection<SWRLArgument> args = atom.getAllArguments();
+		SWRLPredicate predt = atom.getPredicate();
 
-			//unary
-			if (args.size() == 1){
-				String subjstring = args.iterator().next().toString();
-				subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
-				pred = vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-				obj = vf.createURI(predt.toString());	 
-			} 
-			//binary
-			else if (args.size() == 2) {
-				Iterator<SWRLArgument> it = args.iterator();
-				// subject
-				String subjstring = it.next().toString();
-				subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
-				// predicate
-				String predstring = predt.toString();
-				pred = vf.createURI(predstring.substring(1, predstring.length()-1));
-				// object
-				SWRLArgument objArg = it.next();
-				String objstring = objArg.toString();
+		// unary
+		if (args.size() == 1) {
+			String subjstring = args.iterator().next().toString();
+			subj = vf
+					.createURI(subjstring.substring(1, subjstring.length() - 1));
+			pred = vf
+					.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+			obj = vf.createURI(predt.toString());
+		}
+		// binary
+		else if (args.size() == 2) {
+			Iterator<SWRLArgument> it = args.iterator();
+			// subject
+			String subjstring = it.next().toString();
+			subj = vf
+					.createURI(subjstring.substring(1, subjstring.length() - 1));
+			// predicate
+			String predstring = predt.toString();
+			pred = vf
+					.createURI(predstring.substring(1, predstring.length() - 1));
+			// object
+			SWRLArgument objArg = it.next();
+			String objstring = objArg.toString();
+			System.out.println("OBJSTRING: " + objstring);
 
-				if (!objArg.getIndividualsInSignature().isEmpty()) {
-					// indiivdual
-				} else if (!objArg.getDatatypesInSignature().isEmpty()) { // data
-					OWLDatatype dtype = objArg.getDatatypesInSignature()
-							.iterator().next();
-					if (dtype.isString()) {
+			if (!objArg.getIndividualsInSignature().isEmpty()) {
+				// indiivdual
+				obj = vf.createURI(objstring.substring(1,
+						objstring.length() - 1));
+			} else if (!objArg.getDatatypesInSignature().isEmpty()) { // data
+				OWLDatatype dtype = objArg.getDatatypesInSignature().iterator()
+						.next();
+				System.out.println("DATATYPE: " + dtype);
+				objstring = objstring.split("\"")[1];
+				System.out.println("OBJSTRING: " + objstring);
 
-					} else if (dtype.isBoolean()) {
-
-					} else if (dtype.isDouble()) {
-
-					} else if (dtype.isFloat()) {
-
-					} else if (dtype.isInteger()) {
-
-					} else if (dtype.isBuiltIn()) {
-
-					}
-				} else { // without datatype
+				if (dtype.isString()) {
+					obj = vf.createLiteral(objstring);
+				} else if (dtype.isBoolean()) {
+					boolean b = Boolean.parseBoolean(objstring);
+					obj = vf.createLiteral(b);
+				} else if (dtype.isDouble()) {
+					double d = Double.parseDouble(objstring);
+					obj = vf.createLiteral(d);
+				} else if (dtype.isFloat()) {
+					float f = Float.parseFloat(objstring);
+					obj = vf.createLiteral(f);
+				} else if (dtype.isInteger()) {
+					int i = Integer.parseInt(objstring);
+					obj = vf.createLiteral(i);
+				} else if (dtype.isBuiltIn()) {
 
 				}
-
-				if (objstring.contains("#")) { // individual
-					if (objstring.startsWith("<") && objstring.endsWith(">"))
-						objstring = objstring.substring(1, objstring.length()-1);
-					obj = vf.createURI(objstring);
-				} else { // literal
-					if (objstring.contains("xsd")){
-						//we need correct type creation
-						String type = objstring;
-						objstring = objstring.split("^^")[0];
-						if (type.contains("xsd:string"))
-							obj = vf.createLiteral(objstring);//.substring(1, objstring.length()-1));
-						else if (type.contains("xsd:byte")){
-							byte b = Byte.parseByte(objstring);
-							obj = vf.createLiteral(b);
-						}else if (type.contains("xsd:boolean")){
-							boolean b = Boolean.parseBoolean(objstring);
-							obj = vf.createLiteral(b);
-						}else if (type.contains("xsd:float")){
-							float f = Float.parseFloat(objstring);
-							obj = vf.createLiteral(f);
-						}else if (type.contains("xsd:double")){
-							double d = Double.parseDouble(objstring);
-							obj = vf.createLiteral(d);
-						}else if (type.contains("xsd:int") || type.contains("xsd:integer")){
-							int i = Integer.parseInt(objstring);
-							obj = vf.createLiteral(i);
-						}else if (type.contains("xsd:long")){
-							long l = Long.parseLong(objstring);
-							obj = vf.createLiteral(l);
-						}else if (type.contains("xsd:short")){
-							short s = Short.parseShort(objstring);
-							obj = vf.createLiteral(s);
-						}
-					} else{
-						obj = vf.createLiteral(objstring);
-					}
-				}
+			} else { // without datatype
+				obj = vf.createLiteral(objstring);
 			}
-		} else
-			throw new KRDatabaseException("Cannot insert term with variable: "+form);
+
+
+// if (objstring.contains("#")) { // individual
+			// if (objstring.startsWith("<") && objstring.endsWith(">"))
+			// objstring = objstring.substring(1, objstring.length() - 1);
+			// obj = vf.createURI(objstring);
+			// } else { // literal
+			// if (objstring.contains("xsd")) {
+			// // we need correct type creation
+			// String type = objstring;
+			// objstring = objstring.split("^^")[0];
+			// if (type.contains("xsd:string"))
+			// obj = vf.createLiteral(objstring);// .substring(1,
+			// // objstring.length()-1));
+			// }
+			// }
+		}
 
 		System.out.println("TRIPLE: "+subj + ", "+pred + ", "+obj);
 		return  vf.createStatement(subj, pred, obj);
@@ -543,7 +530,7 @@ public class OWLOntologyDatabase implements Database {
 		manager.removeAxiom(owlontology, axiom);
 		allFormulas.remove(new SWRLDatabaseFormula(axiom));
 	}
-	
+
 	public boolean isOpen(){
 		return localdb.isOpen();
 	}
