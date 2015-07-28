@@ -87,7 +87,7 @@ public class SWRLTranslator {
 					SWRLIArgument argument = classatom.getArgument();
 					SPARQLquery += translate(argument) + " rdf:type "
 							+ getShortForm(classexp.asOWLClass()) + ".\n";
-					System.out.println(SPARQLquery);
+					// System.out.println(SPARQLquery);
 
 				}//else if SWRLDataRangeAtom
 			}
@@ -99,7 +99,7 @@ public class SWRLTranslator {
 					SWRLArgument arg2 = batom.getSecondArgument();
 					SPARQLquery += translate(arg1) + " " + translate(predicate)
 							+ " " + translate(arg2) + ".\n";
-					System.out.println(SPARQLquery);
+					// System.out.println(SPARQLquery);
 
 				}//else if SWRLDifferentIndividualsAtom or SameIndividualAtom
 			}
@@ -140,7 +140,7 @@ public class SWRLTranslator {
 						SPARQLfilter += "\nFILTER ("+ translate(args.get(0)) + operator + translate(args.get(1)) +")\n";
 					else if (args.size() == 3)
 						SPARQLfilter += "\nBIND ("+ translate(args.get(1)) + operator + translate(args.get(2)) +" AS " + translate(args.get(0)) +")\n";
-					System.out.println(SPARQLquery);
+					// System.out.println(SPARQLquery);
 
 				}
 				else if (op.equalsIgnoreCase("owl")){
@@ -150,7 +150,7 @@ public class SWRLTranslator {
 						SPARQLfilter += "\nFILTER ( !sameTerm("+ translate(args.get(0)) + ", " + translate(args.get(1)) +")\n";
 						
 					}
-					System.out.println(SPARQLquery);
+					// System.out.println(SPARQLquery);
 
 				}
 				/*else if (op == "sqwrl"){
@@ -231,8 +231,26 @@ public class SWRLTranslator {
 			return "?"+var.getIRI().getShortForm();
 		}
 		else if (arg instanceof SWRLLiteralArgument){
-			return "\""+((SWRLLiteralArgument)arg).getLiteral().getLiteral()+ "\"";
-			
+			// get literal argument, backslash existing double quotes
+			String literalArg = ((SWRLLiteralArgument)arg).getLiteral().getLiteral();
+			String[] lit = literalArg.split("\"");
+			literalArg = "";
+			for (int i = 0; i < lit.length - 1; i++) {
+				literalArg += lit[i] + "\\\"";
+			}
+			literalArg += lit[lit.length - 1];
+
+			// process type
+			String type = "";
+			if (!arg.getDatatypesInSignature().isEmpty()) {
+				type = arg.getDatatypesInSignature().iterator().next()
+						.toString();
+				if (type.contains("#"))
+					type = "^^xsd:" + type.split("#")[1];
+			}
+			// return literalArg;
+			return "\"" + literalArg + "\"";// + type;
+
 		}else if (arg instanceof SWRLIndividualArgument){
 			return getShortForm((OWLEntity) ((SWRLIndividualArgument)arg).getIndividual());
 		}

@@ -84,34 +84,5 @@ if (file.exists() && file.canRead()){
 			System.out.print(v+", ");
 		}
 	}
-	
-	@Test
-	public void testNegative() {
-		String text= "not tradr:Human(?x) ^  tradr:isHeadOf(?x, ?t) -> tradr:Team_leader(?x)";
-		//text = "tradr:Human(P1)";
-		try {
-			System.out.println("SWRL Rule:::: "+ text);
-			 r = parser.parseRule(text, "rule1");
-		} catch (SWRLParseException e) {
-			e.printStackTrace();
-		}
-		System.out.println("Read:::: "+r.toString());
-		System.out.println("Axiom type:::: "+r.getAxiomType());
-		//System.out.println("NNF: "+r.getNNF());
-		System.out.println("Signature:::: "+r.getSignature());
-		System.out.println("Variables:::: "+r.getVariables());
-
-		SWRLTranslator transl = new SWRLTranslator(swrlapiOnto,r);
-		System.out.println("SPARQL translation::::: \n"+transl.translateToSPARQL());
-		
-		SWRLExpression exp = new SWRLExpression(r);
-		System.out.println("SWRL expression: "+exp.toString());
-		System.out.println("Free vars:");
-		for (Var v: exp.getFreeVar()){
-			System.out.print(v+", ");
-		}
-
-	
-	}
 
 }

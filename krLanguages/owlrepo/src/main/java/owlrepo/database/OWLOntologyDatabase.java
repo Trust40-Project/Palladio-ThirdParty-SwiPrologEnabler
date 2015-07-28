@@ -33,6 +33,7 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -305,10 +306,9 @@ public class OWLOntologyDatabase implements Database {
 			insert(formula);
 	}
 
-	public void insertAll(Set<OWLAxiom> axioms) throws KRDatabaseException {
-		manager.addAxioms(owlontology, axioms);
-		for (OWLAxiom axiom : getAllOWLAxioms())
-			allFormulas.add(new SWRLDatabaseFormula(axiom));
+	public void insert(OWLAxiom axiom) throws KRDatabaseException {
+		manager.addAxiom(owlontology, axiom);
+		allFormulas.add(new SWRLDatabaseFormula(axiom));
 	}
 
 	@Override
@@ -319,16 +319,16 @@ public class OWLOntologyDatabase implements Database {
 		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
 		if( form.isArgument()){
 			return; //cannot insert argument without predicate
-		}else if (form.isTerm()){
-			statements.add(createStatement(form));
-		}else if (form.isRule()){
-
+			// }else if (form.isTerm()){
+			// statements.add(createStatement(form));
+			// }else if (form.isRule()){
+		} else {
 			SWRLRule rule = form.getRule();
 			try {
 
 				String ruletext = form.toString();
 				// renderer.renderSWRLRule(rule);
-				System.out.println("Inserting to db: " + ruletext);
+			//	System.out.println("Inserting to db: " + ruletext);
 
 				manager.addAxiom(owlontology, rule);
 				swrlontology.processOntology();
@@ -359,8 +359,8 @@ public class OWLOntologyDatabase implements Database {
 			}
 		}
 
-		//		for (Statement st : statements)
-		//			System.out.println("INSERTING::: "+st);
+		// for (Statement st : statements)
+		// System.out.println("INSERTING::: "+st);
 		if (this.SHARED_MODE) {
 			System.out.println("Inserting into shared db: " + formula);
 			insertShared(statements);
@@ -393,18 +393,47 @@ public class OWLOntologyDatabase implements Database {
 			//binary
 			else if (args.size() == 2) {
 				Iterator<SWRLArgument> it = args.iterator();
+				// subject
 				String subjstring = it.next().toString();
 				subj = vf.createURI(subjstring.substring(1, subjstring.length()-1));
+				// predicate
 				String predstring = predt.toString();
 				pred = vf.createURI(predstring.substring(1, predstring.length()-1));
-				String objstring = it.next().toString();
-				if (objstring.contains("#"))
+				// object
+				SWRLArgument objArg = it.next();
+				String objstring = objArg.toString();
+
+				if (!objArg.getIndividualsInSignature().isEmpty()) {
+					// indiivdual
+				} else if (!objArg.getDatatypesInSignature().isEmpty()) { // data
+					OWLDatatype dtype = objArg.getDatatypesInSignature()
+							.iterator().next();
+					if (dtype.isString()) {
+
+					} else if (dtype.isBoolean()) {
+
+					} else if (dtype.isDouble()) {
+
+					} else if (dtype.isFloat()) {
+
+					} else if (dtype.isInteger()) {
+
+					} else if (dtype.isBuiltIn()) {
+
+					}
+				} else { // without datatype
+
+				}
+
+				if (objstring.contains("#")) { // individual
+					if (objstring.startsWith("<") && objstring.endsWith(">"))
+						objstring = objstring.substring(1, objstring.length()-1);
 					obj = vf.createURI(objstring);
-				else {
+				} else { // literal
 					if (objstring.contains("xsd")){
 						//we need correct type creation
 						String type = objstring;
-						objstring = objstring.split("\"")[1];
+						objstring = objstring.split("^^")[0];
 						if (type.contains("xsd:string"))
 							obj = vf.createLiteral(objstring);//.substring(1, objstring.length()-1));
 						else if (type.contains("xsd:byte")){
@@ -510,10 +539,9 @@ public class OWLOntologyDatabase implements Database {
 		}
 	}
 
-	public void deleteAll(Set<OWLAxiom> axioms) {
-		manager.removeAxioms(owlontology, axioms);
-		for (OWLAxiom axiom : getAllOWLAxioms())
-			allFormulas.add(new SWRLDatabaseFormula(axiom));
+	public void delete(OWLAxiom axiom) {
+		manager.removeAxiom(owlontology, axiom);
+		allFormulas.remove(new SWRLDatabaseFormula(axiom));
 	}
 	
 	public boolean isOpen(){

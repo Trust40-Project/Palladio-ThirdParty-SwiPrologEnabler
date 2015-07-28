@@ -161,6 +161,10 @@ public class SWRLExpression implements Expression {
 		return this.atom;
 	}
 
+	public SWRLArgument getArgument() {
+		return this.argument;
+	}
+
 	public boolean isUndefined() {
 		return (this.type == -1);
 	}
