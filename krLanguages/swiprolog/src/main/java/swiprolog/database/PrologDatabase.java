@@ -109,7 +109,7 @@ public class PrologDatabase implements Database {
 	@Override
 	public void destroy() throws KRDatabaseException {
 		eraseContent();
-		cleanUp();
+		this.owner.removeDatabase(this);
 	}
 
 	/**
@@ -295,7 +295,7 @@ public class PrologDatabase implements Database {
 	 * @throws KRQueryFailedException
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static synchronized Set<PrologSubstitution> rawquery(jpl.Term query) throws KRQueryFailedException {
+	public static Set<PrologSubstitution> rawquery(jpl.Term query) throws KRQueryFailedException {
 		// Create JPL query.
 		jpl.Query jplQuery = new jpl.Query(query);
 
@@ -391,16 +391,6 @@ public class PrologDatabase implements Database {
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("swi prolog says database contents could not be erased", e);
 		}
-	}
-
-	/**
-	 * Frees memory used by database upon deletion of the database.
-	 *
-	 * @throws KRDatabaseException
-	 */
-	protected void cleanUp() throws KRDatabaseException {
-		eraseContent();
-		this.owner.removeDatabase(this);
 	}
 
 	@Override
