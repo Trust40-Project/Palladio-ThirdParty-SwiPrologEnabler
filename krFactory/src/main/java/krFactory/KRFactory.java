@@ -28,15 +28,17 @@ import owlrepo.OWLRepoKRInterface;
 import swiprolog.SwiPrologInterface;
 
 /**
- * Factory of KR Interfaces. 
+ * Factory of KR Interfaces.
  * <li>Getting a KR interface by its name specified.</li>
  * <li>Getting the name of an interface implementation.</li>
- * <li>Getting the set of supported KRs by their names. Currently, the factory supports:
+ * <li>Getting the set of supported KRs by their names. Currently, the factory
+ * supports:
  * <ul>
  * <li>SWI Prolog v6.0.2</li>
  * <li>OWL - API v. 4.0</li>
- * </ul></li>
- * 
+ * </ul>
+ * </li>
+ *
  */
 public class KRFactory {
 	// The names of the supported KRIs
@@ -60,8 +62,8 @@ public class KRFactory {
 	}
 
 	/**
-	 * Provides an available knowledge representation technology. 
-	 * See the getSupportedKRs method for the set of supported KRTs.
+	 * Provides an available knowledge representation technology. See the
+	 * getSupportedKRs method for the set of supported KRTs.
 	 *
 	 * @param name
 	 *            The name of the KRT.
@@ -87,24 +89,29 @@ public class KRFactory {
 
 	/**
 	 * Checks if the interface is defined, and returns its name.
-	 * @param kri the interface whose name is needed
+	 * 
+	 * @param kri
+	 *            the interface whose name is needed
 	 * @return the name as a string or null if the interface is not defined
 	 */
 	public static String getName(KRInterface kri) {
-		for (final String name : kr.keySet()) {
-			final Class<? extends KRInterface> defined = kr.get(name);
-			if (defined.equals(kri.getClass())) {
-				return name;
+		if (kri != null) {
+			for (final String name : kr.keySet()) {
+				final Class<? extends KRInterface> defined = kr.get(name);
+				if (defined.equals(kri.getClass())) {
+					return name;
+				}
 			}
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Get the set of supported KR's names.
+	 * 
 	 * @return a set of strings representing the supported KRs
 	 */
-	public static Set<String> getSupportedKRs(){
+	public static Set<String> getSupportedKRs() {
 		return kr.keySet();
 	}
 }
