@@ -241,6 +241,14 @@ public class OWLOntologyDatabase implements Database {
 		return query(querySPARQL);
 	}
 	
+	private RDFRepositoryDatabase getCurrentDb(){
+		if (SHARED_MODE && this.shareddb != null && this.shareddb.isOpen()) {
+			return this.shareddb;
+		} else if (this.localdb != null && this.localdb.isOpen()) {
+			return this.localdb;
+		}
+		return this.localdb;
+	}
 	
 	public Set<Substitution> query(String queryString) throws KRQueryFailedException {
 		Set<Substitution> qresult = new HashSet<Substitution>();
@@ -248,13 +256,7 @@ public class OWLOntologyDatabase implements Database {
 
 		try {
 			QueryResult rdfresult = null;
-			if (this.shareddb != null && this.shareddb.isOpen()) {
-				System.out.println("Querying shared db:");
-				rdfresult = this.shareddb.query(queryString);
-			} else if (this.localdb != null && this.localdb.isOpen()) {
-				System.out.println("Querying local db: ");
-				rdfresult = this.localdb.query(queryString);
-			}
+			rdfresult = getCurrentDb().query(queryString);
 
 			if (rdfresult instanceof TupleQueryResult) {
 				TupleQueryResult tupleResult = (TupleQueryResult) rdfresult;
@@ -303,6 +305,16 @@ public class OWLOntologyDatabase implements Database {
 
 		return qresult;
 	}
+	
+	public void queryUpdate(String queryString) throws KRQueryFailedException {
+		System.out.println("QUERYING:::: \n"+queryString.toString());
+		try {
+			getCurrentDb().update(queryString);
+		} catch (Exception e) {
+			throw new KRQueryFailedException(e.getMessage());
+		}
+		
+	}
 
 	public boolean isEntailed(Query query) {
 		OWLAxiom axiom = ((SWRLQuery) query).getAxiom();
@@ -319,11 +331,21 @@ public class OWLOntologyDatabase implements Database {
 	@Override
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
 		this.allFormulas.add(formula);
-		Collection<Statement> statements = new HashSet<Statement>();
+		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
+		OWLAxiom axiom = form.getAxiom();
+		manager.addAxiom(owlontology, axiom);
+		Collection<Statement> statements = formulaToStatements(formula);
+		
+		// for (Statement st : statements)
+		System.out.println("INSERTING::: "+formula);
+		insert(statements);
+	}
 
+	private Collection<Statement> formulaToStatements(DatabaseFormula formula) throws KRDatabaseException{
+		Collection<Statement> statements = new HashSet<Statement>();
 		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
 		if( form.isArgument()){
-			return; //cannot insert argument without predicate
+			return statements; //cannot insert argument without predicate
 		} else if (form.isTerm()) {
 			statements.add(createStatement(form.getAtom()));
 		} else if (form.isRule()) {
@@ -361,18 +383,8 @@ public class OWLOntologyDatabase implements Database {
 				}
 			}
 		}
-
-		// for (Statement st : statements)
-		// System.out.println("INSERTING::: "+st);
-		if (this.SHARED_MODE) {
-			System.out.println("Inserting into shared db: " + formula);
-			insertShared(statements);
-		} else {
-			System.out.println("Inserting into local db: " + formula);
-			insertLocal(statements);
-		}
+		return statements;
 	}
-
 
 	private Statement createStatement(SWRLAtom atom) throws KRDatabaseException {
 		Resource subj = null;
@@ -428,7 +440,7 @@ public class OWLOntologyDatabase implements Database {
 				obj = vf.createBNode();
 		}
 
-		System.out.println("TRIPLE: "+subj + ", "+pred + ", "+obj);
+		//System.out.println("TRIPLE: "+subj + ", "+pred + ", "+obj);
 		return  vf.createStatement(subj, pred, obj);
 	}
 
@@ -442,22 +454,43 @@ public class OWLOntologyDatabase implements Database {
 	}
 
 	public void insert(Collection<Statement> statements) {
-		if (SHARED_MODE)
+		if (SHARED_MODE){
 			insertShared(statements);
-		else
+		}else
 			insertLocal(statements);
 	}
 
-	public void insertLocal(Collection<Statement> statements) {
+	private void insertLocal(Collection<Statement> statements) {
 		// System.out.println("Inserting into local");
 		if (localdb != null && localdb.isOpen())
 			localdb.insert(statements);
 	}
+	
 
-	public void insertShared(Collection<Statement> statements) {
+	private void insertShared(Collection<Statement> statements) {
 		// System.out.println("Inserting into shared");
 		if (shareddb != null && shareddb.isOpen())
 			shareddb.insert(statements);
+	}
+	
+
+	public void delete(Collection<Statement> statements) {
+		if (SHARED_MODE){
+			deleteShared(statements);
+		}else
+			deleteLocal(statements);
+	}
+	
+	private void deleteLocal(Collection<Statement> statements) {
+		// System.out.println("Inserting into local");
+		if (localdb != null && localdb.isOpen())
+			localdb.delete(statements);
+	}
+
+	private void deleteShared(Collection<Statement> statements) {
+		// System.out.println("Inserting into shared");
+		if (shareddb != null && shareddb.isOpen())
+			shareddb.delete(statements);
 	}
 
 	@Override
@@ -485,10 +518,14 @@ public class OWLOntologyDatabase implements Database {
 	@Override
 	public void delete(DatabaseFormula formula) throws KRDatabaseException {
 		allFormulas.remove(formula);
-		System.out.println("DELETING::: "+formula);
 		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
 		OWLAxiom axiom = form.getAxiom();
 		manager.removeAxiom(owlontology, axiom);
+	//	Collection<Statement> statements = formulaToStatements(formula);
+		
+		// for (Statement st : statements)
+		System.out.println("DELETING::: "+formula);
+	//	delete(statements);
 	}
 
 	@Override

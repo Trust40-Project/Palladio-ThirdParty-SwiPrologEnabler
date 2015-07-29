@@ -204,6 +204,8 @@ public class RDFRepositoryDatabase {
 	public void insert(Collection<Statement> stms){
 		try {
 			//nconn.begin();
+			if (!conn.isOpen())
+				conn.begin();
 			conn.add(stms, (Resource) null);
 			conn.commit();
 		} catch (RepositoryException e) {
@@ -215,8 +217,10 @@ public class RDFRepositoryDatabase {
 		
 		try {
 			//nconn.begin();
-			nconn.remove(stms, (Resource) null);
-			nconn.commit();
+			if (!conn.isOpen())
+				conn.begin();
+			conn.remove(stms, (Resource) null);
+			conn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}
@@ -226,33 +230,37 @@ public class RDFRepositoryDatabase {
 	     boolean truth= false;
 	     try {
 			 BooleanQuery booleanQuery = nconn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
-			 truth = booleanQuery.evaluate();
-			 
+			 truth = booleanQuery.evaluate(); 
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
 	     return truth;
 	}
 	
-	public void construct(String queryString){
-		 GraphQuery describeQuery;
+	public GraphQueryResult construct(String queryString){
+		 GraphQuery describeQuery = null;
 		try {
-			describeQuery = nconn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
+			if (!conn.isOpen())
+				conn.begin();
+			describeQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, queryString);
 		    GraphQueryResult gresult = describeQuery.evaluate(); 
-		    
+		    return gresult;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+		return null;
 	}
 	
 	
 	public void update(String updateString){
 		Update update;
 		try {
-			update = nconn.prepareUpdate(QueryLanguage.SPARQL, updateString);
+			System.out.println("QUERYING Update...");
+			if (!conn.isOpen())
+				conn.begin();
+			update = conn.prepareUpdate(QueryLanguage.SPARQL, updateString);
 			update.execute();
-
+			conn.commit();
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
