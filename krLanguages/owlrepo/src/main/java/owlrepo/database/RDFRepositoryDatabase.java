@@ -177,7 +177,7 @@ public class RDFRepositoryDatabase {
 	public TupleQueryResult queryTuple(String queryString) throws KRQueryFailedException {
 		 TupleQueryResult result = null;
 		 try { 
-			 System.out.println("QUERYING...");
+			 System.out.println("QUERYING Tuple Query...");
 		  TupleQuery tupleQuery = nconn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
            result = tupleQuery.evaluate();
           System.out.println("RESULT: "+result.hasNext());
@@ -191,6 +191,7 @@ public class RDFRepositoryDatabase {
 	public BooleanQueryResult queryBoolean(String queryString) throws KRQueryFailedException {
 		boolean result = false;
 		try {
+			 System.out.println("QUERYING Boolean Query...");
 			BooleanQuery booleanQuery = nconn.prepareBooleanQuery(
 					QueryLanguage.SPARQL, queryString);
 			result = booleanQuery.evaluate();

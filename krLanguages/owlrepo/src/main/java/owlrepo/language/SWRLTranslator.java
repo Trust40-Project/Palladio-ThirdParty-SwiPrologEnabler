@@ -264,10 +264,11 @@ public class SWRLTranslator {
 	public String getShortForm(OWLEntity entity){
 		if (entity!=null){
 			String pred = entity.toString();
+			if (pred.contains("#")){
 			String shortpred = pred.substring(1, pred.indexOf('#')+1);
 			if (!prefixManager.getPrefixName2PrefixMap().containsValue(shortpred))
 				prefixManager.setPrefix("", shortpred);
-
+			}
 			return prefixManager.getShortForm(entity);
 			
 		}

@@ -40,12 +40,16 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
+import org.semanticweb.owlapi.model.SWRLIndividualArgument;
+import org.semanticweb.owlapi.model.SWRLLiteralArgument;
 import org.semanticweb.owlapi.model.SWRLPredicate;
 import org.semanticweb.owlapi.model.SWRLRule;
+import org.semanticweb.owlapi.model.SWRLVariable;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.rio.RioRenderer;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
+import org.swrlapi.builtins.arguments.SWRLBuiltInArgument;
 import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
 import org.swrlapi.sqwrl.exceptions.SQWRLException;
@@ -228,23 +232,28 @@ public class OWLOntologyDatabase implements Database {
 
 	@Override
 	public Set<Substitution> query(Query query) throws KRQueryFailedException {
-		Set<Substitution> qresult = new HashSet<Substitution>();
 		SWRLQuery qr = (SWRLQuery) (query);
-
-		System.out.println("QUERYING:::: "+query.toString());
 
 		SWRLTranslator transl = new SWRLTranslator(this.swrlontology,
 				qr.getRule());
+		String querySPARQL = transl.translateToSPARQL();
+
+		return query(querySPARQL);
+	}
+	
+	
+	public Set<Substitution> query(String queryString) throws KRQueryFailedException {
+		Set<Substitution> qresult = new HashSet<Substitution>();
+		System.out.println("QUERYING:::: \n"+queryString.toString());
 
 		try {
 			QueryResult rdfresult = null;
-			String querySPARQL = transl.translateToSPARQL();
 			if (this.shareddb != null && this.shareddb.isOpen()) {
 				System.out.println("Querying shared db:");
-				rdfresult = this.shareddb.query(querySPARQL);
+				rdfresult = this.shareddb.query(queryString);
 			} else if (this.localdb != null && this.localdb.isOpen()) {
 				System.out.println("Querying local db: ");
-				rdfresult = this.localdb.query(querySPARQL);
+				rdfresult = this.localdb.query(queryString);
 			}
 
 			if (rdfresult instanceof TupleQueryResult) {
@@ -306,10 +315,6 @@ public class OWLOntologyDatabase implements Database {
 			insert(formula);
 	}
 
-	public void insert(OWLAxiom axiom) throws KRDatabaseException {
-		manager.addAxiom(owlontology, axiom);
-		allFormulas.add(new SWRLDatabaseFormula(axiom));
-	}
 
 	@Override
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
@@ -386,7 +391,12 @@ public class OWLOntologyDatabase implements Database {
 					.createURI(subjstring.substring(1, subjstring.length() - 1));
 			pred = vf
 					.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-			obj = vf.createURI(predt.toString());
+			String predstring = predt.toString();
+			if (predstring.startsWith("<"))
+				predstring = predstring.substring(1, predstring.length() - 1);
+			else if (predstring.startsWith("owl:"))
+				predstring = "http://www.w3.org/2002/07/owl#"+predstring.substring(4);
+			obj = vf.createURI(predstring);
 		}
 		// binary
 		else if (args.size() == 2) {
@@ -401,56 +411,21 @@ public class OWLOntologyDatabase implements Database {
 					.createURI(predstring.substring(1, predstring.length() - 1));
 			// object
 			SWRLArgument objArg = it.next();
-			String objstring = objArg.toString();
-			System.out.println("OBJSTRING: " + objstring);
-
-			if (!objArg.getIndividualsInSignature().isEmpty()) {
-				// indiivdual
-				obj = vf.createURI(objstring.substring(1,
-						objstring.length() - 1));
-			} else if (!objArg.getDatatypesInSignature().isEmpty()) { // data
-				OWLDatatype dtype = objArg.getDatatypesInSignature().iterator()
-						.next();
-				System.out.println("DATATYPE: " + dtype);
-				objstring = objstring.split("\"")[1];
-				System.out.println("OBJSTRING: " + objstring);
-
-				if (dtype.isString()) {
-					obj = vf.createLiteral(objstring);
-				} else if (dtype.isBoolean()) {
-					boolean b = Boolean.parseBoolean(objstring);
-					obj = vf.createLiteral(b);
-				} else if (dtype.isDouble()) {
-					double d = Double.parseDouble(objstring);
-					obj = vf.createLiteral(d);
-				} else if (dtype.isFloat()) {
-					float f = Float.parseFloat(objstring);
-					obj = vf.createLiteral(f);
-				} else if (dtype.isInteger()) {
-					int i = Integer.parseInt(objstring);
-					obj = vf.createLiteral(i);
-				} else if (dtype.isBuiltIn()) {
-
-				}
-			} else { // without datatype
-				obj = vf.createLiteral(objstring);
-			}
-
-
-// if (objstring.contains("#")) { // individual
-			// if (objstring.startsWith("<") && objstring.endsWith(">"))
-			// objstring = objstring.substring(1, objstring.length() - 1);
-			// obj = vf.createURI(objstring);
-			// } else { // literal
-			// if (objstring.contains("xsd")) {
-			// // we need correct type creation
-			// String type = objstring;
-			// objstring = objstring.split("^^")[0];
-			// if (type.contains("xsd:string"))
-			// obj = vf.createLiteral(objstring);// .substring(1,
-			// // objstring.length()-1));
-			// }
-			// }
+			if (objArg instanceof SWRLVariable){
+				SWRLVariable objv = (SWRLVariable)objArg;
+				obj = vf.createURI(objv.getIRI().toString());
+			}else if (objArg instanceof SWRLIndividualArgument){
+				SWRLIndividualArgument objI = (SWRLIndividualArgument)objArg;
+				obj = vf.createURI(objI.getIndividual().toStringID());
+			}else if (objArg instanceof SWRLLiteralArgument){
+				SWRLLiteralArgument objL = (SWRLLiteralArgument) objArg;
+				obj = vf.createLiteral(objL.getLiteral().getLiteral());
+			}else if (objArg instanceof SWRLBuiltInArgument){
+				SWRLBuiltInArgument objB = (SWRLBuiltInArgument)objArg;
+				//TODO:test
+				obj = vf.createURI(objB.getBoundVariableName());
+			}else
+				obj = vf.createBNode();
 		}
 
 		System.out.println("TRIPLE: "+subj + ", "+pred + ", "+obj);
