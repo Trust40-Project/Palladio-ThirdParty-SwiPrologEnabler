@@ -87,8 +87,8 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public Set<Var> getFreeVar() {
-		List<jpl.Variable> jplvars = new ArrayList<jpl.Variable>(JPLUtils.getFreeVar(getTerm()));
-		Set<Var> variables = new LinkedHashSet<Var>();
+		List<jpl.Variable> jplvars = new ArrayList<>(JPLUtils.getFreeVar(getTerm()));
+		Set<Var> variables = new LinkedHashSet<>(jplvars.size());
 		// Build VariableTerm from jpl.Variable.
 		for (jpl.Variable var : jplvars) {
 			variables.add(new PrologVar(var, getSourceInfo()));

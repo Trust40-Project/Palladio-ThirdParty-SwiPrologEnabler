@@ -89,7 +89,7 @@ public class ListTest {
 	private String parsedList2String(String... items) {
 		String itemstring = "";
 		if (items.length > 0) {
-			ArrayList<String> array = new ArrayList<String>();
+			List<String> array = new ArrayList<>(items.length);
 			for (String item : items) {
 				array.add(item);
 			}

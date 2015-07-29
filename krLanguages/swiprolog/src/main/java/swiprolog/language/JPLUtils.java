@@ -20,6 +20,7 @@ package swiprolog.language;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -233,7 +234,7 @@ public class JPLUtils {
 	 *         conflict)
 	 */
 	protected static Map<String, Term> combineSubstitutions(Map<String, Term> thissubst, Map<String, Term> othersubst) {
-		Map<String, Term> combination = new Hashtable<String, Term>();
+		Map<String, Term> combination = new Hashtable<>();
 
 		// Combining with {@code null}, i.e., failure, yields a failure {@code
 		// null}.
@@ -302,8 +303,7 @@ public class JPLUtils {
 	 * @return A list of operands.
 	 */
 	public static List<jpl.Term> getOperands(String operator, jpl.Term term) {
-		List<jpl.Term> list = new ArrayList<jpl.Term>();
-
+		List<jpl.Term> list = new LinkedList<>();
 		if (term.isCompound() && term.name().equals(operator) && term.arity() == 2) {
 			list.add(term.arg(1));
 			list.addAll(getOperands(operator, term.arg(2)));
@@ -387,7 +387,7 @@ public class JPLUtils {
 	public static int hashCode(jpl.Term term) {
 		if (term instanceof jpl.Compound) {
 			jpl.Compound compound = (jpl.Compound) term;
-			ArrayList<Integer> args = new ArrayList<Integer>();
+			List<Integer> args = new ArrayList<>(compound.arity() + 1);
 			args.add(compound.name().hashCode());
 			for (int i = 1; i <= compound.arity(); i++) {
 				args.add(hashCode(compound.arg(i)));
@@ -658,7 +658,7 @@ public class JPLUtils {
 	 * @return mgu, or null if no mgu exists.
 	 */
 	public static Map<String, Term> mgu(jpl.Term x, jpl.Term y) {
-		return unify(x, y, new HashMap<String, Term>());
+		return unify(x, y, new HashMap<String, Term>(0));
 	}
 
 	/**

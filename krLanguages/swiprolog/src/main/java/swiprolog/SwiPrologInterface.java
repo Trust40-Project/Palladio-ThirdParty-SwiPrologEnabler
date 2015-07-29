@@ -59,7 +59,7 @@ public final class SwiPrologInterface implements KRInterface {
 	 * that agent. An owner that has no associated databases should be removed
 	 * from the map.
 	 */
-	private Map<String, PrologDatabase> databases = new HashMap<String, PrologDatabase>();
+	private Map<String, PrologDatabase> databases = new HashMap<>();
 
 	/**
 	 * Creates new inference engine and empty set of databases.
@@ -151,7 +151,7 @@ public final class SwiPrologInterface implements KRInterface {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
 		}
-		this.databases = new HashMap<String, PrologDatabase>();
+		this.databases = new HashMap<>();
 	}
 
 	@Override

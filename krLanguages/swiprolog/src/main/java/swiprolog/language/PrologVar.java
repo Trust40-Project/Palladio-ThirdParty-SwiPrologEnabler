@@ -69,7 +69,7 @@ public class PrologVar extends PrologTerm implements Var {
 
 	@Override
 	public Set<Var> getFreeVar() {
-		LinkedHashSet<Var> set = new LinkedHashSet<Var>();
+		LinkedHashSet<Var> set = new LinkedHashSet<>(1);
 		set.add(this);
 		return set;
 	}

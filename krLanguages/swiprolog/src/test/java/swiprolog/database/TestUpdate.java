@@ -55,8 +55,8 @@ public class TestUpdate {
 	@Before
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
-		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
+		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>(0));
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0));
 	}
 
 	@After

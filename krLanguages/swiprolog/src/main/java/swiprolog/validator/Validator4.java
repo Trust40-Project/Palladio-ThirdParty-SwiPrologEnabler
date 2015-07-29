@@ -51,8 +51,7 @@ import swiprolog.visitor.Visitor4;
  */
 public class Validator4 {
 	private final Visitor4 visitor;
-
-	private final List<ParserException> errors = new ArrayList<ParserException>();
+	private final List<ParserException> errors = new LinkedList<>();
 
 	/**
 	 * @param visitor
@@ -84,7 +83,7 @@ public class Validator4 {
 	 */
 	public List<DatabaseFormula> program() throws ParserException {
 		List<PrologTerm> prologTerms = this.visitor.visitPrologtext();
-		List<DatabaseFormula> dbfs = new ArrayList<DatabaseFormula>(prologTerms.size());
+		List<DatabaseFormula> dbfs = new LinkedList<>();
 		for (PrologTerm t : prologTerms) {
 			try {
 				dbfs.add(SemanticTools.DBFormula(t));
@@ -101,10 +100,9 @@ public class Validator4 {
 	 * @return List<Query>, or {@code null} if a parser error occurs.
 	 */
 	public List<Query> goalSection() throws ParserException {
-		List<Query> goals = new LinkedList<Query>();
+		List<Query> goals = new LinkedList<>();
 		for (PrologTerm t : this.visitor.visitPrologtext()) {
 			// check that each term is a valid Prolog goal / query
-
 			try {
 				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(), t.getSourceInfo()), t.getSourceInfo()));
 			} catch (ParserException e) {
@@ -157,9 +155,8 @@ public class Validator4 {
 	public List<Term> terms() throws ParserException {
 		PrologTerm t = this.visitor.visitTerm1000();
 		List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
-		List<Term> terms = new ArrayList<Term>(original.size());
+		List<Term> terms = new ArrayList<>(original.size());
 		for (jpl.Term term : original) {
-
 			if (term instanceof jpl.Variable) {
 				terms.add(new PrologVar((jpl.Variable) term, t.getSourceInfo()));
 			} else {

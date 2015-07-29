@@ -39,7 +39,7 @@ public class TestPrologSubstitution {
 	 */
 	@Test
 	public void testSubstitution() {
-		Hashtable<String, Term> solution = new Hashtable<String, Term>();
+		Hashtable<String, Term> solution = new Hashtable<>(2);
 
 		Variable Y = new Variable("Y");
 		Variable Z = new Variable("Z");
@@ -60,7 +60,7 @@ public class TestPrologSubstitution {
 
 	@Test
 	public void testToString() {
-		Hashtable<String, Term> solution = new Hashtable<String, Term>();
+		Hashtable<String, Term> solution = new Hashtable<>(3);
 		PrologSubstitution substitution1 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertTrue(substitution1.getJPLSolution().isEmpty());
 

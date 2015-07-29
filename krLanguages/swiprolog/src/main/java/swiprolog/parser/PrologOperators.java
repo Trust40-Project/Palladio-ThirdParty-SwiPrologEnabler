@@ -64,8 +64,8 @@ public final class PrologOperators {
 	public static final Set<String> PROTECTED_OPS;
 
 	static {
-		OP_PRIOS = new HashMap<String, Integer>();
-		OPERATOR_SPECS = new Hashtable<String, PrologOperators.Fixity>();
+		OP_PRIOS = new HashMap<>();
+		OPERATOR_SPECS = new Hashtable<>();
 		OP_PRIOS.put(":/2", 50);
 		OPERATOR_SPECS.put(":/1", Fixity.XFX);
 		OP_PRIOS.put("@/1", 100);
@@ -665,7 +665,7 @@ public final class PrologOperators {
 
 	static {
 		// restrict clause creation: ISO section 8.9
-		PROTECTED_OPS = new HashSet<String>();
+		PROTECTED_OPS = new HashSet<>();
 		PROTECTED_OPS.add("assert");
 		PROTECTED_OPS.add("asserta");
 		PROTECTED_OPS.add("assertz");

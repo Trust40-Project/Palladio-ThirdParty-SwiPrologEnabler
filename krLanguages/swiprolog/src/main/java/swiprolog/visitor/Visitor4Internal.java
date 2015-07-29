@@ -71,7 +71,7 @@ import swiprolog.parser.SourceInfoObject;
  */
 public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	private final SourceInfo source;
-	private final List<ParserException> errors = new ArrayList<ParserException>();
+	private final List<ParserException> errors = new LinkedList<>();
 
 	/**
 	 * @param source
@@ -190,7 +190,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	@Override
 	public List<PrologTerm> visitPrologtext(PrologtextContext ctx) {
-		List<PrologTerm> clauses = new LinkedList<PrologTerm>();
+		List<PrologTerm> clauses = new ArrayList<>(ctx.directiveorclause().size());
 		for (DirectiveorclauseContext d : ctx.directiveorclause()) {
 			clauses.add(visitDirectiveorclause(d));
 		}
@@ -220,7 +220,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	@Override
 	public List<PrologTerm> visitArglist(ArglistContext ctx) {
-		List<PrologTerm> arglist = new LinkedList<PrologTerm>();
+		List<PrologTerm> arglist = new LinkedList<>();
 		arglist.add(visitExpression(ctx.expression()));
 		if (ctx.arglist() != null) {
 			// we DO have a comma and more arguments
@@ -342,7 +342,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			} else {
 				List<PrologTerm> a = visitArglist(args);
 				// functor with arguments
-				List<jpl.Term> terms = new ArrayList<jpl.Term>(a.size());
+				List<jpl.Term> terms = new ArrayList<>(a.size());
 				for (PrologTerm pterm : a) {
 					terms.add(pterm.getTerm());
 				}

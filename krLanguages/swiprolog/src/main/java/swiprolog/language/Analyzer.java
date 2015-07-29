@@ -17,7 +17,6 @@
 
 package swiprolog.language;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -40,11 +39,11 @@ public class Analyzer {
 	/**
 	 * Map of definitions.
 	 */
-	private final Map<String, List<PrologDBFormula>> definitions = new LinkedHashMap<String, List<PrologDBFormula>>();
+	private final Map<String, List<PrologDBFormula>> definitions = new LinkedHashMap<>();
 	/**
 	 * Map of queries.
 	 */
-	private final Map<String, List<PrologQuery>> used = new LinkedHashMap<String, List<PrologQuery>>();
+	private final Map<String, List<PrologQuery>> used = new LinkedHashMap<>();
 	/**
 	 * Input
 	 */
@@ -124,7 +123,7 @@ public class Analyzer {
 			if (this.definitions.containsKey(headSig)) {
 				formulas = this.definitions.get(headSig);
 			} else {
-				formulas = new ArrayList<>();
+				formulas = new LinkedList<>();
 			}
 			formulas.add(new PrologDBFormula(headTerm, formula.getSourceInfo()));
 			this.definitions.put(headSig, formulas);

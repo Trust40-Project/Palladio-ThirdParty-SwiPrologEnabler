@@ -17,7 +17,7 @@
 
 package swiprolog.dependency;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import jpl.Compound;
@@ -110,19 +110,17 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 *         already existing nodes).
 	 */
 	private List<Node<PrologTerm>> addTerm(jpl.Term prologTerm, SourceInfo source, boolean defined, boolean queried) {
-		List<Node<PrologTerm>> nodes = new ArrayList<Node<PrologTerm>>();
-		Node<PrologTerm> node;
-		String signature;
+		List<Node<PrologTerm>> nodes = new LinkedList<>();
 
 		// Unpack the term if needed (if so, we're handling a query).
 		List<jpl.Term> terms = unpack(prologTerm);
 
 		for (jpl.Term term : terms) {
-			signature = term.name() + "/" + term.arity();
+			String signature = term.name() + "/" + term.arity();
 			// Ignore built-in operators of Prolog as well as reserved GOAL
 			// operators.
 			if (!reserved(signature)) {
-				node = super.graph.get(signature);
+				Node<PrologTerm> node = super.graph.get(signature);
 				if (node == null) {
 					node = new Node<PrologTerm>(signature);
 					super.graph.put(signature, node);
@@ -136,6 +134,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 				nodes.add(node);
 			}
 		}
+
 		return nodes;
 	}
 
@@ -155,7 +154,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 */
 	private List<jpl.Term> unpack(jpl.Term term) {
 		String signature = term.name() + "/" + term.arity();
-		List<jpl.Term> terms = new ArrayList<jpl.Term>();
+		List<jpl.Term> terms = new LinkedList<>();
 
 		// If we need to unpack the operators below, we're dealing with a query.
 		if (signature.equals("not/1")) {

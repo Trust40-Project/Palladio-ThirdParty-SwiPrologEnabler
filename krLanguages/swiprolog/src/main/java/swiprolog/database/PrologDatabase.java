@@ -123,7 +123,7 @@ public class PrologDatabase implements Database {
 	 */
 	@Override
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
-		Set<Substitution> substSet = new LinkedHashSet<Substitution>();
+		Set<Substitution> substSet = new LinkedHashSet<>();
 		jpl.Term query = ((PrologQuery) pQuery).getTerm();
 		jpl.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
 		// We need to create conjunctive query with "true" as first conjunct and
@@ -308,7 +308,7 @@ public class PrologDatabase implements Database {
 		}
 
 		// Convert to PrologSubstitution.
-		LinkedHashSet<PrologSubstitution> substitutions = new LinkedHashSet<PrologSubstitution>();
+		Set<PrologSubstitution> substitutions = new LinkedHashSet<>(solutions.length);
 		for (Hashtable<String, jpl.Term> solution : solutions) {
 			substitutions.add(PrologSubstitution.getSubstitutionOrNull(solution));
 		}

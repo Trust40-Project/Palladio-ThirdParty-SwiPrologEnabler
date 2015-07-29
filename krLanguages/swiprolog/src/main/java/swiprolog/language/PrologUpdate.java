@@ -18,6 +18,7 @@
 package swiprolog.language;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,12 +36,12 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 * List of literals that occur positively in the term used to construct this
 	 * update.
 	 */
-	private List<DatabaseFormula> positiveLiterals = new ArrayList<DatabaseFormula>();
+	private List<DatabaseFormula> positiveLiterals = new LinkedList<>();
 	/**
 	 * List of literals that occur negated in the term used to construct this
 	 * update.
 	 */
-	private List<DatabaseFormula> negativeLiterals = new ArrayList<DatabaseFormula>();
+	private List<DatabaseFormula> negativeLiterals = new LinkedList<>();
 
 	/**
 	 * Creates a Prolog {@link Update}.
@@ -97,15 +98,14 @@ public class PrologUpdate extends PrologExpression implements Update {
 	@Override
 	public PrologUpdate applySubst(Substitution s) {
 		Map<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
-
 		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
-		PrologUpdate update = new PrologUpdate(term, getSourceInfo());
-		update.positiveLiterals = new ArrayList<DatabaseFormula>();
-		update.negativeLiterals = new ArrayList<DatabaseFormula>();
 
+		PrologUpdate update = new PrologUpdate(term, getSourceInfo());
+		update.positiveLiterals = new ArrayList<>(this.positiveLiterals.size());
 		for (DatabaseFormula formula : this.positiveLiterals) {
 			update.positiveLiterals.add(formula.applySubst(s));
 		}
+		update.negativeLiterals = new ArrayList<>(this.negativeLiterals.size());
 		for (DatabaseFormula formula : this.negativeLiterals) {
 			update.negativeLiterals.add(formula.applySubst(s));
 		}

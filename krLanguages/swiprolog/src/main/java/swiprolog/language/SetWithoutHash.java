@@ -1,8 +1,9 @@
 package swiprolog.language;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Set;
  *            the type of the set elements.
  */
 public class SetWithoutHash<T> implements Set<T> {
-	private final ArrayList<T> set = new ArrayList<T>();
+	private final List<T> set = new LinkedList<>();
 
 	@Override
 	public int size() {

@@ -57,7 +57,7 @@ public class Theory {
 	 *            A collection of formulas to set the theory's initial content.
 	 */
 	public Theory(Collection<DatabaseFormula> formulas) {
-		this.content = (formulas == null) ? new LinkedHashSet<DatabaseFormula>() : new LinkedHashSet<>(formulas);
+		this.content = (formulas == null) ? new LinkedHashSet<DatabaseFormula>(0) : new LinkedHashSet<>(formulas);
 	}
 
 	/**
