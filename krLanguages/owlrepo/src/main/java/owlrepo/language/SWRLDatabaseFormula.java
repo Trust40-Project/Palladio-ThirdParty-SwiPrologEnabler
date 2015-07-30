@@ -27,7 +27,22 @@ public class SWRLDatabaseFormula extends SWRLExpression implements
 	public SWRLDatabaseFormula(SWRLArgument arg) {
 		super(arg);
 	}
+	
+	public SWRLDatabaseFormula addNamedGraph(String id){
+		
+		//TODO
+		return this;
+	}
+	
+	public SWRLDatabaseFormula removeNamedGraph(){
+		//TODO
+		return this;
+	}
 
+	public String getNamedGraph(){
+		//TODO
+		return "";
+	}
 	/**
 	 * Applies a substitution to the term, i.e., instantiates free variables
 	 * that are bound to a term in the substitution by that term (or, only

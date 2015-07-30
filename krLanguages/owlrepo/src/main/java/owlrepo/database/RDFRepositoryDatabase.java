@@ -158,8 +158,8 @@ public class RDFRepositoryDatabase {
 		return false;
 	}
 	
-	public RepositoryResult<Statement> getTriples() throws RepositoryException{
-		return nconn.getStatements(null, null, null, false, null);
+	public RepositoryResult<Statement> getTriples(Resource... context) throws RepositoryException{
+		return nconn.getStatements(null, null, null, false, context);
 	}
 	
 	public ValueFactory getValueFactory(){
@@ -204,25 +204,25 @@ public class RDFRepositoryDatabase {
 		return new BooleanQueryResultImpl(result);
 	}
 
-	public void insert(Collection<Statement> stms){
+	public void insert(Collection<Statement> stms, Resource... resource){
 		try {
 			//nconn.begin();
 			if (!conn.isOpen())
 				conn.begin();
-			conn.add(stms, (Resource) null);
+			conn.add(stms, resource);
 			conn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void delete(Collection<Statement> stms){
+	public void delete(Collection<Statement> stms, Resource... resource){
 		
 		try {
 			//nconn.begin();
 			if (!conn.isOpen())
 				conn.begin();
-			conn.remove(stms, (Resource) null);
+			conn.remove(stms, resource);
 			conn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();

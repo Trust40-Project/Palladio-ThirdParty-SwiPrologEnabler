@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import krTools.database.Database;
@@ -23,6 +25,7 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryResult;
 import org.openrdf.query.TupleQueryResult;
@@ -91,8 +94,10 @@ public class OWLOntologyDatabase implements Database {
 	// private SWRLAPIRenderer renderer;
 	private DefaultPrefixManager prefixManager;
 
-	private Set<DatabaseFormula> allFormulas = new HashSet<DatabaseFormula>();
+	private Map<String, Set<DatabaseFormula>> allFormulas = new HashMap<String,  Set<DatabaseFormula>>();
 
+	private ValueFactory vfactory;
+	
 	public OWLOntologyDatabase(String name, File file)
 			throws KRDatabaseException {
 		this.name = name;
@@ -116,6 +121,7 @@ public class OWLOntologyDatabase implements Database {
 		}
 		// reasoner = reasonerFactory.createReasoner(owlontology);
 		owlfactory = manager.getOWLDataFactory();
+		vfactory = new ValueFactoryImpl();
 
 		// create prefix manager
 		OWLOntologyID ontoId = owlontology.getOntologyID();
@@ -157,31 +163,13 @@ public class OWLOntologyDatabase implements Database {
 
 	}
 
-	public Set<DatabaseFormula> getAllDBFormulas() {
-		return this.allFormulas;
+	public Set<DatabaseFormula> getAllDBFormulas(String id) {	
+		if (!this.allFormulas.containsKey(id))
+			this.allFormulas.put(id, new HashSet<DatabaseFormula>());
+		return this.allFormulas.get(id);	 
 	}
 
-	public Set<OWLAxiom> getAllOWLAxioms() {
-		Set<OWLAxiom> allAxioms = new HashSet<OWLAxiom>();
-		for (OWLAxiom axiom : owlontology.getABoxAxioms(Imports.EXCLUDED)) {
-			allAxioms.add(axiom);
-			// System.out.println(axiom);
-		}
-		// for (OWLAxiom axiom : owlontology.getTBoxAxioms(null)) {
-		// allAxioms.add(axiom);
-		// // System.out.println(axiom);
-		// }
-		// for (OWLAxiom axiom : owlontology.getRBoxAxioms(null)) {
-		// allAxioms.add(axiom);
-		// // System.out.println(axiom);
-		// }
-		// for (SWRLRule rule : swrlontology.getSWRLAPIRules()) {
-		// allAxioms.add(rule);
-		// // System.out.println(rule);
-		// }
-		return allAxioms;
-	}
-
+	
 	public void setupRepo(URL repoUrl) throws KRDatabaseException {
 		// set up RDF repository = triple store local + shared
 
@@ -228,14 +216,18 @@ public class OWLOntologyDatabase implements Database {
 	public String getName() {
 		return this.name;
 	}
-
+	
+	
 	@Override
 	public Set<Substitution> query(Query query) throws KRQueryFailedException {
 		SWRLQuery qr = (SWRLQuery) (query);
-
+		//get and remove named graph
+		String id = qr.getNamedGraph();
+		qr = qr.removeNamedGraph();
+		//translate
 		SWRLTranslator transl = new SWRLTranslator(this.swrlontology,
 				qr.getRule());
-		String querySPARQL = transl.translateToSPARQL();
+		String querySPARQL = transl.translateToSPARQL(id);
 
 		return query(querySPARQL);
 	}
@@ -329,15 +321,25 @@ public class OWLOntologyDatabase implements Database {
 
 	@Override
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
-		this.allFormulas.add(formula);
 		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
+		//get and remove named graph
+		String id = form.getNamedGraph();
+		form = form.removeNamedGraph();
+		if (!this.allFormulas.containsKey(id))
+			this.allFormulas.put(id, new HashSet<DatabaseFormula>());
+		this.allFormulas.get(id).add(form);
+
 		OWLAxiom axiom = form.getAxiom();
 		manager.addAxiom(owlontology, axiom);
 		Collection<Statement> statements = formulaToStatements(formula);
 		
 		// for (Statement st : statements)
-		System.out.println("\nINSERTING::: " + formula);
-		insert(statements);
+		System.out.println("\nINSERTING::: " + formula + " into "+ id);
+		insert(statements, getResource(id));
+	}
+	
+	private Resource getResource(String id){
+		return vfactory.createURI("http://ii.tudelft.nl/goal#"+id);
 	}
 
 	private Collection<Statement> formulaToStatements(DatabaseFormula formula) throws KRDatabaseException{
@@ -452,44 +454,44 @@ public class OWLOntologyDatabase implements Database {
 		return new SWRLDatabaseFormula(rule);
 	}
 
-	public void insert(Collection<Statement> statements) {
+	public void insert(Collection<Statement> statements, Resource...resources) {
 		if (SHARED_MODE){
-			insertShared(statements);
+			insertShared(statements, resources);
 		}else
-			insertLocal(statements);
+			insertLocal(statements, resources);
 	}
 
-	private void insertLocal(Collection<Statement> statements) {
+	private void insertLocal(Collection<Statement> statements, Resource...resources) {
 		// System.out.println("Inserting into local");
 		if (localdb != null && localdb.isOpen())
-			localdb.insert(statements);
+			localdb.insert(statements, resources);
 	}
 	
 
-	private void insertShared(Collection<Statement> statements) {
+	private void insertShared(Collection<Statement> statements, Resource...resources) {
 		// System.out.println("Inserting into shared");
 		if (shareddb != null && shareddb.isOpen())
-			shareddb.insert(statements);
+			shareddb.insert(statements, resources);
 	}
 	
 
-	public void delete(Collection<Statement> statements) {
+	public void delete(Collection<Statement> statements, Resource...resources) {
 		if (SHARED_MODE){
-			deleteShared(statements);
+			deleteShared(statements, resources);
 		}else
-			deleteLocal(statements);
+			deleteLocal(statements, resources);
 	}
 	
-	private void deleteLocal(Collection<Statement> statements) {
+	private void deleteLocal(Collection<Statement> statements, Resource...resources) {
 		// System.out.println("Inserting into local");
 		if (localdb != null && localdb.isOpen())
-			localdb.delete(statements);
+			localdb.delete(statements, resources);
 	}
 
-	private void deleteShared(Collection<Statement> statements) {
+	private void deleteShared(Collection<Statement> statements, Resource...resources) {
 		// System.out.println("Inserting into shared");
 		if (shareddb != null && shareddb.isOpen())
-			shareddb.delete(statements);
+			shareddb.delete(statements, resources);
 	}
 
 	@Override
@@ -516,15 +518,21 @@ public class OWLOntologyDatabase implements Database {
 
 	@Override
 	public void delete(DatabaseFormula formula) throws KRDatabaseException {
-		allFormulas.remove(formula);
 		SWRLDatabaseFormula form = (SWRLDatabaseFormula) (formula);
 		OWLAxiom axiom = form.getAxiom();
 		manager.removeAxiom(owlontology, axiom);
-	//	Collection<Statement> statements = formulaToStatements(formula);
 		
+		//get and remove named graph
+		String id = form.getNamedGraph();
+		form = form.removeNamedGraph();
+				
+		if (this.allFormulas.containsKey(id))
+			this.allFormulas.get(id).remove(form);
+		
+		Collection<Statement> statements = formulaToStatements(formula);
 		// for (Statement st : statements)
-		System.out.println("\nDELETING::: " + formula);
-	//	delete(statements);
+		System.out.println("\nDELETING::: " + formula + " from "+id);
+		delete(statements, getResource(id));
 	}
 
 	@Override
@@ -548,6 +556,12 @@ public class OWLOntologyDatabase implements Database {
 		return false;
 	}
 
+	public void destroy(String id) throws KRDatabaseException {
+	//TODO
+		//remove everything in RDF graph <id>
+		
+	}
+	
 	@Override
 	public void destroy() throws KRDatabaseException {
 		manager.removeOntology(owlontology);

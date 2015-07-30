@@ -37,6 +37,21 @@ public class SWRLQuery extends SWRLExpression implements Query {
 		super(arg);
 	}
 
+	public SWRLQuery addNamedGraph(String id){
+		//TODO
+		return this;
+	}
+	
+	public SWRLQuery removeNamedGraph(){
+		//TODO
+		return this;
+	}
+	
+	public String getNamedGraph(){
+		//TODO
+		return "";
+	}
+	
 	/**
 	 * used only for creating a query out of an undefined term string that the
 	 * parser could not parse (not in ontology) used only by

@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +35,7 @@ import owlrepo.parser.SWRLParser;
 
 public class OWLRepoKRInterface implements KRInterface {
 	OWLOntologyDatabase database = null;
+	Map<String, OWLOntologyDatabase> databases = new HashMap<String, OWLOntologyDatabase>();
 	File owlfile = null;
 	URL repoUrl = null;
 	List<RDFFormat> formats = null;
@@ -65,26 +67,34 @@ public class OWLRepoKRInterface implements KRInterface {
 			throws KRInitFailedException {
 		// create a database with the initializing ontology
 		// if (database == null) {
+		if (databases.containsKey(name))
+			return databases.get(name);
+		else {
 			try {
 				if (file == null) {
 					// database = (OWLOntologyDatabase) getDatabase(new HashSet<DatabaseFormula>());
 					throw new KRDatabaseException(
 							"Creation of OWL parser needs an OWL file set to the Interface");
 				} else {
-					database = new OWLOntologyDatabase(name,
-							file);
-					if (!name.equals("parser")) //in case it is needed for parser, do not set up real triplestores
+					database = new OWLOntologyDatabase(name, file);
+					if (!name.equals("parser")) {
+						//in case it is needed for parser, do not set up real triplestores
 						database.setupRepo(repoUrl);
+						//put it in our database map
+						databases.put(name, database);
+					}
+					return database;
 				}
 			} catch (KRDatabaseException e) {
 				throw new KRInitFailedException(e.getMessage(), e.getCause());
 			}
-		// }
-		return database;
+		 }
 	}
 
 	public void release() throws KRDatabaseException {
-		database.destroy();
+		for (String dbname : databases.keySet())
+			databases.get(dbname).destroy();
+		databases.clear();
 	}
 
 	public Database getDatabase(String name, Collection<DatabaseFormula> content)
@@ -96,10 +106,6 @@ public class OWLRepoKRInterface implements KRInterface {
 			throw new KRDatabaseException(
 					"Failed to create OWL Ontology Database", e);
 		}
-		// Add database to list of databases maintained by OWL Repo and
-		// associated with name.
-		// databases.put(database.getName(), database);
-
 		// Return new database.
 		return database;
 	}

@@ -295,15 +295,15 @@ public class SWRLExpression implements Expression {
 		// construct new term to be returned, because we cannot change the
 		// existing one
 		SWRLAtom newatom = null;
-		if (atom instanceof SWRLClassAtom) // class
+		if (atom instanceof SWRLClassAtom && newArgs.size()==1) // class
 			newatom = df.getSWRLClassAtom((OWLClassExpression) predicate,
 					(SWRLIArgument) newArgs.get(0));
-		else if (atom instanceof SWRLDataPropertyAtom) // data property
+		else if (atom instanceof SWRLDataPropertyAtom && newArgs.size()==2) // data property
 			newatom = df.getSWRLDataPropertyAtom(
 					(OWLDataPropertyExpression) predicate,
 					(SWRLIArgument) newArgs.get(0),
 					(SWRLDArgument) newArgs.get(1));
-		else if (atom instanceof SWRLObjectPropertyAtom) // object property
+		else if (atom instanceof SWRLObjectPropertyAtom && newArgs.size()==2) // object property
 			newatom = df.getSWRLObjectPropertyAtom(
 					(OWLObjectPropertyExpression) predicate,
 					(SWRLIArgument) newArgs.get(0),
