@@ -270,9 +270,9 @@ public class RDFRepositoryDatabase {
 	public void shutdown(){
 		try {
 		//	conn.close();
-			nconn.close();
+			conn.close();
 		//	repo.shutDown();
-			nrepo.shutDown();
+			repo.shutDown();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}
