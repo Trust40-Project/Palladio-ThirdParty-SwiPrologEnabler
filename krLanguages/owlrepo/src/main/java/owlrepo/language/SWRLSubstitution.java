@@ -33,13 +33,14 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
  *
  */
 public class SWRLSubstitution implements Substitution {
-	HashMap<SWRLVariable, SWRLArgument> substitutions;
-	Set<SWRLVariable> variables;
+	HashMap<SWRLVar, SWRLTerm> substitutions;
+
+	Set<SWRLVar> variables;
 	OWLDataFactory df;
 
 	public SWRLSubstitution() {
-		substitutions = new HashMap<SWRLVariable, SWRLArgument>();
-		variables = new HashSet<SWRLVariable>();
+		substitutions = new HashMap<SWRLVar, SWRLTerm>();
+		variables = new HashSet<SWRLVar>();
 		df = new OWLDataFactoryImpl();
 	}
 
@@ -50,8 +51,8 @@ public class SWRLSubstitution implements Substitution {
 			Iterator<Var> it = vars.iterator();
 			while (it.hasNext()) {
 				Var v = it.next();
-				SWRLVariable var = ((SWRLVar) v).getVar();
-				SWRLArgument atom = ((SWRLTerm) map.get(v)).getArgument();
+				SWRLVar var = (SWRLVar) v;
+				SWRLTerm atom = (SWRLTerm) map.get(v);
 				substitutions.put(var, atom);
 			}
 			variables = substitutions.keySet();
@@ -59,6 +60,14 @@ public class SWRLSubstitution implements Substitution {
 	}
 
 	public SWRLSubstitution(SWRLVariable var, SWRLArgument value) {
+		this();
+		SWRLVar nvar = new SWRLVar(var);
+		variables.add(nvar);
+		substitutions.put(nvar, new SWRLTerm(value));
+
+	}
+
+	public SWRLSubstitution(SWRLVar var, SWRLTerm value) {
 		this();
 		variables.add(var);
 		substitutions.put(var, value);
@@ -68,20 +77,23 @@ public class SWRLSubstitution implements Substitution {
 	public SWRLSubstitution(SWRLVariable var, SQWRLResultValue resultvalue) {
 		this();
 		try {
-			variables.add(var);
-
+			SWRLVar nvar = new SWRLVar(var);
+			variables.add(nvar);
 			if (resultvalue.isLiteral()) {
 				SQWRLLiteralResultValue literalvalue = resultvalue
 						.asLiteralResult();
 				OWLLiteral lit = literalvalue.getOWLLiteral();
 				// boolean value = literalvalue.getBoolean();
-				substitutions.put(var, df.getSWRLLiteralArgument(lit));
+				substitutions.put(nvar,
+						new SWRLTerm(df.getSWRLLiteralArgument(lit)));
 			} else if (resultvalue.isEntity()) {
 				SQWRLEntityResultValue entityvalue = resultvalue
 						.asEntityResult();
 				IRI value = entityvalue.getIRI();
-				substitutions.put(var, df.getSWRLIndividualArgument(df
-						.getOWLNamedIndividual(value)));
+				substitutions.put(
+						nvar,
+						new SWRLTerm(df.getSWRLIndividualArgument(df
+								.getOWLNamedIndividual(value))));
 			}
 			// {
 			// SQWRLClassResultValue classvalue = value.asClassResult();
@@ -111,53 +123,54 @@ public class SWRLSubstitution implements Substitution {
 	}
 
 	public void addSWRLSubstitution(SWRLVariable var, SWRLArgument atom) {
+		substitutions.put(new SWRLVar(var), new SWRLTerm(atom));
+		variables = substitutions.keySet();
+	}
+
+	public void addSWRLSubstitution(SWRLVar var, SWRLTerm atom) {
 		substitutions.put(var, atom);
 		variables = substitutions.keySet();
 	}
 
 	public void addSWRLSubstitution(SWRLSubstitution subst) {
-		for (SWRLVariable var : subst.getSWRLVariables()) {
-			SWRLArgument arg = subst.getSWRLArgument(var);
+		for (SWRLVar var : subst.getSWRLVariables()) {
+			SWRLTerm arg = subst.getSWRLTerm(var);
 			substitutions.put(var, arg);
 		}
 		variables = substitutions.keySet();
 	}
 
-	public SWRLArgument getSWRLArgument(SWRLVariable var) {
+	public SWRLTerm getSWRLTerm(SWRLVar var) {
 		return substitutions.get(var);
 	}
 
 	@Override
 	public Set<Var> getVariables() {
 		HashSet<Var> newvars = new HashSet<Var>();
-		Iterator<SWRLVariable> it = variables.iterator();
+		Iterator<SWRLVar> it = variables.iterator();
 		while (it.hasNext()) {
-			newvars.add(new SWRLVar(it.next()));
+			newvars.add(it.next());
 		}
 		return newvars;
 	}
 
-	public Set<SWRLVariable> getSWRLVariables() {
+	public Set<SWRLVar> getSWRLVariables() {
 		return variables;
 	}
 
 	@Override
 	public Term get(Var var) {
 		// check if needs an if and return null or does automatically
-		SWRLVariable v = ((SWRLVar) var).getVar();
-		SWRLArgument arg = substitutions.get(v);
-		if (arg != null)
-			return new SWRLTerm(arg);
+		SWRLVar v = ((SWRLVar) var);
+		SWRLTerm term = substitutions.get(v);
+		if (term != null)
+			return term;
 		return null;
 	}
 
-	public SWRLArgument getSWRLArgument(Var var) {
+	public SWRLTerm getSWRLTerm(Var var) {
 		// check if needs an if and return null or does automatically
-		SWRLVariable v = ((SWRLVar) var).getVar();
-		SWRLArgument arg = substitutions.get(v);
-		if (arg != null)
-			return (arg);
-		return null;
+		return (SWRLTerm) get(var);
 	}
 
 	@Override
@@ -165,12 +178,14 @@ public class SWRLSubstitution implements Substitution {
 		SWRLVar nvar = (SWRLVar) var;
 		SWRLTerm nterm = (SWRLTerm) term;
 		if (!substitutions.containsKey(nvar) && (nterm instanceof SWRLArgument))
-			substitutions.put(nvar.getVar(), nterm.getArgument());
+			substitutions.put(nvar, nterm);
 	}
 
 	@Override
 	public Substitution combine(Substitution substitution) {
 		// TODO Auto-generated method stub
+		System.out.println("TRYING TO COMBINE SUBSTITUTIONS FAILED: "
+				+ this.toString() + " + " + substitution.toString());
 		return null;
 	}
 

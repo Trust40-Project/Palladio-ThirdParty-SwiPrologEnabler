@@ -176,7 +176,7 @@ public class SWRLTranslator {
 		}
 		SPARQLquery = SPARQLquery + SPARQLfilter +  "}";
 
-		System.out.println(SPARQLquery);
+		// System.out.println(SPARQLquery);
 		return SPARQLquery;
 	}
 	

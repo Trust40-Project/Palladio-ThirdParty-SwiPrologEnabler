@@ -33,7 +33,6 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -252,7 +251,7 @@ public class OWLOntologyDatabase implements Database {
 	
 	public Set<Substitution> query(String queryString) throws KRQueryFailedException {
 		Set<Substitution> qresult = new HashSet<Substitution>();
-		System.out.println("QUERYING:::: \n"+queryString.toString());
+		System.out.println("\nQUERYING:::: \n" + queryString.toString());
 
 		try {
 			QueryResult rdfresult = null;
@@ -307,7 +306,7 @@ public class OWLOntologyDatabase implements Database {
 	}
 	
 	public void queryUpdate(String queryString) throws KRQueryFailedException {
-		System.out.println("QUERYING:::: \n"+queryString.toString());
+		System.out.println("\nQUERYING:::: \n" + queryString.toString());
 		try {
 			getCurrentDb().update(queryString);
 		} catch (Exception e) {
@@ -337,7 +336,7 @@ public class OWLOntologyDatabase implements Database {
 		Collection<Statement> statements = formulaToStatements(formula);
 		
 		// for (Statement st : statements)
-		System.out.println("INSERTING::: "+formula);
+		System.out.println("\nINSERTING::: " + formula);
 		insert(statements);
 	}
 
@@ -524,7 +523,7 @@ public class OWLOntologyDatabase implements Database {
 	//	Collection<Statement> statements = formulaToStatements(formula);
 		
 		// for (Statement st : statements)
-		System.out.println("DELETING::: "+formula);
+		System.out.println("\nDELETING::: " + formula);
 	//	delete(statements);
 	}
 

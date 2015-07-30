@@ -237,13 +237,13 @@ public class SWRLExpression implements Expression {
 			subst = (SWRLSubstitution) substitution;
 		// if it's a swrl substitution
 		if (subst != null) {
-			Set<SWRLVariable> substVars = subst.getSWRLVariables();
 			// if substitution and current expression have both variables
-			if (!substVars.isEmpty() && !this.getFreeVar().isEmpty()) {
+			if (!subst.getSWRLVariables().isEmpty()
+					&& !this.getFreeVar().isEmpty()) {
 
 				// check type and apply accordingly substitution
 				if (this.isVar()) {// variable
-					return new SWRLTerm(getArgSubst(this.argument, subst));
+					return getVarSubst((SWRLVariable) this.argument, subst);
 
 				} else if (this.isTerm()) { // term (atom - unary or binary =
 					// class/ objectproperty/ dataproperty expression)
@@ -263,12 +263,10 @@ public class SWRLExpression implements Expression {
 		return this;
 	}
 
-	private SWRLArgument getArgSubst(SWRLArgument arg, SWRLSubstitution subst) {
-		SWRLVariable thisvar = (SWRLVariable) arg;
-		if (subst.getSWRLVariables().contains(thisvar))
-			// create new term with the given argument
-			return subst.getSWRLArgument(thisvar);
-		return arg;
+	private SWRLTerm getVarSubst(SWRLVariable var, SWRLSubstitution subst) {
+		if (subst.getSWRLVariables().contains(var))
+			return subst.getSWRLTerm(new SWRLVar(var));
+		return new SWRLVar(var);
 	}
 
 	private SWRLAtom getTermSubst(SWRLAtom atom, SWRLSubstitution subst) {
@@ -278,10 +276,16 @@ public class SWRLExpression implements Expression {
 		for (SWRLArgument arg : args) {
 			// if variable
 			if (arg instanceof SWRLVariable) {
-				SWRLArgument newArg = getArgSubst(arg, subst);
-				if (newArg != null) {
-					// add it to the list of new arguments
-					newArgs.add(newArg); // the substituted argument
+				SWRLTerm newArg = getVarSubst((SWRLVariable) arg, subst);
+				if (newArg instanceof SWRLArgument) { // if argument
+					if (newArg != null) {
+						// add it to the list of new arguments
+						newArgs.add((SWRLArgument) newArg); // the substituted
+															// argument
+					}
+				} else if (newArg instanceof SWRLAtom) { // if atom
+					System.out.println("Subst: " + arg + " - " + newArg);
+					return (SWRLAtom) newArg;
 				}
 			} else
 				// add it to the list of new arguments

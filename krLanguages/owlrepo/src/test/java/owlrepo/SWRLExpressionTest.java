@@ -16,9 +16,7 @@ import org.openrdf.rio.RDFFormat;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLRule;
-import org.semanticweb.owlapi.model.SWRLVariable;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.swrlapi.core.SWRLAPIFactory;
 import org.swrlapi.core.SWRLAPIOWLOntology;
@@ -26,6 +24,8 @@ import org.swrlapi.parser.SWRLParseException;
 
 import owlrepo.language.SWRLExpression;
 import owlrepo.language.SWRLSubstitution;
+import owlrepo.language.SWRLTerm;
+import owlrepo.language.SWRLVar;
 import owlrepo.parser.SWRLParser;
 
 public class SWRLExpressionTest {
@@ -101,8 +101,8 @@ public class SWRLExpressionTest {
 	private void printMGU(SWRLSubstitution subst) {
 		System.out.println("MGU:::: ");
 
-		for (SWRLVariable var : subst.getSWRLVariables()) {
-			SWRLArgument term = subst.getSWRLArgument(var);
+		for (SWRLVar var : subst.getSWRLVariables()) {
+			SWRLTerm term = subst.getSWRLTerm(var);
 			System.out.println("SWRL Substitution " + var + " / " + term);
 		}
 
