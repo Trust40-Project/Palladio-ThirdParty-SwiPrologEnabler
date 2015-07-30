@@ -3,6 +3,7 @@ package owlrepo.database;
 import java.net.URL;
 import java.util.Collection;
 
+import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRQueryFailedException;
 
 import org.openrdf.model.Resource;
@@ -71,7 +72,7 @@ public class RDFRepositoryDatabase {
 		
 		return server;
 	}
-	public RDFRepositoryDatabase(String name, OWLOntology ontology, String baseURI, URL url, RepositoryConnectionListener listener) {
+	public RDFRepositoryDatabase(String name, OWLOntology ontology, String baseURI, URL url, RepositoryConnectionListener listener) throws KRDatabaseException {
 		this.repo_url = url;
 
 		try{
@@ -141,14 +142,16 @@ public class RDFRepositoryDatabase {
 		 }
 		}catch(Exception e){
 			e.printStackTrace();
-			shutdown();
+			throw new KRDatabaseException(e.getMessage());
+			// shutdown();
 		}
 
 	}
 	
 	public boolean isOpen(){
 		try {
-			return nconn.isOpen();
+			if (conn != null)
+			return conn.isOpen();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}

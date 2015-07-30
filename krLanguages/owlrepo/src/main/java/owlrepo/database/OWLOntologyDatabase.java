@@ -182,7 +182,7 @@ public class OWLOntologyDatabase implements Database {
 		return allAxioms;
 	}
 
-	public void setupRepo(URL repoUrl) {
+	public void setupRepo(URL repoUrl) throws KRDatabaseException {
 		// set up RDF repository = triple store local + shared
 
 		if (repoUrl != null) {
@@ -543,7 +543,9 @@ public class OWLOntologyDatabase implements Database {
 	}
 
 	public boolean isOpen(){
+		if (localdb != null)
 		return localdb.isOpen();
+		return false;
 	}
 
 	@Override
