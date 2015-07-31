@@ -295,10 +295,12 @@ public class SWRLExpression implements Expression {
 		// construct new term to be returned, because we cannot change the
 		// existing one
 		SWRLAtom newatom = null;
+		if (newArgs.size() == 1) {
 		if (atom instanceof SWRLClassAtom) // class
 			newatom = df.getSWRLClassAtom((OWLClassExpression) predicate,
 					(SWRLIArgument) newArgs.get(0));
-		else if (atom instanceof SWRLDataPropertyAtom) // data property
+		} else if (newArgs.size() == 2) {
+			if (atom instanceof SWRLDataPropertyAtom) // data property
 			newatom = df.getSWRLDataPropertyAtom(
 					(OWLDataPropertyExpression) predicate,
 					(SWRLIArgument) newArgs.get(0),
@@ -323,7 +325,7 @@ public class SWRLExpression implements Expression {
 			newatom = df.getSWRLDifferentIndividualsAtom(
 					(SWRLIArgument) newArgs.get(0),
 					(SWRLIArgument) newArgs.get(1));
-
+		}
 		if (newatom != null)
 			return newatom;
 
