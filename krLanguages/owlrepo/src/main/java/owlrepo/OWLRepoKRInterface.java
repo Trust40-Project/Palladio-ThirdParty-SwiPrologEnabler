@@ -27,6 +27,8 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
 import org.openrdf.rio.RDFFormat;
+import org.semanticweb.owlapi.model.SWRLRule;
+import org.swrlapi.parser.SWRLParseException;
 
 import owlrepo.database.OWLOntologyDatabase;
 import owlrepo.language.SWRLQuery;
@@ -92,8 +94,10 @@ public class OWLRepoKRInterface implements KRInterface {
 	}
 
 	public void release() throws KRDatabaseException {
-		for (String dbname : databases.keySet())
+		for (String dbname : databases.keySet()){
+			System.out.println("Destroying database: "+dbname);
 			databases.get(dbname).destroy();
+		}
 		databases.clear();
 	}
 
@@ -126,6 +130,10 @@ public class OWLRepoKRInterface implements KRInterface {
 		} else
 			this.parser.parse(formats, source, info);
 		return parser;
+	}
+	
+	public SWRLRule getRule(String s) throws SWRLParseException{
+		return this.database.getSWRLOntology().createSWRLRule("parse", s);
 	}
 
 	public List<RDFFormat> getAllFormats() {

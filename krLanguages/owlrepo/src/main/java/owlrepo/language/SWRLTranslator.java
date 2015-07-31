@@ -70,7 +70,10 @@ public class SWRLTranslator {
 		}
 		if (rule.getVariables().isEmpty()) {
 			// ASK query
-			SPARQLquery += "ASK {";
+			SPARQLquery += "ASK ";
+			
+			if (namedGraph!=null && !namedGraph.isEmpty())
+				SPARQLquery += "\nFROM  <"+namedGraph+">";
 
 		} else {
 			// SELECT query
@@ -78,11 +81,13 @@ public class SWRLTranslator {
 			SPARQLquery += "SELECT * ";
 			
 			if (namedGraph!=null && !namedGraph.isEmpty())
-				SPARQLquery += "\nFROM NAMED"+namedGraph;
+				SPARQLquery += "\nFROM  <"+namedGraph+">";
 			
-			SPARQLquery +=	"\nWHERE {\n";
+			SPARQLquery +=	"\n WHERE \n";
 		}
 		
+		SPARQLquery += " \n{ ";
+
 		Iterator<SWRLAtom> it = rule.getBody().iterator();
 		while (it.hasNext())
 		{

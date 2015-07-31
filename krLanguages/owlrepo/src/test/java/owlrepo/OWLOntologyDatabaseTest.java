@@ -86,13 +86,13 @@ public class OWLOntologyDatabaseTest {
 			 Statement stm = vf.createStatement(vf.createURI(baseURI+"Team1"), RDF.TYPE, vf.createURI(baseURI+"RobotTeam"));
 			 Collection<Statement> stms = new HashSet<Statement>();
 			 stms.add(stm);
-			 rdb.insert(stms);
+			 rdb.insert(stms, null);
 			 
 			 //query to check if we get back data 
 			 query("onto:RobotTeam(?x) -> sqwrl:select(?x)");
 			 
 			 //delete fact from database
-			 rdb.delete(stms);
+			 rdb.delete(stms, null);
 			 query("onto:RobotTeam(?x) -> sqwrl:select(?x)");
 			
 			

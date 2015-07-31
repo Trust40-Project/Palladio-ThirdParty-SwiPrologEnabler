@@ -38,6 +38,7 @@ import org.semanticweb.owlapi.model.SWRLPredicate;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLSameIndividualAtom;
 import org.semanticweb.owlapi.model.SWRLVariable;
+import org.semanticweb.owlapi.model.IRI;
 
 import owlrepo.parser.SWRLParserSourceInfo;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
@@ -49,7 +50,7 @@ public class SWRLExpression implements Expression {
 	// possible values:
 	OWLAxiom axiom;
 	SWRLRule rule;
-	SWRLAtom atom;
+	SWRLAtom atom, namedGraphAtom;
 	SWRLArgument argument;
 	int type = -1;
 
@@ -203,6 +204,21 @@ public class SWRLExpression implements Expression {
 		return getFreeVar().isEmpty();
 	}
 
+	
+	public SWRLAtom createNamedGraphAtom(String id){
+		this.namedGraphAtom = df.getSWRLClassAtom(df.getOWLThing(),
+					df.getSWRLIndividualArgument(df.getOWLNamedIndividual(
+							IRI.create("http://ii.tudelft.nl/goal#"+id))));
+		return this.namedGraphAtom;
+	}
+	
+	public SWRLAtom getNamedGraphAtom(){
+		if (this.namedGraphAtom != null)
+			return this.namedGraphAtom;
+		System.out.println("Named graph atom was not added to: "+this);
+		return null;
+	}
+	
 	public Set<Var> getFreeVar() {
 		HashSet<Var> vars = new HashSet<Var>();
 		if (this.isArgument()) {

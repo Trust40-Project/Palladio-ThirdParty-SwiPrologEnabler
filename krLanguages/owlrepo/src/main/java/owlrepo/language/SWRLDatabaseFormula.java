@@ -1,5 +1,7 @@
 package owlrepo.language;
 
+import java.util.Set;
+
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
@@ -29,20 +31,34 @@ public class SWRLDatabaseFormula extends SWRLExpression implements
 	}
 	
 	public SWRLDatabaseFormula addNamedGraph(String id){
-		
 		//TODO
+		SWRLAtom atom = createNamedGraphAtom(id);
+		
+		Set<SWRLAtom> newbody = this.rule.getBody();
+		newbody.add(atom);
+		this.rule = df.getSWRLRule(newbody, this.rule.getHead());
+		//System.out.println("Named graph atom: "+atom+" was added to "+this);
 		return this;
 	}
 	
 	public SWRLDatabaseFormula removeNamedGraph(){
 		//TODO
+		SWRLAtom atom = getNamedGraphAtom();
+		Set<SWRLAtom> newbody = this.rule.getBody();
+		newbody.remove(atom);
+		this.rule = df.getSWRLRule(newbody, this.rule.getHead());
+		//System.out.println("Named graph atom: "+atom+" was removed from "+this);
 		return this;
 	}
-
+	
 	public String getNamedGraph(){
 		//TODO
+		SWRLAtom atom = getNamedGraphAtom();
+		if (this.rule.getBody().contains(atom))
+			return atom.getIndividualsInSignature().iterator().next().toStringID();
 		return "";
 	}
+	
 	/**
 	 * Applies a substitution to the term, i.e., instantiates free variables
 	 * that are bound to a term in the substitution by that term (or, only

@@ -1,6 +1,7 @@
 package owlrepo.language;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import krTools.language.Query;
 import krTools.language.Substitution;
@@ -39,16 +40,29 @@ public class SWRLQuery extends SWRLExpression implements Query {
 
 	public SWRLQuery addNamedGraph(String id){
 		//TODO
+		SWRLAtom atom = createNamedGraphAtom(id);
+		Set<SWRLAtom> newbody = this.rule.getBody();
+		newbody.add(atom);
+		this.rule = df.getSWRLRule(newbody, this.rule.getHead());
+		//System.out.println("Named graph atom: "+atom+" was added to "+this);
 		return this;
 	}
 	
 	public SWRLQuery removeNamedGraph(){
 		//TODO
+		SWRLAtom atom = getNamedGraphAtom();
+		Set<SWRLAtom> newbody = this.rule.getBody();
+		newbody.remove(atom);
+		this.rule = df.getSWRLRule(newbody, this.rule.getHead());
+		//System.out.println("Named graph atom: "+atom+" was removed from "+this);
 		return this;
 	}
 	
 	public String getNamedGraph(){
 		//TODO
+		SWRLAtom atom = getNamedGraphAtom();
+		if (this.rule.getBody().contains(atom))
+			return atom.getIndividualsInSignature().iterator().next().toStringID();
 		return "";
 	}
 	
