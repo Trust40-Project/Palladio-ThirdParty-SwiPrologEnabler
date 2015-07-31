@@ -8,6 +8,8 @@ import krTools.exceptions.KRQueryFailedException;
 
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.query.BooleanQuery;
 import org.openrdf.query.GraphQuery;
@@ -158,8 +160,12 @@ public class RDFRepositoryDatabase {
 		return false;
 	}
 	
-	public RepositoryResult<Statement> getTriples() throws RepositoryException{
-		return nconn.getStatements(null, null, null, false, null);
+	public RepositoryResult<Statement> getTriples(Resource... context) throws RepositoryException{
+		return nconn.getStatements(null, null, null, false, context);
+	}
+	
+	public RepositoryResult<Statement> getTriples(Resource subj, URI pred, Value obj, Resource... context) throws RepositoryException{
+		return nconn.getStatements(subj, pred, obj, false, context);
 	}
 	
 	public ValueFactory getValueFactory(){
@@ -181,7 +187,7 @@ public class RDFRepositoryDatabase {
 		 TupleQueryResult result = null;
 		 try { 
 			// System.out.println("QUERYING Tuple Query...");
-		  TupleQuery tupleQuery = nconn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+		  TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
            result = tupleQuery.evaluate();
           System.out.println("RESULT: "+result.hasNext());
           
@@ -195,7 +201,7 @@ public class RDFRepositoryDatabase {
 		boolean result = false;
 		try {
 			// System.out.println("QUERYING Boolean Query...");
-			BooleanQuery booleanQuery = nconn.prepareBooleanQuery(
+			BooleanQuery booleanQuery = conn.prepareBooleanQuery(
 					QueryLanguage.SPARQL, queryString);
 			result = booleanQuery.evaluate();
 		} catch (Exception e) {
@@ -204,25 +210,25 @@ public class RDFRepositoryDatabase {
 		return new BooleanQueryResultImpl(result);
 	}
 
-	public void insert(Collection<Statement> stms){
+	public void insert(Collection<Statement> stms, Resource resource){
 		try {
 			//nconn.begin();
 			if (!conn.isOpen())
 				conn.begin();
-			conn.add(stms, (Resource) null);
+			conn.add(stms, resource);
 			conn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void delete(Collection<Statement> stms){
+	public void delete(Collection<Statement> stms, Resource resource){
 		
 		try {
 			//nconn.begin();
 			if (!conn.isOpen())
 				conn.begin();
-			conn.remove(stms, (Resource) null);
+			conn.remove(stms, resource);
 			conn.commit();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
@@ -232,7 +238,9 @@ public class RDFRepositoryDatabase {
 	public boolean ask(String queryString){
 	     boolean truth= false;
 	     try {
-			 BooleanQuery booleanQuery = nconn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
+	    	 if (!conn.isOpen())
+					conn.begin();
+			 BooleanQuery booleanQuery = conn.prepareBooleanQuery(QueryLanguage.SPARQL, queryString);
 			 truth = booleanQuery.evaluate(); 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -14,6 +14,7 @@ import krTools.language.Substitution;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -49,7 +50,7 @@ public class SWRLExpression implements Expression {
 	// possible values:
 	OWLAxiom axiom;
 	SWRLRule rule;
-	SWRLAtom atom;
+	SWRLAtom atom, namedGraphAtom;
 	SWRLArgument argument;
 	int type = -1;
 
@@ -156,7 +157,7 @@ public class SWRLExpression implements Expression {
 	public OWLAxiom getAxiom() {
 		return this.axiom;
 	}
-	
+
 	public SWRLAtom getAtom() {
 		return this.atom;
 	}
@@ -201,6 +202,22 @@ public class SWRLExpression implements Expression {
 
 	public boolean isClosed() {
 		return getFreeVar().isEmpty();
+	}
+
+
+	public SWRLAtom createNamedGraphAtom(String id){
+		this.namedGraphAtom = df.getSWRLClassAtom(df.getOWLThing(),
+ df
+				.getSWRLIndividualArgument(df.getOWLNamedIndividual(IRI
+						.create("http://ii.tudelft.nl/goal#" + id))));
+		return this.namedGraphAtom;
+	}
+
+	public SWRLAtom getNamedGraphAtom(){
+		if (this.namedGraphAtom != null)
+			return this.namedGraphAtom;
+		System.out.println("Named graph atom was not added to: "+this);
+		return null;
 	}
 
 	public Set<Var> getFreeVar() {
@@ -281,7 +298,7 @@ public class SWRLExpression implements Expression {
 					if (newArg != null) {
 						// add it to the list of new arguments
 						newArgs.add((SWRLArgument) newArg); // the substituted
-															// argument
+						// argument
 					}
 				} else if (newArg instanceof SWRLAtom) { // if atom
 					System.out.println("Subst: " + arg + " - " + newArg);
@@ -296,35 +313,35 @@ public class SWRLExpression implements Expression {
 		// existing one
 		SWRLAtom newatom = null;
 		if (newArgs.size() == 1) {
-		if (atom instanceof SWRLClassAtom) // class
-			newatom = df.getSWRLClassAtom((OWLClassExpression) predicate,
-					(SWRLIArgument) newArgs.get(0));
+			if (atom instanceof SWRLClassAtom) // class
+				newatom = df.getSWRLClassAtom((OWLClassExpression) predicate,
+						(SWRLIArgument) newArgs.get(0));
 		} else if (newArgs.size() == 2) {
 			if (atom instanceof SWRLDataPropertyAtom) // data property
-			newatom = df.getSWRLDataPropertyAtom(
-					(OWLDataPropertyExpression) predicate,
-					(SWRLIArgument) newArgs.get(0),
-					(SWRLDArgument) newArgs.get(1));
-		else if (atom instanceof SWRLObjectPropertyAtom) // object property
-			newatom = df.getSWRLObjectPropertyAtom(
-					(OWLObjectPropertyExpression) predicate,
-					(SWRLIArgument) newArgs.get(0),
-					(SWRLIArgument) newArgs.get(1));
-		// else if (this.atom instanceof SWRLBuiltInAtom) //builtin
-		// newatom = df.getSWRLBuiltInAtom((IRI)predicate,
-		// (List<SWRLDArgument>)newArgs);
-		else if (atom instanceof SWRLDataRangeAtom) // data range
-			newatom = df.getSWRLDataRangeAtom((OWLDataRange) predicate,
-					(SWRLDArgument) newArgs.get(0));
-		else if (atom instanceof SWRLSameIndividualAtom) // same individuals
-			newatom = df.getSWRLSameIndividualAtom(
-					(SWRLIArgument) newArgs.get(0),
-					(SWRLIArgument) newArgs.get(1));
-		else if (atom instanceof SWRLDifferentIndividualsAtom)
-			// diff individuals
-			newatom = df.getSWRLDifferentIndividualsAtom(
-					(SWRLIArgument) newArgs.get(0),
-					(SWRLIArgument) newArgs.get(1));
+				newatom = df.getSWRLDataPropertyAtom(
+						(OWLDataPropertyExpression) predicate,
+						(SWRLIArgument) newArgs.get(0),
+						(SWRLDArgument) newArgs.get(1));
+			else if (atom instanceof SWRLObjectPropertyAtom) // object property
+				newatom = df.getSWRLObjectPropertyAtom(
+						(OWLObjectPropertyExpression) predicate,
+						(SWRLIArgument) newArgs.get(0),
+						(SWRLIArgument) newArgs.get(1));
+			// else if (this.atom instanceof SWRLBuiltInAtom) //builtin
+			// newatom = df.getSWRLBuiltInAtom((IRI)predicate,
+			// (List<SWRLDArgument>)newArgs);
+			else if (atom instanceof SWRLDataRangeAtom) // data range
+				newatom = df.getSWRLDataRangeAtom((OWLDataRange) predicate,
+						(SWRLDArgument) newArgs.get(0));
+			else if (atom instanceof SWRLSameIndividualAtom) // same individuals
+				newatom = df.getSWRLSameIndividualAtom(
+						(SWRLIArgument) newArgs.get(0),
+						(SWRLIArgument) newArgs.get(1));
+			else if (atom instanceof SWRLDifferentIndividualsAtom)
+				// diff individuals
+				newatom = df.getSWRLDifferentIndividualsAtom(
+						(SWRLIArgument) newArgs.get(0),
+						(SWRLIArgument) newArgs.get(1));
 		}
 		if (newatom != null)
 			return newatom;
@@ -359,7 +376,7 @@ public class SWRLExpression implements Expression {
 		}
 		return new SWRLSubstitution();
 	}
-	
+
 	protected SWRLSubstitution mguTerm(SWRLExpression exp){
 		SWRLSubstitution substitution = new SWRLSubstitution();
 
@@ -409,18 +426,18 @@ public class SWRLExpression implements Expression {
 						}
 					}
 				} // end-while
-					//now we can check if the terms were ok to unify
-					if (unifTerms)
-						//add the collected substitution only if all parameters match
-						substitution.addSWRLSubstitution(termSubst);
+					// now we can check if the terms were ok to unify
+				if (unifTerms)
+					// add the collected substitution only if all parameters
+					// match
+					substitution.addSWRLSubstitution(termSubst);
 
 			}
 		}
 		return substitution;
 
 	}
-	
-	
+
 	protected SWRLSubstitution mguRuleTerm(SWRLExpression exp){
 		//this = rule, exp = term
 		SWRLSubstitution substitution = new SWRLSubstitution();
@@ -431,10 +448,10 @@ public class SWRLExpression implements Expression {
 		//and in head
 		for (SWRLAtom atom : this.rule.getHead())
 			substitution.addSWRLSubstitution( (new SWRLTerm(atom)).mguTerm(exp));
-		
+
 		return substitution;
 	}
-	
+
 	protected SWRLSubstitution mguRule(SWRLExpression exp) {
 		SWRLSubstitution substitution = new SWRLSubstitution();
 		//this is rule
@@ -482,10 +499,9 @@ public class SWRLExpression implements Expression {
 			//depending on the type
 			// return new SWRLTerm(df.getSWRL)
 		}else if (this.isRule()){
-			
+
 		}
-		
-		
+
 		return this;
 	}
 
@@ -527,7 +543,7 @@ public class SWRLExpression implements Expression {
 				// both rules and this has variables
 				// get mgu for each term - argument - use mguTerm
 				substitution.addSWRLSubstitution(this.mguRule(exp));
-				
+
 			} else if (this.isUndefined() || exp.isUndefined()) {
 				// do nothing, return empty
 			}

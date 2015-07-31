@@ -53,8 +53,10 @@ public class SWRLTranslator {
 		builtins = swrlonto.getSWRLBuiltInIRIs();
 		this.rule = rule;
 	}
-
 	public String translateToSPARQL(){
+		return translateToSPARQL(null);
+	}
+	public String translateToSPARQL(String namedGraph){
 		String SPARQLquery = "";
 		String SPARQLfilter = "";
 		
@@ -68,14 +70,24 @@ public class SWRLTranslator {
 		}
 		if (rule.getVariables().isEmpty()) {
 			// ASK query
-			SPARQLquery += "ASK {";
+			SPARQLquery += "ASK ";
+			
+			if (namedGraph!=null && !namedGraph.isEmpty())
+				SPARQLquery += "\nFROM  <"+namedGraph+">";
 
 		} else {
 			// SELECT query
 
-			SPARQLquery += "SELECT * WHERE {\n";
+			SPARQLquery += "SELECT * ";
+			
+			if (namedGraph!=null && !namedGraph.isEmpty())
+				SPARQLquery += "\nFROM  <"+namedGraph+">";
+			
+			SPARQLquery +=	"\n WHERE \n";
 		}
 		
+		SPARQLquery += " \n{ ";
+
 		Iterator<SWRLAtom> it = rule.getBody().iterator();
 		while (it.hasNext())
 		{
