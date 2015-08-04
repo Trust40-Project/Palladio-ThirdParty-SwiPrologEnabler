@@ -186,8 +186,15 @@
 							<goal>analyze-only</goal>
 						</goals>
 						<configuration>
-							<!--<failOnWarning>true</failOnWarning>!-->
+							<failOnWarning>true</failOnWarning>
 							<ignoreNonCompile>true</ignoreNonCompile>
+							<ignoredDependencies>
+								<ignoredDependency>com.complexible.*</ignoredDependency>
+							</ignoredDependencies>
+							<usedDependencies>
+								<usedDependency>com.google.inject:guice</usedDependency>
+								<usedDependency>com.google.guava:guava</usedDependency>
+							</usedDependencies>
 						</configuration>
 					</execution>
 				</executions>
