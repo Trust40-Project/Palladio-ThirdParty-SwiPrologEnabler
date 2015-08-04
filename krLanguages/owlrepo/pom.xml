@@ -78,7 +78,7 @@
 	</dependency>	
 
 <!-- StarDog -3.0-->
- <dependency>
+ 		<dependency>
 			<groupId>com.complexible.stardog</groupId>
 			<artifactId>client-http</artifactId>
 			<version>3.0</version>
@@ -127,31 +127,18 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-<dependency>
-	<groupId>com.google.inject</groupId>
-	<artifactId>guice</artifactId>
-	<version>3.0</version>
-</dependency>
-<dependency>
-	<groupId>com.google.guava</groupId>
-	<artifactId>guava</artifactId>
-	<version>18.0</version>
-</dependency>
-
-		
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>18.0</version>
+		</dependency>
+	
  <!-- OpenRDF Sesame -->
-  	<dependency>
-  		<groupId>org.openrdf.sesame</groupId>
-  		<artifactId>sesame</artifactId>
-  		<version>2.7.14</version>
-  		<type>pom</type>
-  	</dependency>
-  		<dependency>
-  		<groupId>org.openrdf.sesame</groupId>
-  		<artifactId>sesame-model</artifactId>
-  		<version>2.7.14</version>
-  		<type>pom</type>
-  	</dependency>
   	<dependency>
   		<groupId>org.openrdf.sesame</groupId>
   		<artifactId>sesame-repository-event</artifactId>
@@ -164,50 +151,25 @@
   	</dependency>
   	<dependency>
   		<groupId>org.openrdf.sesame</groupId>
-  		<artifactId>sesame-rio-api</artifactId>
+  		<artifactId>sesame-repository-api</artifactId>
   		<version>2.7.14</version>
   	</dependency>
-  	
-  	<!--  Pellet 
-<dependency>
-	<groupId>com.github.ansell.pellet</groupId>
-	<artifactId>pellet-core</artifactId>
-	<version>2.3.6-ansell</version>
-</dependency>
-<dependency>
-	<groupId>com.github.ansell.pellet</groupId>
-	<artifactId>pellet-query</artifactId>
-	<version>2.3.6-ansell</version>
-</dependency>
--->
-
-  	
- <!-- Logback -->
-  	
   	<dependency>
-        <groupId>commons-logging</groupId>
-        <artifactId>commons-logging</artifactId>
-        <version>1.2</version>
-	</dependency>
-	
+  		<groupId>org.openrdf.sesame</groupId>
+  		<artifactId>sesame-query</artifactId>
+  		<version>2.7.14</version>
+  	</dependency>
   </dependencies>
   
   <repositories>
   	<repository>
- 		 <id>central</id>
-		  <name>Maven Central</name>
- 		 <url>http://repo1.maven.org/maven2</url>
-	</repository>
-  	<repository>
 			<id>stardog-public</id>
 			<url>http://maven.stardog.com</url>
 	</repository>
-    
 	<repository>
 			<id>goalhub-mvn-repo</id>
 			<url>https://raw.github.com/goalhub/mvn-repo/master</url>
 	</repository>
-  
   </repositories>
  
 <build>
@@ -224,7 +186,7 @@
 							<goal>analyze-only</goal>
 						</goals>
 						<configuration>
-							<!--  <failOnWarning>true</failOnWarning>-->
+							<!--<failOnWarning>true</failOnWarning>!-->
 							<ignoreNonCompile>true</ignoreNonCompile>
 						</configuration>
 					</execution>
