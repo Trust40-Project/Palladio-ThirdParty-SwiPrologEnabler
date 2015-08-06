@@ -66,13 +66,14 @@ public class DependencyGraphFactory {
 			DependencyGraph<?> graph = graphs.containsKey(kri.getClass()) ? graphs.get(kri.getClass()).newInstance()
 					: null;
 			if (graph == null) {
-				throw new KRInterfaceNotSupportedException("Could not find a dependency graph implementation for "
-						+ KRFactory.getName(kri) + " as these are available: " + graphs.keySet());
+				throw new KRInterfaceNotSupportedException("could not find a dependency graph implementation for '"
+						+ KRFactory.getName(kri) + "' as only these are available: " + graphs.keySet() + ".");
 			} else {
 				return graph;
 			}
 		} catch (IllegalAccessException | InstantiationException e) {
-			throw new KRInitFailedException("Failed to initialize a dependency graph for " + KRFactory.getName(kri), e);
+			throw new KRInitFailedException(
+					"failed to initialize a dependency graph for '" + KRFactory.getName(kri) + "'.", e);
 		}
 	}
 }

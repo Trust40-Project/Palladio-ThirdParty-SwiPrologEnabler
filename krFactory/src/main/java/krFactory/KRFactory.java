@@ -78,18 +78,18 @@ public class KRFactory {
 			KRInterface krInterface = kr.containsKey(name) ? kr.get(name).newInstance() : null;
 			if (krInterface == null) {
 				throw new KRInterfaceNotSupportedException(
-						"Could not find KRT " + name + " as these are available: " + kr.keySet());
+						"could not find KRT '" + name + "' as only these are available: " + kr.keySet() + ".");
 			} else {
 				return krInterface;
 			}
 		} catch (IllegalAccessException | InstantiationException e) {
-			throw new KRInitFailedException("Failed to initialize " + name, e);
+			throw new KRInitFailedException("failed to initialize KRT '" + name + "'.", e);
 		}
 	}
 
 	/**
 	 * Checks if the interface is defined, and returns its name.
-	 * 
+	 *
 	 * @param kri
 	 *            the interface whose name is needed
 	 * @return the name as a string or null if the interface is not defined
@@ -108,7 +108,7 @@ public class KRFactory {
 
 	/**
 	 * Get the set of supported KR's names.
-	 * 
+	 *
 	 * @return a set of strings representing the supported KRs
 	 */
 	public static Set<String> getSupportedKRs() {
