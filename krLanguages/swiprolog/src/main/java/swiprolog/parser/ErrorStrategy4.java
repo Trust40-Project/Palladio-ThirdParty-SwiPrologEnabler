@@ -263,7 +263,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 			return ParserErrorMessages.TERM1200.toReadableString();
 		default:
 			// getting here would be a bug
-			throw new IllegalArgumentException("unknown parser rule index " + ruleIndex);
+			throw new IllegalArgumentException("unknown parser rule index '" + ruleIndex + "'.");
 		}
 	}
 }

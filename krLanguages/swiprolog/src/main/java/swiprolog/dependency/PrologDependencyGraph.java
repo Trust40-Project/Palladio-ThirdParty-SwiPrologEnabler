@@ -77,8 +77,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			}
 		} else {
 			if (reserved(signature) && defined) {
-				throw new KRDatabaseException("attempt to redefine " + signature
-						+ "; Prolog built-in or reserved GOAL operators can not be redefined.");
+				throw new KRDatabaseException("illegal attempt to redefine '" + signature + "'.");
 			} else {
 				addTerm(term, formula.getSourceInfo(), defined, queried);
 			}
@@ -92,7 +91,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	public void add(Query query) throws KRException {
 		jpl.Term term = ((PrologQuery) query).getTerm();
 		if (term.name().equals(":-") && term.arity() == 2) {
-			throw new KRDatabaseException("A clause with main operator :-/2 cannot be queried.");
+			throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 		} else {
 			addTerm(term, query.getSourceInfo(), false, true);
 		}

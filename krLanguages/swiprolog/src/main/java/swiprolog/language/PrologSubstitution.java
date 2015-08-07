@@ -130,7 +130,7 @@ public class PrologSubstitution implements Substitution {
 		jpl.Variable var = (jpl.Variable) ((PrologVar) v).getTerm();
 		if (this.jplSubstitution.containsKey(var.name())) {
 			throw new RuntimeException(
-					"Attempt to add variable " + v + " to substitution " + this + " that already binds the variable.");
+					"attempt to add '" + v + "' to substitution " + this + " that already binds the variable.");
 		}
 		this.jplSubstitution.put(var.name(), ((PrologTerm) term).getTerm());
 	}

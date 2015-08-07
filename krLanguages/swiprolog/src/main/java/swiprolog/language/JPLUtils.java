@@ -155,7 +155,7 @@ public class JPLUtils {
 			}
 			return new jpl.Compound(term.name(), instantiatedArgs);
 		}
-		throw new IllegalArgumentException("Term " + term + "unknown type " + term.getClass());
+		throw new IllegalArgumentException("term ' " + term + "' is of an unknown type.");
 	}
 
 	/**
@@ -408,7 +408,7 @@ public class JPLUtils {
 			return Float.toString(((jpl.Float) term).floatValue()).hashCode();
 		}
 		// we're not using anything else.
-		throw new UnsupportedOperationException("Hashcode of JPL term " + term + " could not be computed.");
+		throw new UnsupportedOperationException("the hashcode of '" + term + "' could not be computed.");
 	}
 
 	/**
@@ -459,7 +459,7 @@ public class JPLUtils {
 			return ((jpl.Float) term1).floatValue() == ((jpl.Float) term2).floatValue();
 		}
 		// we're not using anything else.
-		throw new UnsupportedOperationException("Equals for JPL terms " + term1 + " and " + term2 + " is not defined.");
+		throw new UnsupportedOperationException("equals for '" + term1 + "' and '" + term2 + "' is not defined.");
 	}
 
 	/**
@@ -527,7 +527,7 @@ public class JPLUtils {
 		}
 
 		// Don't know what this is; throw.
-		throw new UnsupportedOperationException("Unknown JPL term of type " + term.getClass());
+		throw new UnsupportedOperationException("unknown term '" + term + "'.");
 	}
 
 	/**

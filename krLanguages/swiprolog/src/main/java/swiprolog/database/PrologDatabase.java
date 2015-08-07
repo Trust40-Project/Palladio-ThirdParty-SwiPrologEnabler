@@ -79,7 +79,7 @@ public class PrologDatabase implements Database {
 				}
 			}
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("Unable to create a Prolog database module", e);
+			throw new KRDatabaseException("unable to create a Prolog database module '" + name + "'.", e);
 		}
 	}
 
@@ -217,7 +217,7 @@ public class PrologDatabase implements Database {
 				rawquery(JPLUtils.createCompound("assert", dbformula));
 			}
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("swi prolog says the insert failed", e);
+			throw new KRDatabaseException("inserting '" + formula + "' failed.", e);
 		}
 	}
 
@@ -273,7 +273,7 @@ public class PrologDatabase implements Database {
 		try {
 			rawquery(JPLUtils.createCompound("retract", db_formula));
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("swi prolog says the delete failed", e);
+			throw new KRDatabaseException("deleting '" + formula + "' failed.", e);
 		}
 	}
 
@@ -389,7 +389,7 @@ public class PrologDatabase implements Database {
 		try {
 			rawquery(query);
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("swi prolog says database contents could not be erased", e);
+			throw new KRDatabaseException("erasing the contents of database '" + this.name + "' failed.", e);
 		}
 	}
 

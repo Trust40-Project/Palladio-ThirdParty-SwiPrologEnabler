@@ -73,7 +73,7 @@ public final class SwiPrologInterface implements KRInterface {
 			PrologDatabase.rawquery(
 					JPLUtils.createCompound("set_prolog_flag", new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
 		} catch (KRQueryFailedException e) {
-			throw new KRInitFailedException("swi prolog says it can't set the run mode", e);
+			throw new KRInitFailedException("failed to initialize the interface.", e);
 		}
 		// See http://www.swi-prolog.org/packages/jpl/release_notes.html for
 		// explanation why Don't Tell Me Mode needs to be false. Setting this
@@ -127,7 +127,7 @@ public final class SwiPrologInterface implements KRInterface {
 		try {
 			return new KRInterfaceParser4(r, info);
 		} catch (IOException e) {
-			throw new ParserException("could not parse the data as SWI prolog", info, e);
+			throw new ParserException("failed to parse the reader data as SWI Prolog.", info, e);
 		}
 	}
 
