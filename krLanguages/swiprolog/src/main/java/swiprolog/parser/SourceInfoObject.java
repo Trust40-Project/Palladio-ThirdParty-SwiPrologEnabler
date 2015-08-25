@@ -5,7 +5,6 @@ import java.io.File;
 import krTools.parser.SourceInfo;
 
 public class SourceInfoObject implements SourceInfo {
-
 	private final File sourceFile;
 	private final int lineNr;
 	private final int charPos;
@@ -91,6 +90,22 @@ public class SourceInfoObject implements SourceInfo {
 			return that.sourceFile == null;
 		} else {
 			return this.sourceFile.getAbsoluteFile().equals(that.sourceFile.getAbsoluteFile());
+		}
+	}
+
+	@Override
+	public int compareTo(SourceInfo o) {
+		// ASSUMES the two sources being compared are in the same file.
+		if (this.lineNr < o.getLineNumber()) {
+			return -1;
+		} else if (this.lineNr > o.getLineNumber()) {
+			return 1;
+		} else if (this.charPos < o.getCharacterPosition()) {
+			return -1;
+		} else if (this.charPos > o.getCharacterPosition()) {
+			return 1;
+		} else {
+			return 0;
 		}
 	}
 }
