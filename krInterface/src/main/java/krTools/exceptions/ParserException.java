@@ -26,12 +26,12 @@ import krTools.parser.SourceInfo;
  *
  * <p>
  * A parser exception should be thrown in case anything went wrong during:
- * initialization of the parser, e.g., due to a problem with the source, 
- * parsing encountered a serious error and could not construct any expression,
- * or if parsing was interrupted for some reason.
+ * initialization of the parser, e.g., due to a problem with the source, parsing
+ * encountered a serious error and could not construct any expression, or if
+ * parsing was interrupted for some reason.
  * </p>
  */
-public class ParserException extends Exception implements SourceInfo, Comparable<ParserException> {
+public class ParserException extends Exception implements SourceInfo {
 	private static final long serialVersionUID = 8224464835000074458L;
 
 	/**
@@ -93,8 +93,8 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	}
 
 	/**
-	 * @return Line number where exception occurred, or {@code -1} if no line
-	 *         nr is available.
+	 * @return Line number where exception occurred, or {@code -1} if no line nr
+	 *         is available.
 	 */
 	@Override
 	public int getLineNumber() {
@@ -106,8 +106,8 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	}
 
 	/**
-	 * @return Character position where exception occurred, or {@code -1} if
-	 *         no position is available.
+	 * @return Character position where exception occurred, or {@code -1} if no
+	 *         position is available.
 	 */
 	@Override
 	public int getCharacterPosition() {
@@ -136,8 +136,9 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 		}
 	}
 
-	/** 
-	 * public getter for Source Info 
+	/**
+	 * public getter for Source Info
+	 *
 	 * @return the source info attached to this parser exception
 	 **/
 	public SourceInfo getSourceInfo() {
@@ -185,7 +186,8 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	}
 
 	@Override
-	public int compareTo(ParserException other) {
+	public int compareTo(SourceInfo o) {
+		ParserException other = (ParserException) o;
 		if (equals(other)) {
 			return 0;
 		} else if (other.getSourceInfo() == null) {
@@ -198,7 +200,9 @@ public class ParserException extends Exception implements SourceInfo, Comparable
 	}
 
 	/**
-	 * Checks wether the position if the first source info is before the second one.
+	 * Checks wether the position if the first source info is before the second
+	 * one.
+	 *
 	 * @param info1
 	 *            A source info object.
 	 * @param info2

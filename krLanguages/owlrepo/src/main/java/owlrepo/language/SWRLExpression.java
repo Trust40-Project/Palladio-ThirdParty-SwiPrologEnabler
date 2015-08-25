@@ -580,7 +580,7 @@ public class SWRLExpression implements Expression {
 	@Override
 	public SourceInfo getSourceInfo() {
 		// TODO Auto-generated method stub
-		return new SWRLParserSourceInfo();
+		return new SWRLParserSourceInfo(null);
 	}
 
 	@Override

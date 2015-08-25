@@ -5,43 +5,42 @@ import java.io.File;
 import krTools.parser.SourceInfo;
 
 public class SWRLParserSourceInfo implements SourceInfo {
-	
 	private File sourceFile;
 	private int lineNr;
 	private int charPos;
 	private String msg;
-	
-	public SWRLParserSourceInfo(){
-		
-	}
-	public SWRLParserSourceInfo(File f){
+
+	public SWRLParserSourceInfo(File f) {
 		this(f, 0, 0, "");
 	}
-	
-	public SWRLParserSourceInfo(File f, int line, int charpos, String msg){
+
+	public SWRLParserSourceInfo(File f, int line, int charpos, String msg) {
 		this.sourceFile = f;
 		this.lineNr = line;
 		this.charPos = charpos;
 		this.msg = msg;
 	}
 
+	@Override
 	public File getSource() {
 		return this.sourceFile;
 	}
 
+	@Override
 	public int getLineNumber() {
 		return this.lineNr;
 	}
 
+	@Override
 	public int getCharacterPosition() {
 		return this.charPos;
 	}
 
+	@Override
 	public String getMessage() {
 		return this.msg;
 	}
-	
-	
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -81,20 +80,35 @@ public class SWRLParserSourceInfo implements SourceInfo {
 		if (this.sourceFile == null) {
 			return that.sourceFile == null;
 		} else {
-			return this.sourceFile.getAbsoluteFile().equals(
-					that.sourceFile.getAbsoluteFile());
+			return this.sourceFile.getAbsoluteFile().equals(that.sourceFile.getAbsoluteFile());
 		}
 	}
+
 	@Override
 	public int getStartIndex() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
 	@Override
 	public int getStopIndex() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-	
 
+	@Override
+	public int compareTo(SourceInfo o) {
+		// ASSUMES the two sources being compared are in the same file.
+		if (this.lineNr < o.getLineNumber()) {
+			return -1;
+		} else if (this.lineNr > o.getLineNumber()) {
+			return 1;
+		} else if (this.charPos < o.getCharacterPosition()) {
+			return -1;
+		} else if (this.charPos > o.getCharacterPosition()) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
 }

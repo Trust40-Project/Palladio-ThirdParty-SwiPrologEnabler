@@ -24,22 +24,24 @@ import java.io.File;
  * terms of a line and character position number, as well as its index in a
  * file.
  */
-public interface SourceInfo {
-
+public interface SourceInfo extends Comparable<SourceInfo> {
 	/**
 	 * Get the source file of this SourceInfo.
+	 *
 	 * @return The source that this info is associated with.
 	 */
 	public File getSource();
 
 	/**
 	 * Get the line number of this SourceInfo.
+	 *
 	 * @return The line number of the line that this info is about.
 	 */
 	public int getLineNumber();
 
 	/**
 	 * Get the character position of this SourceInfo.
+	 *
 	 * @return The first index of the character(s) in the line that this info is
 	 *         about.
 	 */
@@ -47,6 +49,7 @@ public interface SourceInfo {
 
 	/**
 	 * Get the start index of this SourceInfo.
+	 *
 	 * @return The position of the first character that this info is about (in
 	 *         relation the entire file that is currently parsed).
 	 */
@@ -54,6 +57,7 @@ public interface SourceInfo {
 
 	/**
 	 * Get the stop index of this SourceInfo.
+	 *
 	 * @return The position of the last character that this info is about (in
 	 *         relation the entire file that is currently parsed).
 	 */
@@ -61,6 +65,7 @@ public interface SourceInfo {
 
 	/**
 	 * Get the info message of this SourceInfo.
+	 *
 	 * @return The info message.
 	 */
 	public String getMessage();
