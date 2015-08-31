@@ -91,7 +91,7 @@ public class RDFRepositoryDatabase {
 			 // Create a Sesame Repository from a Stardog ConnectionConfiguration. 
 			//The configuration will be used  when creating new RepositoryConnections
 			//StarDog repo
-		if (repo_url == null){
+		if (repo_url == null || !name.equals("BELIEFBASE")){
 			//start local server
 			
 			
@@ -119,7 +119,7 @@ public class RDFRepositoryDatabase {
 					.reasoning(true)
 					.server(repo_url.toString())
 					);
-			System.out.println("Set up shared repo:"+name+" at "+repo_url+"tradr");
+			System.out.println("Set up shared repo: "+name+" at "+repo_url+"tradr");
 			this.SHARED_MODE = true;
 		}
 	        
@@ -136,7 +136,7 @@ public class RDFRepositoryDatabase {
 		//add contents of file (ontology) to local repo
 		 if (!SHARED_MODE){		
 			 StatementCollector stc = new StatementCollector();
-			 RioRenderer render = new RioRenderer(ontology, stc, ontology.getOWLOntologyManager().getOntologyFormat(ontology), (Resource)null);
+			 RioRenderer render = new RioRenderer(ontology, stc, ontology.getOWLOntologyManager().getOntologyFormat(ontology),  (Resource) repo.getValueFactory().createURI(baseURI));
 			 render.render();
 			 nconn.begin();
 			 nconn.add(stc.getStatements()); 

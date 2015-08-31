@@ -250,6 +250,7 @@ public class SWRLExpression implements Expression {
 	@Override
 	public Expression applySubst(Substitution substitution) {
 		SWRLSubstitution subst = null;
+		//System.out.println("Apply subst: "+substitution.toString() + " to "+this.toString());
 		if (substitution instanceof SWRLSubstitution)
 			subst = (SWRLSubstitution) substitution;
 		// if it's a swrl substitution
@@ -260,7 +261,7 @@ public class SWRLExpression implements Expression {
 
 				// check type and apply accordingly substitution
 				if (this.isVar()) {// variable
-					return getVarSubst((SWRLVariable) this.argument, subst);
+					return getVarSubst(new SWRLVar((SWRLVariable) this.argument), subst);
 
 				} else if (this.isTerm()) { // term (atom - unary or binary =
 					// class/ objectproperty/ dataproperty expression)
@@ -272,18 +273,21 @@ public class SWRLExpression implements Expression {
 					// process head if not empty
 					Set<SWRLAtom> newhead = getRuleSubst(this.rule.getHead(),
 							subst);
-					return new SWRLQuery(df.getSWRLRule(newbody, newhead));
+					SWRLQuery newquery = new SWRLQuery(df.getSWRLRule(newbody, newhead));
+					 return newquery;
 				}
 			}
 		}
 		// if substitution is empty, return itself
+		//System.out.println("result subst: "+this);
 		return this;
 	}
 
-	private SWRLTerm getVarSubst(SWRLVariable var, SWRLSubstitution subst) {
-		if (subst.getSWRLVariables().contains(var))
-			return subst.getSWRLTerm(new SWRLVar(var));
-		return new SWRLVar(var);
+	private SWRLTerm getVarSubst(SWRLVar var, SWRLSubstitution subst) {
+		if (subst.getSWRLVariables().contains(var)){
+			return subst.getSWRLTerm(var);
+		}
+		return var;
 	}
 
 	private SWRLAtom getTermSubst(SWRLAtom atom, SWRLSubstitution subst) {
@@ -293,16 +297,21 @@ public class SWRLExpression implements Expression {
 		for (SWRLArgument arg : args) {
 			// if variable
 			if (arg instanceof SWRLVariable) {
-				SWRLTerm newArg = getVarSubst((SWRLVariable) arg, subst);
-				if (newArg instanceof SWRLArgument) { // if argument
+				SWRLVar nvar = new SWRLVar((SWRLVariable)arg);
+
+				SWRLTerm newArg = getVarSubst(nvar, subst);
+
+				if (newArg.isArgument()) { // if argument
 					if (newArg != null) {
 						// add it to the list of new arguments
-						newArgs.add((SWRLArgument) newArg); // the substituted
+						newArgs.add(newArg.argument); // the substituted
 						// argument
 					}
-				} else if (newArg instanceof SWRLAtom) { // if atom
-					System.out.println("Subst: " + arg + " - " + newArg);
-					return (SWRLAtom) newArg;
+				} else if (newArg.isAtom()) { // if atom
+					return newArg.atom;
+				}
+				else {
+					System.out.println("ARG: " + arg + " - " + newArg + " type "+newArg.getClass().toString());
 				}
 			} else
 				// add it to the list of new arguments
@@ -343,9 +352,9 @@ public class SWRLExpression implements Expression {
 						(SWRLIArgument) newArgs.get(0),
 						(SWRLIArgument) newArgs.get(1));
 		}
-		if (newatom != null)
+		if (newatom != null){
 			return newatom;
-
+		}
 		return atom;
 	}
 

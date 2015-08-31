@@ -147,7 +147,7 @@ public class OWLOntologyDatabase implements Database {
 
 		StatementCollector stc = new StatementCollector();
 		RioRenderer render = new RioRenderer(owlontology, stc,
-				manager.getOntologyFormat(owlontology), (Resource) null);
+				manager.getOntologyFormat(owlontology), (Resource) vfactory.createURI(baseURI));
 		try {
 			render.render();
 			baseStm = stc.getStatements();
@@ -174,7 +174,7 @@ public class OWLOntologyDatabase implements Database {
 	public Set<Statement> getAllStatements(String id){
 		Set<Statement> sts = new HashSet<Statement>();
 		try {
-			RepositoryResult<Statement> statements = this.localdb.getTriples(getResource(id));
+			RepositoryResult<Statement> statements = this.getCurrentDb().getTriples(getResource(id));
 			while (statements.hasNext()){
 				Statement st = statements.next();
 				sts.add(st);
@@ -189,9 +189,9 @@ public class OWLOntologyDatabase implements Database {
 	public void setupRepo(URL repoUrl) throws KRDatabaseException {
 		// set up RDF repository = triple store local + shared
 
-		if (repoUrl != null) {
-			//System.out.println("Setting up remote repo");
-
+		if (repoUrl != null && name.equals("BELIEFBASE")) {
+			//System.out.println("Setting up remote repo "+name+" at: "+repoUrl);
+			SHARED_MODE = true;
 			shared_listener = new RDFRepositoryConnectionListener(this,
 					"shared");
 
@@ -199,7 +199,7 @@ public class OWLOntologyDatabase implements Database {
 					baseURI, repoUrl, shared_listener);
 		} else {
 			if (this.localdb == null) {
-				//System.out.println("Setting up local repo");
+			//	System.out.println("Setting up local repo: "+name);
 				local_listener = new RDFRepositoryConnectionListener(this,
 						"local");
 				this.localdb = new RDFRepositoryDatabase(name, owlontology,
@@ -208,10 +208,10 @@ public class OWLOntologyDatabase implements Database {
 		}
 	}
 
-	public RDFRepositoryDatabase getRepo() {
-		return this.localdb;
+	public RDFRepositoryDatabase getRepo(){
+		return getCurrentDb();
 	}
-
+	
 	public String getbaseURI() {
 		return this.baseURI;
 	}
@@ -240,22 +240,28 @@ public class OWLOntologyDatabase implements Database {
 		//get and remove named graph
 		String id = qr.getNamedGraph();
 		qr = qr.removeNamedGraph();
-		
-	//	System.out.println("\nQuerying::: " + query + " from "+ id);
+
+		//System.out.println("\nQuerying::: " + query + " from "+ id);
 		//translate
 		SWRLTranslator transl = new SWRLTranslator(this.swrlontology,
 				qr.getRule());
-		String querySPARQL = transl.translateToSPARQL(id);
+		String querySPARQL = "";
+		
+		if (SHARED_MODE)
+			 querySPARQL = transl.translateToSPARQL();
+		else
+			 querySPARQL = transl.translateToSPARQL(id, baseURI);
 
 		return query(querySPARQL);
 	}
 	
+	
 	private RDFRepositoryDatabase getCurrentDb(){
 		if (SHARED_MODE && this.shareddb != null && this.shareddb.isOpen()) {
-		//	System.out.println("Querying shared");
+			//System.out.println("Querying shared");
 			return this.shareddb;
 		} else if (this.localdb != null && this.localdb.isOpen()) {
-		//	System.out.println("Querying local");
+			//System.out.println("Querying local");
 			return this.localdb;
 		}
 		return this.localdb;
@@ -263,7 +269,7 @@ public class OWLOntologyDatabase implements Database {
 	
 	public Set<Substitution> query(String queryString) throws KRQueryFailedException {
 		Set<Substitution> qresult = new HashSet<Substitution>();
-	//	System.out.println("\nQUERYING:::: \n" + queryString.toString());
+		System.out.println("\nQUERYING:::: \n" + queryString.toString());
 
 		try {
 			QueryResult rdfresult = null;
@@ -291,10 +297,9 @@ public class OWLOntologyDatabase implements Database {
 											.getOWLNamedIndividual(IRI.create(val
 													.stringValue())));
 						}
-					//	System.out.println(name + " : " + val);
+						System.out.println(name + " : " + val);
 						qresult.add(new SWRLSubstitution(
-								// SWRL.variable(name)
-								owlfactory.getSWRLVariable(IRI.create(name)),
+								owlfactory.getSWRLVariable(IRI.create(this.baseURI+name)),
 								valueArgument));
 					}
 				}
@@ -347,14 +352,15 @@ public class OWLOntologyDatabase implements Database {
 		//System.out.println("Got id "+id);
 		form = form.removeNamedGraph();
 
+		System.out.println("\nINSERTING::: " + formula + " into "+ id);
+
 		OWLAxiom axiom = form.getAxiom();
 		manager.addAxiom(owlontology, axiom);
 		Resource res = getResource(id);
 		Collection<Statement> statements = formulaToStatements(formula, res);
 		
-//		System.out.println("\nINSERTING::: " + formula + " into "+ res);
-//		for (Statement st : statements)
-//			System.out.println("ST: "+st);
+		for (Statement st : statements)
+			System.out.println("ST: "+st);
 		
 		insert(statements, res);
 	}
@@ -447,7 +453,7 @@ public class OWLOntologyDatabase implements Database {
 		Resource subj = null;
 		URI pred = null;
 		Value obj = null;
-		ValueFactory vf = getRepo().getValueFactory();
+		ValueFactory vf = getCurrentDb().getValueFactory();
 
 		//if it has no variables // cannot insert smth with variables
 		Collection<SWRLArgument> args = atom.getAllArguments();
@@ -512,7 +518,7 @@ public class OWLOntologyDatabase implements Database {
 
 	public void insert(Collection<Statement> statements, Resource resources) {
 		if (SHARED_MODE){
-			insertShared(statements, resources);
+			insertShared(statements, null);
 		}else
 			insertLocal(statements, resources);
 	}

@@ -48,10 +48,11 @@ public class OWLRepoKRInterface implements KRInterface {
 		this.formats = new LinkedList<RDFFormat>();
 		for (URI uri : uris) {
 			RDFFormat format = RDFFormat.forFileName(uri.getPath());
-			formats.add(format);
+ 			formats.add(format);
 			if (uri.toString().startsWith("http")) {
 				try {
 					this.repoUrl = uri.toURL();
+					System.out.println("REPO URL: "+repoUrl);
 				} catch (MalformedURLException e) {
 					throw new KRInitFailedException(e.getMessage());
 				}

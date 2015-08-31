@@ -54,9 +54,9 @@ public class SWRLTranslator {
 		this.rule = rule;
 	}
 	public String translateToSPARQL(){
-		return translateToSPARQL(null);
+		return translateToSPARQL(null, null);
 	}
-	public String translateToSPARQL(String namedGraph){
+	public String translateToSPARQL(String namedGraph, String baseURI){
 		String SPARQLquery = "";
 		String SPARQLfilter = "";
 		
@@ -82,8 +82,10 @@ public class SWRLTranslator {
 			
 			if (namedGraph!=null && !namedGraph.isEmpty())
 				SPARQLquery += "\nFROM  <"+namedGraph+">";
-			
-			SPARQLquery +=	"\n WHERE \n";
+			if (baseURI!=null && !baseURI.isEmpty())
+				SPARQLquery += "\nFROM  <"+baseURI+">";
+
+			SPARQLquery +=	"\n WHERE ";
 		}
 		
 		SPARQLquery += " \n{ ";

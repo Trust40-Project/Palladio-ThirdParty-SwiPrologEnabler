@@ -183,10 +183,10 @@ public class SWRLSubstitution implements Substitution {
 
 	@Override
 	public Substitution combine(Substitution substitution) {
-		// TODO Auto-generated method stub
-		System.out.println("TRYING TO COMBINE SUBSTITUTIONS FAILED: "
-				+ this.toString() + " + " + substitution.toString());
-		return null;
+		//add them?
+		this.addSWRLSubstitution((SWRLSubstitution) substitution);
+//System.out.println("COMBINED SUBSTITUTIONS: "+ this.toString());
+		return this;
 	}
 
 	@Override
@@ -223,4 +223,11 @@ public class SWRLSubstitution implements Substitution {
 		return this;
 	}
 
+	@Override
+	public String toString(){
+		String s = "";
+		for (SWRLVar var : this.variables)
+			s+= var + " / "+this.substitutions.get(var).toString()+"\n";
+		return s;
+	}
 }

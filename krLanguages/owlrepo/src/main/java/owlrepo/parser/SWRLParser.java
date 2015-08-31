@@ -102,7 +102,7 @@ public class SWRLParser implements Parser {
 			currentLine = currentLine.trim();
 			if (currentLine.startsWith("(") && currentLine.endsWith(")"))
 				currentLine = currentLine
-						.substring(1, currentLine.length() - 1);
+				.substring(1, currentLine.length() - 1);
 			return true;
 		}
 		return false;
@@ -119,7 +119,7 @@ public class SWRLParser implements Parser {
 					return rule;
 				// call SWRL parser
 				if (string.contains("(")) {// we know it's a term, not an
-											// argument
+					// argument
 					// if (parser.isSWRLRuleCorrectAndComplete(string))
 					rule = parseRule(string, "rule" + lineNr);
 				}
@@ -167,8 +167,8 @@ public class SWRLParser implements Parser {
 				parseArgumentList.setAccessible(true);// Abracadabra
 				SWRLDArgument parsedArg = (SWRLDArgument) parseArgumentList
 						.invoke(parser, tokenizer, isInHead, isInHead);// now
-																		// its
-																		// OK
+				// its
+				// OK
 				arg = parsedArg;
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | NoSuchMethodException
@@ -235,26 +235,28 @@ public class SWRLParser implements Parser {
 			StringReader sreader = new StringReader(text);
 			// first is always the owl file
 			RDFFormat format = this.formats.get(i);
-			RDFParser rdfParser = Rio.createParser(format);
-			List<Statement> statements = new ArrayList<Statement>();
-			StatementCollector collector = new StatementCollector(statements);
-			rdfParser.setRDFHandler(collector);
-			try {
-				if (!sreader.ready())
-					System.out.println("Reader not ready");
-				sreader.mark(1);
-				rdfParser.parse(sreader, onto.getPrefixManager()
-						.getDefaultPrefix());
-				for (Statement stm : statements) {
-					// System.out.println(stm);
-					// convert it into a SWRLRule or DBFormula somehow
-					triples.add(parserUtil.getSWRLRule(stm));
+			if (format !=null){
+				RDFParser rdfParser = Rio.createParser(format);
+				List<Statement> statements = new ArrayList<Statement>();
+				StatementCollector collector = new StatementCollector(statements);
+				rdfParser.setRDFHandler(collector);
+				try {
+					if (!sreader.ready())
+						System.out.println("Reader not ready");
+					sreader.mark(1);
+					rdfParser.parse(sreader, onto.getPrefixManager()
+							.getDefaultPrefix());
+					for (Statement stm : statements) {
+						// System.out.println(stm);
+						// convert it into a SWRLRule or DBFormula somehow
+						triples.add(parserUtil.getSWRLRule(stm));
+					}
+					sreader.reset();
+				} catch (RDFParseException | RDFHandlerException | IOException
+						| SWRLParseException e) {
+					e.printStackTrace();
+					throw new ParserException(e.getMessage());
 				}
-				sreader.reset();
-			} catch (RDFParseException | RDFHandlerException | IOException
-					| SWRLParseException e) {
-				e.printStackTrace();
-				throw new ParserException(e.getMessage());
 			}
 		}
 
