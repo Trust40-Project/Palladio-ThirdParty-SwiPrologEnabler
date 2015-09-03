@@ -144,7 +144,12 @@ public class SemanticTools {
 			jpl.Term directive = term.getTerm().arg(1);
 			signature = JPLUtils.getSignature(directive);
 			if (JPLUtils.getSignature(directive).equals("dynamic/1")) {
-				signature = directive.arg(1).arg(1) + "/" + directive.arg(1).arg(2);
+				jpl.Term headTerm = directive.arg(1);
+				signature = headTerm.name() + "/" + headTerm.arity();
+				if (signature.equals("//2")) {
+					// the term is already a signature itself
+					signature = headTerm.arg(1) + "/" + headTerm.arg(2);
+				}
 				if (PrologOperators.prologBuiltin(signature)) {
 					throw new ParserException(ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(signature),
 							term.getSourceInfo());

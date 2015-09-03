@@ -113,7 +113,7 @@ public class Analyzer {
 
 		String headSig = headTerm.name() + "/" + headTerm.arity();
 		if (headSig.equals("//2")) {
-			// the term is already as signature itself
+			// the term is already a signature itself
 			headSig = headTerm.arg(1) + "/" + headTerm.arg(2);
 		}
 		// Ignore built-in operators.
