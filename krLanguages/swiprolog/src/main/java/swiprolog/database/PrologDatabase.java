@@ -304,7 +304,7 @@ public class PrologDatabase implements Database {
 		try {
 			solutions = jplQuery.allSolutions();
 		} catch (Throwable e) {
-			throw new KRQueryFailedException(handleRawqueryException(jplQuery, e), e);
+			throw new KRQueryFailedException("swi prolog says the query " + query + " failed", e);
 		}
 
 		// Convert to PrologSubstitution.
@@ -314,31 +314,6 @@ public class PrologDatabase implements Database {
 		}
 
 		return substitutions;
-	}
-
-	/**
-	 * Converts exception into more readable warning message.
-	 *
-	 * @param query
-	 * @param e
-	 * @return a readable version of the JPL error. Only interprets
-	 *         existence_error messages, the rest gives a simplistic 'failed'
-	 *         message.
-	 */
-	private static String handleRawqueryException(jpl.Query query, Throwable e) {
-		String warning = "swi prolog says the query " + query + " failed";
-		if (e instanceof Exception) {
-			String mess = e.getMessage();
-			int i = mess.indexOf("existence_error(procedure, ");
-			if (i != -1) {
-				// JPL existence error. ASSUMES modules are queried.
-				int start = i + 29;
-				int end = mess.indexOf(")", start); // should be there
-				warning = warning + " because a predicate " + mess.substring(start, end).replace(',', '/')
-						+ " has not been defined";
-			}
-		}
-		return warning;
 	}
 
 	/**
