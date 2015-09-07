@@ -18,7 +18,7 @@
 package swiprolog.database;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -61,12 +61,12 @@ public class Theory {
 	}
 
 	/**
-	 * Returns copy of the set of all formulas that are part of this theory.
+	 * Returns the set of all formulas that are part of this theory.
 	 *
-	 * @return a copy of the {@link DatabaseFormula}s in this theory.
+	 * @return the {@link DatabaseFormula}s in this theory.
 	 */
 	public Set<DatabaseFormula> getFormulas() {
-		return new HashSet<>(this.content);
+		return Collections.unmodifiableSet(this.content);
 	}
 
 	// *************** insertion methods *************/
