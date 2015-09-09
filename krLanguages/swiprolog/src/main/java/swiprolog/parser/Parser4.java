@@ -72,8 +72,8 @@ public class Parser4 implements ANTLRErrorListener {
 		this.stream.name = (this.sourceInfo.getSource() == null) ? "" : this.sourceInfo.getSource().getPath();
 
 		this.lexer = new Lexer4(this.stream, this);
-		this.lexer.setLine(this.sourceInfo.getLineNumber());
-		this.lexer.setCharPositionInLine(this.sourceInfo.getCharacterPosition());
+		this.lexer.setLine(this.sourceInfo.getLineNumber() + 1);
+		this.lexer.setCharPositionInLine(this.sourceInfo.getCharacterPosition() + 1);
 
 		CommonTokenStream tokens = new CommonTokenStream(this.lexer);
 		this.parser = new Prolog4Parser(tokens);
