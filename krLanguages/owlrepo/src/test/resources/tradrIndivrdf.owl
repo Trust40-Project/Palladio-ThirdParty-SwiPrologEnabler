@@ -213,6 +213,14 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#hasStatus -->
+
+    <owl:ObjectProperty rdf:about="&onto;hasStatus">
+        <rdfs:range rdf:resource="&onto;Status"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#hasTask -->
 
     <owl:ObjectProperty rdf:about="&onto;hasTask">
@@ -250,28 +258,12 @@
     
 
 
-    <!-- http://www.semanticweb.org/ontologies/tradr#latitude -->
-
-    <owl:ObjectProperty rdf:about="&onto;latitude">
-        <rdfs:subPropertyOf rdf:resource="&onto;hasLocation"/>
-    </owl:ObjectProperty>
-    
-
-
     <!-- http://www.semanticweb.org/ontologies/tradr#leadsTeam -->
 
     <owl:ObjectProperty rdf:about="&onto;leadsTeam">
         <rdfs:domain rdf:resource="&onto;Leader"/>
         <rdfs:range rdf:resource="&onto;Team"/>
         <rdfs:subPropertyOf rdf:resource="&onto;hasRoleProperty"/>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://www.semanticweb.org/ontologies/tradr#longitude -->
-
-    <owl:ObjectProperty rdf:about="&onto;longitude">
-        <rdfs:subPropertyOf rdf:resource="&onto;hasLocation"/>
     </owl:ObjectProperty>
     
 
@@ -311,6 +303,15 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#description -->
+
+    <owl:DatatypeProperty rdf:about="&onto;description">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasIdentity"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#hasAge -->
 
     <owl:DatatypeProperty rdf:about="&onto;hasAge">
@@ -333,6 +334,14 @@
     <owl:DatatypeProperty rdf:about="&onto;hasEndTime">
         <rdfs:subPropertyOf rdf:resource="&onto;hasTime"/>
         <rdfs:range rdf:resource="&xsd;dateTimeStamp"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#hasGPS -->
+
+    <owl:DatatypeProperty rdf:about="&onto;hasGPS">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasIdentity"/>
     </owl:DatatypeProperty>
     
 
@@ -375,12 +384,6 @@
     <owl:DatatypeProperty rdf:about="&onto;hasLength">
         <rdfs:subPropertyOf rdf:resource="&onto;hasSize"/>
     </owl:DatatypeProperty>
-    
-
-
-    <!-- http://www.semanticweb.org/ontologies/tradr#hasLocation -->
-
-    <owl:DatatypeProperty rdf:about="&onto;hasLocation"/>
     
 
 
@@ -432,15 +435,6 @@
     
 
 
-    <!-- http://www.semanticweb.org/ontologies/tradr#hasStatus -->
-
-    <owl:DatatypeProperty rdf:about="&onto;hasStatus">
-        <rdfs:subPropertyOf rdf:resource="&onto;hasIdentity"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://www.semanticweb.org/ontologies/tradr#hasTemperature -->
 
     <owl:DatatypeProperty rdf:about="&onto;hasTemperature">
@@ -483,13 +477,17 @@
 
     <!-- http://www.semanticweb.org/ontologies/tradr#latitude -->
 
-    <owl:DatatypeProperty rdf:about="&onto;latitude"/>
+    <owl:DatatypeProperty rdf:about="&onto;latitude">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasGPS"/>
+    </owl:DatatypeProperty>
     
 
 
     <!-- http://www.semanticweb.org/ontologies/tradr#longitude -->
 
-    <owl:DatatypeProperty rdf:about="&onto;longitude"/>
+    <owl:DatatypeProperty rdf:about="&onto;longitude">
+        <rdfs:subPropertyOf rdf:resource="&onto;hasGPS"/>
+    </owl:DatatypeProperty>
     
 
 
@@ -603,7 +601,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Audio -->
 
     <owl:Class rdf:about="&onto;Audio">
-        <rdfs:subClassOf rdf:resource="&onto;Data"/>
+        <rdfs:subClassOf rdf:resource="&onto;Datatype"/>
     </owl:Class>
     
 
@@ -706,8 +704,14 @@
 
     <!-- http://www.semanticweb.org/ontologies/tradr#Data -->
 
-    <owl:Class rdf:about="&onto;Data">
-        <rdfs:subClassOf rdf:resource="&onto;Object"/>
+    <owl:Class rdf:about="&onto;Data"/>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Datatype -->
+
+    <owl:Class rdf:about="&onto;Datatype">
+        <rdfs:subClassOf rdf:resource="&onto;Data"/>
     </owl:Class>
     
 
@@ -715,7 +719,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Device -->
 
     <owl:Class rdf:about="&onto;Device">
-        <rdfs:subClassOf rdf:resource="&onto;Object"/>
+        <rdfs:subClassOf rdf:resource="&onto;Data"/>
     </owl:Class>
     
 
@@ -946,7 +950,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Image -->
 
     <owl:Class rdf:about="&onto;Image">
-        <rdfs:subClassOf rdf:resource="&onto;Data"/>
+        <rdfs:subClassOf rdf:resource="&onto;Datatype"/>
     </owl:Class>
     
 
@@ -1385,6 +1389,14 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#Sortie -->
+
+    <owl:Class rdf:about="&onto;Sortie">
+        <rdfs:subClassOf rdf:resource="&onto;Mission"/>
+    </owl:Class>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#Stabilize -->
 
     <owl:Class rdf:about="&onto;Stabilize">
@@ -1401,6 +1413,14 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#Status -->
+
+    <owl:Class rdf:about="&onto;Status">
+        <rdfs:subClassOf rdf:resource="&onto;Data"/>
+    </owl:Class>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#Storm -->
 
     <owl:Class rdf:about="&onto;Storm">
@@ -1412,7 +1432,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Stream -->
 
     <owl:Class rdf:about="&onto;Stream">
-        <rdfs:subClassOf rdf:resource="&onto;Data"/>
+        <rdfs:subClassOf rdf:resource="&onto;Datatype"/>
     </owl:Class>
     
 
@@ -1468,7 +1488,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Text -->
 
     <owl:Class rdf:about="&onto;Text">
-        <rdfs:subClassOf rdf:resource="&onto;Data"/>
+        <rdfs:subClassOf rdf:resource="&onto;Datatype"/>
     </owl:Class>
     
 
@@ -1645,7 +1665,7 @@
     <!-- http://www.semanticweb.org/ontologies/tradr#Video -->
 
     <owl:Class rdf:about="&onto;Video">
-        <rdfs:subClassOf rdf:resource="&onto;Data"/>
+        <rdfs:subClassOf rdf:resource="&onto;Datatype"/>
     </owl:Class>
     
 
@@ -1709,6 +1729,30 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#Aerial_explorer_role -->
+
+    <owl:NamedIndividual rdf:about="&onto;Aerial_explorer_role">
+        <rdf:type rdf:resource="&onto;Aerial_explorer"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Driving_robot_auto -->
+
+    <owl:NamedIndividual rdf:about="&onto;Driving_robot_auto">
+        <rdf:type rdf:resource="&onto;Status"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Driving_robot_manual -->
+
+    <owl:NamedIndividual rdf:about="&onto;Driving_robot_manual">
+        <rdf:type rdf:resource="&onto;Status"/>
+    </owl:NamedIndividual>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#Firefighter -->
 
     <owl:NamedIndividual rdf:about="&onto;Firefighter">
@@ -1717,20 +1761,85 @@
     
 
 
-    <!-- http://www.semanticweb.org/ontologies/tradr#John_Smith -->
+    <!-- http://www.semanticweb.org/ontologies/tradr#Ground_explorer_role -->
 
-    <owl:NamedIndividual rdf:about="&onto;John_Smith">
-        <rdf:type rdf:resource="&onto;Human"/>
-        <hasAge>34</hasAge>
-        <hasRole rdf:resource="&onto;Firefighter"/>
-        <isHeadOf rdf:resource="&onto;RescueTeam1"/>
+    <owl:NamedIndividual rdf:about="&onto;Ground_explorer_role">
+        <rdf:type rdf:resource="&onto;Ground_explorer"/>
     </owl:NamedIndividual>
     
 
 
-    <!-- http://www.semanticweb.org/ontologies/tradr#John_Smith_Location -->
+    <!-- http://www.semanticweb.org/ontologies/tradr#Idle -->
 
-    <owl:NamedIndividual rdf:about="&onto;John_Smith_Location"/>
+    <owl:NamedIndividual rdf:about="&onto;Idle">
+        <rdf:type rdf:resource="&onto;Status"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Infield_rescuer_1 -->
+
+    <owl:NamedIndividual rdf:about="&onto;Infield_rescuer_1">
+        <rdf:type rdf:resource="&onto;Human"/>
+        <hasRole rdf:resource="&onto;Infield_rescuer_role"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Infield_rescuer_2 -->
+
+    <owl:NamedIndividual rdf:about="&onto;Infield_rescuer_2">
+        <rdf:type rdf:resource="&onto;Human"/>
+        <hasRole rdf:resource="&onto;Infield_rescuer_role"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Infield_rescuer_role -->
+
+    <owl:NamedIndividual rdf:about="&onto;Infield_rescuer_role">
+        <rdf:type rdf:resource="&onto;Infield_rescuer"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Leading -->
+
+    <owl:NamedIndividual rdf:about="&onto;Leading">
+        <rdf:type rdf:resource="&onto;Status"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Moving_home -->
+
+    <owl:NamedIndividual rdf:about="&onto;Moving_home">
+        <rdf:type rdf:resource="&onto;Status"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Moving_to_target -->
+
+    <owl:NamedIndividual rdf:about="&onto;Moving_to_target">
+        <rdf:type rdf:resource="&onto;Status"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Operating_arm_or_camera -->
+
+    <owl:NamedIndividual rdf:about="&onto;Operating_arm_or_camera">
+        <rdf:type rdf:resource="&onto;Status"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#Other -->
+
+    <owl:NamedIndividual rdf:about="&onto;Other">
+        <rdf:type rdf:resource="&onto;Status"/>
+    </owl:NamedIndividual>
     
 
 
@@ -1742,20 +1851,89 @@
     
 
 
-    <!-- http://www.semanticweb.org/ontologies/tradr#UGV_CTU -->
+    <!-- http://www.semanticweb.org/ontologies/tradr#Team_leader -->
 
-    <owl:NamedIndividual rdf:about="&onto;UGV_CTU">
-        <rdf:type rdf:resource="&onto;UGV"/>
-        <belongsToTeam rdf:resource="&onto;RescueTeam1"/>
-        <hasLocation rdf:resource="&onto;UGV_CTU_Location"/>
+    <owl:NamedIndividual rdf:about="&onto;Team_leader">
+        <rdf:type rdf:resource="&onto;Human"/>
+        <hasRole rdf:resource="&onto;Team_leader_role"/>
     </owl:NamedIndividual>
     
 
 
-    <!-- http://www.semanticweb.org/ontologies/tradr#UGV_CTU_Location -->
+    <!-- http://www.semanticweb.org/ontologies/tradr#Team_leader_role -->
 
-    <owl:NamedIndividual rdf:about="&onto;UGV_CTU_Location">
-        <areaIdentifier>00</areaIdentifier>
+    <owl:NamedIndividual rdf:about="&onto;Team_leader_role">
+        <rdf:type rdf:resource="&onto;Team_leader"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#UAV_1 -->
+
+    <owl:NamedIndividual rdf:about="&onto;UAV_1">
+        <rdf:type rdf:resource="&onto;UAV"/>
+        <hasRole rdf:resource="&onto;Aerial_explorer_role"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#UAV_op_1 -->
+
+    <owl:NamedIndividual rdf:about="&onto;UAV_op_1">
+        <rdf:type rdf:resource="&onto;Human"/>
+        <hasRole rdf:resource="&onto;UAV_operator_role"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#UAV_operator_role -->
+
+    <owl:NamedIndividual rdf:about="&onto;UAV_operator_role">
+        <rdf:type rdf:resource="&onto;UAV_operator"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#UGV_1 -->
+
+    <owl:NamedIndividual rdf:about="&onto;UGV_1">
+        <rdf:type rdf:resource="&onto;UGV"/>
+        <hasRole rdf:resource="&onto;Ground_explorer_role"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#UGV_2 -->
+
+    <owl:NamedIndividual rdf:about="&onto;UGV_2">
+        <rdf:type rdf:resource="&onto;UGV"/>
+        <hasRole rdf:resource="&onto;Ground_explorer_role"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#UGV_op_1 -->
+
+    <owl:NamedIndividual rdf:about="&onto;UGV_op_1">
+        <rdf:type rdf:resource="&onto;Human"/>
+        <hasRole rdf:resource="&onto;UGV_operator_role"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#UGV_op_2 -->
+
+    <owl:NamedIndividual rdf:about="&onto;UGV_op_2">
+        <rdf:type rdf:resource="&onto;Human"/>
+        <hasRole rdf:resource="&onto;UGV_operator_role"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#UGV_operator_role -->
+
+    <owl:NamedIndividual rdf:about="&onto;UGV_operator_role">
+        <rdf:type rdf:resource="&onto;UGV_operator"/>
     </owl:NamedIndividual>
     
 
@@ -1779,12 +1957,9 @@
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <owl:members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;BuildingPart"/>
-            <rdf:Description rdf:about="&onto;Device"/>
-            <rdf:Description rdf:about="&onto;Infrastructure"/>
-            <rdf:Description rdf:about="&onto;Unidentified"/>
-            <rdf:Description rdf:about="&onto;Vehicle"/>
-            <rdf:Description rdf:about="&onto;Victim"/>
+            <rdf:Description rdf:about="&onto;Mission"/>
+            <rdf:Description rdf:about="&onto;Role"/>
+            <rdf:Description rdf:about="&onto;Team"/>
         </owl:members>
     </rdf:Description>
     <rdf:Description>
@@ -1799,19 +1974,22 @@
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <owl:members rdf:parseType="Collection">
-            <rdf:Description rdf:about="&onto;Mission"/>
-            <rdf:Description rdf:about="&onto;Role"/>
-            <rdf:Description rdf:about="&onto;Team"/>
-        </owl:members>
-    </rdf:Description>
-    <rdf:Description>
-        <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
-        <owl:members rdf:parseType="Collection">
             <rdf:Description rdf:about="&onto;Actor"/>
             <rdf:Description rdf:about="&onto;Event"/>
             <rdf:Description rdf:about="&onto;Location"/>
             <rdf:Description rdf:about="&onto;Object"/>
             <rdf:Description rdf:about="&onto;Organisation"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="&onto;BuildingPart"/>
+            <rdf:Description rdf:about="&onto;Device"/>
+            <rdf:Description rdf:about="&onto;Infrastructure"/>
+            <rdf:Description rdf:about="&onto;Unidentified"/>
+            <rdf:Description rdf:about="&onto;Vehicle"/>
+            <rdf:Description rdf:about="&onto;Victim"/>
         </owl:members>
     </rdf:Description>
 </rdf:RDF>

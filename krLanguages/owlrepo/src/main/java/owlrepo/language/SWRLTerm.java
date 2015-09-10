@@ -55,6 +55,12 @@ public class SWRLTerm extends SWRLExpression implements Term {
 		return this.argument;
 	}
 
+	public SWRLVar getVariable() {
+		if (this.isVariable())
+			return new SWRLVar((SWRLVariable) this.argument);
+		return null;
+	}
+
 	public boolean isArgument() {
 		return (this.argument != null);
 	}

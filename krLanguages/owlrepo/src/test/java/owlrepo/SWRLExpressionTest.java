@@ -115,7 +115,7 @@ public class SWRLExpressionTest {
 	@Test
 	public void testMGUTermTerm() {
 		String text = " tradr:hasAge(?x, 34)";
-		String text2 = "tradr:hasAge(tradr:John_Smith, 35)";
+		String text2 = "tradr:hasAge(tradr:UGV_op_1, 35)";
 
 		SWRLExpression exp = getTerm(text);
 		SWRLExpression exp2 = getTerm(text2);
@@ -129,7 +129,7 @@ public class SWRLExpressionTest {
 	@Test
 	public void testMGUTermTermBothFreeVars() {
 		String text = " tradr:hasAge(?x, 34)";
-		String text2 = "tradr:hasAge(tradr:John_Smith, ?z)";
+		String text2 = "tradr:hasAge(tradr:UGV_op_1, ?z)";
 
 		SWRLExpression exp = getTerm(text);
 		SWRLExpression exp2 = getTerm(text2);
@@ -144,7 +144,7 @@ public class SWRLExpressionTest {
 	@Test
 	public void testMGUTermTermMatchAllArgs() {
 		String text = " tradr:hasAge(?x, 34)";
-		String text2 = "tradr:hasAge(tradr:John_Smith, 35)";
+		String text2 = "tradr:hasAge(tradr:UGV_op_1, 35)";
 
 		SWRLExpression exp = getTerm(text);
 		SWRLExpression exp2 = getTerm(text2);
@@ -157,7 +157,7 @@ public class SWRLExpressionTest {
 
 	@Test
 	public void testMGUTermRule() {
-		String text = "tradr:Human(tradr:John_Smith)";
+		String text = "tradr:Human(tradr:UGV_op_1)";
 		String text2 = "tradr:Human(?x) ^ tradr:isHeadOf(?x, ?t)";
 
 		SWRLExpression exp = getTerm(text);
@@ -173,7 +173,7 @@ public class SWRLExpressionTest {
 
 	@Test
 	public void testMGUTermRuleTwoMatches() {
-		String text = "tradr:Human(tradr:John_Smith)";
+		String text = "tradr:Human(tradr:UGV_op_1)";
 		String text2 = "tradr:Human(?x) ^ tradr:Human(?t)";
 
 		SWRLExpression exp = getTerm(text);
@@ -189,7 +189,7 @@ public class SWRLExpressionTest {
 
 	@Test
 	public void testMGUTermRuleTwoMatchesSameVariable() {
-		String text = "tradr:hasAge(tradr:John_Smith, ?x)";
+		String text = "tradr:hasAge(tradr:UGV_op_1, ?x)";
 		String text2 = "tradr:hasAge(?x, 33) ^ tradr:hasAge(?y, ?z)";
 
 		SWRLExpression exp = getTerm(text);
@@ -207,7 +207,7 @@ public class SWRLExpressionTest {
 
 	@Test
 	public void testMGUTermRuleTwoMatchesInvalid() {
-		String text = "tradr:hasAge(tradr:John_Smith, ?x)";
+		String text = "tradr:hasAge(tradr:UGV_op_1, ?x)";
 		String text2 = "tradr:hasAge(?y, 33) ^ tradr:hasAge(?z, 35)";
 
 		SWRLExpression exp = getTerm(text);
@@ -218,9 +218,9 @@ public class SWRLExpressionTest {
 
 		// it should throw exception or error, coz there are two possible
 		// substitutions:
-		// ?y/John_Smith ?x/33
-		// ?z/John_Smith ?x/35
-		// so for now it returns the first, plus erronously also ?z/John_Smith
+		// ?y/UGV_op_1 ?x/33
+		// ?z/UGV_op_1 ?x/35
+		// so for now it returns the first, plus erronously also ?z/UGV_op_1
 		// needs more debugging to figure out mgu algorithm fully
 		assertEquals(3, subst.getSWRLVariables().size());
 		assertEquals(3, subst.getVariables().size());
@@ -230,7 +230,7 @@ public class SWRLExpressionTest {
 	@Test
 	public void testMGURuleTerm() {
 		String text = "tradr:Human(?x) ^ tradr:isHeadOf(?x, ?t) -> tradr:Team_leader(?x)";
-		String text2 = "tradr:Human(tradr:John_Smith)";
+		String text2 = "tradr:Human(tradr:UGV_op_1)";
 
 		SWRLExpression exp = getExpression(text);
 		SWRLExpression exp2 = getTerm(text2);
@@ -246,7 +246,7 @@ public class SWRLExpressionTest {
 	@Test
 	public void testMGURules() {
 		String text = "tradr:Human(?x) ^ tradr:isHeadOf(?x, ?t) -> tradr:Team_leader(?x)";
-		String text2 = "tradr:Human(tradr:John_Smith) ^ tradr:hasAge(tradr:John_Smith, 34)";
+		String text2 = "tradr:Human(tradr:UGV_op_1) ^ tradr:hasAge(tradr:UGV_op_1, 34)";
 
 		SWRLExpression exp = getExpression(text);
 		SWRLExpression exp2 = getExpression(text2);

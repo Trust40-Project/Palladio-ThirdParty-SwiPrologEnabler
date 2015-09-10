@@ -80,7 +80,7 @@ public class SWRLParser implements Parser {
 		this.formats = formats;
 		this.info = info;
 		errors.clear();
-		// undefined.clear();
+		undefined.clear();
 	}
 
 	private boolean parseCurrentLine() throws ParserException {

@@ -48,7 +48,7 @@ public class SWRLTranslatorTest {
 	@Test
 	public void test_NO_FREE_VARS() throws SWRLParseException {
 	 SWRLRule rule = db.getSWRLOntology().createSWRLRule( "rule3",
-			 "onto:Team_leader(onto:John_Smith)");
+				"onto:UGV(onto:UGV_1)");
 	 System.out.println("Read: "+rule);
 
 	 trans = new SWRLTranslator(db.getSWRLOntology(), rule);

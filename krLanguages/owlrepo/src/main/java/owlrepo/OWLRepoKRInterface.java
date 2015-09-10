@@ -157,7 +157,6 @@ public class OWLRepoKRInterface implements KRInterface {
 		Set<Query> undef = new HashSet<Query>();
 		if (this.parser != null)
 			for (String s : parser.getUndefined()) {
-				// System.out.println("undefined " + s);
 				undef.add(new SWRLQuery(s));
 				// parser.getErrors().add(
 				// new SWRLParserSourceInfo(parser.getInfo().getSource(),
@@ -165,12 +164,11 @@ public class OWLRepoKRInterface implements KRInterface {
 			}
 		// System.out.println(parser.getErrors().size());
 		// keep parser errors only until getundefined is called
-		// parser.getErrors().clear();
+		parser.getErrors().clear();
 		parser.getUndefined().clear();
 		for (Query query : queries) {
 			// System.out.println("query " + query.toString());
 			if (((SWRLQuery) query).isUndefined()) {
-				// System.out.println("undefined " + query.toString());
 				undef.add(query);
 			}
 		}

@@ -184,9 +184,11 @@ public class SWRLSubstitution implements Substitution {
 	@Override
 	public Substitution combine(Substitution substitution) {
 		//add them?
-		this.addSWRLSubstitution((SWRLSubstitution) substitution);
+		SWRLSubstitution comb = new SWRLSubstitution();
+		comb.addSWRLSubstitution(this);
+		comb.addSWRLSubstitution((SWRLSubstitution) substitution);
 //System.out.println("COMBINED SUBSTITUTIONS: "+ this.toString());
-		return this;
+		return comb;
 	}
 
 	@Override

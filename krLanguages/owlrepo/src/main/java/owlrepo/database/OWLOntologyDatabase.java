@@ -4,10 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import krTools.database.Database;
@@ -48,7 +46,6 @@ import org.semanticweb.owlapi.model.SWRLLiteralArgument;
 import org.semanticweb.owlapi.model.SWRLPredicate;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.semanticweb.owlapi.model.SWRLVariable;
-import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.rio.RioRenderer;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
@@ -308,7 +305,7 @@ public class OWLOntologyDatabase implements Database {
 				boolean res;
 				if (booleanResult.hasNext()) {
 					res = booleanResult.next();
-				//	System.out.println("RESULT::: " + res);
+					System.out.println("RESULT::: " + res);
 					if (res) //only add empty substitution if result is true
 						qresult.add(new SWRLSubstitution());
 				}
