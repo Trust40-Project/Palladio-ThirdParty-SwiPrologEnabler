@@ -517,6 +517,46 @@
     
 
 
+    <!-- http://www.semanticweb.org/ontologies/tradr#showToIR -->
+
+    <owl:DatatypeProperty rdf:about="&onto;showToIR">
+        <rdfs:subPropertyOf rdf:resource="&onto;showOnMap"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#showToOP -->
+
+    <owl:DatatypeProperty rdf:about="&onto;showToOP">
+        <rdfs:subPropertyOf rdf:resource="&onto;showOnMap"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#showToTL -->
+
+    <owl:DatatypeProperty rdf:about="&onto;showToTL">
+        <rdfs:subPropertyOf rdf:resource="&onto;showOnMap"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#showToUAVop -->
+
+    <owl:DatatypeProperty rdf:about="&onto;showToUAVop">
+        <rdfs:subPropertyOf rdf:resource="&onto;showToOP"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/ontologies/tradr#showToUGVop -->
+
+    <owl:DatatypeProperty rdf:about="&onto;showToUGVop">
+        <rdfs:subPropertyOf rdf:resource="&onto;showToOP"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.semanticweb.org/ontologies/tradr#videoFeed -->
 
     <owl:DatatypeProperty rdf:about="&onto;videoFeed">

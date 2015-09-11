@@ -74,6 +74,8 @@ public class SWRLTranslator {
 			
 			if (namedGraph!=null && !namedGraph.isEmpty())
 				SPARQLquery += "\nFROM  <"+namedGraph+">";
+			if (baseURI != null && !baseURI.isEmpty())
+				SPARQLquery += "\nFROM  <" + baseURI + ">";
 
 		} else {
 			// SELECT query
