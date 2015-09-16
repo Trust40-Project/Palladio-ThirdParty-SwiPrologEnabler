@@ -65,13 +65,13 @@ public class PrologError extends KRQueryFailedException {
 		 */
 		INSTANTIATION_ERROR(1),
 		/**
-		 * representation_error(+Reason). uninstantiation_error(+Term): An
-		 * argument is over-instantiated.
+		 * uninstantiation_error(+Term): An argument is over-instantiated.
 		 */
 
 		UNINSTANTIATION_ERROR(1),
 		/**
-		 * A representation error indicates a limitation of the implementation.
+		 * representation_error(+Reason). A representation error indicates a
+		 * limitation of the implementation.
 		 */
 		REPRESENTATION_ERROR(1),
 
