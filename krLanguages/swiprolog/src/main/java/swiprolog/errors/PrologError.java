@@ -78,7 +78,13 @@ public class PrologError extends KRQueryFailedException {
 		/**
 		 * syntax_error(+Culprit): A text has invalid syntax.
 		 */
-		SYNTAX_ERROR(1);
+		SYNTAX_ERROR(1),
+
+		/**
+		 * evaliation_error(Cause): some math evaluation failed. Not documented
+		 * by SWI so reverse engineered.
+		 */
+		EVALUATION_ERROR(1);
 
 		private int arity;
 
@@ -233,6 +239,8 @@ public class PrologError extends KRQueryFailedException {
 			return "implementation limits exceeded:" + error.arg(1);
 		case SYNTAX_ERROR:
 			return "text has invalid syntax:" + error.arg(1);
+		case EVALUATION_ERROR:
+			return "computation failed:" + error.arg(1);
 		default:
 			return defaultmessage;
 		}
