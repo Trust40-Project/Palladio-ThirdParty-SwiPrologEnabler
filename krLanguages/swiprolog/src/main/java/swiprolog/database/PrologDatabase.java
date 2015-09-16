@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import jpl.Atom;
+import jpl.PrologException;
 import jpl.Term;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
@@ -33,6 +34,7 @@ import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
 import swiprolog.SwiPrologInterface;
+import swiprolog.errors.PrologError;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
@@ -317,9 +319,13 @@ public class PrologDatabase implements Database {
 		Hashtable[] solutions;
 		try {
 			solutions = jplQuery.allSolutions();
+		} catch (PrologException e) {
+			throw new PrologError(e);
 		} catch (Throwable e) {
+			// catch all other (runtime) exceptions and wrap into checked
+			// exception with general message
 			throw new KRQueryFailedException("swi prolog says the query "
-					+ query + " failed", e);
+					+ jplQuery + " failed", e);
 		}
 
 		// Convert to PrologSubstitution.
