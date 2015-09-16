@@ -18,6 +18,12 @@ import swiprolog.language.JPLUtils;
  * unreadable for most humans
  * </ul>
  * 
+ * <p>
+ * The error contents were determined with reverse engineering. We most likely
+ * have not covered all possible cases. We try to give more general errors in
+ * unknown cases. But including the original {@link PrologException} still is
+ * necessary.
+ * 
  * @author W.Pasman 16sep15
  *
  */
