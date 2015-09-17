@@ -19,7 +19,6 @@ package swiprolog.parser;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
 
@@ -38,10 +37,8 @@ public class Term50Test {
 	 * Parses the textStream.
 	 *
 	 * @return The ANTLR parser for the file.
-	 * @throws IOException
-	 *             If the file does not exist.
 	 */
-	private Prolog4Parser getParser(InputStream textStream) throws IOException {
+	private Prolog4Parser getParser(InputStream textStream) throws Exception {
 		ANTLRInputStream input = new ANTLRInputStream(textStream);
 		Prolog4Lexer lexer = new Prolog4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -50,15 +47,15 @@ public class Term50Test {
 		return parser;
 	}
 
-	private Prolog4Parser getParser(String text) throws IOException {
+	private Prolog4Parser getParser(String text) throws Exception {
 		return getParser(new StringBufferInputStream(text));
 	}
 
 	/**
 	 * Checks that two ':' separated texts (which should be term0 parse-able
-	 * texts) are parssed properly.
+	 * texts) are parsed properly.
 	 */
-	private void checkParsesAsTerm50(String text1, String text2) throws IOException {
+	private void checkParsesAsTerm50(String text1, String text2) throws Exception {
 		String text = text1 + ":" + text2;
 		Prolog4Parser parser = getParser(text);
 		ParseTree tree = parser.term50();
@@ -67,32 +64,32 @@ public class Term50Test {
 	}
 
 	@Test
-	public void testFloats() throws IOException {
+	public void testFloats() throws Exception {
 		checkParsesAsTerm50("100.3", "100.3e13");
 	}
 
 	@Test
-	public void testVariables() throws IOException {
+	public void testVariables() throws Exception {
 		checkParsesAsTerm50("X", "Y");
 	}
 
 	@Test
-	public void testVariable2() throws IOException {
+	public void testVariable2() throws Exception {
 		checkParsesAsTerm50("X", "_123");
 	}
 
 	@Test
-	public void testStrings() throws IOException {
+	public void testStrings() throws Exception {
 		checkParsesAsTerm50("'Aap'", "\"Aap\"");
 	}
 
 	@Test
-	public void testMix1() throws IOException {
+	public void testMix1() throws Exception {
 		checkParsesAsTerm50("12", "\"Aap\"");
 	}
 
 	@Test
-	public void testMix2() throws IOException {
+	public void testMix2() throws Exception {
 		checkParsesAsTerm50("aap", "\"Aap\"");
 	}
 }

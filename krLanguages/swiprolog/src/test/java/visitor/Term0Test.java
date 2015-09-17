@@ -19,12 +19,10 @@ package visitor;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.StringReader;
 
 import org.junit.Test;
 
-import krTools.exceptions.KRInitFailedException;
 import krTools.exceptions.ParserException;
 import swiprolog.language.PrologTerm;
 import swiprolog.parser.Parser4;
@@ -44,11 +42,8 @@ public class Term0Test {
 	 *
 	 * @param text
 	 *            the text to parse.
-	 * @throws IOException
-	 * @throws KRInitFailedException
-	 * @throws ParserException
 	 */
-	private void checkVisitsAsTerm0(String text) throws IOException, KRInitFailedException, ParserException {
+	private void checkVisitsAsTerm0(String text) throws Exception {
 		checkVisitesAsTerm0(text, text);
 	}
 
@@ -59,50 +54,50 @@ public class Term0Test {
 	 *            the string to parse
 	 * @param out
 	 *            the expected result
-	 * @throws IOException
-	 * @throws KRInitFailedException
-	 * @throws ParserException
 	 */
-	private void checkVisitesAsTerm0(String in, String out) throws KRInitFailedException, IOException, ParserException {
+	private void checkVisitesAsTerm0(String in, String out) throws Exception {
 		Visitor4 visitor = new Visitor4(new Parser4(new StringReader(in), null));
 		PrologTerm term = visitor.visitTerm0();
-
-		System.out.println(in + " -> " + term);
-		assertEquals(out, term.toString());
+		if (visitor.getErrors().isEmpty()) {
+			System.out.println(in + " -> " + term);
+			assertEquals(out, term.toString());
+		} else {
+			throw visitor.getErrors().first();
+		}
 	}
 
 	@Test
-	public void testVariable() throws IOException, KRInitFailedException, ParserException {
+	public void testVariable() throws Exception {
 		checkVisitsAsTerm0("X");
 	}
 
 	@Test
-	public void testVariable2() throws IOException, KRInitFailedException, ParserException {
+	public void testVariable2() throws Exception {
 		checkVisitsAsTerm0("_123");
 	}
 
 	@Test
-	public void testString() throws IOException, KRInitFailedException, ParserException {
+	public void testString() throws Exception {
 		checkVisitsAsTerm0("'Aap'");
 	}
 
 	@Test
-	public void testString1() throws IOException, KRInitFailedException, ParserException {
+	public void testString1() throws Exception {
 		checkVisitesAsTerm0("\"Aap\"", "'Aap'");
 	}
 
 	@Test
-	public void testAtom() throws IOException, KRInitFailedException, ParserException {
+	public void testAtom() throws Exception {
 		checkVisitsAsTerm0("aap");
 	}
 
 	@Test
-	public void testString2() throws IOException, KRInitFailedException, ParserException {
+	public void testString2() throws Exception {
 		checkVisitesAsTerm0("`Aap`", "'Aap'");
 	}
 
 	@Test(expected = ParserException.class)
-	public void testString3() throws IOException, KRInitFailedException, ParserException {
+	public void testString3() throws Exception {
 		checkVisitsAsTerm0("`Aap'");
 	}
 }

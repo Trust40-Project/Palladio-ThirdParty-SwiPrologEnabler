@@ -18,7 +18,6 @@
 package visitor;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
@@ -30,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import krTools.exceptions.ParserException;
 import swiprolog.parser.Parser4;
 import swiprolog.visitor.Visitor4;
 
@@ -55,14 +53,14 @@ public class PrologFilesTest {
 
 	private final Reader stream;
 
-	public PrologFilesTest(String filename) throws IOException {
+	public PrologFilesTest(String filename) throws Exception {
 		URL url = getClass().getResource(filename);
 		this.stream = new BufferedReader(new InputStreamReader(url.openStream()));
 		System.out.println("running test with file " + url);
 	}
 
 	@Test
-	public void readFile() throws IOException, ParserException {
+	public void readFile() throws Exception {
 		Visitor4 visitor = new Visitor4(new Parser4(this.stream, null));
 		visitor.visitPrologtext();
 	}

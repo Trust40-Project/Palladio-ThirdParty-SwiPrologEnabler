@@ -19,14 +19,11 @@ package validator4;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.StringReader;
 
 import org.junit.Test;
 
 import jpl.Term;
-import krTools.exceptions.KRInitFailedException;
-import krTools.exceptions.ParserException;
 import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
 import swiprolog.parser.Parser4;
@@ -47,51 +44,50 @@ public class TermTest {
 	 * @param in
 	 *            the input string for the validator.
 	 * @return {@link Validator4Internal}
-	 * @throws IOException
 	 */
-	public Validator4 validator(String in) throws IOException {
+	public Validator4 validator(String in) throws Exception {
 		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test
-	public void testValidateFloat() throws IOException, KRInitFailedException, ParserException {
+	public void testValidateFloat() throws Exception {
 		PrologTerm term = validator("100.4").term();
 		assertEquals(term, new PrologTerm(new jpl.Float(100.4), null));
 	}
 
 	@Test
-	public void testValidateAtom() throws IOException, KRInitFailedException, ParserException {
+	public void testValidateAtom() throws Exception {
 		PrologTerm term = validator("aap").term();
 		assertEquals(term, new PrologTerm(new jpl.Atom("aap"), null));
 	}
 
 	@Test
-	public void testValidate1arg() throws IOException, KRInitFailedException, ParserException {
+	public void testValidate1arg() throws Exception {
 		PrologTerm term = validator("aap(1)").term();
 		assertEquals(term, new PrologTerm(new jpl.Compound("aap", new Term[] { new jpl.Integer(1) }), null));
 	}
 
 	@Test
-	public void testValidate2arg() throws IOException, KRInitFailedException, ParserException {
+	public void testValidate2arg() throws Exception {
 		PrologTerm term = validator("aap(1,2)").term();
 		assertEquals(term,
 				new PrologTerm(new jpl.Compound("aap", new Term[] { new jpl.Integer(1), new jpl.Integer(2) }), null));
 	}
 
 	@Test
-	public void testInteger() throws IOException, KRInitFailedException, ParserException {
+	public void testInteger() throws Exception {
 		PrologTerm term = validator("33").term();
 		assertEquals(term, new PrologTerm(new jpl.Integer(33), null));
 	}
 
 	@Test
-	public void testVariable() throws IOException, KRInitFailedException, ParserException {
+	public void testVariable() throws Exception {
 		PrologTerm term = validator("X").term();
 		assertEquals(term, new PrologVar(new jpl.Variable("X"), null));
 	}
 
 	@Test
-	public void testVariable2() throws IOException, KRInitFailedException, ParserException {
+	public void testVariable2() throws Exception {
 		PrologTerm term = validator("_123").term();
 		assertEquals(term, new PrologVar(new jpl.Variable("_123"), null));
 	}

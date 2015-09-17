@@ -20,7 +20,6 @@ package krTools.parser;
 import java.util.List;
 
 import krTools.KRInterface;
-import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Term;
@@ -28,8 +27,8 @@ import krTools.language.Update;
 import krTools.language.Var;
 
 /**
- * Interface for a parser for the KR language.
- * This class defines the requirements that 
+ * Interface for a parser for the KR language. This class defines the
+ * requirements that
  * <p>
  * Also see: {@link KRInterface#getParser(java.io.Reader)}.
  */
@@ -37,63 +36,50 @@ public interface Parser {
 
 	/**
 	 * Parses the input. Returns the (database) formulas found during parsing.
-	 *
-	 * @throws ParserException
-	 *             If parsing was interrupted.
 	 */
-	List<DatabaseFormula> parseDBFs() throws ParserException;
+	List<DatabaseFormula> parseDBFs();
 
 	/**
 	 * Parses the input. Returns the queries found during parsing.
-	 *
-	 * @throws ParserException
-	 *             If parsing was interrupted.
 	 */
-	List<Query> parseQueries() throws ParserException;
+	List<Query> parseQueries();
 
 	/**
-	 * Parses the input. Returns the query found during parsing.
-	 *
-	 * @throws ParserException
-	 *             If parsing was interrupted.
+	 * Parses the input. Returns the query found during parsing (possibly null).
 	 */
-	Query parseQuery() throws ParserException;
+	Query parseQuery();
 
 	/**
-	 * Parses the input. Returns the update found during parsing.
-	 *
-	 * @throws ParserException
-	 *             If parsing was interrupted.
+	 * Parses the input. Returns the update found during parsing (possibly
+	 * null).
 	 */
-	Update parseUpdate() throws ParserException;
+	Update parseUpdate();
 
 	/**
-	 * Parses the input. Returns a variable obtained by parsing the input.
-	 *
-	 * @throws ParserException
-	 *             If parsing was interrupted.
+	 * Parses the input. Returns a variable obtained by parsing the input
+	 * (possibly null).
 	 */
-	Var parseVar() throws ParserException;
+	Var parseVar();
 
 	/**
-	 * Parses the input. Returns a term obtained by parsing the input.
-	 *
-	 * @throws ParserException
-	 *             If parsing was interrupted.
+	 * Parses the input. Returns a term obtained by parsing the input (possibly
+	 * null).
 	 */
-	Term parseTerm() throws ParserException;
+	Term parseTerm();
 
 	/**
 	 * Parses the input. Returns a list of terms obtained by parsing the input.
-	 *
-	 * @throws ParserException
-	 *             If parsing was interrupted.
 	 */
-	List<Term> parseTerms() throws ParserException;
+	List<Term> parseTerms();
 
 	/**
-	 * @return The list of all parsing errors that occurred while parsing.
+	 * @return The list of all errors that occurred while parsing.
 	 */
 	List<SourceInfo> getErrors();
+
+	/**
+	 * @return The list of all warnings that were generated while parsing.
+	 */
+	List<SourceInfo> getWarnings();
 
 }

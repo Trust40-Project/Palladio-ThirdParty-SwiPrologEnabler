@@ -37,16 +37,14 @@ public class TokenErrorsTest {
 	 * Parses the textStream.
 	 *
 	 * @return The ANTLR parser for the file.
-	 * @throws IOException
-	 *             If the file does not exist.
 	 */
-	private Parser4 getParser(Reader textStream) throws IOException {
+	private Parser4 getParser(Reader textStream) throws Exception {
 		Parser4 parser = new Parser4(textStream, null);
 		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
-	private Parser4 getParser(String text) throws IOException {
+	private Parser4 getParser(String text) throws Exception {
 		return getParser(new StringReader(text));
 	}
 
@@ -58,42 +56,42 @@ public class TokenErrorsTest {
 	 * @throws IOException
 	 * @throws ParserException
 	 */
-	private void failsParseAsProlog(String text, String errormess) throws IOException, ParserException {
+	private void failsParseAsProlog(String text, String errormess) throws Exception {
 		Parser4 parser = getParser(text);
-		try {
-			parser.prologtext();
+		parser.prologtext();
+		if (parser.getErrors().isEmpty()) {
 			throw new IllegalStateException("Parse of " + text + " should have failed");
-		} catch (ParserException e) {
-			assertEquals(errormess, e.getMessage());
+		} else {
+			assertEquals(errormess, parser.getErrors().first().getMessage());
 		}
 	}
 
 	@Test
-	public void testNoEnd() throws IOException, ParserException {
+	public void testNoEnd() throws Exception {
 		failsParseAsProlog("kata", ParserErrorMessages.TOKEN_MISSING.toReadableString("'.'"));
 	}
 
 	@Test
-	public void testTwoNames() throws IOException, ParserException {
+	public void testTwoNames() throws Exception {
 		failsParseAsProlog("kata kata.", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("an atom 'kata'",
 				ParserErrorMessages.TERM200.toReadableString()));
 	}
 
 	@Test
-	public void testExtraNumber() throws IOException, ParserException {
+	public void testExtraNumber() throws Exception {
 		failsParseAsProlog("kata 1.", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a number '1'",
 				ParserErrorMessages.TERM200.toReadableString()));
 	}
 
 	@Test
-	public void testExtraVariable() throws IOException, ParserException {
+	public void testExtraVariable() throws Exception {
 		failsParseAsProlog("kata X.", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a variable 'X'",
 				ParserErrorMessages.TERM200.toReadableString()));
 
 	}
 
 	@Test
-	public void testExtraString() throws IOException, ParserException {
+	public void testExtraString() throws Exception {
 		failsParseAsProlog("kata \"X\".", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("a string \"X\"",
 				ParserErrorMessages.TERM200.toReadableString()));
 	}

@@ -21,10 +21,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Hashtable;
 
-import jpl.Query;
-
 import org.junit.Test;
 
+import jpl.Query;
 import swiprolog.SwiInstaller;
 
 /**
@@ -32,7 +31,7 @@ import swiprolog.SwiInstaller;
  * workaround works. The problem stems from JPL stripping off our module
  * references from our query The workaround is to not give JPL a term with ':'
  * as the top level functor.
- * 
+ *
  * @author W.Pasman 14sep15
  *
  */
@@ -41,10 +40,10 @@ public class AssertModule {
 		SwiInstaller.init();
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void assertIntoModule() {
-		Query insert = new jpl.Query(
-				"assert(:('owner:main:sippingbeer', sippingbeer))");
+		Query insert = new jpl.Query("assert(:('owner:main:sippingbeer', sippingbeer))");
 		insert.allSolutions();
 
 		Query check = new jpl.Query("'owner:main:sippingbeer':sippingbeer");

@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import krTools.exceptions.KRQueryFailedException;
 import swiprolog.SwiInstaller;
 import swiprolog.database.PrologDatabase;
 
@@ -31,7 +30,7 @@ public class TestUtils {
 	}
 
 	@Test
-	public void testJPLAtom() throws KRQueryFailedException {
+	public void testJPLAtom() throws Exception {
 		jpl.Atom constant = new jpl.Atom("Aap");
 		jpl.Term term = JPLUtils.createCompound("var", constant);
 		assertTrue(PrologDatabase.rawquery(term).isEmpty());

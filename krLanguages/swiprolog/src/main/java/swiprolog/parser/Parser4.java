@@ -127,27 +127,6 @@ public class Parser4 implements ANTLRErrorListener {
 	}
 
 	/**
-	 * Re-throw the first error, if there occurred an error during the parsing
-	 *
-	 * @throws ParserException
-	 */
-	private void rethrow() throws ParserException {
-		if (!this.errors.isEmpty()) {
-			throw this.errors.first();
-		}
-	}
-
-	/**
-	 * Check all input was read and no errors occured.
-	 *
-	 * @throws ParserException
-	 */
-	private void finalChecks() throws ParserException {
-		checkEndOfInputReached();
-		rethrow();
-	}
-
-	/**
 	 * Renders string from a parse tree result.
 	 *
 	 * @param tree
@@ -250,39 +229,39 @@ public class Parser4 implements ANTLRErrorListener {
 	}
 
 	/************** Actual public Parser functionality *******************/
-	public Term0Context term0() throws ParserException {
+	public Term0Context term0() {
 		Term0Context t = this.parser.term0();
-		finalChecks();
+		checkEndOfInputReached();
 		return t;
 	}
 
-	public PossiblyEmptyConjunctContext possiblyEmptyConjunct() throws ParserException {
+	public PossiblyEmptyConjunctContext possiblyEmptyConjunct() {
 		PossiblyEmptyConjunctContext t = this.parser.possiblyEmptyConjunct();
-		finalChecks();
+		checkEndOfInputReached();
 		return t;
 	}
 
-	public PrologtextContext prologtext() throws ParserException {
+	public PrologtextContext prologtext() {
 		PrologtextContext t = this.parser.prologtext();
-		finalChecks();
+		checkEndOfInputReached();
 		return t;
 	}
 
-	public PossiblyEmptyDisjunctContext possiblyEmptyDisjunct() throws ParserException {
+	public PossiblyEmptyDisjunctContext possiblyEmptyDisjunct() {
 		PossiblyEmptyDisjunctContext t = this.parser.possiblyEmptyDisjunct();
-		finalChecks();
+		checkEndOfInputReached();
 		return t;
 	}
 
-	public Term1000Context term1000() throws ParserException {
+	public Term1000Context term1000() {
 		Term1000Context t = this.parser.term1000();
-		finalChecks();
+		checkEndOfInputReached();
 		return t;
 	}
 
-	public ListtermContext listterm() throws ParserException {
+	public ListtermContext listterm() {
 		ListtermContext t = this.parser.listterm();
-		finalChecks();
+		checkEndOfInputReached();
 		return t;
 	}
 }

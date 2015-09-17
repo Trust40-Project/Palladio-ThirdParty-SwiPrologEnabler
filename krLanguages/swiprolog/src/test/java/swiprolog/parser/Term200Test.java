@@ -19,7 +19,6 @@ package swiprolog.parser;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
@@ -27,7 +26,6 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
 import krTools.exceptions.ParserException;
-import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
 
 /**
@@ -39,16 +37,14 @@ public class Term200Test {
 	 * Parses the textStream.
 	 *
 	 * @return The ANTLR parser for the file.
-	 * @throws IOException
-	 *             If the file does not exist.
 	 */
-	private Parser4 getParser(Reader textStream) throws IOException {
+	private Parser4 getParser(Reader textStream) throws Exception {
 		Parser4 parser = new Parser4(textStream, null);
 		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
-	private Parser4 getParser(String text) throws IOException {
+	private Parser4 getParser(String text) throws Exception {
 		return getParser(new StringReader(text));
 	}
 
@@ -58,34 +54,31 @@ public class Term200Test {
 	 *
 	 * @throws ParserException
 	 */
-	private void checkParsesAsTerm1000(String text1, String text2) throws IOException, ParserException {
+	private void checkParsesAsTerm1000(String text1, String text2) throws Exception {
 		String text = text1 + ":" + text2;
 		Parser4 parser = getParser(text1);
 		Term1000Context tree = parser.term1000();
-		System.out.println(text + " -> " + parser.toStringTree(tree));
-		assertEquals(text2, parser.toStringTree(tree));
-	}
-
-	@Test
-	public void testNotTerm500() throws IOException, ParserException {
-		try {
-			checkParsesAsTerm1000("X^1 \\+ 3", "");
-
-			throw new IllegalStateException("Unexpected success");
-		} catch (ParserException e) {
-			assertEquals(e.getMessage(), ParserErrorMessages.FOUND_BUT_NEED.toReadableString("'\\+'",
-					ParserErrorMessages.TERM500.toReadableString()));
+		if (parser.getErrors().isEmpty()) {
+			System.out.println(text + " -> " + parser.toStringTree(tree));
+			assertEquals(text2, parser.toStringTree(tree));
+		} else {
+			throw parser.getErrors().first();
 		}
 	}
 
+	@Test(expected = ParserException.class)
+	public void testNotTerm500() throws Exception {
+		checkParsesAsTerm1000("X^1 \\+ 3", "");
+	}
+
 	@Test
-	public void testProposedFix() throws IOException, ParserException {
+	public void testProposedFix() throws Exception {
 		checkParsesAsTerm1000("X^1 - 3",
 				"(term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 X))) ^ (term200 (term100 (term50 (term0 1)))))) (term500b - (term400 (term200 (term100 (term50 (term0 3))))))))))");
 	}
 
 	@Test
-	public void testGoodTerm200() throws IOException, ParserException {
+	public void testGoodTerm200() throws Exception {
 		// the term200 is after the first '^' sign.
 		checkParsesAsTerm1000("X^1^3",
 				"(term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 X))) ^ (term200 (term100 (term50 (term0 1))) ^ (term200 (term100 (term50 (term0 3)))))))))))");

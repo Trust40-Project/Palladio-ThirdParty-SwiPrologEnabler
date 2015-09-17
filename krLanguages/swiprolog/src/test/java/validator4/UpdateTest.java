@@ -19,13 +19,10 @@ package validator4;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.StringReader;
 
 import org.junit.Test;
 
-import krTools.exceptions.KRInitFailedException;
-import krTools.exceptions.ParserException;
 import krTools.language.Update;
 import swiprolog.language.PrologUpdate;
 import swiprolog.parser.Parser4;
@@ -45,20 +42,19 @@ public class UpdateTest {
 	 * @param in
 	 *            the input string for the validator.
 	 * @return {@link Validator4Internal}
-	 * @throws IOException
 	 */
-	public Validator4 validator(String in) throws IOException {
+	public Validator4 validator(String in) throws Exception {
 		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test
-	public void testValidateBasicUpdate() throws IOException, KRInitFailedException, ParserException {
+	public void testValidateBasicUpdate() throws Exception {
 		Update term = validator("aap").updateOrEmpty();
 		assertEquals(term, new PrologUpdate(new jpl.Atom("aap"), null));
 	}
 
 	@Test
-	public void testValidateTrueUpdate() throws IOException, KRInitFailedException, ParserException {
+	public void testValidateTrueUpdate() throws Exception {
 		// special update. Should work and not throw that true is protected.
 		Update term = validator("true").updateOrEmpty();
 		assertEquals(term, new PrologUpdate(new jpl.Atom("true"), null));

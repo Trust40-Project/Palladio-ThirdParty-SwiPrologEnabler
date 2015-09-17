@@ -11,7 +11,6 @@ import jpl.Atom;
 import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
-import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologDBFormula;
@@ -82,24 +81,20 @@ public class TestUpdate2 {
 
 	/**
 	 * Test initial size of the new databases
-	 *
-	 * @throws KRInitFailedException
 	 */
+	// TODO FIXME
 	// @Test
-	// public void testInitialBeliefs() throws KRInitFailedException {
+	// public void testInitialBeliefs() throws Exception {
 	// assertEquals(2, beliefbase.getAllSentences().length);
 	// assertEquals(0, knowledgebase.getAllSentences().length);
 	// }
 
 	/**
 	 * Test that the knowledge made it into the BB
-	 *
-	 * @throws KRQueryFailedException
-	 * @throws KRInitFailedException
 	 */
 	// TODO FIXME
 	// @Test
-	// public void testInitialQuery1() throws KRQueryFailedException,
+	// public void testInitialQuery1() throws Exception,
 	// KRInitFailedException {
 	// PrologQuery query = new PrologQuery(k1);
 	// Set<Substitution> sol = beliefbase.query(query);
@@ -109,12 +104,9 @@ public class TestUpdate2 {
 	/**
 	 * Delete all databases. Just a smoke test, as we can't do anything with
 	 * deleted databases.
-	 *
-	 * @throws KRQueryFailedException
-	 * @throws KRDatabaseException
 	 */
 	@Test
-	public void testDeleteAll() throws KRQueryFailedException, KRDatabaseException {
+	public void testDeleteAll() throws Exception {
 		this.beliefbase.destroy();
 		this.beliefbase = null;
 		this.knowledgebase.destroy();
@@ -124,12 +116,9 @@ public class TestUpdate2 {
 	/**
 	 * Create new Kb and Bb for SAME AGENT NAME, and check that the new BB has
 	 * the new Kb content.
-	 *
-	 * @throws KRQueryFailedException
-	 * @throws KRDatabaseException
 	 */
 	@Test
-	public void testRecreateKbAndBb() throws KRQueryFailedException, KRDatabaseException {
+	public void testRecreateKbAndBb() throws Exception {
 		this.beliefbase.destroy();
 		this.knowledgebase.destroy();
 

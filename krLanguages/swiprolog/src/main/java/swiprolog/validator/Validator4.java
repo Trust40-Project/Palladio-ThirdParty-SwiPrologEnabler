@@ -66,12 +66,19 @@ public class Validator4 {
 	 *
 	 * @return {@link Update} or null if there is error.
 	 */
-	public Update updateOrEmpty() throws ParserException {
+	public Update updateOrEmpty() {
 		PrologTerm conj = this.visitor.visitPossiblyEmptyConjunct();
-		if (conj.toString().equals("true")) { // special case.
+		if (conj == null) {
+			return null;
+		} else if (conj.toString().equals("true")) { // special case.
 			return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
 		} else {
-			return SemanticTools.conj2Update(conj);
+			try {
+				return SemanticTools.conj2Update(conj);
+			} catch (ParserException e) {
+				this.errors.add(e);
+				return null;
+			}
 		}
 	}
 
@@ -81,7 +88,7 @@ public class Validator4 {
 	 *
 	 * @return List<DatabaseFormula>, or {@code null} if a parser error occurs.
 	 */
-	public List<DatabaseFormula> program() throws ParserException {
+	public List<DatabaseFormula> program() {
 		List<PrologTerm> prologTerms = this.visitor.visitPrologtext();
 		List<DatabaseFormula> dbfs = new LinkedList<>();
 		for (PrologTerm t : prologTerms) {
@@ -99,7 +106,7 @@ public class Validator4 {
 	 *
 	 * @return List<Query>, or {@code null} if a parser error occurs.
 	 */
-	public List<Query> goalSection() throws ParserException {
+	public List<Query> goalSection() {
 		List<Query> goals = new LinkedList<>();
 		for (PrologTerm t : this.visitor.visitPrologtext()) {
 			// check that each term is a valid Prolog goal / query
@@ -117,8 +124,16 @@ public class Validator4 {
 	 *
 	 * @return A {@link PrologQuery}, or {@code null} if an error occurred.
 	 */
-	public PrologQuery queryOrEmpty() throws ParserException {
-		return SemanticTools.toQuery(this.visitor.visitPossiblyEmptyDisjunct());
+	public PrologQuery queryOrEmpty() {
+		PrologTerm term = this.visitor.visitPossiblyEmptyDisjunct();
+		if (term != null) {
+			try {
+				return SemanticTools.toQuery(term);
+			} catch (ParserException e) {
+				this.errors.add(e);
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -126,14 +141,14 @@ public class Validator4 {
 	 *
 	 * @return {@link Var} or null if error occurred.
 	 */
-	public Var var() throws ParserException {
-		PrologTerm term;
-		term = this.visitor.visitTerm0();
-		if (term.isVar()) {
+	public Var var() {
+		PrologTerm term = this.visitor.visitTerm0();
+		if (term != null && term.isVar()) {
 			return (PrologVar) term;
 		} else {
-			throw new ParserException(ParserErrorMessages.EXPECTED_VAR.toReadableString(term.toString()),
-					term.getSourceInfo());
+			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_VAR.toReadableString(term.toString()),
+					term.getSourceInfo()));
+			return null;
 		}
 	}
 
@@ -143,7 +158,7 @@ public class Validator4 {
 	 * @return term, or null if error occurs
 	 * @throws ParserException
 	 */
-	public PrologTerm term() throws ParserException {
+	public PrologTerm term() {
 		return this.visitor.visitTerm0();
 	}
 
@@ -152,18 +167,22 @@ public class Validator4 {
 	 *
 	 * @return A list of {@link Term}s.
 	 */
-	public List<Term> terms() throws ParserException {
+	public List<Term> terms() {
 		PrologTerm t = this.visitor.visitTerm1000();
-		List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
-		List<Term> terms = new ArrayList<>(original.size());
-		for (jpl.Term term : original) {
-			if (term instanceof jpl.Variable) {
-				terms.add(new PrologVar((jpl.Variable) term, t.getSourceInfo()));
-			} else {
-				terms.add(new PrologTerm(term, t.getSourceInfo()));
+		if (t == null) {
+			return new ArrayList<>(0);
+		} else {
+			List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
+			List<Term> terms = new ArrayList<>(original.size());
+			for (jpl.Term term : original) {
+				if (term instanceof jpl.Variable) {
+					terms.add(new PrologVar((jpl.Variable) term, t.getSourceInfo()));
+				} else {
+					terms.add(new PrologTerm(term, t.getSourceInfo()));
+				}
 			}
+			return terms;
 		}
-		return terms;
 
 	}
 

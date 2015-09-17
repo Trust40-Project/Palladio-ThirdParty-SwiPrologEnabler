@@ -19,12 +19,10 @@ package swiprolog.parser;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.StringReader;
 
 import org.junit.Test;
 
-import krTools.exceptions.ParserException;
 import swiprolog.errors.ParserErrorMessages;
 
 /**
@@ -36,7 +34,7 @@ public class ErrorReportsTest {
 	 *
 	 * @return The {@link Parser4} for the text.
 	 */
-	private Parser4 getParser(String text) throws IOException {
+	private Parser4 getParser(String text) throws Exception {
 		return new Parser4(new StringReader(text), null);
 	}
 
@@ -53,33 +51,32 @@ public class ErrorReportsTest {
 	}
 
 	@Test
-	public void testSpuriousText() throws IOException, ParserException {
+	public void testSpuriousText() throws Exception {
 		// term0 will not eat the second number.
-		try {
-			getParser("100.3 200 ").term0();
-		} catch (ParserException e) {
-			assertEquals(2, e.getLineNumber());
-			assertEquals(11, e.getCharacterPosition()); // end of next token
-		}
+		Parser4 parser = getParser("100.3 200 ");
+		parser.term0();
+
+		assertEquals(1, parser.getErrors().size());
+		assertEquals(2, parser.getErrors().first().getLineNumber());
+		assertEquals(11, parser.getErrors().first().getCharacterPosition());
 	}
 
 	@Test
-	public void testSpuriousText2() throws IOException {
-		try {
-			getParser("\n\n\n100.3 200 ").term0();
-		} catch (ParserException e) {
-			assertEquals(5, e.getLineNumber());
-		}
+	public void testSpuriousText2() throws Exception {
+		Parser4 parser = getParser("\n\n\n100.3 200 ");
+		parser.term0();
+
+		assertEquals(1, parser.getErrors().size());
+		assertEquals(5, parser.getErrors().first().getLineNumber());
 	}
 
 	@Test
-	public void testBadText() throws IOException {
+	public void testBadText() throws Exception {
 		Parser4 parser = getParser("ç");
-		try {
-			parser.term0();
-		} catch (ParserException e) {
-			System.out.println("errors:" + parser.getErrors());
-			assertEquals(ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"), e.getMessage());
-		}
+		parser.term0();
+
+		assertEquals(2, parser.getErrors().size());
+		assertEquals(ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"), parser.getErrors().first().getMessage());
+		// TODO: other error?!
 	}
 }

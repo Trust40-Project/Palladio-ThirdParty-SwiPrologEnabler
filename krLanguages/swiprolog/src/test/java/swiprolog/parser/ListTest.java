@@ -19,15 +19,12 @@ package swiprolog.parser;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.antlr.v4.runtime.RecognitionException;
 import org.junit.Test;
 
-import krTools.exceptions.ParserException;
 import swiprolog.parser.Prolog4Parser.ListtermContext;
 
 /**
@@ -39,11 +36,11 @@ public class ListTest {
 	 *
 	 * @return The {@link Parser4} for the text.
 	 */
-	private Parser4 getParser(String text) throws IOException {
+	private Parser4 getParser(String text) throws Exception {
 		return new Parser4(new StringReader(text), null);
 	}
 
-	private void checkParsesAsList(String... items) throws IOException, ParserException {
+	private void checkParsesAsList(String... items) throws Exception {
 		String text = "[" + list2String(",", items) + "]";
 		Parser4 parser = getParser(text);
 		ListtermContext tree = parser.listterm();
@@ -107,22 +104,22 @@ public class ListTest {
 	}
 
 	@Test
-	public void testLisEmptyList() throws IOException, RecognitionException, ParserException {
+	public void testLisEmptyList() throws Exception {
 		checkParsesAsList();
 	}
 
 	@Test
-	public void testLista() throws IOException, ParserException {
+	public void testLista() throws Exception {
 		checkParsesAsList("a");
 	}
 
 	@Test
-	public void testListab() throws IOException, ParserException {
+	public void testListab() throws Exception {
 		checkParsesAsList("a", "b");
 	}
 
 	@Test
-	public void testListabc() throws IOException, ParserException {
+	public void testListabc() throws Exception {
 		checkParsesAsList("a", "b", "c");
 	}
 

@@ -28,20 +28,14 @@ import jpl.Atom;
 import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
-import krTools.exceptions.KRInitFailedException;
 import krTools.language.Substitution;
 import swiprolog.SwiPrologInterface;
 
 public class TestUnification2 {
 	/**
 	 * Returns a substitution built from given variable and term.
-	 *
-	 * @param var
-	 * @param term
-	 * @return
-	 * @throws KRInitFailedException
 	 */
-	public Substitution getSubstitution(PrologVar var, jpl.Term term) throws KRInitFailedException {
+	public Substitution getSubstitution(PrologVar var, jpl.Term term) throws Exception {
 		SwiPrologInterface swi = new SwiPrologInterface();
 		Substitution unifier = swi.getSubstitution(null);
 		unifier.addBinding(var, new PrologTerm(term, null));
@@ -50,11 +44,9 @@ public class TestUnification2 {
 
 	/**
 	 * Test case: unification of basic constants.
-	 *
-	 * @throws KRInitFailedException
 	 */
 	@Test
-	public void test1unify() throws KRInitFailedException {
+	public void test1unify() throws Exception {
 		// Construct a (twice)
 		jpl.Term a1 = new Atom("a");
 		// jpl.Term a2 = new Atom("a");

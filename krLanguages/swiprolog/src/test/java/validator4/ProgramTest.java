@@ -19,13 +19,10 @@ package validator4;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.StringReader;
 
 import org.junit.Test;
 
-import krTools.exceptions.KRInitFailedException;
-import krTools.exceptions.ParserException;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
@@ -44,29 +41,28 @@ public class ProgramTest {
 	 * @param in
 	 *            the input string for the validator.
 	 * @return {@link Validator4Internal}
-	 * @throws IOException
 	 */
-	public Validator4 validator(String in) throws IOException {
+	public Validator4 validator(String in) throws Exception {
 		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test
-	public void testValidateBasicUpdate() throws IOException, KRInitFailedException, ParserException {
-		try {
-			validator("1").queryOrEmpty();
-			throw new IllegalStateException("parse of wrong query succeeded");
-		} catch (ParserException e) {
-			assertEquals(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString("1"), e.getMessage());
-		}
+	public void testValidateBasicUpdate() throws Exception {
+		Validator4 validator = validator("1");
+		validator.queryOrEmpty();
+
+		assertEquals(1, validator.getErrors().size());
+		assertEquals(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString("1"),
+				validator.getErrors().first().getMessage());
 	}
 
 	@Test
-	public void testVarAsGoal() throws IOException, KRInitFailedException, ParserException {
-		try {
-			validator("X").queryOrEmpty();
-			throw new IllegalStateException("parse of wrong query succeeded");
-		} catch (ParserException e) {
-			assertEquals(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString("X"), e.getMessage());
-		}
+	public void testVarAsGoal() throws Exception {
+		Validator4 validator = validator("X");
+		validator.queryOrEmpty();
+
+		assertEquals(1, validator.getErrors().size());
+		assertEquals(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString("X"),
+				validator.getErrors().first().getMessage());
 	}
 }

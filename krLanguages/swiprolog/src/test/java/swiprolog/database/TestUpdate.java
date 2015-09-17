@@ -14,7 +14,6 @@ import jpl.Term;
 import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
-import krTools.exceptions.KRInitFailedException;
 import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Substitution;
@@ -70,7 +69,7 @@ public class TestUpdate {
 	}
 
 	@Test
-	public void testInitialQuery1() throws KRQueryFailedException {
+	public void testInitialQuery1() throws Exception {
 		PrologQuery query = new PrologQuery(new jpl.Atom("true"), null);
 		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
@@ -79,12 +78,9 @@ public class TestUpdate {
 	/**
 	 * Check that inserting 'aap' results in 'aap' query to become true and that
 	 * there is 1 sentence in beliefbase after the insert.
-	 *
-	 * @throws KRQueryFailedException
-	 * @throws KRInitFailedException
 	 */
 	@Test
-	public void testInsertFormula() throws KRQueryFailedException, KRDatabaseException {
+	public void testInsertFormula() throws Exception {
 		DatabaseFormula formula = new PrologDBFormula(this.aap, null);
 		this.beliefbase.insert(formula);
 
@@ -96,12 +92,9 @@ public class TestUpdate {
 	/**
 	 * Check that after updating with (not(aap),beer) that there is 1 sentence
 	 * in beliefbase and that 'beer' is true now and 'aap' false.
-	 *
-	 * @throws KRQueryFailedException
-	 * @throws KRInitFailedException
 	 */
 	@Test
-	public void testUpdate() throws KRQueryFailedException, KRDatabaseException {
+	public void testUpdate() throws Exception {
 		Update update = new PrologUpdate(
 				new jpl.Compound(",", new Term[] { new jpl.Compound("not", new Term[] { this.aap }), this.beer }),
 				null);
@@ -123,13 +116,9 @@ public class TestUpdate {
 	/**
 	 * Delete belief base; create new belief base. Check that there are no
 	 * predicates in new belief base.
-	 *
-	 * @throws KRQueryFailedException
-	 * @throws KRInitFailedException
-	 * @throws KRDatabaseException
 	 */
 	@Test
-	public void testDeleteBeliefbase() throws KRQueryFailedException, KRDatabaseException {
+	public void testDeleteBeliefbase() throws Exception {
 		this.beliefbase.destroy();
 		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 
@@ -139,10 +128,6 @@ public class TestUpdate {
 	/**
 	 * After creation of new (empty) BB, check that the new BB also works by
 	 * inserting something and checking that it gets there.
-	 *
-	 * @throws KRQueryFailedException
-	 * @throws KRInitFailedException
-	 * @throws KRDatabaseException
 	 */
 	@Test
 	public void testUseNewBeliefbase() throws KRQueryFailedException, KRDatabaseException {

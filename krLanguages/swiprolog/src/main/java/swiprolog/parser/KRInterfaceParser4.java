@@ -58,42 +58,47 @@ public class KRInterfaceParser4 implements Parser {
 	}
 
 	@Override
-	public Update parseUpdate() throws ParserException {
+	public Update parseUpdate() {
 		return this.validator.updateOrEmpty();
 	}
 
 	@Override
-	public List<DatabaseFormula> parseDBFs() throws ParserException {
+	public List<DatabaseFormula> parseDBFs() {
 		return this.validator.program();
 	}
 
 	@Override
-	public List<Query> parseQueries() throws ParserException {
+	public List<Query> parseQueries() {
 		return this.validator.goalSection();
 	}
 
 	@Override
-	public Query parseQuery() throws ParserException {
+	public Query parseQuery() {
 		return this.validator.queryOrEmpty();
 	}
 
 	@Override
-	public Var parseVar() throws ParserException {
+	public Var parseVar() {
 		return this.validator.var();
 	}
 
 	@Override
-	public Term parseTerm() throws ParserException {
+	public Term parseTerm() {
 		return this.validator.term();
 	}
 
 	@Override
-	public List<Term> parseTerms() throws ParserException {
+	public List<Term> parseTerms() {
 		return this.validator.terms();
 	}
 
 	@Override
 	public List<SourceInfo> getErrors() {
 		return new ArrayList<SourceInfo>(this.validator.getErrors());
+	}
+
+	@Override
+	public List<SourceInfo> getWarnings() {
+		return new ArrayList<SourceInfo>(0); // TODO
 	}
 }

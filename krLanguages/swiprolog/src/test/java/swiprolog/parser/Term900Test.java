@@ -19,7 +19,6 @@ package swiprolog.parser;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
@@ -27,7 +26,6 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
 import krTools.exceptions.ParserException;
-import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
 
@@ -40,71 +38,73 @@ public class Term900Test {
 	 * Parses the textStream.
 	 *
 	 * @return The ANTLR parser for the file.
-	 * @throws IOException
-	 *             If the file does not exist.
 	 */
-	private Parser4 getParser(Reader textStream) throws IOException {
+	private Parser4 getParser(Reader textStream) throws Exception {
 		Parser4 parser = new Parser4(textStream, null);
 		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
-	private Parser4 getParser(String text) throws IOException {
+	private Parser4 getParser(String text) throws Exception {
 		return getParser(new StringReader(text));
 	}
 
 	/**
 	 * Checks that two ':' separated texts (which should be term0 parse-able
 	 * texts) are parsed properly.
-	 *
-	 * @throws ParserException
 	 */
-	private void checkParsesAsTerm0(String text1, String text2) throws IOException, ParserException {
+	private void checkParsesAsTerm0(String text1, String text2) throws Exception {
 		String text = text1 + ":" + text2;
 		Parser4 parser = getParser(text1);
 		Term0Context tree = parser.term0();
-		System.out.println(text + " -> " + parser.toStringTree(tree));
-		assertEquals(text2, parser.toStringTree(tree));
+		if (parser.getErrors().isEmpty()) {
+			System.out.println(text + " -> " + parser.toStringTree(tree));
+			assertEquals(text2, parser.toStringTree(tree));
+		} else {
+			throw parser.getErrors().first();
+		}
 	}
 
 	/**
 	 * Checks term parses as term1000.
-	 *
-	 * @throws ParserException
 	 */
-	private void checkParsesAsTerm1000(String text1, String text2) throws IOException, ParserException {
+	private void checkParsesAsTerm1000(String text1, String text2) throws Exception {
 		Parser4 parser = getParser(text1);
 		Term1000Context tree = parser.term1000();
-		System.out.println(text1 + " -> " + parser.toStringTree(tree));
-		assertEquals(text2, parser.toStringTree(tree));
+		if (parser.getErrors().isEmpty()) {
+			System.out.println(text1 + " -> " + parser.toStringTree(tree));
+			assertEquals(text2, parser.toStringTree(tree));
+		} else {
+			throw parser.getErrors().first();
+		}
 	}
 
 	@Test
-	public void testTerm1() throws IOException, ParserException {
+	public void testTerm1() throws Exception {
 		checkParsesAsTerm0("aap(1)",
 				"(term0 aap ( (arglist (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1)))))))))) ))");
 	}
 
 	@Test
-	public void testList1() throws IOException, ParserException {
+	public void testList1() throws Exception {
 		checkParsesAsTerm0("[1,2]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) , (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 2))))))))))) ]))");
 	}
 
 	@Test
-	public void testList2() throws IOException, ParserException {
+	public void testList2() throws Exception {
 		checkParsesAsTerm0("[1|X]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) | X) ]))");
 	}
 
 	@Test
-	public void testList3() throws IOException, ParserException {
+	public void testList3() throws Exception {
 		checkParsesAsTerm0("[1,2|X]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) , (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 2))))))))) | X)) ]))");
 	}
 
 	// disabled, #3555, not clear why this is not allowed.
-	public void testList4() throws IOException, ParserException {
+	public void testList4() throws Exception {
 		checkParsesAsTerm0("[1|2]",
 				"(term0 (listterm [ (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 1))))))))) , (items (expression (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 2))))))))) | X)) ]))");
 	}
@@ -112,18 +112,9 @@ public class Term900Test {
 	/**
 	 * Bit complex case. '1;2' does not parse as term900. The parser seems to
 	 * try the deepest possibilities first
-	 *
-	 * @throws IOException
-	 * @throws ParserException
 	 */
-	@Test
-	public void testList5() throws IOException, ParserException {
-		try {
-			checkParsesAsTerm1000("1;2", "");
-			throw new IllegalStateException("incorrect success of parsing");
-		} catch (ParserException e) {
-			assertEquals(e.getMessage(), ParserErrorMessages.FOUND_BUT_NEED.toReadableString("';'",
-					ParserErrorMessages.TERM900.toReadableString()));
-		}
+	@Test(expected = ParserException.class)
+	public void testList5() throws Exception {
+		checkParsesAsTerm1000("1;2", "");
 	}
 }
