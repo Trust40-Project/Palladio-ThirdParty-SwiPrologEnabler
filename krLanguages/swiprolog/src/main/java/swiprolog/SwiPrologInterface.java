@@ -21,10 +21,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import krTools.KRInterface;
 import krTools.database.Database;
@@ -59,7 +59,7 @@ public final class SwiPrologInterface implements KRInterface {
 	 * that agent. An owner that has no associated databases should be removed
 	 * from the map.
 	 */
-	private Map<String, PrologDatabase> databases = new HashMap<>();
+	private Map<String, PrologDatabase> databases = new ConcurrentHashMap<>();
 
 	/**
 	 * Creates new inference engine and empty set of databases.
@@ -151,7 +151,7 @@ public final class SwiPrologInterface implements KRInterface {
 			// TODO: new InfoLog("Taking down database " + getName() + ".\n");
 			db.destroy();
 		}
-		this.databases = new HashMap<>();
+		this.databases.clear();
 	}
 
 	@Override
