@@ -38,7 +38,6 @@ import swiprolog.SwiPrologInterface;
  * <li>OWL - API v. 4.0</li>
  * </ul>
  * </li>
- *
  */
 public class KRFactory {
 	// The names of the supported KRIs

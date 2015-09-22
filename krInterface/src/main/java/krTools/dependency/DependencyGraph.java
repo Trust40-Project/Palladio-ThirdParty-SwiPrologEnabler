@@ -53,8 +53,6 @@ import krTools.language.Query;
  * is used to store the nodes in a hash map.
  * </p>
  *
- * @author Koen Hindriks
- *
  * @param <T>
  *            The node's type
  */

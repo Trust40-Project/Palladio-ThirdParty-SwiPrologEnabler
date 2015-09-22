@@ -61,8 +61,8 @@ public interface Database {
 	 * <p>
 	 * After addition of the formula, the database should entail the information
 	 * added (and, if applicable, no longer entail the information removed from
-	 * the database, e.g., if a negated fact is "inserted" by removing the
-	 * fact from the database).
+	 * the database, e.g., if a negated fact is "inserted" by removing the fact
+	 * from the database).
 	 * </p>
 	 *
 	 * @param formula

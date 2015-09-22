@@ -208,9 +208,7 @@ term1200
     would have preferred to drop this requirement, existing Prolog implementations would not accept
     Prolog texts accepted by this grammar)
   - by restricting name tokens: graphic tokens are not allowed as names; see also (2) below.
-
-  @modified W.Pasman, 4june2010: We did not accept a % directly behind a ENDTOKEN. 
-  We now also allow the /* directly behind an ENDTOKEN, in line with the more freely use of layout text
+  We also allow the /* directly behind an ENDTOKEN, in line with the more freely use of layout text
   mentioned above.
  2. Graphic tokens are not allowed as atoms (graphic chars are only allowed as part of strings).
   The Standard allows the use of graphic tokens such as '/*^' as names (which serve as identifiers 7.1.4,

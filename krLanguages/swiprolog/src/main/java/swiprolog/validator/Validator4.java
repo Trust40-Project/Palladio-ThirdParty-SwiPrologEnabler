@@ -46,8 +46,6 @@ import swiprolog.visitor.Visitor4;
 				new ErrorStoringProlog4Parser(new StringReader(in), null)));
 				PrologTerm term = validator.term();
 				</code>
- *
- * @author W.Pasman 18may15
  */
 public class Validator4 {
 	private final Visitor4 visitor;

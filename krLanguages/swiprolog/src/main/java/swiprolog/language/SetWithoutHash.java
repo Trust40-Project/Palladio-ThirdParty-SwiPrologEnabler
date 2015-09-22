@@ -10,8 +10,6 @@ import java.util.Set;
  * class to store a set of elements that do not implement HashCode. We don't
  * extend ArrayList to shield it from use.
  *
- * @author W.Pasman 10mar15
- *
  * @param <T>
  *            the type of the set elements.
  */

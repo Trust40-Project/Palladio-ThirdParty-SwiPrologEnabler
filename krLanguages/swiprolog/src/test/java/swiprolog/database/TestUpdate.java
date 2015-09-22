@@ -37,9 +37,6 @@ import swiprolog.language.PrologUpdate;
  * TODO we need to reach a good coverage in this test. Currently we do just a
  * bit of basic testing only. To create a good test, we should make a state
  * diagram of the UpdateEngine first.
- *
- * @author W.Pasman 12mar2012
- *
  */
 public class TestUpdate {
 	// components enabling us to run the tests...

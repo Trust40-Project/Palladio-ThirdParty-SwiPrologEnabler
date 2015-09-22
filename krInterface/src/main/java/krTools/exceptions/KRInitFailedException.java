@@ -30,7 +30,8 @@ public class KRInitFailedException extends KRException {
 	/**
 	 * Creates a KRInitFailedException with a given message
 	 *
-	 * @param message as string 
+	 * @param message
+	 *            as string
 	 */
 	public KRInitFailedException(String message) {
 		super(message);
@@ -40,8 +41,10 @@ public class KRInitFailedException extends KRException {
 	/**
 	 * Creates a KRInitFailedException with a message and a cause.
 	 *
-	 * @param message as a string message
-	 * @param cause as a Throwable cause
+	 * @param message
+	 *            as a string message
+	 * @param cause
+	 *            as a Throwable cause
 	 */
 	public KRInitFailedException(String message, Throwable cause) {
 		super(message, cause);

@@ -20,8 +20,8 @@ package krTools.exceptions;
 /**
  * A KR interface not supported exception should be thrown either if the
  * interface does not support some functionality or the interface is not
- * supported at all. See also package krTools.krFactory.getSupportedKRs for
- * the list of supported KRs at present.
+ * supported at all. See also package krTools.krFactory.getSupportedKRs for the
+ * list of supported KRs at present.
  */
 public class KRInterfaceNotSupportedException extends KRException {
 
@@ -30,7 +30,8 @@ public class KRInterfaceNotSupportedException extends KRException {
 	/**
 	 * Creates a KRInterfaceNotSupportedException with a message
 	 *
-	 * @param message as a string
+	 * @param message
+	 *            as a string
 	 */
 	public KRInterfaceNotSupportedException(String message) {
 		super(message);
@@ -39,8 +40,10 @@ public class KRInterfaceNotSupportedException extends KRException {
 	/**
 	 * Creates a KRInterfaceNotSupportedException with a message and a cause
 	 *
-	 * @param message as a string message
-	 * @param cause as a throwable cause
+	 * @param message
+	 *            as a string message
+	 * @param cause
+	 *            as a throwable cause
 	 */
 	public KRInterfaceNotSupportedException(String message, Throwable cause) {
 		super(message, cause);

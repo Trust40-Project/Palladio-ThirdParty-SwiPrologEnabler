@@ -36,9 +36,6 @@ import swiprolog.parser.PrologOperators;
 
 /**
  * A dependency graph for the SWI Prolog language.
- *
- * @author Koen Hindriks
- * @author W.Pasman modified to suit direct-on-jpl
  */
 public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	private static final Term ANON_VAR = new jpl.Variable("_");

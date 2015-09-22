@@ -1,5 +1,4 @@
-% input to test our prolog parser. 
-% @author W.Pasman 9jul08
+% input to test our prolog parser.
 :- dynamic(foo/0).
 
 aap(3).

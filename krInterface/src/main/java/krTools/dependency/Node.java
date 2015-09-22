@@ -29,8 +29,6 @@ import krTools.language.Expression;
  * signature of expressions represented) that the agent uses in a
  * {@link DependencyGraph}.
  *
- * @author K.Hindriks
- *
  * @param <T>
  *            The node type
  */
@@ -63,6 +61,7 @@ public class Node<T extends Expression> {
 
 	/**
 	 * Constructor of a Node with a given signature.
+	 *
 	 * @param signature
 	 *            The node signature string.
 	 */
@@ -96,6 +95,7 @@ public class Node<T extends Expression> {
 
 	/**
 	 * Getter for the signature of this Node.
+	 *
 	 * @return the signature string
 	 */
 	public String getSignature() {
@@ -104,14 +104,16 @@ public class Node<T extends Expression> {
 
 	/**
 	 * Getter for the definitions of this Node.
+	 *
 	 * @return the list of definitions.
 	 */
 	public List<T> getDefinitions() {
 		return this.definitions;
-	}	
-	
+	}
+
 	/**
 	 * Getter for the queries of this Node.
+	 *
 	 * @return the list of queries
 	 */
 	public List<T> getQueries() {
@@ -138,7 +140,8 @@ public class Node<T extends Expression> {
 
 	/**
 	 * Getter for the dependencies of this Node.
-	 * @return the dependencies as a list of nodes 
+	 *
+	 * @return the dependencies as a list of nodes
 	 */
 	public List<Node<T>> getDependencies() {
 		return this.dependencies;
@@ -146,7 +149,8 @@ public class Node<T extends Expression> {
 
 	/**
 	 * Checks if the node is defined
-	 * @return boolean true if the node's definitions is not empty 
+	 *
+	 * @return boolean true if the node's definitions is not empty
 	 */
 	public boolean isDefined() {
 		return !this.definitions.isEmpty();
@@ -154,6 +158,7 @@ public class Node<T extends Expression> {
 
 	/**
 	 * Checks if the node is queried.
+	 *
 	 * @return boolean true if the node's queries is not empty
 	 */
 	public boolean isQueried() {
@@ -162,7 +167,8 @@ public class Node<T extends Expression> {
 
 	/**
 	 * Checks if the node is basic (has no dependencies)
-	 * @return boolean true if the node is basic 
+	 *
+	 * @return boolean true if the node is basic
 	 */
 	public boolean isBasic() {
 		return this.dependencies.isEmpty();

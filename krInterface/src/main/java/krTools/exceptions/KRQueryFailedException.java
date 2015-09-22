@@ -28,7 +28,8 @@ public class KRQueryFailedException extends KRException {
 	/**
 	 * Creates a KRQueryFailedException with a given message
 	 *
-	 * @param message as a string message
+	 * @param message
+	 *            as a string message
 	 */
 	public KRQueryFailedException(String message) {
 		super(message);
@@ -37,8 +38,10 @@ public class KRQueryFailedException extends KRException {
 	/**
 	 * Creates a KRQueryFailedException with a given message and cause
 	 *
-	 * @param message as a string message
-	 * @param cause as a throwable cause
+	 * @param message
+	 *            as a string message
+	 * @param cause
+	 *            as a throwable cause
 	 */
 	public KRQueryFailedException(String message, Throwable cause) {
 		super(message, cause);

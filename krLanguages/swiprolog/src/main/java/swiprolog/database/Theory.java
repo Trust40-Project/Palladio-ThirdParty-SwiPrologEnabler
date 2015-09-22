@@ -41,8 +41,6 @@ import krTools.language.DatabaseFormula;
  * databases maintained by the underlying knowledge technology such as Prolog. -
  * avoid duplication of clauses or facts in a database (a Theory itself is a
  * set).
- *
- * @author Koen Hindriks
  */
 public class Theory {
 	/**

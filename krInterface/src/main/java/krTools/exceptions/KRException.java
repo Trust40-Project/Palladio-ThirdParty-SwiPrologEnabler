@@ -27,7 +27,8 @@ public class KRException extends Exception {
 	/**
 	 * Creates a KRException with a given message
 	 *
-	 * @param message as a string
+	 * @param message
+	 *            as a string
 	 */
 	public KRException(String message) {
 		super(message);
@@ -36,8 +37,10 @@ public class KRException extends Exception {
 	/**
 	 * Creates a KRException with a given message and cause
 	 *
-	 * @param message as string
-	 * @param cause as Throwable
+	 * @param message
+	 *            as string
+	 * @param cause
+	 *            as Throwable
 	 */
 	public KRException(String message, Throwable cause) {
 		super(message, cause);

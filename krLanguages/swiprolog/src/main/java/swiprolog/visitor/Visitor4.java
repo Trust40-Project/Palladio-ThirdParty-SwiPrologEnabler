@@ -23,8 +23,6 @@ import swiprolog.parser.Prolog4Parser.Term1000Context;
 				new ErrorStoringProlog4Parser(new StringReader("term"), null));<br>
 		PrologTerm term = visitor.visitTerm0();<br>
  * </code>
- *
- * @author W.Pasman 23apr15
  */
 public class Visitor4 {
 	private final Parser4 parser;

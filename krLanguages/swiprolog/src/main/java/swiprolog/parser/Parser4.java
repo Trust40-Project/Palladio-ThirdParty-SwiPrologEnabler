@@ -39,8 +39,6 @@ import swiprolog.parser.Prolog4Parser.Term1000Context;
  * when errors occur, instead it "recovers" and never reports us so. <br>
  * This parser therefore checks the results and re-throws the first exception so
  * that we can handle problems with the normal throw/catch mechanisms higher up.
- *
- * @author W.Pasman 23apr15
  */
 public class Parser4 implements ANTLRErrorListener {
 	private final Prolog4Parser parser;

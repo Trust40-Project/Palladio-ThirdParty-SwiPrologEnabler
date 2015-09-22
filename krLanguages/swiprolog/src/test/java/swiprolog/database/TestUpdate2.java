@@ -21,11 +21,7 @@ import swiprolog.language.PrologDBFormula;
  * partially testing {@link InferenceEngine} as well.
  * <p>
  * See also the comments in {@link TestUpdate}.
- *
- * @author W.Pasman 12mar2012
- *
  */
-
 public class TestUpdate2 {
 	// components enabling us to run the tests...
 	private KRInterface language;

@@ -181,8 +181,7 @@ fragment META_CHAR: '\\' | '\'' | '"' | '`'; // 6.5.5
 fragment SYMBOLIC_CONTROL_CHAR: 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | 'x'; // 6.4.2.1
 
 // Cf. 6.4.8: The end char '.' must be followed by a layout text; 
-// The footnote there also allows comments; we are more generous also allowing /* there¬
-// @modified Nick 27mar2011: to be able to import files, we now also allow the endtoken to be followed by the end of the file (EOF)
+// The footnote there also allows comments; we are more generous also allowing /* there
 ENDTOKEN   : '.' ( WHITESPACECHAR | COMMENTCHARS | EOF );
 
 // Layout text. Note that comments and whitespace are handled slightly differently than the Standard does.

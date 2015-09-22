@@ -27,15 +27,11 @@ import krTools.language.Substitution;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 
-/**
- * DOC
- */
 public abstract class PrologExpression implements Expression {
 	/**
 	 * A JPL term representing a Prolog expression.
 	 */
 	private final jpl.Term term;
-
 	/**
 	 * Information about the source used to construct this expression.
 	 */

@@ -29,7 +29,9 @@ public class KRDatabaseException extends KRException {
 
 	/**
 	 * Constructor of KRDatabaseException with a given message
-	 * @param message as string for this exception
+	 * 
+	 * @param message
+	 *            as string for this exception
 	 */
 	public KRDatabaseException(String message) {
 		super(message);
@@ -38,8 +40,10 @@ public class KRDatabaseException extends KRException {
 	/**
 	 * Creates a KRDatabaseException with a given message and cause.
 	 *
-	 * @param message as string
-	 * @param cause as Throwable
+	 * @param message
+	 *            as string
+	 * @param cause
+	 *            as Throwable
 	 */
 	public KRDatabaseException(String message, Throwable cause) {
 		super(message, cause);

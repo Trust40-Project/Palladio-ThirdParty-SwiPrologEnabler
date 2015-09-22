@@ -31,9 +31,6 @@ import swiprolog.SwiInstaller;
  * workaround works. The problem stems from JPL stripping off our module
  * references from our query The workaround is to not give JPL a term with ':'
  * as the top level functor.
- *
- * @author W.Pasman 14sep15
- *
  */
 public class AssertModule {
 	static {

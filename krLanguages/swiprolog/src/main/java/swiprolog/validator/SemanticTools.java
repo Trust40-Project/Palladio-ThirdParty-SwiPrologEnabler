@@ -33,8 +33,6 @@ import swiprolog.parser.PrologOperators;
 /**
  * Tools for semantic checking of {@link PrologTerm}s and conversion to
  * {@link Update} etc.
- *
- * @author W.Pasman 18may15
  */
 public class SemanticTools {
 

@@ -42,15 +42,19 @@ import krTools.parser.SourceInfo;
  * <p>
  * A knowledge representation interface should provide the following services:
  * <ul>
- * <li>initializing the interface with a list of references to enable its use.</li>
+ * <li>initializing the interface with a list of references to enable its use.
+ * </li>
  * <li>resetting the interface.</li>
  * <li>creating a database.</li>
  * <li>providing a parser for parsing source (files) represented in the KR
  * language.</li>
  * <li>mapping a map of variables and terms to a substitution.</li>
- * <li>getting the queries from the given set of queries that have not been defined. </li>
- * <li>getting the formulas that have been defined in the set of database formulas but are not used (queried).</li>
- * <li>checking if the expressions of the KR Language support serialization. </li>
+ * <li>getting the queries from the given set of queries that have not been
+ * defined.</li>
+ * <li>getting the formulas that have been defined in the set of database
+ * formulas but are not used (queried).</li>
+ * <li>checking if the expressions of the KR Language support serialization.
+ * </li>
  * </ul>
  */
 public interface KRInterface {
@@ -79,7 +83,7 @@ public interface KRInterface {
 	 * Creates new database from the content provided.
 	 *
 	 * @param name
-	 * 			  A human-readable name for the database
+	 *            A human-readable name for the database
 	 * @param content
 	 *            A list of {@link DatabaseFormula}s that should be inserted in
 	 *            database; possibly null.
@@ -134,9 +138,9 @@ public interface KRInterface {
 	Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
-	 * Check if the expressions of this KR implementation can be serialized 
-	 * (converted into a byte stream for easy transmission and then converted back 
-	 * into the original object).
+	 * Check if the expressions of this KR implementation can be serialized
+	 * (converted into a byte stream for easy transmission and then converted
+	 * back into the original object).
 	 *
 	 * @return true iff terms from this KR implementation can be serialized
 	 */

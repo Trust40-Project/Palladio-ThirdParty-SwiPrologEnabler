@@ -32,8 +32,6 @@ import swiprolog.parser.PrologOperators;
 
 /**
  * Utility class for JPL objects.
- *
- * DOC
  */
 public class JPLUtils {
 
