@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import krTools.database.Database;
@@ -168,6 +169,7 @@ public class OWLOntologyDatabase implements Database {
 		return dbfs;
 	}
 	
+
 	public Set<Statement> getAllStatements(String id){
 		Set<Statement> sts = new HashSet<Statement>();
 		try {
@@ -370,8 +372,25 @@ public class OWLOntologyDatabase implements Database {
 		return vfactory.createURI("http://ii.tudelft.nl/goal#"+id);
 	}
 	
+	public DatabaseFormula statementsToRuleFormula(List<Statement> st) {
+		Set<SWRLAtom> body = new HashSet<SWRLAtom>();
+		for (Statement s : st) {
+			body.add(statementToAtom(s));
+		}
+		SWRLRule r = this.owlfactory.getSWRLRule(body, new HashSet<SWRLAtom>());
+		return new SWRLDatabaseFormula(r);
+	}
+
 	private DatabaseFormula statementToFormula(Statement st){
 		SWRLDatabaseFormula dbf = null;
+		SWRLAtom atom = statementToAtom(st);
+		// System.out.println("ST to DBF: "+st + " = "+atom);
+		dbf = new SWRLDatabaseFormula(atom);
+		// System.out.println("Got formula: "+dbf);
+		return dbf;
+	}
+
+	private SWRLAtom statementToAtom(Statement st) {
 		SWRLAtom atom = null;
 		Resource subj = st.getSubject();
 		IRI subjIri = IRI.create(subj.stringValue());
@@ -394,11 +413,7 @@ public class OWLOntologyDatabase implements Database {
 					owlfactory.getSWRLIndividualArgument(owlfactory.getOWLNamedIndividual(subjIri)), 
 					owlfactory.getSWRLLiteralArgument(owlfactory.getOWLLiteral(obj.stringValue())));
 		}
-
-		//System.out.println("ST to DBF: "+st + " = "+atom);
-		dbf = new SWRLDatabaseFormula(atom);
-		//System.out.println("Got formula: "+dbf);
-		return dbf;
+		return atom;
 	}
 
 	private Collection<Statement> formulaToStatements(DatabaseFormula formula, Resource resource) throws KRDatabaseException{
@@ -548,9 +563,11 @@ public class OWLOntologyDatabase implements Database {
 	}
 
 	private void deleteShared(Collection<Statement> statements, Resource resources) {
-		// System.out.println("Inserting into shared");
+		System.out.println("Deleting from shared");
+		for (Statement s : statements)
+			System.out.println("S: " + s);
 		if (shareddb != null && shareddb.isOpen())
-			shareddb.delete(statements, resources);
+			shareddb.delete(statements, (Resource) null);
 	}
 
 	@Override
