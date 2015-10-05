@@ -21,9 +21,13 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.StringReader;
 
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.ParserException;
+
+import org.junit.Before;
 import org.junit.Test;
 
-import krTools.exceptions.ParserException;
+import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologTerm;
 import swiprolog.parser.Parser4;
 import swiprolog.visitor.Visitor4;
@@ -35,6 +39,11 @@ import swiprolog.visitor.Visitor4;
  *
  */
 public class Term0Test {
+
+	@Before
+	public void init() throws KRInitFailedException {
+		new SwiPrologInterface();
+	}
 
 	/**
 	 * Default version of {@link #checkVisitesAsTerm0(String, String)} where

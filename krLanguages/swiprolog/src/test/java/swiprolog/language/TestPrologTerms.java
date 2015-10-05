@@ -18,12 +18,21 @@
 package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
+import jpl.Variable;
+import krTools.exceptions.KRInitFailedException;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import jpl.Variable;
+import swiprolog.SwiPrologInterface;
 
 public class TestPrologTerms {
+
+	@Before
+	public void init() throws KRInitFailedException {
+		new SwiPrologInterface();
+	}
+
 	@Test
 	public void testToString() {
 		jpl.Term term = new jpl.Atom("Aap");
