@@ -26,7 +26,6 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 
-import org.openrdf.rio.RDFFormat;
 import org.semanticweb.owlapi.model.SWRLRule;
 import org.swrlapi.parser.SWRLParseException;
 
@@ -40,15 +39,12 @@ public class OWLRepoKRInterface implements KRInterface {
 	Map<String, OWLOntologyDatabase> databases = new HashMap<String, OWLOntologyDatabase>();
 	File owlfile = null;
 	URL repoUrl = null;
-	List<RDFFormat> formats = null;
 	SWRLParser parser = null;
 	List<String> undefined = new LinkedList<String>();
 
 	public void initialize(List<URI> uris) throws KRInitFailedException {
-		this.formats = new LinkedList<RDFFormat>();
 		for (URI uri : uris) {
-			RDFFormat format = RDFFormat.forFileName(uri.getPath());
- 			formats.add(format);
+			System.out.println("Resource: " + uri);
 			if (uri.toString().startsWith("http")) {
 				try {
 					this.repoUrl = uri.toURL();
@@ -56,13 +52,13 @@ public class OWLRepoKRInterface implements KRInterface {
 				} catch (MalformedURLException e) {
 					throw new KRInitFailedException(e.getMessage());
 				}
-			} else if (uri.isAbsolute() && format.hasFileExtension("owl")) {
+			} else if (uri.isAbsolute() && uri.getPath().endsWith("owl")) {
 				// get the ontology file from the module
 				this.owlfile = new File(uri);
 			}
 		}
 
-		getDatabase("parser", this.owlfile);
+		database = getDatabase("parser", this.owlfile);
 
 	}
 
@@ -119,26 +115,20 @@ public class OWLRepoKRInterface implements KRInterface {
 	public Parser getParser(Reader source, SourceInfo info)
 			throws ParserException {
 		// BufferedReader reader = new BufferedReader(source);
-		// System.out.println("OWLRepo parser created");
 		if (database == null)
 			throw new ParserException(
 					"OWLREPO KR Interface was not correctly initialized with an owl file!");
 
 		// create parser for this database onto and reader source
 		if (this.parser == null) {
-			this.parser = new SWRLParser(database.getSWRLOntology(), formats,
-					source, info);
+			this.parser = new SWRLParser(database.getSWRLOntology(), source, info);
 		} else
-			this.parser.parse(formats, source, info);
+			this.parser.parse(source, info);
 		return parser;
 	}
 	
 	public SWRLRule getRule(String s) throws SWRLParseException{
 		return this.database.getSWRLOntology().createSWRLRule("parse", s);
-	}
-
-	public List<RDFFormat> getAllFormats() {
-		return this.formats;
 	}
 
 	public File getOwlFile() {

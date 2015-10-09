@@ -17,12 +17,14 @@ import org.semanticweb.owlapi.model.SWRLBuiltInAtom;
 import org.semanticweb.owlapi.model.SWRLClassAtom;
 import org.semanticweb.owlapi.model.SWRLDArgument;
 import org.semanticweb.owlapi.model.SWRLDataPropertyAtom;
+import org.semanticweb.owlapi.model.SWRLDifferentIndividualsAtom;
 import org.semanticweb.owlapi.model.SWRLIArgument;
 import org.semanticweb.owlapi.model.SWRLIndividualArgument;
 import org.semanticweb.owlapi.model.SWRLLiteralArgument;
 import org.semanticweb.owlapi.model.SWRLObjectPropertyAtom;
 import org.semanticweb.owlapi.model.SWRLPredicate;
 import org.semanticweb.owlapi.model.SWRLRule;
+import org.semanticweb.owlapi.model.SWRLSameIndividualAtom;
 import org.semanticweb.owlapi.model.SWRLUnaryAtom;
 import org.semanticweb.owlapi.model.SWRLVariable;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
@@ -109,15 +111,26 @@ public class SWRLTranslator {
 			}
 			else if (atom instanceof SWRLBinaryAtom){
 				SWRLBinaryAtom<?,?> batom = (SWRLBinaryAtom<?,?>) atom;
+				SWRLArgument arg1 = batom.getFirstArgument();
+				SWRLArgument arg2 = batom.getSecondArgument();
+
 				if (atom instanceof SWRLDataPropertyAtom || atom instanceof SWRLObjectPropertyAtom){
 					SWRLPredicate predicate = batom.getPredicate();
-					SWRLArgument arg1 = batom.getFirstArgument();
-					SWRLArgument arg2 = batom.getSecondArgument();
 					SPARQLquery += translate(arg1) + " " + translate(predicate)
 							+ " " + translate(arg2) + ".\n";
 					// System.out.println(SPARQLquery);
 
-				}//else if SWRLDifferentIndividualsAtom or SameIndividualAtom
+				} else if (atom instanceof SWRLDifferentIndividualsAtom) {
+
+					SPARQLfilter += "\nFILTER (" + translate(arg1) + " != "
+							+ translate(arg2) + ")\n";
+
+				} else if (atom instanceof SWRLSameIndividualAtom) {
+
+					SPARQLfilter += "\nFILTER (" + translate(arg1) + " == "
+							+ translate(arg2) + ")\n";
+
+				}
 			}
 			else if (atom instanceof SWRLBuiltInAtom){
 				

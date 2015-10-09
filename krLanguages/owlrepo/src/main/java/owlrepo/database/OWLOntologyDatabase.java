@@ -114,6 +114,8 @@ public class OWLOntologyDatabase implements Database {
 			else
 				owlontology = manager.createOntology(IRI.create(name));
 
+			System.out.println("Created owlontodb with name:" + name
+					+ " from: " + file);
 		}catch (OWLOntologyCreationException ex) {
 			throw new KRDatabaseException("Could not create OWL DB: "+ex.getMessage(), ex.getCause());
 		}
@@ -268,7 +270,8 @@ public class OWLOntologyDatabase implements Database {
 	
 	public Set<Substitution> query(String queryString) throws KRQueryFailedException {
 		Set<Substitution> qresult = new HashSet<Substitution>();
-		System.out.println("\nQUERYING:::: \n" + queryString.toString());
+		System.out.println("\nQUERYING:::: \n"
+				+ queryString.substring(queryString.lastIndexOf("PREFIX")));
 
 		try {
 			QueryResult rdfresult = null;
@@ -281,6 +284,7 @@ public class OWLOntologyDatabase implements Database {
 					BindingSet bindingSet = tupleResult.next();
 					Set<String> bindings = bindingSet.getBindingNames();
 					Iterator<String> it = bindings.iterator();
+					SWRLSubstitution subst = new SWRLSubstitution();
 					while (it.hasNext()) {
 						String name = it.next();
 						Value val = bindingSet.getValue(name);
@@ -297,9 +301,11 @@ public class OWLOntologyDatabase implements Database {
 													.stringValue())));
 						}
 						System.out.println(name + " : " + val);
-						qresult.add(new SWRLSubstitution(
-								owlfactory.getSWRLVariable(IRI.create(this.baseURI+name)),
-								valueArgument));
+						subst.addSWRLSubstitution(owlfactory.getSWRLVariable(IRI.create(this.baseURI+name)),
+								valueArgument);
+					}
+					if (subst != null) {
+						qresult.add(subst);
 					}
 				}
 			} else if (rdfresult instanceof BooleanQueryResult) {
@@ -605,7 +611,7 @@ public class OWLOntologyDatabase implements Database {
 		Resource res = getResource(id);
 		Collection<Statement> statements = formulaToStatements(formula, res);
 		// for (Statement st : statements)
-		//System.out.println("\nDELETING::: " + formula + " from "+id);
+		System.out.println("\nDELETING::: " + formula + " from " + id);
 		delete(statements, res);
 	}
 

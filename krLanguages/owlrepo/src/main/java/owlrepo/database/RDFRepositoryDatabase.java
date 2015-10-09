@@ -114,12 +114,16 @@ public class RDFRepositoryDatabase {
 			 
 		} else{
 			  //create Stardog Sesame Repository with reasoning
+				String repoURL = repo_url.toString();
+				String dbname = repo_url.getPath();
+				repoURL = repoURL.substring(0, repoURL.indexOf(dbname));
 			repo = new StardogRepository(ConnectionConfiguration
-					.to("tradr")
+					.to(dbname)
 					.reasoning(true)
-					.server(repo_url.toString())
+					.server(repoURL)
 					);
-			System.out.println("Set up shared repo: "+name+" at "+repo_url+"tradr");
+				System.out.println("Set up shared repo: " + name + " at "
+						+ repo_url + " db: " + dbname);
 			this.SHARED_MODE = true;
 		}
 	        

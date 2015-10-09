@@ -250,7 +250,8 @@ public class SWRLExpression implements Expression {
 	@Override
 	public Expression applySubst(Substitution substitution) {
 		SWRLSubstitution subst = null;
-		//System.out.println("Apply subst: "+substitution.toString() + " to "+this.toString());
+		// System.out.println("Apply subst: " + substitution.toString() + " to +
+		// this.toString());
 		if (substitution instanceof SWRLSubstitution)
 			subst = (SWRLSubstitution) substitution;
 		// if it's a swrl substitution
@@ -279,7 +280,7 @@ public class SWRLExpression implements Expression {
 			}
 		}
 		// if substitution is empty, return itself
-		//System.out.println("result subst: "+this);
+		// System.out.println("result subst: " + this);
 		return this;
 	}
 
@@ -311,7 +312,9 @@ public class SWRLExpression implements Expression {
 					return newArg.atom;
 				}
 				else {
-					System.out.println("ARG: " + arg + " - " + newArg + " type "+newArg.getClass().toString());
+					System.out.println("Could not get subst for ARG: " + arg
+							+ " - " + newArg + " type "
+							+ newArg.getClass().toString());
 				}
 			} else
 				// add it to the list of new arguments

@@ -1,5 +1,6 @@
 package owlrepo.language;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import krTools.language.DatabaseFormula;
@@ -33,8 +34,11 @@ public class SWRLDatabaseFormula extends SWRLExpression implements
 	public SWRLDatabaseFormula addNamedGraph(String id){
 		//TODO
 		SWRLAtom atom = createNamedGraphAtom(id);
-		
+		System.out.println("Adding named graph atom: " + atom + "  to " + this);
+
 		Set<SWRLAtom> newbody = this.rule.getBody();
+		if (newbody == null)
+			newbody = new HashSet<SWRLAtom>();
 		newbody.add(atom);
 		this.rule = df.getSWRLRule(newbody, this.rule.getHead());
 		//System.out.println("Named graph atom: "+atom+" was added to "+this);

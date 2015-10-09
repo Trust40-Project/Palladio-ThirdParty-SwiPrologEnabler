@@ -3,12 +3,10 @@ package owlrepo;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 
 import krTools.language.Var;
 
 import org.junit.Test;
-import org.openrdf.rio.RDFFormat;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -50,7 +48,7 @@ if (file.exists() && file.canRead()){
 	    pmg.setPrefix("tradr", "http://www.semanticweb.org/ontologies/tradr#");
 	   
 	    reader = new BufferedReader(new InputStreamReader(System.in));
-		parser= new SWRLParser(swrlapiOnto, Arrays.asList(RDFFormat.RDFXML), reader, null);
+				parser = new SWRLParser(swrlapiOnto, reader, null);
 }else
 	System.out.println("File not found or not accessible.");
 		}catch(Exception e){

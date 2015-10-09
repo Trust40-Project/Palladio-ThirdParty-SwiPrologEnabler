@@ -184,10 +184,12 @@ public class SWRLSubstitution implements Substitution {
 	@Override
 	public Substitution combine(Substitution substitution) {
 		//add them?
+		// System.out.println("Combine: " + this.toString() + " and " +
+		// substitution.toString());
 		SWRLSubstitution comb = new SWRLSubstitution();
 		comb.addSWRLSubstitution(this);
 		comb.addSWRLSubstitution((SWRLSubstitution) substitution);
-//System.out.println("COMBINED SUBSTITUTIONS: "+ this.toString());
+		// System.out.println("COMBINED SUBSTITUTIONS: " + comb.toString());
 		return comb;
 	}
 
@@ -229,7 +231,9 @@ public class SWRLSubstitution implements Substitution {
 	public String toString(){
 		String s = "";
 		for (SWRLVar var : this.variables)
-			s+= var + " / "+this.substitutions.get(var).toString()+"\n";
+			s += var + " / " + this.substitutions.get(var).toString() + " + ";
+		if (s == "")
+			s = "empty substitution";
 		return s;
 	}
 }

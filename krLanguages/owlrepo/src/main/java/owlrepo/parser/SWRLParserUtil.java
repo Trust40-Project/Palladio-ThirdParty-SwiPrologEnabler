@@ -18,9 +18,12 @@ public class SWRLParserUtil {
 	}
 
 	public SWRLRule getSWRLRule(Statement st) throws SWRLParseException {
+		System.out.println("Statement: " + st);
 		SWRLRule rule = null;
 		String subj = st.getSubject().stringValue();
 		String[] triple = subj.split("#");
+		if (triple.length < 2)
+			return null;
 		String subjPref = mng.getPrefixIRI(IRI.create(triple[0] + "#"));
 		subj = subjPref + triple[1];
 		String pred = st.getPredicate().stringValue();
@@ -33,22 +36,24 @@ public class SWRLParserUtil {
 			String objPref = mng.getPrefixIRI(IRI.create(triple[0] + "#"));
 			obj = objPref + triple[1];
 		} else { // literal
-			// System.out.println(obj);
+			obj = "\"" + obj + "\"";
 		}
-		// System.out.println(subj+", " + pred + ", "+ obj);
+		// System.out.println(subj + ", " + pred + ", " + obj);
 
 		String term = null;
 		if (pred.equals("rdf:type")) {
 			term = obj + "(" + subj + ")";
 		} else
 			term = pred + "(" + subj + ", " + obj + ")";
-		// System.out.println(term);
+		System.out.println(term);
 		try {
 			rule = parser.parseSWRLRule(term, false, "term", "triple");
 		} catch (SWRLParseException e) {
 			e.printStackTrace();
 			throw e;
 		}
+		System.out.println("R: " + rule);
 		return rule;
 	}
+
 }

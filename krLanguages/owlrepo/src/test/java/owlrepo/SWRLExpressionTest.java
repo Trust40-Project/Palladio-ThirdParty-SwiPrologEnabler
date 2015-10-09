@@ -6,13 +6,11 @@ import static org.junit.Assert.assertTrue;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 
 import krTools.language.Term;
 import krTools.language.Var;
 
 import org.junit.Test;
-import org.openrdf.rio.RDFFormat;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -54,7 +52,7 @@ public class SWRLExpressionTest {
 
 				reader = new BufferedReader(new InputStreamReader(System.in));
 				parser = new SWRLParser(swrlapiOnto,
-						Arrays.asList(RDFFormat.RDFXML), reader, null);
+ reader, null);
 			} else
 				System.out.println("File not found or not accessible.");
 		} catch (Exception e) {

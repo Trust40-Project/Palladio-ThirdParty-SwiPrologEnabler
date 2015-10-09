@@ -1,9 +1,9 @@
 package owlrepo.parser;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -12,6 +12,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import krTools.language.DatabaseFormula;
+import krTools.language.Query;
+import krTools.language.Term;
+import krTools.language.Update;
+import krTools.language.Var;
+import krTools.parser.Parser;
+import krTools.parser.SourceInfo;
+
 import org.openrdf.model.Statement;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
@@ -19,6 +27,8 @@ import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 import org.openrdf.rio.helpers.StatementCollector;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLDArgument;
 import org.semanticweb.owlapi.model.SWRLIArgument;
@@ -29,13 +39,6 @@ import org.swrlapi.parser.SWRLParseException;
 import org.swrlapi.parser.SWRLParserSupport;
 import org.swrlapi.parser.SWRLTokenizer;
 
-import krTools.language.DatabaseFormula;
-import krTools.language.Query;
-import krTools.language.Term;
-import krTools.language.Update;
-import krTools.language.Var;
-import krTools.parser.Parser;
-import krTools.parser.SourceInfo;
 import owlrepo.language.SWRLDatabaseFormula;
 import owlrepo.language.SWRLQuery;
 import owlrepo.language.SWRLTerm;
@@ -51,8 +54,8 @@ public class SWRLParser implements Parser {
 	SWRLAPIOWLOntology onto;
 	SWRLParserSupport swrlParserSupport;
 	BufferedReader reader = null;
-	List<RDFFormat> formats = null;
 	SWRLParserUtil parserUtil;
+	PrefixManager mng;
 	Set<String> undefined = new HashSet<String>();
 
 	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology) {
@@ -60,20 +63,18 @@ public class SWRLParser implements Parser {
 		this.errors = new ArrayList<SourceInfo>();
 		this.onto = swrlapiOWLOntology;
 		this.swrlParserSupport = new SWRLParserSupport(swrlapiOWLOntology);
-		this.parserUtil = new SWRLParserUtil(this.parser, this.onto.getPrefixManager());
+		this.mng = this.onto.getPrefixManager();
 	}
 
-	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, List<RDFFormat> formats, Reader reader, SourceInfo info) {
+	public SWRLParser(SWRLAPIOWLOntology swrlapiOWLOntology, Reader reader, SourceInfo info) {
 		this(swrlapiOWLOntology);
 		this.reader = new BufferedReader(reader);
-		this.formats = formats;
 
 		this.info = info;
 	}
 
-	public void parse(List<RDFFormat> formats, Reader reader, SourceInfo info) {
+	public void parse(Reader reader, SourceInfo info) {
 		this.reader = new BufferedReader(reader);
-		this.formats = formats;
 		this.info = info;
 		this.errors.clear();
 		this.undefined.clear();
@@ -111,7 +112,8 @@ public class SWRLParser implements Parser {
 			if (!string.isEmpty()) {
 				// TODO: to avoid second pass parse KR file -- find better
 				// alternative/add all possibilities
-				if (string.startsWith("<?") || string.startsWith("<!")) {
+				if (string.startsWith("<?") || string.startsWith("<!")
+						|| string.startsWith("@prefix")) {
 					return rule;
 				}
 				// call SWRL parser
@@ -136,7 +138,7 @@ public class SWRLParser implements Parser {
 		return this.undefined;
 	}
 
-	private SWRLArgument parseArgument(String string) {
+	public SWRLArgument parseArgument(String string) {
 		SWRLArgument arg = null;
 		// it's not a swrl rule or contains undefined iri-s
 
@@ -149,9 +151,7 @@ public class SWRLParser implements Parser {
 						SWRLTokenizer.class, boolean.class, boolean.class);
 				parseArgumentList.setAccessible(true);// Abracadabra
 				SWRLDArgument parsedArg = (SWRLDArgument) parseArgumentList.invoke(this.parser, tokenizer, isInHead,
-						isInHead);// now
-				// its
-				// OK
+						isInHead);
 				arg = parsedArg;
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
 					| NoSuchMethodException | SecurityException | SWRLParseException ex) {
@@ -186,52 +186,81 @@ public class SWRLParser implements Parser {
 	public List<DatabaseFormula> parseDBFs() {
 		// rule to list of dbformula
 		List<DatabaseFormula> dbfs = new LinkedList<DatabaseFormula>();
-		List<SWRLRule> parsed = parseRDF();
-		// TODO!!
+		List<SWRLTerm> parsed = parseRDF();
 		if (parsed != null) {
-			for (SWRLRule triple : parsed) {
-				dbfs.add(new SWRLDatabaseFormula(triple));
+			for (SWRLTerm triple : parsed) {
+				if (triple.isRule())
+					dbfs.add(new SWRLDatabaseFormula(triple.getRule()));
+				else if (triple.isAtom())
+					dbfs.add(new SWRLDatabaseFormula(triple.getAtom()));
+
 			}
 		}
 		return dbfs;
 	}
 
-	private List<SWRLRule> parseRDF() {
-		List<SWRLRule> triples = new LinkedList<SWRLRule>();
-		String text = "";
-		while (parseCurrentLine()) {
-			if (this.currentLine.startsWith("<?") || this.currentLine.startsWith("<!")) {
-				return null;
-			}
-			text += this.currentLine + "\n";
-		}
-		for (int i = 1; i < this.formats.size(); i++) {
-			StringReader sreader = new StringReader(text);
-			// first is always the owl file
-			RDFFormat format = this.formats.get(i);
-			if (format != null) {
-				RDFParser rdfParser = Rio.createParser(format);
-				List<Statement> statements = new ArrayList<Statement>();
-				StatementCollector collector = new StatementCollector(statements);
-				rdfParser.setRDFHandler(collector);
-				try {
-					if (!sreader.ready()) {
-						throw new IOException("Reader not ready");
-					}
-					sreader.mark(1);
-					rdfParser.parse(sreader, this.onto.getPrefixManager().getDefaultPrefix());
-					for (Statement stm : statements) {
-						// convert it into a SWRLRule or DBFormula somehow
-						triples.add(this.parserUtil.getSWRLRule(stm));
-					}
-					sreader.reset();
-				} catch (RDFParseException | RDFHandlerException | IOException | SWRLParseException e) {
-					this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr, -1, e.getMessage()));
-				}
-			}
-		}
+	private List<SWRLTerm> parseRDF() {
+		List<SWRLTerm> triples = new LinkedList<SWRLTerm>();
+		File file = this.info.getSource();
+		RDFFormat format = RDFFormat.forFileName(file.getPath());
 
-		return null;
+		RDFParser rdfParser = Rio.createParser(format);
+		List<Statement> statements = new ArrayList<Statement>();
+		StatementCollector collector = new StatementCollector(statements);
+		rdfParser.setRDFHandler(collector);
+		try {
+			// if (reader.ready()) {
+			// throw new IOException("Reader not ready");
+			// }
+			// reader.mark(1);
+			rdfParser.parse(reader, this.onto.getPrefixManager()
+					.getDefaultPrefix());
+			for (Statement stm : statements) {
+				// convert it into a SWRLRule or DBFormula somehow
+				SWRLTerm t = getSWRLTerm(stm);
+				if (t != null)
+					triples.add(t);
+			}
+			// reader.reset();
+		} catch (RDFParseException | RDFHandlerException | IOException | SWRLParseException e) {
+			this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr, -1, e.getMessage()));
+		}
+		System.out.println("SIZE: " + triples.size());
+		return triples;
+	}
+
+	public SWRLTerm getSWRLTerm(Statement st) throws SWRLParseException {
+		System.out.println("Statement: " + st);
+		SWRLTerm atom = null;
+		String subj = st.getSubject().stringValue();
+		String[] triple = subj.split("#");
+		if (triple.length < 2)
+			return null;
+		String subjPref = mng.getPrefixIRI(IRI.create(triple[0] + "#"));
+		subj = subjPref + triple[1];
+		String pred = st.getPredicate().stringValue();
+		triple = pred.split("#");
+		String predPref = mng.getPrefixIRI(IRI.create(triple[0] + "#"));
+		pred = predPref + triple[1];
+		String obj = st.getObject().stringValue();
+		triple = obj.split("#");
+		if (triple.length > 1) { // IRI
+			String objPref = mng.getPrefixIRI(IRI.create(triple[0] + "#"));
+			obj = objPref + triple[1];
+		} else { // literal
+			obj = "\"" + obj + "\"";
+		}
+		// System.out.println(subj + ", " + pred + ", " + obj);
+
+		String term = null;
+		if (pred.equals("rdf:type")) {
+			term = obj + "(" + subj + ")";
+		} else
+			term = pred + "(" + subj + ", " + obj + ")";
+		// System.out.println(term);
+		atom = parseTerm(term);
+		// System.out.println("R: " + atom);
+		return atom;
 	}
 
 	@Override
@@ -265,9 +294,22 @@ public class SWRLParser implements Parser {
 	@Override
 	public List<Query> parseQueries() {
 		List<Query> queries = new LinkedList<Query>();
-		Query q;
-		while ((q = parseQuery()) != null) {
-			queries.add(q);
+		try{
+		List<SWRLTerm> parsed = parseRDF();
+		if (parsed != null) {
+			for (SWRLTerm triple : parsed) {
+				if (triple.isRule())
+					queries.add(new SWRLQuery(triple.getRule()));
+				else if (triple.isAtom())
+					queries.add(new SWRLQuery(triple.getAtom()));
+			}
+		}
+		} catch (Exception e) {
+			Query q = parseQuery();
+			if (q != null) {
+				System.out.println("READ Q: " + q);
+				queries.add(q);
+			}
 		}
 		return queries;
 	}
@@ -289,10 +331,19 @@ public class SWRLParser implements Parser {
 					// check if it was an argument or a rule
 					return new SWRLQuery(arg);
 				} else {
-					this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr, -1,
-							"Could not create query from: " + this.currentLine));
+					// List<SWRLRule> parsed = parseRDF();
+					// if (parsed != null) {
+					// for (SWRLRule triple : parsed) {
+					// dbfs.add(new SWRLDatabaseFormula(triple));
+					// }
+					// }
+					return null;
+					// this.errors.add(new
+					// SWRLParserSourceInfo(this.info.getSource(), this.lineNr,
+					// -1,
+					// "Could not create query from: " + this.currentLine));
 				}
-				return new SWRLQuery(arg);
+				// return new SWRLQuery(arg);
 			}
 		}
 		this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr, -1,
@@ -324,11 +375,14 @@ public class SWRLParser implements Parser {
 
 	private SWRLTerm parseTerm(String termstring) {
 		SWRLTerm term = null;
-		if (!termstring.isEmpty()) {
+		if (!termstring.isEmpty() && !termstring.startsWith("owl:")
+				&& !termstring.startsWith("rdfs:")) {
 			// parse rule
 			SWRLRule rule = parseRule(termstring);
 			// rule to term
 			if (rule != null) {
+				System.out.println("Parsed " + termstring + " as: "
+						+ rule.toString());
 				term = new SWRLTerm(rule);
 			} else if (this.errors.isEmpty()) {
 				// variable
