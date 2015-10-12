@@ -26,10 +26,10 @@ public class ParserTest {
 	 */
 	@Test
 	public void parseBeliefsTest() throws ParseException {
-		List<Literal> literals = ASSyntax.parseBeliefs("aap. beer.");
+		List<Literal> literals = ASSyntax.parseBeliefs("p. q.");
 		assertEquals(2, literals.size());
-		assertEquals("aap", literals.get(0).toString());
-		assertEquals("beer", literals.get(1).toString());
+		assertEquals("p", literals.get(0).toString());
+		assertEquals("q", literals.get(1).toString());
 	}
 
 	/**
@@ -39,10 +39,10 @@ public class ParserTest {
 	 */
 	@Test
 	public void parseRuleAndAtomTest() throws ParseException {
-		List<Literal> literals = ASSyntax.parseBeliefs("aap :- beer. beer.");
+		List<Literal> literals = ASSyntax.parseBeliefs("p :- q. q.");
 		assertEquals(2, literals.size());
-		assertEquals("aap :- beer", literals.get(0).toString());
-		assertEquals("beer", literals.get(1).toString());
+		assertEquals("p :- q", literals.get(0).toString());
+		assertEquals("q", literals.get(1).toString());
 	}
 
 	/**
@@ -75,10 +75,10 @@ public class ParserTest {
 	@Test
 	public void parseNewlines() throws ParseException {
 		List<Literal> literals = ASSyntax
-				.parseBeliefs("\n\n\t\taap.\n\n\t beer.\t\t");
+				.parseBeliefs("\n\n\t\tp.\n\n\t q.\t\t");
 		assertEquals(2, literals.size());
-		assertEquals("aap", literals.get(0).toString());
-		assertEquals("beer", literals.get(1).toString());
+		assertEquals("p", literals.get(0).toString());
+		assertEquals("q", literals.get(1).toString());
 	}
 
 	/**
@@ -107,20 +107,20 @@ public class ParserTest {
 
 	@Test
 	public void parseTermWithList() throws ParseException {
-		Structure term = (Structure) ASSyntax.parseFormula("aap([1,2,3,4])");
+		Structure term = (Structure) ASSyntax.parseFormula("p([1,2,3,4])");
 		assertTrue(term.getTerm(0).isList());
 	}
 
 	@Test
 	public void parseString() throws ParseException {
-		StringTermImpl list = (StringTermImpl) ASSyntax.parseTerm("\"aap\"");
+		StringTermImpl list = (StringTermImpl) ASSyntax.parseTerm("\"p\"");
 		assertTrue(list.isString());
 	}
 
 	@Test
-	public void parseNotAap() throws ParseException {
+	public void parseNotp() throws ParseException {
 
-		Literal query = ASSyntax.parseStructure("not aap");
+		Literal query = ASSyntax.parseStructure("not p");
 	}
 
 	@Test

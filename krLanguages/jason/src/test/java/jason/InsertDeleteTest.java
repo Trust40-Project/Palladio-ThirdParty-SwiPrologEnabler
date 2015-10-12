@@ -24,9 +24,9 @@ import org.junit.Test;
 public class InsertDeleteTest {
 
 	@Test
-	public void testTermAap() {
-		LiteralImpl f1 = aap(3);
-		assertEquals("aap", f1.getFunctor());
+	public void testTermp() {
+		LiteralImpl f1 = p(3);
+		assertEquals("p", f1.getFunctor());
 		assertEquals(1, f1.getArity());
 		Term term = f1.getTerm(0);
 
@@ -36,20 +36,20 @@ public class InsertDeleteTest {
 
 	/**
 	 * @param value
-	 * @return aap(value)
+	 * @return p(value)
 	 */
-	public LiteralImpl aap(double value) {
-		LiteralImpl f1 = new LiteralImpl("aap");
+	public LiteralImpl p(double value) {
+		LiteralImpl f1 = new LiteralImpl("p");
 		f1.addTerm(new NumberTermImpl(value));
 		return f1;
 	}
 
 	/**
 	 * 
-	 * @return aap(X)
+	 * @return p(X)
 	 */
-	public LiteralImpl makeBasicTermAapX() {
-		LiteralImpl f1 = new LiteralImpl("aap");
+	public LiteralImpl makeBasicTermpX() {
+		LiteralImpl f1 = new LiteralImpl("p");
 		f1.addTerm(new VarTerm("X"));
 		return f1;
 	}
@@ -62,14 +62,13 @@ public class InsertDeleteTest {
 	@Test
 	public void InsertTest1() throws ParseException {
 		// set up database
-		
+
 		BeliefBase bb = new DefaultBeliefBase();
-		
 
-		checkQueryAap(bb);
+		checkQueryp(bb);
 
-		bb.add(aap(4.5));
-		checkQueryAap(bb, "{X=4.5}");
+		bb.add(p(4.5));
+		checkQueryp(bb, "{X=4.5}");
 
 	}
 
@@ -81,21 +80,21 @@ public class InsertDeleteTest {
 	@Test
 	public void InsertTest2() throws ParseException {
 		// set up database
-		
+
 		BeliefBase bb = new DefaultBeliefBase();
 
-		checkQueryAap(bb);
+		checkQueryp(bb);
 
-		bb.add(aap(4.5));
-		checkQueryAap(bb, "{X=4.5}");
-
-		// note, addBel is asserta()
-		bb.add(aap(6.3));
-		checkQueryAap(bb, "{X=6.3}", "{X=4.5}");
+		bb.add(p(4.5));
+		checkQueryp(bb, "{X=4.5}");
 
 		// note, addBel is asserta()
-		bb.add(aap(1.6));
-		checkQueryAap(bb, "{X=1.6}", "{X=6.3}", "{X=4.5}");
+		bb.add(p(6.3));
+		checkQueryp(bb, "{X=6.3}", "{X=4.5}");
+
+		// note, addBel is asserta()
+		bb.add(p(1.6));
+		checkQueryp(bb, "{X=1.6}", "{X=6.3}", "{X=4.5}");
 	}
 
 	/**
@@ -108,24 +107,23 @@ public class InsertDeleteTest {
 		// set up database
 		BeliefBase bb = new DefaultBeliefBase();
 
-		checkQueryAap(bb);
+		checkQueryp(bb);
 
-		bb.add(aap(4.5));
-		bb.add(aap(6.3));
-		bb.add(aap(1.6));
-		checkQueryAap(bb, "{X=1.6}", "{X=6.3}", "{X=4.5}");
+		bb.add(p(4.5));
+		bb.add(p(6.3));
+		bb.add(p(1.6));
+		checkQueryp(bb, "{X=1.6}", "{X=6.3}", "{X=4.5}");
 
-		
-		((DefaultBeliefBase)bb).abolish(aap(6.3), new Unifier());
-		checkQueryAap(bb, "{X=1.6}", "{X=4.5}");
+		((DefaultBeliefBase) bb).abolish(p(6.3), new Unifier());
+		checkQueryp(bb, "{X=1.6}", "{X=4.5}");
 
 	}
 
 	/**
-	 * Check if query aap(X) returns given values in given order
+	 * Check if query p(X) returns given values in given order
 	 */
-	private void checkQueryAap(BeliefBase bb, String... values) {
-		LiteralImpl query = makeBasicTermAapX();
+	private void checkQueryp(BeliefBase bb, String... values) {
+		LiteralImpl query = makeBasicTermpX();
 		Iterator<Unifier> result = query.logicalConsequence(bb, new Unifier());
 		for (String value : values) {
 			if (!result.hasNext()) {

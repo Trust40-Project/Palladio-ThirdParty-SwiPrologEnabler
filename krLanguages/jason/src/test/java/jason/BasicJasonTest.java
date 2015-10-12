@@ -36,17 +36,17 @@ import org.junit.Test;
 public class BasicJasonTest {
 
 	@Test
-	public void testTermAap() {
-		LiteralImpl f1 = aapZ();
-		assertEquals("aap", f1.getFunctor());
+	public void testTermp() {
+		LiteralImpl f1 = pZ();
+		assertEquals("p", f1.getFunctor());
 		assertEquals(1, f1.getArity());
 
 	}
 
 	@Test
 	public void testTermHead() {
-		LiteralImpl head = makeBasicTermBeer();
-		assertEquals("beer", head.getFunctor());
+		LiteralImpl head = makeBasicTermq();
+		assertEquals("q", head.getFunctor());
 		assertEquals(1, head.getArity());
 
 	}
@@ -60,8 +60,8 @@ public class BasicJasonTest {
 
 	@Test
 	public void testRuleParser() throws ParseException {
-		Rule clause = ASSyntax.parseRule("beer(Y) :- aap(Z) & Y = Z*3.");
-		assertEquals("beer", clause.getFunctor());
+		Rule clause = ASSyntax.parseRule("q(Y) :- p(Z) & Y = Z*3.");
+		assertEquals("q", clause.getFunctor());
 		assertTrue(clause.isRule());
 		assertTrue(clause.getBody().isStructure());
 		assertEquals(" & ", ((Structure) clause.getBody()).getFunctor());
@@ -79,34 +79,34 @@ public class BasicJasonTest {
 		Rule clause = makeClause2();
 		assertTrue(clause.isRule());
 		// jason only checks heads of rules.
-		assertEquals("beer", clause.getFunctor());
+		assertEquals("q", clause.getFunctor());
 		assertTrue(clause.isGround());
 	}
 
-	public LiteralImpl aapZ() {
-		// f1: aap(Z)
-		LiteralImpl f1 = new LiteralImpl("aap");
+	public LiteralImpl pZ() {
+		// f1: p(Z)
+		LiteralImpl f1 = new LiteralImpl("p");
 		f1.addTerm(new VarTerm("Z"));
 
 		return f1;
 	}
 
 	/**
-	 * @return beer(Y)
+	 * @return q(Y)
 	 */
-	public LiteralImpl makeBasicTermBeer() {
-		LiteralImpl head = new LiteralImpl("beer");
+	public LiteralImpl makeBasicTermq() {
+		LiteralImpl head = new LiteralImpl("q");
 		head.addTerm(new VarTerm("Y"));
 
 		return head;
 	}
 
 	/**
-	 * @return beer(Y) :- aap(Z) & Y = Z * 2.
+	 * @return q(Y) :- p(Z) & Y = Z * 2.
 	 */
 	public Rule makeClause() {
-		LiteralImpl head = makeBasicTermBeer();
-		LiteralImpl f1 = aapZ();
+		LiteralImpl head = makeBasicTermq();
+		LiteralImpl f1 = pZ();
 		RelExpr f2 = makeArithTerm();
 
 		LogExpr body = new LogExpr(f1, LogicalOp.and, f2);
@@ -115,11 +115,11 @@ public class BasicJasonTest {
 	}
 
 	/**
-	 * @return beer :- aap(Z) & Y = Z * 2. Notice, no var in head.
+	 * @return q :- p(Z) & Y = Z * 2. Notice, no var in head.
 	 */
 	public Rule makeClause2() {
-		LiteralImpl head = new LiteralImpl("beer");
-		LiteralImpl f1 = aapZ();
+		LiteralImpl head = new LiteralImpl("q");
+		LiteralImpl f1 = pZ();
 		RelExpr f2 = makeArithTerm();
 
 		LogExpr body = new LogExpr(f1, LogicalOp.and, f2);
@@ -136,20 +136,20 @@ public class BasicJasonTest {
 		return f2;
 	}
 
-	public LiteralImpl makeAtomAap() {
-		LiteralImpl belief = new LiteralImpl("aap");
+	public LiteralImpl makeAtomp() {
+		LiteralImpl belief = new LiteralImpl("p");
 		belief.addTerm(new NumberTermImpl(3.2));
 		return belief;
 	}
 
 	/**
-	 * returns aap(aap(aap(.......()))..)
+	 * returns p(p(p(.......()))..)
 	 * 
 	 * @return
 	 */
-	private Literal cyclicTermAap() {
+	private Literal cyclicTermp() {
 		Literal query = new RelExpr(new VarTerm("Z"), RelationalOp.unify,
-				aapZ());
+				pZ());
 		BeliefBase bb = new DefaultBeliefBase();
 		Iterator<Unifier> result = query.logicalConsequence(bb, new Unifier());
 		return (Literal) result.next().get("Z");
@@ -164,14 +164,14 @@ public class BasicJasonTest {
 	public void basicQueryTest() throws ParseException {
 		// set up database
 
-		// add beer clause beer():-aap()... and aap() fact.
+		// add q clause q():-p()... and p() fact.
 		BeliefBase bb = new DefaultBeliefBase();
-		bb.add(new LiteralImpl("aap"));
+		bb.add(new LiteralImpl("p"));
 
 		/******* do query ************/
 		System.out.println("agent beliefs=" + bb);
 
-		Literal query = new Structure("aap");
+		Literal query = new Structure("p");
 		Iterator<Unifier> result = query.logicalConsequence(bb, new Unifier());
 		System.out.println("result(s) of query " + query + ":");
 
@@ -188,11 +188,11 @@ public class BasicJasonTest {
 	public void noAtomInBbTest() throws ParseException {
 		// set up database
 
-		// add beer clause beer():-aap()... and aap() fact.
+		// add q clause q():-p()... and p() fact.
 		BeliefBase bb = new DefaultBeliefBase();
-		bb.add(new Atom("aap"));
+		bb.add(new Atom("p"));
 		// this will only PRINT to stdout
-		// SEVERE: Error: 'aap' can not be added in the belief base.
+		// SEVERE: Error: 'p' can not be added in the belief base.
 
 		assertEquals(0, bb.size());
 	}
@@ -206,15 +206,15 @@ public class BasicJasonTest {
 	public void complexQueryTest() throws ParseException {
 		// set up database
 
-		// add beer clause beer():-aap()... and aap() fact.
+		// add q clause q():-p()... and p() fact.
 		BeliefBase bb = new DefaultBeliefBase();
 		bb.add(makeClause());
-		bb.add(makeAtomAap());
+		bb.add(makeAtomp());
 
 		/******* do query ************/
 		System.out.println("agent beliefs=" + bb);
 
-		Literal query = new Structure("beer");
+		Literal query = new Structure("q");
 		query.addTerm(new VarTerm("X"));
 		Iterator<Unifier> result = query.logicalConsequence(bb, new Unifier());
 
@@ -230,7 +230,7 @@ public class BasicJasonTest {
 	@Test
 	public void testQueryOfRule() throws ParseException {
 		// set up database
-		// add beer clause beer():-aap()... and aap() fact.
+		// add q clause q():-p()... and p() fact.
 		BeliefBase bb = new DefaultBeliefBase();
 		bb.add(makeClause());
 
@@ -254,11 +254,11 @@ public class BasicJasonTest {
 	public void testQueryOfCyclicTerm() throws ParseException {
 		// set up database
 		BeliefBase bb = new DefaultBeliefBase();
-		bb.add(cyclicTermAap());
+		bb.add(cyclicTermp());
 		/******* do query ************/
 		System.out.println("agent beliefs=" + bb);
 
-		Literal query = cyclicTermAap();
+		Literal query = cyclicTermp();
 		Iterator<Unifier> result = query.logicalConsequence(bb, new Unifier());
 		System.out.println("result(s) of query " + query + ":");
 		assertTrue(result.hasNext()); // the query with cyclic term succeeds

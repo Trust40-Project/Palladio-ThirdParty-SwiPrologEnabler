@@ -79,7 +79,7 @@ public class EqualsTest {
 
 	@Test
 	public void testDBFormulaEquals() throws ParseException {
-		Rule clause = ASSyntax.parseRule("beer(Y) :- aap(Z) & Y = Z*3.");
+		Rule clause = ASSyntax.parseRule("q(Y) :- p(Z) & Y = Z*3.");
 		JasonDatabaseFormula dbformula1 = new JasonDatabaseFormula(clause,
 				makeSourceInfo());
 		JasonDatabaseFormula dbformula2 = new JasonDatabaseFormula(clause,

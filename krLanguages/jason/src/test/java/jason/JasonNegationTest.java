@@ -31,19 +31,20 @@ public class JasonNegationTest {
 	public void basicNotTest() throws ParseException {
 		// set up database
 
-		// add beer clause beer():-aap()... and aap() fact.
+		// add q clause q():-p()... and p() fact.
 		BeliefBase bb = new DefaultBeliefBase();
-		bb.add(new LiteralImpl("beer"));
+		bb.add(new LiteralImpl("q"));
 
 		/******* do query ************/
 		System.out.println("agent beliefs=" + bb);
 
-		Literal query = ASSyntax.parseStructure("not aap");
+		Literal query = ASSyntax.parseStructure("not p");
 		Iterator<Unifier> result = query.logicalConsequence(bb, new Unifier());
-		System.out.println("result(s) of query " + query + ":");
 
 		assertTrue(result.hasNext());
-		assertEquals("{}", result.next().toString());
-	}
+		String res = result.next().toString();
+		System.out.println("result(s) of query " + query + ":" + res);
 
+		assertEquals("{}", res);
+	}
 }
