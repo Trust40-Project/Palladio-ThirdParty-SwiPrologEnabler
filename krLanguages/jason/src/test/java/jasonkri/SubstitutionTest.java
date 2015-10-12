@@ -20,13 +20,13 @@ public class SubstitutionTest {
 
 	@Test
 	public void testSubsti() throws ParseException {
-		Unifier unifier = bindX2aap();
+		Unifier unifier = bindX2p();
 		assertEquals(1, unifier.size());
 	}
 
-	private Unifier bindX2aapX() throws ParseException {
+	private Unifier bindX2pX() throws ParseException {
 		Unifier unifier = new Unifier();
-		unifier.bind(ASSyntax.parseVar("X"), ASSyntax.parseStructure("aap(X)"));
+		unifier.bind(ASSyntax.parseVar("X"), ASSyntax.parseStructure("p(X)"));
 		return unifier;
 	}
 
@@ -43,9 +43,9 @@ public class SubstitutionTest {
 		return unifier;
 	}
 
-	private Unifier bindX2aap() throws ParseException {
+	private Unifier bindX2p() throws ParseException {
 		Unifier unifier = new Unifier();
-		unifier.bind(ASSyntax.parseVar("X"), ASSyntax.parseStructure("aap(1)"));
+		unifier.bind(ASSyntax.parseVar("X"), ASSyntax.parseStructure("p(1)"));
 		return unifier;
 	}
 
@@ -56,15 +56,15 @@ public class SubstitutionTest {
 	 */
 	@Test
 	public void testSubstiInfinite() throws ParseException {
-		Unifier unifier = bindX2aapX();
+		Unifier unifier = bindX2pX();
 		assertEquals(1, unifier.size());
 	}
 
 	@Test
 	public void testApplySubst() throws ParseException {
 		JasonExpression expr = new JasonExpression(
-				ASSyntax.parseStructure("aap(X)"), null);
-		Substitution subst = new JasonSubstitution(bindX2aap());
+				ASSyntax.parseStructure("p(X)"), null);
+		Substitution subst = new JasonSubstitution(bindX2p());
 		Expression result = expr.applySubst(subst);
 		System.out.println(expr + " with substitution " + subst + " -> "
 				+ result);
@@ -78,8 +78,8 @@ public class SubstitutionTest {
 	@Test
 	public void testApplySubstInfinity() throws ParseException {
 		JasonExpression expr = new JasonExpression(
-				ASSyntax.parseStructure("aap(X)"), null);
-		Substitution subst = new JasonSubstitution(bindX2aapX());
+				ASSyntax.parseStructure("p(X)"), null);
+		Substitution subst = new JasonSubstitution(bindX2pX());
 		Expression result = expr.applySubst(subst);
 		System.out.println(expr + " with substitution " + subst + " -> "
 				+ result);
@@ -91,12 +91,12 @@ public class SubstitutionTest {
 	@Test
 	public void testApplySubstXY() throws ParseException {
 		JasonExpression expr = new JasonExpression(
-				ASSyntax.parseStructure("aap(X)"), null);
+				ASSyntax.parseStructure("p(X)"), null);
 		Substitution subst = new JasonSubstitution(bindXY());
 		Expression result = expr.applySubst(subst);
 		System.out.println(expr + " with substitution " + subst + " -> "
 				+ result);
-		assertEquals("aap(Y)", result.toString());
+		assertEquals("p(Y)", result.toString());
 	}
 
 	/**
@@ -105,11 +105,11 @@ public class SubstitutionTest {
 	@Test
 	public void testApplySubstXYZ() throws ParseException {
 		JasonExpression expr = new JasonExpression(
-				ASSyntax.parseStructure("aap(X)"), null);
+				ASSyntax.parseStructure("p(X)"), null);
 		Substitution subst = new JasonSubstitution(bindXYZ());
 		Expression result = expr.applySubst(subst);
 		System.out.println(expr + " with substitution " + subst + " -> "
 				+ result);
-		assertEquals("aap(Z)", result.toString());
+		assertEquals("p(Z)", result.toString());
 	}
 }
