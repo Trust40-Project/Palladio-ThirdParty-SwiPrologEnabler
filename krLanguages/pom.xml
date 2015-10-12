@@ -53,6 +53,7 @@
   </properties>
   
   <modules>
+  	<module>jason</module>
   	<module>swiprolog</module>
   	<module>owlrepo</module>
   	<module>swiprologlibs</module>
