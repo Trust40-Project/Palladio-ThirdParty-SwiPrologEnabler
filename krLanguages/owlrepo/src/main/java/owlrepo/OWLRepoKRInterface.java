@@ -44,7 +44,7 @@ public class OWLRepoKRInterface implements KRInterface {
 
 	public void initialize(List<URI> uris) throws KRInitFailedException {
 		for (URI uri : uris) {
-			System.out.println("Resource: " + uri);
+		//	System.out.println("Resource: " + uri);
 			if (uri.toString().startsWith("http")) {
 				try {
 					this.repoUrl = uri.toURL();

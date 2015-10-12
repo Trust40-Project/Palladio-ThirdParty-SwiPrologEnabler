@@ -34,7 +34,7 @@ public class SWRLDatabaseFormula extends SWRLExpression implements
 	public SWRLDatabaseFormula addNamedGraph(String id){
 		//TODO
 		SWRLAtom atom = createNamedGraphAtom(id);
-		System.out.println("Adding named graph atom: " + atom + "  to " + this);
+	//	System.out.println("Adding named graph atom: " + atom + "  to " + this);
 
 		Set<SWRLAtom> newbody = this.rule.getBody();
 		if (newbody == null)

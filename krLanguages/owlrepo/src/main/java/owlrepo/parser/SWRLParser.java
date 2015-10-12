@@ -28,6 +28,8 @@ import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 import org.openrdf.rio.helpers.StatementCollector;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLDArgument;
@@ -193,8 +195,11 @@ public class SWRLParser implements Parser {
 					dbfs.add(new SWRLDatabaseFormula(triple.getRule()));
 				else if (triple.isAtom())
 					dbfs.add(new SWRLDatabaseFormula(triple.getAtom()));
-
+				else
+					dbfs.add(new SWRLDatabaseFormula(triple.getAxiom()));
 			}
+		} else {
+			System.out.println("PARSE DBFS NO FORMAT!");
 		}
 		return dbfs;
 	}
@@ -204,6 +209,8 @@ public class SWRLParser implements Parser {
 		File file = this.info.getSource();
 		RDFFormat format = RDFFormat.forFileName(file.getPath());
 
+		if (format == null)
+			return null;
 		RDFParser rdfParser = Rio.createParser(format);
 		List<Statement> statements = new ArrayList<Statement>();
 		StatementCollector collector = new StatementCollector(statements);
@@ -225,24 +232,26 @@ public class SWRLParser implements Parser {
 		} catch (RDFParseException | RDFHandlerException | IOException | SWRLParseException e) {
 			this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr, -1, e.getMessage()));
 		}
-		System.out.println("SIZE: " + triples.size());
+	//	System.out.println("SIZE: " + triples.size());
 		return triples;
 	}
 
 	public SWRLTerm getSWRLTerm(Statement st) throws SWRLParseException {
-		System.out.println("Statement: " + st);
+	//	System.out.println("Statement: " + st);
 		SWRLTerm atom = null;
 		String subj = st.getSubject().stringValue();
+		String pred = st.getPredicate().stringValue();
+		String obj = st.getObject().stringValue();
+		
 		String[] triple = subj.split("#");
+
 		if (triple.length < 2)
 			return null;
 		String subjPref = mng.getPrefixIRI(IRI.create(triple[0] + "#"));
 		subj = subjPref + triple[1];
-		String pred = st.getPredicate().stringValue();
 		triple = pred.split("#");
 		String predPref = mng.getPrefixIRI(IRI.create(triple[0] + "#"));
 		pred = predPref + triple[1];
-		String obj = st.getObject().stringValue();
 		triple = obj.split("#");
 		if (triple.length > 1) { // IRI
 			String objPref = mng.getPrefixIRI(IRI.create(triple[0] + "#"));
@@ -294,7 +303,7 @@ public class SWRLParser implements Parser {
 	@Override
 	public List<Query> parseQueries() {
 		List<Query> queries = new LinkedList<Query>();
-		try{
+
 		List<SWRLTerm> parsed = parseRDF();
 		if (parsed != null) {
 			for (SWRLTerm triple : parsed) {
@@ -303,51 +312,54 @@ public class SWRLParser implements Parser {
 				else if (triple.isAtom())
 					queries.add(new SWRLQuery(triple.getAtom()));
 			}
-		}
-		} catch (Exception e) {
+		}else {
 			Query q = parseQuery();
-			if (q != null) {
-				System.out.println("READ Q: " + q);
+			while (q!=null){
+				//System.out.println("READ Q: " + q);
 				queries.add(q);
+				q = parseQuery();
 			}
 		}
+
 		return queries;
 	}
 
 	@Override
 	public Query parseQuery() {
 		SWRLRule rule = null;
-
-		if (parseCurrentLine()) {
-			// parse rule
-			rule = parseRule(this.currentLine);
-			// rule to query
-			if (rule != null) {
-				return new SWRLQuery(rule);
-			} else if (this.errors.isEmpty()) {
-				// parse argument
-				SWRLArgument arg = parseArgument(this.currentLine);
-				if (arg != null && arg instanceof SWRLVariable) {
-					// check if it was an argument or a rule
-					return new SWRLQuery(arg);
-				} else {
-					// List<SWRLRule> parsed = parseRDF();
-					// if (parsed != null) {
-					// for (SWRLRule triple : parsed) {
-					// dbfs.add(new SWRLDatabaseFormula(triple));
-					// }
-					// }
-					return null;
-					// this.errors.add(new
-					// SWRLParserSourceInfo(this.info.getSource(), this.lineNr,
-					// -1,
-					// "Could not create query from: " + this.currentLine));
+		try{
+			if (parseCurrentLine()) {
+				// parse rule
+				rule = parseRule(this.currentLine);
+				// rule to query
+				if (rule != null) {
+					return new SWRLQuery(rule);
+				} else if (this.errors.isEmpty()) {
+					// parse argument
+					SWRLArgument arg = parseArgument(this.currentLine);
+					if (arg != null && arg instanceof SWRLVariable) {
+						// check if it was an argument or a rule
+						return new SWRLQuery(arg);
+					} else {
+						// List<SWRLRule> parsed = parseRDF();
+						// if (parsed != null) {
+						// for (SWRLRule triple : parsed) {
+						// dbfs.add(new SWRLDatabaseFormula(triple));
+						// }
+						// }
+						return null;
+						// this.errors.add(new
+						// SWRLParserSourceInfo(this.info.getSource(), this.lineNr,
+						// -1,
+						// "Could not create query from: " + this.currentLine));
+					}
+					// return new SWRLQuery(arg);
 				}
-				// return new SWRLQuery(arg);
 			}
+		}catch(Exception e){
+			this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr, -1,
+					"Could not create query: parsing is finished (returns null)"));
 		}
-		this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr, -1,
-				"Could not create query: parsing is finished (returns null)"));
 		return null;
 	}
 
@@ -381,8 +393,8 @@ public class SWRLParser implements Parser {
 			SWRLRule rule = parseRule(termstring);
 			// rule to term
 			if (rule != null) {
-				System.out.println("Parsed " + termstring + " as: "
-						+ rule.toString());
+//				System.out.println("Parsed " + termstring + " as: "
+//						+ rule.toString());
 				term = new SWRLTerm(rule);
 			} else if (this.errors.isEmpty()) {
 				// variable

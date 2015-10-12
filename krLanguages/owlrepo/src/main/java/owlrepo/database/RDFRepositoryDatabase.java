@@ -193,7 +193,7 @@ public class RDFRepositoryDatabase {
 			// System.out.println("QUERYING Tuple Query...");
 		  TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
            result = tupleQuery.evaluate();
-          System.out.println("RESULT: "+result.hasNext());
+         // System.out.println("RESULT: "+result.hasNext());
           
           }catch(Exception e){
         	  throw new KRQueryFailedException(e.getMessage());
