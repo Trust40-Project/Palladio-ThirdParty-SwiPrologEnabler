@@ -17,12 +17,11 @@
 
 package krFactory;
 
-import jasonkri.JasonInterface;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import jasonkri.JasonInterface;
 import krTools.KRInterface;
 import krTools.exceptions.KRInitFailedException;
 import krTools.exceptions.KRInterfaceNotSupportedException;
@@ -30,9 +29,11 @@ import owlrepo.OWLRepoKRInterface;
 import swiprolog.SwiPrologInterface;
 
 /**
- * Factory of KR Interfaces. <li>Getting a KR interface by its name specified.</li>
- * <li>Getting the name of an interface implementation.</li> <li>Getting the set
- * of supported KRs by their names. Currently, the factory supports:
+ * Factory of KR Interfaces.
+ * <li>Getting a KR interface by its name specified.</li>
+ * <li>Getting the name of an interface implementation.</li>
+ * <li>Getting the set of supported KRs by their names. Currently, the factory
+ * supports:
  * <ul>
  * <li>SWI Prolog v6.0.2</li>
  * <li>OWL - API v. 4.0</li>
@@ -53,7 +54,7 @@ public class KRFactory {
 	static {
 		kr.put(SWI_PROLOG, SwiPrologInterface.class);
 		kr.put(OWL_REPO, OWLRepoKRInterface.class);
-		kr.put(SWI_PROLOG, JasonInterface.class);
+		kr.put(JASON, JasonInterface.class);
 	}
 
 	/**
@@ -74,22 +75,17 @@ public class KRFactory {
 	 * @throws KRInitFailedException
 	 *             If the creation of the requested implementation failed.
 	 */
-	public static KRInterface getKR(String name)
-			throws KRInterfaceNotSupportedException, KRInitFailedException {
+	public static KRInterface getKR(String name) throws KRInterfaceNotSupportedException, KRInitFailedException {
 		try {
-			KRInterface krInterface = kr.containsKey(name) ? kr.get(name)
-					.newInstance() : null;
+			KRInterface krInterface = kr.containsKey(name) ? kr.get(name).newInstance() : null;
 			if (krInterface == null) {
 				throw new KRInterfaceNotSupportedException(
-						"could not find KRT '" + name
-								+ "' as only these are available: "
-								+ kr.keySet() + ".");
+						"could not find KRT '" + name + "' as only these are available: " + kr.keySet() + ".");
 			} else {
 				return krInterface;
 			}
 		} catch (IllegalAccessException | InstantiationException e) {
-			throw new KRInitFailedException("failed to initialize KRT '" + name
-					+ "'.", e);
+			throw new KRInitFailedException("failed to initialize KRT '" + name + "'.", e);
 		}
 	}
 
