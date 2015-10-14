@@ -46,4 +46,29 @@ public class QueryTest {
 		assertFalse(res.hasNext());
 	}
 
+	/**
+	 * In Jason, you don't need to define predicates dynamic.
+	 */
+	@Test
+	public void queryUndefinedP() throws ParseException {
+		BeliefBase bb = new DefaultBeliefBase();
+
+		LogicalFormula form = ASSyntax.parseFormula("p");
+		Iterator<Unifier> res = form.logicalConsequence(bb, new Unifier());
+		assertFalse(res.hasNext());
+	}
+
+	/**
+	 * Undefined predicates are not true.
+	 */
+	@Test
+	public void queryNotUndefinedP() throws ParseException {
+		BeliefBase bb = new DefaultBeliefBase();
+
+		LogicalFormula form = ASSyntax.parseFormula("not p");
+		Iterator<Unifier> res = form.logicalConsequence(bb, new Unifier());
+		assertTrue(res.hasNext());
+		assertEquals("{}", res.next().toString());
+	}
+
 }
