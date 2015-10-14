@@ -230,6 +230,7 @@ public class SWRLParser implements Parser {
 			}
 			// reader.reset();
 		} catch (RDFParseException | RDFHandlerException | IOException | SWRLParseException e) {
+			e.printStackTrace();
 			this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr, -1, e.getMessage()));
 		}
 	//	System.out.println("SIZE: " + triples.size());
@@ -237,6 +238,8 @@ public class SWRLParser implements Parser {
 	}
 
 	public SWRLTerm getSWRLTerm(Statement st) throws SWRLParseException {
+		//basically filters out statements of only ABOX assertions
+		//the ontology is already loaded, so we use the swrl parser to create terms
 	//	System.out.println("Statement: " + st);
 		SWRLTerm atom = null;
 		String subj = st.getSubject().stringValue();
@@ -340,18 +343,9 @@ public class SWRLParser implements Parser {
 					if (arg != null && arg instanceof SWRLVariable) {
 						// check if it was an argument or a rule
 						return new SWRLQuery(arg);
-					} else {
-						// List<SWRLRule> parsed = parseRDF();
-						// if (parsed != null) {
-						// for (SWRLRule triple : parsed) {
-						// dbfs.add(new SWRLDatabaseFormula(triple));
-						// }
-						// }
-						return null;
-						// this.errors.add(new
-						// SWRLParserSourceInfo(this.info.getSource(), this.lineNr,
-						// -1,
-						// "Could not create query from: " + this.currentLine));
+					} else { //not a rule, not a variable argument, cannot be a query
+						 this.errors.add(new SWRLParserSourceInfo(this.info.getSource(), this.lineNr,
+						 -1, "Could not create query from: " + this.currentLine));
 					}
 					// return new SWRLQuery(arg);
 				}
@@ -388,7 +382,7 @@ public class SWRLParser implements Parser {
 	private SWRLTerm parseTerm(String termstring) {
 		SWRLTerm term = null;
 		if (!termstring.isEmpty() && !termstring.startsWith("owl:")
-				&& !termstring.startsWith("rdfs:")) {
+				&& !termstring.startsWith("rdfs:") && !termstring.startsWith("swrl")) {
 			// parse rule
 			SWRLRule rule = parseRule(termstring);
 			// rule to term
