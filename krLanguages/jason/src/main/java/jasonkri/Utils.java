@@ -3,10 +3,12 @@ package jasonkri;
 import jason.asSemantics.Unifier;
 import jason.asSyntax.BinaryStructure;
 import jason.asSyntax.ListTerm;
+import jason.asSyntax.ListTermImpl;
 import jason.asSyntax.Literal;
 import jason.asSyntax.LogExpr;
 import jason.asSyntax.LogExpr.LogicalOp;
 import jason.asSyntax.LogicalFormula;
+import jason.asSyntax.Pred;
 import jason.asSyntax.RelExpr;
 import jason.asSyntax.Structure;
 import jason.asSyntax.Term;
@@ -60,7 +62,7 @@ public class Utils {
 			terms.addAll(getConjuncts(conjunct.getRHS()));
 			break;
 		case none: // why is this a LogExpr anyway?
-		case or:
+		case or: // is this acceptable?
 		case not:
 			terms.add(conjunct);
 			break;
@@ -342,6 +344,37 @@ public class Utils {
 			unifier.bind(new VarTerm(varname), map.get(varname));
 		}
 		return unifier;
+	}
+
+	/**
+	 * Create a compound term with given operator and terms
+	 * 
+	 * @param operator
+	 *            the name of the predicate
+	 * @param args
+	 *            the arguments of the predicate.
+	 * @return
+	 */
+	public static Pred createPred(String operator, Term... args) {
+		Pred pred = new Pred(operator);
+		for (Term t : args) {
+			pred.addTerm(t);
+		}
+		return pred;
+	}
+
+	/**
+	 * create jason List from a set of Terms
+	 * 
+	 * @param termList
+	 * @return
+	 */
+	public static ListTerm makeList(List<Term> termList) {
+		ListTermImpl list = new ListTermImpl();
+		for (Term term : termList) {
+			list.add(term);
+		}
+		return list;
 	}
 
 }

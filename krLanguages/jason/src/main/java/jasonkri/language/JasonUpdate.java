@@ -1,6 +1,7 @@
 package jasonkri.language;
 
 import jason.asSyntax.LogExpr;
+import jason.asSyntax.LogicalFormula;
 import jason.asSyntax.Term;
 import jasonkri.JasonSourceInfo;
 import jasonkri.Utils;
@@ -13,6 +14,14 @@ import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
 
+/**
+ * A JasonUpdate contains either a {@link LogicalFormula} (the 'atom') or a
+ * {@link LogExpr} (a conjunct, or negation). See also
+ * {@link Utils#getConjuncts(Term)}) and {@link Utils#isUpdate(Term)}.
+ * 
+ * @author W.Pasman
+ *
+ */
 public class JasonUpdate extends JasonExpression implements Update {
 
 	// lazy cache.
@@ -33,7 +42,6 @@ public class JasonUpdate extends JasonExpression implements Update {
 
 	@Override
 	public List<DatabaseFormula> getAddList() {
-
 		if (addList == null) {
 			addList = new ArrayList<DatabaseFormula>();
 			for (Term t : Utils.getConjuncts(getJasonTerm())) {
