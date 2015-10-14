@@ -10,9 +10,11 @@ import jasonkri.language.JasonDatabaseFormula;
 import jasonkri.language.JasonQuery;
 import jasonkri.language.JasonSubstitution;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import krTools.database.Database;
@@ -122,5 +124,17 @@ public class JasonDatabase implements Database {
 			insert(formula);
 		}
 
+	}
+
+	/**
+	 * 
+	 * @return the database contents.
+	 */
+	public List<Literal> getContents() {
+		List<Literal> literals = new ArrayList<Literal>();
+		for (Literal l : database) {
+			literals.add(l);
+		}
+		return literals;
 	}
 }

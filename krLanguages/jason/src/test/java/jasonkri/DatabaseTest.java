@@ -1,7 +1,9 @@
 package jasonkri;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import jason.asSyntax.ASSyntax;
+import jason.asSyntax.Literal;
 import jason.asSyntax.parser.ParseException;
 import jasonkri.language.JasonDatabaseFormula;
 import jasonkri.language.JasonQuery;
@@ -29,18 +31,23 @@ import org.junit.Test;
 public class DatabaseTest {
 
 	@Test
-	public void constructorSmokeTest1() throws ParseException,
+	public void constructorInsertTest() throws ParseException,
 			KRDatabaseException {
 		Collection<DatabaseFormula> formulas = new HashSet<DatabaseFormula>();
-		formulas.add(new JasonDatabaseFormula(ASSyntax.parseLiteral("p"), null));
-		new JasonDatabase(formulas);
+		Literal p = ASSyntax.parseLiteral("p");
+		formulas.add(new JasonDatabaseFormula(p, null));
+		JasonDatabase db = new JasonDatabase(formulas);
+		assertEquals(1, db.getContents().size());
+		assertTrue(db.getContents().contains(p));
 	}
 
 	@Test
-	public void constructorSmokeTest2() throws KRDatabaseException,
+	public void constructorInsertTest2() throws KRDatabaseException,
 			ParseException, ParserException {
 		Parser parser = new JasonParser("p:-q. q.", new mySourceInfo());
-		new JasonDatabase(parser.parseDBFs());
+		JasonDatabase db = new JasonDatabase(parser.parseDBFs());
+
+		assertEquals(2, db.getContents().size());
 	}
 
 	@Test
@@ -54,6 +61,7 @@ public class DatabaseTest {
 		Set<Substitution> results = db.query(query);
 		System.out.println("result=" + results);
 		assertEquals("[{}]", results.toString());// YES
+
 	}
 
 	@Test
