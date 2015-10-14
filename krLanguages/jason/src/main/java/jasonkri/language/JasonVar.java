@@ -1,22 +1,22 @@
 package jasonkri.language;
 
 import jason.asSyntax.VarTerm;
-import jasonkri.JasonSourceInfo;
 
 import java.util.Set;
 
 import krTools.language.Var;
+import krTools.parser.SourceInfo;
 
 public class JasonVar extends JasonTerm implements Var {
 
-	public JasonVar(VarTerm var, JasonSourceInfo info) {
+	public JasonVar(VarTerm var, SourceInfo info) {
 		super(var, info);
 	}
 
 	@Override
 	public Var getVariant(Set<Var> usedNames) {
 		String name = getName();
-		JasonSourceInfo info = getJasonSourceInfo();
+		SourceInfo info = getSourceInfo();
 
 		int n = 1;
 		Var newVar;

@@ -3,7 +3,6 @@ package jasonkri.language;
 import jason.asSyntax.LogExpr;
 import jason.asSyntax.LogicalFormula;
 import jason.asSyntax.Term;
-import jasonkri.JasonSourceInfo;
 import jasonkri.Utils;
 
 import java.util.ArrayList;
@@ -13,6 +12,7 @@ import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
+import krTools.parser.SourceInfo;
 
 /**
  * A JasonUpdate contains either a {@link LogicalFormula} (the 'atom') or a
@@ -27,7 +27,7 @@ public class JasonUpdate extends JasonExpression implements Update {
 	// lazy cache.
 	private List<DatabaseFormula> addList, deleteList;
 
-	public JasonUpdate(Term s, JasonSourceInfo i) {
+	public JasonUpdate(Term s, SourceInfo i) {
 		super(s, i);
 		if (!isUpdate()) {
 			throw new IllegalArgumentException("structure " + s
@@ -37,7 +37,7 @@ public class JasonUpdate extends JasonExpression implements Update {
 
 	@Override
 	public Update applySubst(Substitution substitution) {
-		return new JasonUpdate(substitute(substitution), getJasonSourceInfo());
+		return new JasonUpdate(substitute(substitution), getSourceInfo());
 	}
 
 	@Override
@@ -46,8 +46,7 @@ public class JasonUpdate extends JasonExpression implements Update {
 			addList = new ArrayList<DatabaseFormula>();
 			for (Term t : Utils.getConjuncts(getJasonTerm())) {
 				if (!Utils.isNegation(t)) {
-					addList.add(new JasonDatabaseFormula(t,
-							getJasonSourceInfo()));
+					addList.add(new JasonDatabaseFormula(t, getSourceInfo()));
 				}
 			}
 		}
@@ -62,7 +61,7 @@ public class JasonUpdate extends JasonExpression implements Update {
 			for (Term t : Utils.getConjuncts(getJasonTerm())) {
 				if (Utils.isNegation(t)) {
 					deleteList.add(new JasonDatabaseFormula(((LogExpr) t)
-							.getLHS(), getJasonSourceInfo()));
+							.getLHS(), getSourceInfo()));
 				}
 			}
 		}
@@ -71,7 +70,7 @@ public class JasonUpdate extends JasonExpression implements Update {
 
 	@Override
 	public Query toQuery() {
-		return new JasonQuery(getJasonTerm(), getJasonSourceInfo());
+		return new JasonQuery(getJasonTerm(), getSourceInfo());
 	}
 
 }

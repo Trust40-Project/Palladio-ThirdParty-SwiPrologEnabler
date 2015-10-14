@@ -18,7 +18,6 @@
 package jasonkri.language;
 
 import jason.asSemantics.Unifier;
-import jason.asSyntax.Structure;
 import jason.asSyntax.VarTerm;
 
 import java.util.Collection;
@@ -66,7 +65,7 @@ public class JasonSubstitution implements Substitution {
 		if (term == null) {
 			return null;
 		}
-		return new JasonTerm((Structure) term, var.getJasonSourceInfo());
+		return new JasonTerm(term, var.getSourceInfo());
 
 	}
 

@@ -18,16 +18,16 @@
 package jasonkri.language;
 
 import jason.asSyntax.Term;
-import jasonkri.JasonSourceInfo;
 import jasonkri.Utils;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
+import krTools.parser.SourceInfo;
 
 public class JasonDatabaseFormula extends JasonExpression implements
 		DatabaseFormula {
 
-	public JasonDatabaseFormula(Term t, JasonSourceInfo i) {
+	public JasonDatabaseFormula(Term t, SourceInfo i) {
 		super(t, i); // must be done first.
 		if (!Utils.isDatabaseFormula(t)) {
 			throw new IllegalArgumentException(t.toString()
@@ -38,7 +38,7 @@ public class JasonDatabaseFormula extends JasonExpression implements
 	@Override
 	public DatabaseFormula applySubst(Substitution substitution) {
 		return new JasonDatabaseFormula(substitute(substitution),
-				getJasonSourceInfo());
+				getSourceInfo());
 	}
 
 	/**
@@ -50,7 +50,7 @@ public class JasonDatabaseFormula extends JasonExpression implements
 	 */
 	@Override
 	public Query toQuery() {
-		return new JasonQuery(getJasonTerm(), getJasonSourceInfo());
+		return new JasonQuery(getJasonTerm(), getSourceInfo());
 	}
 
 }

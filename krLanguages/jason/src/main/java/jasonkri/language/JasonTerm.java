@@ -1,17 +1,17 @@
 package jasonkri.language;
 
-import jasonkri.JasonSourceInfo;
 import krTools.language.Substitution;
 import krTools.language.Term;
+import krTools.parser.SourceInfo;
 
 public class JasonTerm extends JasonExpression implements Term {
 
-	public JasonTerm(jason.asSyntax.Term s, JasonSourceInfo i) {
+	public JasonTerm(jason.asSyntax.Term s, SourceInfo i) {
 		super(s, i);
 	}
 
 	@Override
 	public Term applySubst(Substitution substitution) {
-		return new JasonTerm(substitute(substitution), getJasonSourceInfo());
+		return new JasonTerm(substitute(substitution), getSourceInfo());
 	}
 }

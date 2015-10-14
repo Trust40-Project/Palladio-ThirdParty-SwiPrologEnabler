@@ -6,7 +6,6 @@ import jason.asSyntax.Rule;
 import jason.asSyntax.Structure;
 import jason.asSyntax.Term;
 import jason.asSyntax.VarTerm;
-import jasonkri.JasonSourceInfo;
 import jasonkri.Utils;
 
 import java.util.HashMap;
@@ -50,9 +49,11 @@ public class JasonExpression implements Expression {
 	}
 
 	/**
-	 * Information about the source used to construct this expression.
+	 * Information about the source used to construct this expression. #3582
+	 * this needs to be a general SourceInfo field, as we may inherit
+	 * {@link SourceInfo} from other objects eg messages.
 	 */
-	private final JasonSourceInfo info;
+	private final SourceInfo info;
 
 	/**
 	 * Creates a new term from a Jason structure (term).
@@ -60,9 +61,11 @@ public class JasonExpression implements Expression {
 	 * @param s
 	 *            A Jason {@link Structure}.
 	 * @param i
-	 *            {@link JasonSourceInfo}
+	 *            {@link SourceInfo}. This must be general source info as we can
+	 *            inherit {@link SourceInfo} from other objects, e.g. messages
+	 *            and eis objects.
 	 */
-	public JasonExpression(Term s, JasonSourceInfo i) {
+	public JasonExpression(Term s, SourceInfo i) {
 		// this can never be a PlanBody because PlanBody does not extend
 		// Structure.
 		if (s instanceof Plan) {
@@ -157,15 +160,6 @@ public class JasonExpression implements Expression {
 
 	@Override
 	public SourceInfo getSourceInfo() {
-		return info;
-	}
-
-	/**
-	 * The fully typed version of {@link #getSourceInfo()}.
-	 * 
-	 * @return {@link JasonSourceInfo}.
-	 */
-	public JasonSourceInfo getJasonSourceInfo() {
 		return info;
 	}
 

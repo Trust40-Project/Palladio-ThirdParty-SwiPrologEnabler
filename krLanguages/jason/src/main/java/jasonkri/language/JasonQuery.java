@@ -1,15 +1,15 @@
 package jasonkri.language;
 
 import jason.asSyntax.Term;
-import jasonkri.JasonSourceInfo;
 import jasonkri.Utils;
 import krTools.language.Query;
 import krTools.language.Substitution;
 import krTools.language.Update;
+import krTools.parser.SourceInfo;
 
 public class JasonQuery extends JasonExpression implements Query {
 
-	public JasonQuery(Term s, JasonSourceInfo i) {
+	public JasonQuery(Term s, SourceInfo i) {
 		super(s, i);
 		if (!isQuery()) {
 			throw new IllegalArgumentException("Structure " + s
@@ -19,7 +19,7 @@ public class JasonQuery extends JasonExpression implements Query {
 
 	@Override
 	public Query applySubst(Substitution substitution) {
-		return new JasonQuery(substitute(substitution), getJasonSourceInfo());
+		return new JasonQuery(substitute(substitution), getSourceInfo());
 	}
 
 	@Override
@@ -29,7 +29,7 @@ public class JasonQuery extends JasonExpression implements Query {
 
 	@Override
 	public Update toUpdate() {
-		return new JasonUpdate(getJasonTerm(), getJasonSourceInfo());
+		return new JasonUpdate(getJasonTerm(), getSourceInfo());
 	}
 
 }
