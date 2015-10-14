@@ -31,10 +31,18 @@ public class JasonDatabase implements Database {
 	private final String name;
 	private BeliefBase database = new DefaultBeliefBase();
 
+	/**
+	 * @param content
+	 *            the content to add. If content is null, it will be ignored.
+	 * 
+	 * @throws krTools.exceptions.KRDatabaseException
+	 */
 	public JasonDatabase(Collection<DatabaseFormula> content)
 			throws krTools.exceptions.KRDatabaseException {
 		name = "jasondbase" + uniqueNumberCounter++;
-		addAll(content);
+		if (content != null) {
+			addAll(content);
+		}
 	}
 
 	/**
