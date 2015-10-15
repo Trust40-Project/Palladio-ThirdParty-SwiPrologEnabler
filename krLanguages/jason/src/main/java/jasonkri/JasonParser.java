@@ -1,7 +1,7 @@
 package jasonkri;
 
 import jason.asSyntax.ASSyntax;
-import jason.asSyntax.Literal;
+import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.Structure;
 import jason.asSyntax.VarTerm;
 import jason.asSyntax.parser.ParseException;
@@ -108,10 +108,9 @@ public class JasonParser implements Parser {
 		List<DatabaseFormula> dbFormulas = new ArrayList<DatabaseFormula>();
 
 		try {
-			List<Literal> rules = new ArrayList<Literal>();
-			rules = ASSyntax.parseBeliefs(text);
+			List<LiteralImpl> rules = ASSyntax.parseBeliefs(text);
 
-			for (Literal rule : rules) {
+			for (LiteralImpl rule : rules) {
 				if (!Utils.isDatabaseFormula(rule)) {
 					addParserException("Rule " + rule
 							+ " is not a good database formula",

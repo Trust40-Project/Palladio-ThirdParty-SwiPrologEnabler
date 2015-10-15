@@ -338,13 +338,13 @@ public class ASSyntax {
 	 * creates a set of Literals (can be rules) by parsing a string. ADDED to
 	 * JASON #3579
 	 */
-	public static List<Literal> parseBeliefs(String sRule)
+	public static List<LiteralImpl> parseBeliefs(String sRule)
 			throws ParseException {
 		try {
 			as2j parser = new as2j(new StringReader(sRule));
-			List<Literal> rules = new ArrayList<Literal>();
+			List<LiteralImpl> rules = new ArrayList<LiteralImpl>();
 			while (parser.getToken(1).kind != as2jConstants.EOF) {
-				rules.add(parser.belief());
+				rules.add((LiteralImpl) parser.belief());
 			}
 			return rules;
 		} catch (TokenMgrError e) {

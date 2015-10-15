@@ -2,6 +2,7 @@ package jasonkri;
 
 import jason.asSemantics.Unifier;
 import jason.asSyntax.Literal;
+import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.LogicalFormula;
 import jason.asSyntax.Term;
 import jason.bb.BeliefBase;
@@ -80,7 +81,7 @@ public class JasonDatabase implements Database {
 
 	@Override
 	public void insert(DatabaseFormula formula) throws KRDatabaseException {
-		database.add((Literal) ((JasonDatabaseFormula) formula).getJasonTerm());
+		database.add(((JasonDatabaseFormula) formula).getJasonLiteral());
 
 	}
 
@@ -96,18 +97,17 @@ public class JasonDatabase implements Database {
 
 	@Override
 	public void delete(DatabaseFormula formula) throws KRDatabaseException {
-		database.remove((Literal) ((JasonDatabaseFormula) formula)
-				.getJasonTerm());
+		database.remove(((JasonDatabaseFormula) formula).getJasonLiteral());
 
 	}
 
 	@Override
 	public void delete(Update update) throws KRDatabaseException {
 		for (DatabaseFormula formula : update.getAddList()) {
-			delete((formula));
+			delete(formula);
 		}
 		for (DatabaseFormula formula : update.getDeleteList()) {
-			insert((formula));
+			insert(formula);
 		}
 
 	}
@@ -138,11 +138,18 @@ public class JasonDatabase implements Database {
 	 * 
 	 * @return the database contents.
 	 */
-	public List<Literal> getContents() {
-		List<Literal> literals = new ArrayList<Literal>();
+	public List<LiteralImpl> getContents() {
+		List<LiteralImpl> literals = new ArrayList<LiteralImpl>();
 		for (Literal l : database) {
-			literals.add(l);
+			// #3582 BeliefBase contains Literals but only LiteralImpl and some
+			// derived classes can actually be added.
+			literals.add((LiteralImpl) l);
 		}
 		return literals;
+	}
+
+	@Override
+	public String toString() {
+		return database.toString();
 	}
 }

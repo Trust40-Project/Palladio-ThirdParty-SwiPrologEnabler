@@ -5,10 +5,10 @@ import jason.asSyntax.BinaryStructure;
 import jason.asSyntax.ListTerm;
 import jason.asSyntax.ListTermImpl;
 import jason.asSyntax.Literal;
+import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.LogExpr;
 import jason.asSyntax.LogExpr.LogicalOp;
 import jason.asSyntax.LogicalFormula;
-import jason.asSyntax.Pred;
 import jason.asSyntax.RelExpr;
 import jason.asSyntax.Structure;
 import jason.asSyntax.Term;
@@ -355,8 +355,8 @@ public class Utils {
 	 *            the arguments of the predicate.
 	 * @return
 	 */
-	public static Pred createPred(String operator, Term... args) {
-		Pred pred = new Pred(operator);
+	public static LiteralImpl createPred(String operator, Term... args) {
+		LiteralImpl pred = new LiteralImpl(operator);
 		for (Term t : args) {
 			pred.addTerm(t);
 		}

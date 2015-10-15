@@ -1,7 +1,9 @@
 package jasonkri.language;
 
+import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.LogExpr;
 import jason.asSyntax.LogicalFormula;
+import jason.asSyntax.Structure;
 import jason.asSyntax.Term;
 import jasonkri.Utils;
 
@@ -27,7 +29,15 @@ public class JasonUpdate extends JasonExpression implements Update {
 	// lazy cache.
 	private List<DatabaseFormula> addList, deleteList;
 
-	public JasonUpdate(Term s, SourceInfo i) {
+	/**
+	 * Since an update contains new {@link DatabaseFormula}s possibly wrapped
+	 * with not(..), we require Structure objects.
+	 * 
+	 * @param s
+	 *            {@link Structure}s to be added and deleted.
+	 * @param i
+	 */
+	public JasonUpdate(Structure s, SourceInfo i) {
 		super(s, i);
 		if (!isUpdate()) {
 			throw new IllegalArgumentException("structure " + s
@@ -37,7 +47,15 @@ public class JasonUpdate extends JasonExpression implements Update {
 
 	@Override
 	public Update applySubst(Substitution substitution) {
-		return new JasonUpdate(substitute(substitution), getSourceInfo());
+		return new JasonUpdate((Structure) substitute(substitution),
+				getSourceInfo());
+	}
+
+	/**
+	 * get the Structure in this formula.
+	 */
+	public Structure getJasonStructure() {
+		return (Structure) getJasonTerm();
 	}
 
 	@Override
@@ -46,7 +64,9 @@ public class JasonUpdate extends JasonExpression implements Update {
 			addList = new ArrayList<DatabaseFormula>();
 			for (Term t : Utils.getConjuncts(getJasonTerm())) {
 				if (!Utils.isNegation(t)) {
-					addList.add(new JasonDatabaseFormula(t, getSourceInfo()));
+					// We just assume the term can be used as DBFormula.
+					addList.add(new JasonDatabaseFormula((LiteralImpl) t,
+							getSourceInfo()));
 				}
 			}
 		}
@@ -60,8 +80,10 @@ public class JasonUpdate extends JasonExpression implements Update {
 			deleteList = new ArrayList<DatabaseFormula>();
 			for (Term t : Utils.getConjuncts(getJasonTerm())) {
 				if (Utils.isNegation(t)) {
-					deleteList.add(new JasonDatabaseFormula(((LogExpr) t)
-							.getLHS(), getSourceInfo()));
+					// We just guess the terms contain databaseformulas.
+					deleteList.add(new JasonDatabaseFormula(
+							(LiteralImpl) ((LogExpr) t).getLHS(),
+							getSourceInfo()));
 				}
 			}
 		}

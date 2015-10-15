@@ -17,7 +17,10 @@
 
 package jasonkri.language;
 
-import jason.asSyntax.Term;
+import jason.asSyntax.CyclicTerm;
+import jason.asSyntax.LiteralImpl;
+import jason.asSyntax.Rule;
+import jason.bb.BeliefBase;
 import jasonkri.Utils;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
@@ -27,7 +30,18 @@ import krTools.parser.SourceInfo;
 public class JasonDatabaseFormula extends JasonExpression implements
 		DatabaseFormula {
 
-	public JasonDatabaseFormula(Term t, SourceInfo i) {
+	/**
+	 * {@link BeliefBase} inserts actually accept Literal; however only
+	 * {@link LiteralImpl}, {@link Rule} and {@link CyclicTerm} can actually be
+	 * added. We already require these right here to strengthen compile time
+	 * checking.
+	 * 
+	 * @param t
+	 *            the term to be added.
+	 * @param i
+	 *            {@link SourceInfo} for the term.
+	 */
+	public JasonDatabaseFormula(LiteralImpl t, SourceInfo i) {
 		super(t, i); // must be done first.
 		if (!Utils.isDatabaseFormula(t)) {
 			throw new IllegalArgumentException(t.toString()
@@ -35,9 +49,16 @@ public class JasonDatabaseFormula extends JasonExpression implements
 		}
 	}
 
+	/**
+	 * get the {@link LiteralImpl} in this formula.
+	 */
+	public LiteralImpl getJasonLiteral() {
+		return (LiteralImpl) getJasonTerm();
+	}
+
 	@Override
 	public DatabaseFormula applySubst(Substitution substitution) {
-		return new JasonDatabaseFormula(substitute(substitution),
+		return new JasonDatabaseFormula((LiteralImpl) substitute(substitution),
 				getSourceInfo());
 	}
 

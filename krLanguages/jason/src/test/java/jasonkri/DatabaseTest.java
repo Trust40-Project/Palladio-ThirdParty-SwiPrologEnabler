@@ -3,7 +3,7 @@ package jasonkri;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import jason.asSyntax.ASSyntax;
-import jason.asSyntax.Literal;
+import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.parser.ParseException;
 import jasonkri.language.JasonDatabaseFormula;
 import jasonkri.language.JasonQuery;
@@ -34,7 +34,7 @@ public class DatabaseTest {
 	public void constructorInsertTest() throws ParseException,
 			KRDatabaseException {
 		Collection<DatabaseFormula> formulas = new HashSet<DatabaseFormula>();
-		Literal p = ASSyntax.parseLiteral("p");
+		LiteralImpl p = (LiteralImpl) ASSyntax.parseLiteral("p");
 		formulas.add(new JasonDatabaseFormula(p, null));
 		JasonDatabase db = new JasonDatabase(formulas);
 		assertEquals(1, db.getContents().size());

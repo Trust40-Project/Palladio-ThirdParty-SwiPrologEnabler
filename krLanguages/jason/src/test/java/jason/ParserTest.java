@@ -19,6 +19,14 @@ import java.util.List;
 import org.junit.Test;
 
 public class ParserTest {
+
+	@Test
+	public void parseP() throws ParseException {
+		BeliefBase bb = new DefaultBeliefBase();
+		Literal lit = ASSyntax.parseLiteral("p");
+		bb.add(lit);
+	}
+
 	/**
 	 * check basic multiple literals parsing
 	 * 
@@ -26,7 +34,7 @@ public class ParserTest {
 	 */
 	@Test
 	public void parseBeliefsTest() throws ParseException {
-		List<Literal> literals = ASSyntax.parseBeliefs("p. q.");
+		List<LiteralImpl> literals = ASSyntax.parseBeliefs("p. q.");
 		assertEquals(2, literals.size());
 		assertEquals("p", literals.get(0).toString());
 		assertEquals("q", literals.get(1).toString());
@@ -39,7 +47,7 @@ public class ParserTest {
 	 */
 	@Test
 	public void parseRuleAndAtomTest() throws ParseException {
-		List<Literal> literals = ASSyntax.parseBeliefs("p :- q. q.");
+		List<LiteralImpl> literals = ASSyntax.parseBeliefs("p :- q. q.");
 		assertEquals(2, literals.size());
 		assertEquals("p :- q", literals.get(0).toString());
 		assertEquals("q", literals.get(1).toString());
@@ -74,7 +82,7 @@ public class ParserTest {
 	 */
 	@Test
 	public void parseNewlines() throws ParseException {
-		List<Literal> literals = ASSyntax
+		List<LiteralImpl> literals = ASSyntax
 				.parseBeliefs("\n\n\t\tp.\n\n\t q.\t\t");
 		assertEquals(2, literals.size());
 		assertEquals("p", literals.get(0).toString());
