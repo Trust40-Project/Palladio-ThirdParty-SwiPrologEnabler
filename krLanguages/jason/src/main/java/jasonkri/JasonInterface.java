@@ -66,9 +66,11 @@ public class JasonInterface implements KRInterface {
 	@Override
 	public Substitution getSubstitution(Map<Var, Term> map) {
 		Unifier unifier = new Unifier();
-		for (Var var : map.keySet()) {
-			unifier.bind((VarTerm) ((JasonVar) var).getJasonTerm(),
-					((JasonTerm) map.get(var)).getJasonTerm());
+		if (map != null) {
+			for (Var var : map.keySet()) {
+				unifier.bind((VarTerm) ((JasonVar) var).getJasonTerm(),
+						((JasonTerm) map.get(var)).getJasonTerm());
+			}
 		}
 		return new JasonSubstitution(unifier);
 	}
