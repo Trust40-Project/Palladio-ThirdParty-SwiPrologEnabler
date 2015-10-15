@@ -92,7 +92,14 @@ public class JasonParser implements Parser {
 	 *            the exception that occured. Ignored if null.
 	 */
 	private void addParserException(String msg, jason.asSyntax.SourceInfo info,
-			Exception e) {
+			ParseException e) {
+		if (info == null && e != null) {
+			// maybe we still can get some info
+			info = new jason.asSyntax.SourceInfo(sourceInfo.getSource()
+					.getAbsolutePath(), e.currentToken.beginLine,
+					e.currentToken.endLine);
+			msg = msg + e.getMessage(); // HACK!!!
+		}
 		JasonSourceInfo jsinfo = new JasonSourceInfo(sourceInfo, info);
 		ParserException exc;
 		if (e != null) {
