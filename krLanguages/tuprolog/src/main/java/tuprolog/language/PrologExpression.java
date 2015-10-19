@@ -83,11 +83,10 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public Set<Var> getFreeVar() {
-		List<alice.tuprolog.Var> jplvars = new ArrayList<>(JPLUtils.getFreeVar(getTerm()));
+		List<String> jplvars = new ArrayList<>(JPLUtils.getFreeVar(getTerm()));
 		Set<Var> variables = new LinkedHashSet<>(jplvars.size());
-		// Build VariableTerm from alice.tuprolog.Var.
-		for (alice.tuprolog.Var var : jplvars) {
-			variables.add(new PrologVar(var, getSourceInfo()));
+		for (String var : jplvars) {
+			variables.add(new PrologVar(new alice.tuprolog.Var(var), getSourceInfo()));
 		}
 		return variables;
 	}

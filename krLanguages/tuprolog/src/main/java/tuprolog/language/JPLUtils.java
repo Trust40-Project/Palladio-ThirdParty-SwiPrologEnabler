@@ -98,11 +98,11 @@ public class JPLUtils {
 	 *            The term whose variables are returned.
 	 * @return The variables that occur in the term.
 	 */
-	public static Set<alice.tuprolog.Var> getFreeVar(alice.tuprolog.Term term) {
-		SetWithoutHash<alice.tuprolog.Var> freeVars = new SetWithoutHash<>();
+	public static Set<String> getFreeVar(alice.tuprolog.Term term) {
+		SetWithoutHash<String> freeVars = new SetWithoutHash<>();
 
 		if (term instanceof alice.tuprolog.Var) {
-			freeVars.add((alice.tuprolog.Var) term);
+			freeVars.add(((alice.tuprolog.Var) term).getName());
 		} else if (term instanceof alice.tuprolog.Struct) {
 			alice.tuprolog.Term[] instantiatedArgs = new alice.tuprolog.Term[((alice.tuprolog.Struct) term).getArity()];
 			// Recursively apply the substitution to all sub-terms.
@@ -763,14 +763,10 @@ public class JPLUtils {
 		if (x instanceof alice.tuprolog.Var && s.containsKey(((alice.tuprolog.Var) x).getName())) {
 			return unify(var, s.get(((alice.tuprolog.Var) x).getName()), s);
 		}
-		if (getFreeVar(x).contains(var)) {
+		if (getFreeVar(x).contains(var.getName())) {
 			return null;
 		}
 		s.put(var.getName(), x);
 		return s;
-	}
-
-	public static alice.tuprolog.Struct getStruct(alice.tuprolog.Term term) {
-		return (term instanceof alice.tuprolog.Struct) ? (alice.tuprolog.Struct) term : null;
 	}
 }
