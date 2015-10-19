@@ -159,7 +159,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	private String unquote(String quotedstring) {
 		char quote = quotedstring.charAt(0);
 		String unquoted = quotedstring.substring(1, quotedstring.length() - 1);
-		// CHECK SWI does first replaceQuotes, then escape. Try '\''''. Is that
+		// CHECK TU does first replaceQuotes, then escape. Try '\''''. Is that
 		// ISO?
 		return unescape(replaceQuotes(unquoted, quote));
 	}
@@ -409,7 +409,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				// minus sign, check special case of numeric constant. See ISO
 				// 6.3.1.2 footnote
 				// Note, we interpret this footnote RECURSIVELY, eg --1 == 1.
-				// Note that this notation is not SWI prolog compatible, SWI
+				// Note that this notation is not TU prolog compatible, TU
 				// seems to fail ISO
 				// compliance here.
 				if (t instanceof alice.tuprolog.Double) {

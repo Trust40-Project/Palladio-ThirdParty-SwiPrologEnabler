@@ -42,7 +42,7 @@ import tuprolog.language.PrologSubstitution;
 public class PrologDatabase implements Database {
 	private final static alice.tuprolog.Prolog engine = new alice.tuprolog.Prolog();
 	/**
-	 * Name of this database; used to name a SWI-Prolog module that implements
+	 * Name of this database; used to name a TU-Prolog module that implements
 	 * the database.
 	 */
 	private final alice.tuprolog.Struct name;
@@ -71,7 +71,7 @@ public class PrologDatabase implements Database {
 		this.owner = owner;
 		this.theory = new Theory(content);
 		try {
-			// Create SWI Prolog module that will act as our database.
+			// Create TU Prolog module that will act as our database.
 			// FIXME: this is an expensive operation that is now run for
 			// knowledge bases as well, and might be run for bases in a mental
 			// model that will never be used anyway too.
@@ -103,7 +103,7 @@ public class PrologDatabase implements Database {
 	}
 
 	/**
-	 * Removes a database from the list of databases maintained by SWI Prolog.
+	 * Removes a database from the list of databases maintained by TU Prolog.
 	 *
 	 * TRAC #2027 there seems no factory pattern dealing with instance deletion.
 	 *
@@ -117,7 +117,7 @@ public class PrologDatabase implements Database {
 
 	/**
 	 * Performs given query on the database. As databases are implemented as
-	 * modules in SWI Prolog, a query is constructed that contains a reference
+	 * modules in TU Prolog, a query is constructed that contains a reference
 	 * to the corresponding module.
 	 *
 	 * @param pQuery
@@ -154,9 +154,9 @@ public class PrologDatabase implements Database {
 
 	/**
 	 * <p>
-	 * Inserts formula into SWI prolog database without any checks. You are
-	 * responsible for creating legal SWI prolog query. The formula will be
-	 * prefixed with the label of the database: the SWI prolog query will look
+	 * Inserts formula into TU prolog database without any checks. You are
+	 * responsible for creating legal TU prolog query. The formula will be
+	 * prefixed with the label of the database: the TU prolog query will look
 	 * like <br>
 	 * <tt>insert(&lt;database label>:&lt;formula>)</tt>
 	 * </p>
@@ -241,17 +241,17 @@ public class PrologDatabase implements Database {
 
 	/**
 	 * <p>
-	 * Deletes a formula from a SWI Prolog Database. You are responsible for
-	 * creating legal SWI prolog query. The formula will be prefixed with the
-	 * label of the database: the SWI prolog query will look like <br>
+	 * Deletes a formula from a TU Prolog Database. You are responsible for
+	 * creating legal TU prolog query. The formula will be prefixed with the
+	 * label of the database: the TU prolog query will look like <br>
 	 * <tt>retract(&lt;database label>:&lt;formula>)</tt>
 	 * </p>
 	 *
 	 * @param formula
-	 *            is the DatabaseFormula to be retracted from SWI. ASSUMES
+	 *            is the DatabaseFormula to be retracted from TU. ASSUMES
 	 *            formula can be argument of retract (fact, rules). CHECK rules
 	 *            need to be converted into string correctly! toString may be
-	 *            insufficient for SWI queries
+	 *            insufficient for TU queries
 	 * @throws KRDatabaseException
 	 */
 	@Override
@@ -285,7 +285,7 @@ public class PrologDatabase implements Database {
 
 	/**
 	 * <p>
-	 * A call to SWI Prolog that converts the solutions obtained into
+	 * A call to TU Prolog that converts the solutions obtained into
 	 * {@link PrologSubstitution}s.
 	 * </p>
 	 * <p>
@@ -330,13 +330,13 @@ public class PrologDatabase implements Database {
 
 	/**
 	 * <p>
-	 * Removes all predicates and clauses from the SWI Prolog database.
+	 * Removes all predicates and clauses from the TU Prolog database.
 	 * </p>
 	 * <p>
-	 * <b>WARNING</b>: This is not implementable fully in SWI prolog. You can
+	 * <b>WARNING</b>: This is not implementable fully in TU prolog. You can
 	 * reset a database to free up some memory, but do not re-use the database.
 	 * It will NOT reset the dynamic declarations. This is an issue but the JPL
-	 * interface to SWI Prolog does not support removing these. Suggested
+	 * interface to TU Prolog does not support removing these. Suggested
 	 * workaround: After resetting do not re-use this database but make a new
 	 * one.
 	 * </p>

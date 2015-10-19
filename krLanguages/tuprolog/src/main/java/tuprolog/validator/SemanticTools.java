@@ -219,7 +219,7 @@ public class SemanticTools {
 	 * <p>
 	 * Checks that conjunction is a Prolog query and returns {@link PrologQuery}
 	 * object made of it. This means that, if successful, the result can be
-	 * queried to the (SWI) prolog engine.
+	 * queried to the (TU) prolog engine.
 	 * </p>
 	 * <p>
 	 * ISO section 7.6.2 on p.27 specifies how to convert a term to a goal.

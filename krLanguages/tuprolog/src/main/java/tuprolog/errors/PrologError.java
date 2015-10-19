@@ -79,7 +79,7 @@ public class PrologError extends KRQueryFailedException {
 
 		/**
 		 * evaliation_error(Cause): some math evaluation failed. Not documented
-		 * by SWI so reverse engineered.
+		 * by TU so reverse engineered.
 		 */
 		EVALUATION_ERROR(1);
 
@@ -180,7 +180,7 @@ public class PrologError extends KRQueryFailedException {
 		String defaultmessage = "because of a general " + type.toString().toLowerCase();
 
 		if (error.getArity() != type.getArity()) {
-			// sometimes SWI gives wrong error objects to us with no details.
+			// sometimes TU gives wrong error objects to us with no details.
 			// Still trying to be helpful somehow...
 			return defaultmessage;
 		}

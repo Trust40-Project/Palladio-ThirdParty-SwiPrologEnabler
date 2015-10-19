@@ -34,7 +34,7 @@ import tuprolog.language.PrologTerm;
 import tuprolog.parser.PrologOperators;
 
 /**
- * A dependency graph for the SWI Prolog language.
+ * A dependency graph for the TU Prolog language.
  */
 public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	private static final Term ANON_VAR = new alice.tuprolog.Var("_");
@@ -146,7 +146,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 * <p>
 	 * Unpacking is needed if the term contains at top level a build-in
 	 * predicate and that built-in predicate will cause further querying in the
-	 * SWI engine. For example not(pred) will cause invocation of pred.
+	 * TU engine. For example not(pred) will cause invocation of pred.
 	 *
 	 * @param term
 	 *            The term that is unpacked.

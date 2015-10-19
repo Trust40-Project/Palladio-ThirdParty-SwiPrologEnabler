@@ -46,12 +46,12 @@ import tuprolog.language.PrologSubstitution;
 import tuprolog.parser.KRInterfaceParser4;
 
 /**
- * Implementation of {@link KRInterface} for SWI Prolog.
+ * Implementation of {@link KRInterface} for TU Prolog.
  */
 public final class TuPrologInterface implements KRInterface {
 
 	/**
-	 * Contains all databases that are maintained by SWI Prolog. The key is the
+	 * Contains all databases that are maintained by TU Prolog. The key is the
 	 * owner of the database. The value is a list of databases associated with
 	 * that agent. An owner that has no associated databases should be removed
 	 * from the map.
@@ -101,7 +101,7 @@ public final class TuPrologInterface implements KRInterface {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
 		PrologDatabase database = new PrologDatabase(name, content, this);
-		// Add database to list of databases maintained by SWI Prolog and
+		// Add database to list of databases maintained by TU Prolog and
 		// associated with name.
 		this.databases.put(name, database);
 		// Return new database.
@@ -124,13 +124,13 @@ public final class TuPrologInterface implements KRInterface {
 		try {
 			return new KRInterfaceParser4(r, info);
 		} catch (IOException e) {
-			throw new ParserException("failed to parse the reader data as SWI Prolog.", info, e);
+			throw new ParserException("failed to parse the reader data as TU Prolog.", info, e);
 		}
 	}
 
 	/**
 	 * Computes predicates that need to be declared dynamically for later
-	 * reference. A SWI Prolog database assumes that all predicates that are
+	 * reference. A TU Prolog database assumes that all predicates that are
 	 * queried have been either asserted or dynamically declared, otherwise an
 	 * existence_error is produced. FIXME: does nothing?!
 	 */

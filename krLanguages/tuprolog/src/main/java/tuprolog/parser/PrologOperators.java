@@ -194,22 +194,22 @@ public final class PrologOperators {
 
 		OP_PRIOS.put("append/2", 0);
 		OP_PRIOS.put("append/3", 0);
-		OP_PRIOS.put("prefix/2", 0); // new in SWI6.0.2
+		OP_PRIOS.put("prefix/2", 0); // new in TU6.0.2
 		OP_PRIOS.put("intersection/3", 0);
 		OP_PRIOS.put("nth0/3", 0);
 		OP_PRIOS.put("nth1/3", 0);
 		OP_PRIOS.put("nth0/4", 0);
 		OP_PRIOS.put("nth1/4", 0);
-		OP_PRIOS.put("proper_length/2", 0); // new in SWI6.0.2
+		OP_PRIOS.put("proper_length/2", 0); // new in TU6.0.2
 		OP_PRIOS.put("max_list/2", 0);
 		OP_PRIOS.put("min_list/2", 0);
 		OP_PRIOS.put("nextto/3", 0);
 		OP_PRIOS.put("numlist/3", 0);
 		OP_PRIOS.put("permutation/2", 0);
 		OP_PRIOS.put("select/3", 0);
-		OP_PRIOS.put("select/4", 0); // new in SWI6.0.2
+		OP_PRIOS.put("select/4", 0); // new in TU6.0.2
 		OP_PRIOS.put("selectchk/3", 0);
-		OP_PRIOS.put("selectchk/4", 0); // new in SWI6.0.2
+		OP_PRIOS.put("selectchk/4", 0); // new in TU6.0.2
 		OP_PRIOS.put("subset/2", 0);
 		OP_PRIOS.put("subtract/3", 0);
 		OP_PRIOS.put("sumlist/2", 0);
@@ -224,16 +224,16 @@ public final class PrologOperators {
 
 		// random.
 		OP_PRIOS.put("random/1", 0);
-		OP_PRIOS.put("random/3", 0); // new in SWI6.0.2
-		OP_PRIOS.put("setrand/1", 0); // new in SWI6.0.2
+		OP_PRIOS.put("random/3", 0); // new in TU6.0.2
+		OP_PRIOS.put("setrand/1", 0); // new in TU6.0.2
 
-		OP_PRIOS.put("random_between/3", 0); // new in SWI6.0.2
-		OP_PRIOS.put("random_member/2", 0); // new in SWI6.0.2
-		OP_PRIOS.put("random_perm2/4", 0); // new in SWI6.0.2
-		OP_PRIOS.put("random_permutation/2", 0); // new in SWI6.0.2
-		OP_PRIOS.put("random_select/3", 0); // new in SWI6.0.2
-		OP_PRIOS.put("randseq/3", 0); // new in SWI6.0.2
-		OP_PRIOS.put("randset/3", 0); // new in SWI6.0.2
+		OP_PRIOS.put("random_between/3", 0); // new in TU6.0.2
+		OP_PRIOS.put("random_member/2", 0); // new in TU6.0.2
+		OP_PRIOS.put("random_perm2/4", 0); // new in TU6.0.2
+		OP_PRIOS.put("random_permutation/2", 0); // new in TU6.0.2
+		OP_PRIOS.put("random_select/3", 0); // new in TU6.0.2
+		OP_PRIOS.put("randseq/3", 0); // new in TU6.0.2
+		OP_PRIOS.put("randset/3", 0); // new in TU6.0.2
 
 		// operators that quantify over variables.
 		OP_PRIOS.put("setof/3", 0);
@@ -262,7 +262,7 @@ public final class PrologOperators {
 		OP_PRIOS.put("stamp_date_time/3", 0);
 		OP_PRIOS.put("day_of_the_week/2", 0);
 
-		// SWI Prolog chapter 4.5: term type verification
+		// TU Prolog chapter 4.5: term type verification
 		OP_PRIOS.put("var/1", 0);
 		OP_PRIOS.put("nonvar/1", 0);
 		OP_PRIOS.put("integer/1", 0);
@@ -278,11 +278,11 @@ public final class PrologOperators {
 		OP_PRIOS.put("cyclic_term/1", 0);
 		OP_PRIOS.put("acyclic_term/1", 0);
 
-		// SWI Prolog chapter 4.6: term comparison
+		// TU Prolog chapter 4.6: term comparison
 		OP_PRIOS.put("compare/3", 0);
 		OP_PRIOS.put("unify_with_occurs_check/2", 0);
 
-		// SWI prolog ch. 4.8: meta call predicates
+		// TU prolog ch. 4.8: meta call predicates
 		// call has variable num of args but up to 6 seems supported if I
 		// understand the manual right
 		OP_PRIOS.put("call/1", 0);
@@ -300,16 +300,16 @@ public final class PrologOperators {
 		OP_PRIOS.put("call_cleanup/2", 0);
 		OP_PRIOS.put("call_cleanup/3", 0);
 
-		// SWI prolog ch. 4.9.3
+		// TU prolog ch. 4.9.3
 		OP_PRIOS.put("print_message/2", 0);
 		OP_PRIOS.put("print_message_lines/3", 0);
 		OP_PRIOS.put("message_to_string/2", 0);
 
-		// SWI prolog 4.12
+		// TU prolog 4.12
 		OP_PRIOS.put("phrase/2", 0);
 		OP_PRIOS.put("phrase/3", 0);
 
-		// SWI 6.0.2 new A.17
+		// TU 6.0.2 new A.17
 		OP_PRIOS.put("is_ordset/1", 0);
 		OP_PRIOS.put("ord_empty/1", 0);
 		OP_PRIOS.put("ord_seteq/2", 0);
@@ -332,7 +332,7 @@ public final class PrologOperators {
 		OP_PRIOS.put("ord_union/4", 0);
 		OP_PRIOS.put("ord_symdiff/3", 0);
 
-		// SWI 6.0.2 new A.18
+		// TU 6.0.2 new A.18
 		OP_PRIOS.put("pairs_keys_values/3", 0);
 		OP_PRIOS.put("pairs_values/2", 0);
 		OP_PRIOS.put("pairs_keys/2", 0);
@@ -340,7 +340,7 @@ public final class PrologOperators {
 		OP_PRIOS.put("transpose_pairs/2", 0);
 		OP_PRIOS.put("map_list_to_pairs/3", 0);
 
-		// SWI Prolog 4.16.1
+		// TU Prolog 4.16.1
 		OP_PRIOS.put("open/4", 0);
 		OP_PRIOS.put("alias/1", 0);
 		OP_PRIOS.put("encoding/1", 0);
@@ -377,17 +377,17 @@ public final class PrologOperators {
 		OP_PRIOS.put("set_stream/2", 0);
 		OP_PRIOS.put("set_prolog_IO/3", 0);
 
-		// SWI ch. 4.16.4
+		// TU ch. 4.16.4
 		OP_PRIOS.put("with_output_to/2", 0);
 
-		// SWI ch. 4.17
+		// TU ch. 4.17
 		OP_PRIOS.put("wait_for_input/3", 0);
 		OP_PRIOS.put("byte_count/2", 0);
 		OP_PRIOS.put("character_count/2", 0);
 		OP_PRIOS.put("line_count/2", 0);
 		OP_PRIOS.put("line_position/2", 0);
 
-		// SWI ch 4.18
+		// TU ch 4.18
 		OP_PRIOS.put("nl/0", 0);
 		OP_PRIOS.put("nl/1", 0);
 		OP_PRIOS.put("put/1", 0);
@@ -428,7 +428,7 @@ public final class PrologOperators {
 		OP_PRIOS.put("copy_stream_data/2", 0);
 		OP_PRIOS.put("read_pending_input/3", 0);
 
-		// SWI manual ch. 4.19
+		// TU manual ch. 4.19
 		OP_PRIOS.put("write_term/2", 0);
 		OP_PRIOS.put("attributes/1", 0);
 		OP_PRIOS.put("backquoted_string/1", 0);
@@ -472,7 +472,7 @@ public final class PrologOperators {
 		OP_PRIOS.put("prompt/2", 0);
 		OP_PRIOS.put("prompt1/1", 0);
 
-		// SWI ch 4.21 analysing and constructing atoms
+		// TU ch 4.21 analysing and constructing atoms
 		OP_PRIOS.put("atom_codes/2", 0);
 		OP_PRIOS.put("atom_chars/2", 0);
 		OP_PRIOS.put("char_code/2", 0);
@@ -481,7 +481,7 @@ public final class PrologOperators {
 		OP_PRIOS.put("name/2", 0);
 		OP_PRIOS.put("atom_concat/3", 0);
 
-		// SWI ch. 4.22 character properties
+		// TU ch. 4.22 character properties
 		OP_PRIOS.put("char_type/2", 0);
 		OP_PRIOS.put("alnum/0", 0);
 		OP_PRIOS.put("alpha/0", 0);
@@ -518,18 +518,18 @@ public final class PrologOperators {
 		OP_PRIOS.put("collation_key/2", 0);
 		OP_PRIOS.put("locale_sort/2", 0);
 
-		// SWI manual 4.23: representing text in strings
+		// TU manual 4.23: representing text in strings
 		OP_PRIOS.put("string_to_atom/2", 0);
 		OP_PRIOS.put("string_to_list/2", 0);
 		OP_PRIOS.put("string_length/2", 0);
 		OP_PRIOS.put("string_concat/3", 0);
 		OP_PRIOS.put("sub_string/5", 0);
 
-		// SWI manual 4.25: character conversion
+		// TU manual 4.25: character conversion
 		OP_PRIOS.put("char_conversion/2", 0);
 		OP_PRIOS.put("current_char_conversion/2", 0);
 
-		// SWI manual 4.26: arithmetic
+		// TU manual 4.26: arithmetic
 		// Note that the infix operators are above.
 		OP_PRIOS.put("between/3", 0);
 		OP_PRIOS.put("sqrt/1", 0);
@@ -574,20 +574,20 @@ public final class PrologOperators {
 		OP_PRIOS.put("lsb/1", 0);
 		OP_PRIOS.put("popcount/1", 0);
 
-		// SWI ch. 4.28 misc arithmetic predicates
+		// TU ch. 4.28 misc arithmetic predicates
 		OP_PRIOS.put("set_random/1", 0);
 		OP_PRIOS.put("seed/1", 0);
 
-		// SWI 4.29 built-in list operations
+		// TU 4.29 built-in list operations
 		OP_PRIOS.put("memberchk/2", 0);
 		OP_PRIOS.put("msort/2", 0);
 		OP_PRIOS.put("keysort/2", 0);
 		OP_PRIOS.put("predsort/3", 0);
 
-		// SWI 4.30 finding all solutions
+		// TU 4.30 finding all solutions
 		// all functions were already there
 
-		// SWI 4.32 formatted write
+		// TU 4.32 formatted write
 		OP_PRIOS.put("writeln/1", 0);
 		OP_PRIOS.put("writef/1", 0);
 		OP_PRIOS.put("writef/2", 0);
@@ -599,16 +599,16 @@ public final class PrologOperators {
 		OP_PRIOS.put("format_predicate/2", 0);
 		OP_PRIOS.put("current_format_predicate/2", 0);
 
-		// SWI 4.33 terminal control
+		// TU 4.33 terminal control
 		// open issue, see #1123.
 
-		// SWI 4.34 dealing with time and date
+		// TU 4.34 dealing with time and date
 		OP_PRIOS.put("date_time_value/3", 0);
 		OP_PRIOS.put("format_time/3", 0);
 		OP_PRIOS.put("format_time/4", 0);
 		OP_PRIOS.put("parse_time/2", 0);
 
-		// SWI 4.35 file system interaction
+		// TU 4.35 file system interaction
 		OP_PRIOS.put("access_file/2", 0);
 		OP_PRIOS.put("exists_file/1", 0);
 		OP_PRIOS.put("file_directory_name/2", 0);
@@ -658,7 +658,7 @@ public final class PrologOperators {
 		// flag is not built-in because of Unreal. See #2109
 		// OP_PRIOS.put("flag/3", 0);
 
-		// SWI6.1.1 Attribute manipulation predicates
+		// TU6.1.1 Attribute manipulation predicates
 		OP_PRIOS.put("get_attr/3", 0);
 		OP_PRIOS.put("put_attr/3", 0);
 	}
@@ -675,7 +675,7 @@ public final class PrologOperators {
 		// restrict module handling
 		PROTECTED_OPS.add(":");
 
-		// new operator in SWI6, not clear what it does but something 'execute'
+		// new operator in TU6, not clear what it does but something 'execute'
 		PROTECTED_OPS.add("^");
 
 		// prolog file handling directives, ISO 7.4.2
@@ -689,7 +689,7 @@ public final class PrologOperators {
 		// don't want include/1
 		PROTECTED_OPS.add("ensure_loaded");
 
-		// new in SWI6
+		// new in TU6
 		PROTECTED_OPS.add("module_transparent");
 		PROTECTED_OPS.add("meta_predicate");
 		PROTECTED_OPS.add("thread_local");
@@ -699,7 +699,7 @@ public final class PrologOperators {
 		PROTECTED_OPS.add("catch");
 		PROTECTED_OPS.add("throw");
 
-		// new but not supported in SWI6.0.2
+		// new but not supported in TU6.0.2
 		PROTECTED_OPS.add("autoload_path");
 		PROTECTED_OPS.add("blob");
 		PROTECTED_OPS.add("copy_predicate_clauses");
@@ -776,8 +776,8 @@ public final class PrologOperators {
 	}
 
 	/**
-	 * Built-in operators are already defined in SWI Prolog, and one should not
-	 * try to redefine these by inserting or deleting these (even though SWI
+	 * Built-in operators are already defined in TU Prolog, and one should not
+	 * try to redefine these by inserting or deleting these (even though TU
 	 * Prolog allows redefining built-in operators, we do not consider this good
 	 * practice).
 	 * </p>

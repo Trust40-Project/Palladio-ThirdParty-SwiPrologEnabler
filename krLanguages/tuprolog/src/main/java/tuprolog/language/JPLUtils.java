@@ -514,7 +514,7 @@ public class JPLUtils {
 				 * needed but the :- is not tight binding so there we need
 				 * brackets.
 				 */
-				// SWI bug workaround. Mantis 280
+				// TU bug workaround. Mantis 280
 				if (struct.getName().equals("-")) {
 					return struct.getName() + maybeBracketed(struct, 0);
 				}
