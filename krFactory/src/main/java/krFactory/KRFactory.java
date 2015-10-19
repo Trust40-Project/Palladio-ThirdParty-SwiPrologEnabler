@@ -27,6 +27,7 @@ import krTools.exceptions.KRInitFailedException;
 import krTools.exceptions.KRInterfaceNotSupportedException;
 import owlrepo.OWLRepoKRInterface;
 import swiprolog.SwiPrologInterface;
+import tuprolog.TuPrologInterface;
 
 /**
  * Factory of KR Interfaces.
@@ -36,7 +37,9 @@ import swiprolog.SwiPrologInterface;
  * supports:
  * <ul>
  * <li>SWI Prolog v6.0.2</li>
- * <li>OWL - API v. 4.0</li>
+ * <li>OWL - API v4.0</li>
+ * <li>Jason v???</li>
+ * <li>TU Prolog v2.9.2</li>
  * </ul>
  * </li>
  */
@@ -45,6 +48,7 @@ public class KRFactory {
 	public static String SWI_PROLOG = "SWI Prolog";
 	public static String OWL_REPO = "OWL Repo";
 	public static String JASON = "Jason";
+	public static String TU_PROLOG = "TU Prolog";
 
 	/**
 	 * A map of names to the {@link KRInterface}s that are supported.
@@ -55,6 +59,7 @@ public class KRFactory {
 		kr.put(SWI_PROLOG, SwiPrologInterface.class);
 		kr.put(OWL_REPO, OWLRepoKRInterface.class);
 		kr.put(JASON, JasonInterface.class);
+		kr.put(TU_PROLOG, TuPrologInterface.class);
 	}
 
 	/**
