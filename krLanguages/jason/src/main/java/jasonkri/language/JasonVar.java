@@ -4,15 +4,13 @@ import jason.asSyntax.VarTerm;
 
 import java.util.Set;
 
-import krTools.language.Substitution;
-import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 
 /**
  * We extend JasonExpression because JasonTerm will not accept VarTerm objects.
  */
-public class JasonVar extends JasonExpression implements Var {
+public class JasonVar extends JasonTerm implements Var {
 
 	public JasonVar(VarTerm var, SourceInfo info) {
 		super(var, info);
@@ -38,8 +36,4 @@ public class JasonVar extends JasonExpression implements Var {
 		return true;
 	}
 
-	@Override
-	public Term applySubst(Substitution substitution) {
-		return new JasonTerm(substitute(substitution), getSourceInfo());
-	}
 }

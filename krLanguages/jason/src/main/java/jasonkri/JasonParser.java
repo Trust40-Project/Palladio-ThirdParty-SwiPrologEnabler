@@ -227,7 +227,7 @@ public class JasonParser implements Parser {
 						sourceInfo, t.getSrcInfo())));
 			}
 		} catch (ParseException e) {
-			addParserException("could not parse term", null, e);
+			addParserException("could not parse terms '" + text + "'", null, e);
 		}
 		return goalterms;
 	}
