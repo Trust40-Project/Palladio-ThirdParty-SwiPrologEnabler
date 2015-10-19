@@ -178,6 +178,6 @@ public final class TuPrologInterface implements KRInterface {
 
 	@Override
 	public boolean supportsSerialization() {
-		return false;
+		return true;
 	}
 }
