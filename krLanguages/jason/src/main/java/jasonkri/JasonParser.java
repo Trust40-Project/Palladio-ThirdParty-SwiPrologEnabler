@@ -211,8 +211,8 @@ public class JasonParser implements Parser {
 			List<jason.asSyntax.Term> terms = ASSyntax.parseTerms(text);
 
 			for (jason.asSyntax.Term t : terms) {
-				goalterms.add(new JasonTerm(t, new JasonSourceInfo(sourceInfo,
-						t.getSrcInfo())));
+				goalterms.add(JasonTerm.makeTerm(t, new JasonSourceInfo(
+						sourceInfo, t.getSrcInfo())));
 			}
 		} catch (ParseException e) {
 			addParserException("could not parse term", null, e);
