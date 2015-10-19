@@ -2,6 +2,7 @@ package jasonkri;
 
 import jason.asSyntax.ASSyntax;
 import jason.asSyntax.LiteralImpl;
+import jason.asSyntax.LogicalFormula;
 import jason.asSyntax.Structure;
 import jason.asSyntax.VarTerm;
 import jason.asSyntax.parser.ParseException;
@@ -93,7 +94,7 @@ public class JasonParser implements Parser {
 	 */
 	private void addParserException(String msg, jason.asSyntax.SourceInfo info,
 			ParseException e) {
-		if (info == null && e != null) {
+		if (info == null && e != null && e.currentToken != null) {
 			// maybe we still can get some info
 			info = new jason.asSyntax.SourceInfo(sourceInfo.getSource()
 					.getAbsolutePath(), e.currentToken.beginLine,
@@ -138,8 +139,17 @@ public class JasonParser implements Parser {
 
 	@Override
 	public List<Query> parseQueries() {
-		// TODO Auto-generated method stub
-		return null;
+		List<Query> queries = new ArrayList<Query>();
+		LogicalFormula query;
+		try {
+			query = ASSyntax.parseFormula(text);
+			for (LogicalFormula formula : Utils.getConjuncts(query)) {
+				queries.add(new JasonQuery(formula, sourceInfo));
+			}
+		} catch (ParseException e) {
+			addParserException("could not parse query", null, e);
+		}
+		return queries;
 	}
 
 	@Override
