@@ -24,7 +24,8 @@ public class JasonTerm extends JasonExpression implements Term {
 
 	@Override
 	public Term applySubst(Substitution substitution) {
-		return new JasonTerm(substitute(substitution), getSourceInfo());
+		return makeTerm(substitute(substitution),
+				(JasonSourceInfo) getSourceInfo());
 	}
 
 	/**
