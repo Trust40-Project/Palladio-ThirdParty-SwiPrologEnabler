@@ -3,7 +3,6 @@ package jasonkri;
 import jason.asSyntax.ASSyntax;
 import jason.asSyntax.LiteralImpl;
 import jason.asSyntax.LogicalFormula;
-import jason.asSyntax.Structure;
 import jason.asSyntax.VarTerm;
 import jason.asSyntax.parser.ParseException;
 import jasonkri.language.JasonDatabaseFormula;
@@ -155,7 +154,7 @@ public class JasonParser implements Parser {
 	@Override
 	public Query parseQuery() {
 		try {
-			Structure term = ASSyntax.parseStructure(text);
+			LogicalFormula term = ASSyntax.parseFormula(text);
 
 			if (!Utils.isQuery(term)) {
 				addParserException("Term " + term + " is not a good query",
@@ -173,7 +172,7 @@ public class JasonParser implements Parser {
 	@Override
 	public Update parseUpdate() {
 		try {
-			Structure term = ASSyntax.parseStructure(text);
+			LogicalFormula term = ASSyntax.parseFormula(text);
 			if (!Utils.isUpdate(term)) {
 				addParserException("Term " + term + " is not a good update",
 						term.getSrcInfo(), null);

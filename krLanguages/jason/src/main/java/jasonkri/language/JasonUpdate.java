@@ -37,7 +37,7 @@ public class JasonUpdate extends JasonExpression implements Update {
 	 *            {@link Structure}s to be added and deleted.
 	 * @param i
 	 */
-	public JasonUpdate(Structure s, SourceInfo i) {
+	public JasonUpdate(LogicalFormula s, SourceInfo i) {
 		super(s, i);
 		if (!isUpdate()) {
 			throw new IllegalArgumentException("structure " + s
