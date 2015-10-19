@@ -30,7 +30,6 @@ import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRInitFailedException;
-import krTools.exceptions.KRQueryFailedException;
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
@@ -41,7 +40,6 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 import tuprolog.database.PrologDatabase;
 import tuprolog.language.Analyzer;
-import tuprolog.language.JPLUtils;
 import tuprolog.language.PrologSubstitution;
 import tuprolog.parser.KRInterfaceParser4;
 
@@ -65,18 +63,6 @@ public final class TuPrologInterface implements KRInterface {
 	 *             If failed to create inference engine or database.
 	 */
 	public TuPrologInterface() throws KRInitFailedException {
-		// Initialize inference engine.
-		try {
-			PrologDatabase.rawquery(JPLUtils.createCompound("set_prolog_flag",
-					new alice.tuprolog.Struct("debug_on_error"), new alice.tuprolog.Struct("false")));
-		} catch (KRQueryFailedException e) {
-			throw new KRInitFailedException("failed to initialize the interface.", e);
-		}
-		// See http://www.swi-prolog.org/packages/jpl/release_notes.html for
-		// explanation why Don't Tell Me Mode needs to be false. Setting this
-		// mode to false ensures that variables with initial '_' are treated as
-		// regular variables.
-		// jpl.JPL.setDTMMode(false);
 	}
 
 	/**

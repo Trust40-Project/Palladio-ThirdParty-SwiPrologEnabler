@@ -40,12 +40,8 @@ import tuprolog.language.PrologQuery;
 import tuprolog.language.PrologSubstitution;
 
 public class PrologDatabase implements Database {
-	private final static alice.tuprolog.Prolog engine = new alice.tuprolog.Prolog();
-	/**
-	 * Name of this database; used to name a TU-Prolog module that implements
-	 * the database.
-	 */
-	private final alice.tuprolog.Struct name;
+	private final alice.tuprolog.Prolog engine;
+	private final String name;
 	/**
 	 * The KRI that is managing this database.
 	 */
@@ -67,34 +63,19 @@ public class PrologDatabase implements Database {
 	 */
 	public PrologDatabase(String name, Collection<DatabaseFormula> content, TuPrologInterface owner)
 			throws KRDatabaseException {
-		this.name = new alice.tuprolog.Struct(name);
+		this.engine = new alice.tuprolog.Prolog();
+		this.name = name;
 		this.owner = owner;
 		this.theory = new Theory(content);
-		try {
-			// Create TU Prolog module that will act as our database.
-			// FIXME: this is an expensive operation that is now run for
-			// knowledge bases as well, and might be run for bases in a mental
-			// model that will never be used anyway too.
-			rawquery(JPLUtils.createCompound(":", getJPLName(), new alice.tuprolog.Struct("true")));
-			if (content != null) {
-				for (DatabaseFormula dbf : content) {
-					insert(((PrologDBFormula) dbf).getTerm());
-				}
+		if (content != null) {
+			for (DatabaseFormula dbf : content) {
+				insert(((PrologDBFormula) dbf).getTerm());
 			}
-		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("unable to create a Prolog database module '" + name + "'.", e);
 		}
 	}
 
 	@Override
 	public String getName() {
-		return this.name.toString();
-	}
-
-	/**
-	 * @return atom with name of this database
-	 */
-	public alice.tuprolog.Struct getJPLName() {
 		return this.name;
 	}
 
@@ -117,8 +98,8 @@ public class PrologDatabase implements Database {
 
 	/**
 	 * Performs given query on the database. As databases are implemented as
-	 * modules in TU Prolog, a query is constructed that contains a reference
-	 * to the corresponding module.
+	 * modules in TU Prolog, a query is constructed that contains a reference to
+	 * the corresponding module.
 	 *
 	 * @param pQuery
 	 *            the query to be performed.
@@ -128,11 +109,10 @@ public class PrologDatabase implements Database {
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
 		Set<Substitution> substSet = new LinkedHashSet<>();
 		alice.tuprolog.Term query = ((PrologQuery) pQuery).getTerm();
-		alice.tuprolog.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
 		// We need to create conjunctive query with "true" as first conjunct and
 		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		substSet.addAll(rawquery(JPLUtils.createCompound(",", new alice.tuprolog.Struct("true"), db_query)));
+		substSet.addAll(rawquery(JPLUtils.createCompound(",", new alice.tuprolog.Struct("true"), query)));
 		return substSet;
 	}
 
@@ -214,13 +194,11 @@ public class PrologDatabase implements Database {
 		try {
 			if (formula instanceof alice.tuprolog.Struct && ((alice.tuprolog.Struct) formula).getName().equals(":-")
 					&& ((alice.tuprolog.Struct) formula).getArity() == 1) { // directive
-				alice.tuprolog.Term query = JPLUtils.createCompound(":", getJPLName(),
-						((alice.tuprolog.Struct) formula).getArg(0));
+				alice.tuprolog.Term query = ((alice.tuprolog.Struct) formula).getArg(0);
 				alice.tuprolog.Term queryt = JPLUtils.createCompound(",", new alice.tuprolog.Struct("true"), query);
 				rawquery(queryt);
 			} else { // clause
-				alice.tuprolog.Term dbformula = JPLUtils.createCompound(":", getJPLName(), formula);
-				rawquery(JPLUtils.createCompound("assert", dbformula));
+				rawquery(JPLUtils.createCompound("assert", formula));
 			}
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("inserting '" + formula + "' failed.", e);
@@ -275,9 +253,8 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	private void delete(alice.tuprolog.Term formula) throws KRDatabaseException {
-		alice.tuprolog.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
 		try {
-			rawquery(JPLUtils.createCompound("retract", db_formula));
+			rawquery(JPLUtils.createCompound("retract", formula));
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("deleting '" + formula + "' failed.", e);
 		}
@@ -300,19 +277,19 @@ public class PrologDatabase implements Database {
 	 *         not return any bindings of variables.
 	 * @throws KRQueryFailedException
 	 */
-	public static Set<PrologSubstitution> rawquery(alice.tuprolog.Term query) throws KRQueryFailedException {
+	protected Set<PrologSubstitution> rawquery(alice.tuprolog.Term query) throws KRQueryFailedException {
 		try {
 			Set<PrologSubstitution> substitutions = new LinkedHashSet<>();
 
-			alice.tuprolog.SolveInfo info = engine.solve(query.toString() + ".");
+			alice.tuprolog.SolveInfo info = this.engine.solve(query.toString() + ".");
 			while (info.isSuccess()) {
 				Map<String, alice.tuprolog.Term> solution = new HashMap<>();
 				for (alice.tuprolog.Var var : info.getBindingVars()) {
 					solution.put(var.getName(), info.getVarValue(var.getName()));
 				}
 				substitutions.add(PrologSubstitution.getSubstitutionOrNull(solution));
-				if (engine.hasOpenAlternatives()) {
-					info = engine.solveNext();
+				if (this.engine.hasOpenAlternatives()) {
+					info = this.engine.solveNext();
 				} else {
 					break;
 				}
@@ -345,41 +322,7 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	protected void eraseContent() throws KRDatabaseException {
-		// String deleteone =
-		// "("
-		// + this.name + ":current_predicate(Predicate, Head),"
-		// + "not(predicate_property(" + this.name + ":Head, built_in)),"
-		// + "not(predicate_property(" + this.name + ":Head, foreign)),"
-		// + "not(predicate_property(" + this.name +
-		// ":Head, imported_from(_))),"
-		// + "retractall(" + this.name + ":Head)"
-		// + ").";
-		// Construct jpl term for above
-		alice.tuprolog.Var predicate = new alice.tuprolog.Var("Predicate");
-		alice.tuprolog.Var head = new alice.tuprolog.Var("Head");
-		alice.tuprolog.Term db_head = JPLUtils.createCompound(":", this.name, head);
-		alice.tuprolog.Term current = JPLUtils.createCompound("current_predicate", predicate, head);
-		alice.tuprolog.Term db_current = JPLUtils.createCompound(":", this.name, current);
-		alice.tuprolog.Term built_in = JPLUtils.createCompound("predicate_property", db_head,
-				new alice.tuprolog.Struct("built_in"));
-		alice.tuprolog.Term foreign = JPLUtils.createCompound("predicate_property", db_head,
-				new alice.tuprolog.Struct("foreign"));
-		alice.tuprolog.Term imported_from = JPLUtils.createCompound("imported_from", new alice.tuprolog.Var("_"));
-		alice.tuprolog.Term imported = JPLUtils.createCompound("predicate_property", db_head, imported_from);
-		alice.tuprolog.Term not_built_in = JPLUtils.createCompound("not", built_in);
-		alice.tuprolog.Term not_foreign = JPLUtils.createCompound("not", foreign);
-		alice.tuprolog.Term not_imported = JPLUtils.createCompound("not", imported);
-		alice.tuprolog.Term retract = JPLUtils.createCompound("retractall", db_head);
-		alice.tuprolog.Term conj45 = JPLUtils.createCompound(",", not_imported, retract);
-		alice.tuprolog.Term conj345 = JPLUtils.createCompound(",", not_foreign, conj45);
-		alice.tuprolog.Term conj2345 = JPLUtils.createCompound(",", not_built_in, conj345);
-		alice.tuprolog.Term query = JPLUtils.createCompound(",", db_current, conj2345);
-
-		try {
-			rawquery(query);
-		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("erasing the contents of database '" + this.name + "' failed.", e);
-		}
+		this.engine.clearTheory();
 	}
 
 	@Override
@@ -389,7 +332,7 @@ public class PrologDatabase implements Database {
 
 	@Override
 	public int hashCode() {
-		return JPLUtils.hashCode(this.name);
+		return this.name.hashCode();
 	}
 
 	@Override
@@ -405,7 +348,7 @@ public class PrologDatabase implements Database {
 			if (other.name != null) {
 				return false;
 			}
-		} else if (!JPLUtils.equals(this.name, other.name)) {
+		} else if (this.name.equals(other.name)) {
 			return false;
 		}
 		return true;

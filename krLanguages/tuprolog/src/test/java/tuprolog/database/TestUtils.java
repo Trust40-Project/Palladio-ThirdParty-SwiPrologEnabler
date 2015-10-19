@@ -15,19 +15,20 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package tuprolog.language;
+package tuprolog.database;
 
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import tuprolog.database.PrologDatabase;
+import tuprolog.TuPrologInterface;
+import tuprolog.language.JPLUtils;
 
 public class TestUtils {
 	@Test
 	public void testJPLAtom() throws Exception {
 		alice.tuprolog.Struct constant = new alice.tuprolog.Struct("Aap");
 		alice.tuprolog.Term term = JPLUtils.createCompound("var", constant);
-		assertTrue(PrologDatabase.rawquery(term).isEmpty());
+		assertTrue(new PrologDatabase("", null, new TuPrologInterface()).rawquery(term).isEmpty());
 	}
 }

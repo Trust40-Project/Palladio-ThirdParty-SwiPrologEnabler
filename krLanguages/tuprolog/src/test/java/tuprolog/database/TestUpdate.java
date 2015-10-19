@@ -68,7 +68,7 @@ public class TestUpdate {
 	public void testInitialQuery1() throws Exception {
 		PrologQuery query = new PrologQuery(new alice.tuprolog.Struct("true"), null);
 		Set<Substitution> sol = this.beliefbase.query(query);
-		assertEquals(0, sol.size()); // FIXME: 1?
+		assertEquals(1, sol.size());
 	}
 
 	/**
