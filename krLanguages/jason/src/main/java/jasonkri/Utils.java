@@ -164,10 +164,11 @@ public class Utils {
 	/**
 	 * Check if this expression is a good database formula.
 	 * 
-	 * @return true iff expression is a good database formula.
+	 * @return true iff expression is a good database formula. It's a good
+	 *         database formula if it's a Structure but not a BinaryStructure.
 	 */
 	public static boolean isDatabaseFormula(Term term) {
-		return term instanceof Literal && !(term instanceof BinaryStructure);
+		return term instanceof Structure && !(term instanceof BinaryStructure);
 	}
 
 	/**
@@ -179,8 +180,8 @@ public class Utils {
 	}
 
 	/**
-	 * Check if term is usable as {@link Update}. We need to check that the
-	 * elements in the formula do not contain RelExpr.
+	 * Check if term is usable as {@link Update}. An update is a conjunct of
+	 * singleUpdates
 	 * 
 	 * @return true iff term is usable as {@link Update}.
 	 */
@@ -190,16 +191,24 @@ public class Utils {
 			List<LogicalFormula> terms = Utils.getConjuncts(term);
 
 			for (Term t : terms) {
-				if (!isPosOrNegPredicate(t)) {
+				if (!isSingleUpdate(t)) {
 					return false;
 				}
 			}
 			return true;
 		}
 
-		// the other cases - ObjectTerm, StringTerm, ListTerm, are not good
-		// updates.
+		// the other cases - ObjectTerm, StringTerm, ListTerm, FalseLiteral,
+		// TrueLiteralare not good updates.
 		return false;
+	}
+
+	public static boolean isSingleUpdate(Term term) {
+
+		if (isNegation(term)) {
+			return isDatabaseFormula(((LogExpr) term).getLHS());
+		}
+		return isDatabaseFormula(term);
 	}
 
 	/**

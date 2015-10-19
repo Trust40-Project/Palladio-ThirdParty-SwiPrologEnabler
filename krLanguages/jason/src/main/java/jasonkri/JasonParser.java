@@ -179,7 +179,10 @@ public class JasonParser implements Parser {
 			}
 			return new JasonUpdate(term, new JasonSourceInfo(sourceInfo));
 		} catch (ParseException e) {
-			addParserException("could not parse term", null, e);
+			addParserException("could not parse update", null, e);
+		} catch (IllegalArgumentException e) {
+			addParserException("could not parse update", null,
+					new ParseException("illegal argument for update", e));
 		}
 		return null;
 	}
