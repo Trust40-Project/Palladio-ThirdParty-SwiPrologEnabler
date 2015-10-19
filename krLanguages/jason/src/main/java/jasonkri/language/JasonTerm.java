@@ -17,14 +17,15 @@ public class JasonTerm extends JasonExpression implements Term {
 	 */
 	public JasonTerm(jason.asSyntax.Term s, SourceInfo i) {
 		super(s, i);
-		if (s.isVar()) {
+		if (!(this instanceof JasonVar) && s.isVar()) {
 			throw new IllegalArgumentException("term is a var:" + s);
 		}
 	}
 
 	@Override
 	public Term applySubst(Substitution substitution) {
-		return new JasonTerm(substitute(substitution), getSourceInfo());
+		return makeTerm(substitute(substitution),
+				(JasonSourceInfo) getSourceInfo());
 	}
 
 	/**
