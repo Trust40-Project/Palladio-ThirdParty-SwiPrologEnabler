@@ -74,8 +74,6 @@
 	        <groupId>alice</groupId>
         	<artifactId>tuprolog</artifactId>
         	<version>2.9.2</version>
-        	<scope>system</scope>
-        	<systemPath>${basedir}/tuprolog.jar</systemPath>
     	</dependency>
 
 		<dependency>
