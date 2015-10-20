@@ -63,7 +63,7 @@ public class JasonUpdate extends JasonExpression implements Update {
 		if (addList == null) {
 			addList = new ArrayList<DatabaseFormula>();
 			for (Term t : Utils.getConjuncts(getJasonTerm())) {
-				if (!Utils.isNegation(t)) {
+				if (!Utils.isNegation(t) && !Utils.isTrueLiteral(t)) {
 					// We just assume the term can be used as DBFormula.
 					addList.add(new JasonDatabaseFormula((LiteralImpl) t,
 							getSourceInfo()));

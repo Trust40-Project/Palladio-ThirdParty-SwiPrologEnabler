@@ -183,7 +183,9 @@ public class Utils {
 	 * Check if term is usable as {@link Update}. An update is a conjunct of
 	 * singleUpdates
 	 * 
-	 * @return true iff term is usable as {@link Update}.
+	 * @return true iff term is usable as {@link Update}. Notice that we also
+	 *         accept "true" as special update term (it's a Literal.TrueLiteral
+	 *         which is not even publicly visible.).
 	 */
 	public static boolean isUpdate(Term term) {
 		if (term instanceof LogicalFormula) {
@@ -204,11 +206,23 @@ public class Utils {
 	}
 
 	public static boolean isSingleUpdate(Term term) {
-
+		// special case: "true".
+		if (isTrueLiteral(term)) {
+			return true;
+		}
 		if (isNegation(term)) {
 			return isDatabaseFormula(((LogExpr) term).getLHS());
 		}
 		return isDatabaseFormula(term);
+	}
+
+	/**
+	 * @param term
+	 * @return true iff the term is a TrueLiteral.
+	 */
+	public static boolean isTrueLiteral(Term term) {
+		return term instanceof Literal
+				&& ((Literal) term).getFunctor().equals("true");
 	}
 
 	/**

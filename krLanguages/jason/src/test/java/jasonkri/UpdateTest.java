@@ -74,7 +74,7 @@ public class UpdateTest {
 		assertEquals("~q", update.getDeleteList().get(1).toString());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void checkTrue() throws ParseException {
 		JasonUpdate update = new JasonUpdate(ASSyntax.parseFormula("true"),
 				null);
