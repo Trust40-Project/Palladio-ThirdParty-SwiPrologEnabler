@@ -103,11 +103,31 @@ public class JasonParser implements Parser {
 		JasonSourceInfo jsinfo = new JasonSourceInfo(sourceInfo, info);
 		ParserException exc;
 		if (e != null) {
+			msg = msg + getFullMessage(e);
 			exc = new ParserException(msg, jsinfo, e);
 		} else {
 			exc = new ParserException(msg, jsinfo);
 		}
 		exceptions.add(exc);
+	}
+
+	/**
+	 * Extract all sub-messages from the exception for full report to user.
+	 * 
+	 * @param e
+	 *            throwable that may contain subcauses.
+	 * @return full error message.
+	 */
+	private String getFullMessage(Throwable e) {
+		String msg = e.getMessage();
+		if (msg == null) {
+			// generic message
+			msg = e.toString();
+		}
+		if (e.getCause() != null) {
+			msg = msg + ": " + getFullMessage(e.getCause());
+		}
+		return msg;
 	}
 
 	@Override

@@ -159,4 +159,19 @@ public class ParserTest {
 		ASSyntax.parseFormula("not (on(X,Z)) & on(X,Y)");
 	}
 
+	/**
+	 * Check that we get an error referring to the single quote.
+	 * 
+	 * @throws ParseException
+	 */
+	@Test
+	public void ParseSingleQuoteError() throws ParseException {
+		try {
+			ASSyntax.parseFormula("X='table'");
+		} catch (ParseException e) {
+			assertTrue(e.getCause().getMessage()
+					.contains("Encountered: \"\\\'\""));
+		}
+	}
+
 }
