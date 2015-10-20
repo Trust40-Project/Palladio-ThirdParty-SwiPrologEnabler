@@ -98,7 +98,6 @@ public class JasonParser implements Parser {
 			info = new jason.asSyntax.SourceInfo(sourceInfo.getSource()
 					.getAbsolutePath(), e.currentToken.beginLine,
 					e.currentToken.endLine);
-			msg = msg + e.getMessage(); // HACK!!!
 		}
 		JasonSourceInfo jsinfo = new JasonSourceInfo(sourceInfo, info);
 		ParserException exc;
