@@ -112,7 +112,7 @@ public class JasonSubstitution implements Substitution {
 
 		while (varIt.hasNext()) {
 			VarTerm var = varIt.next();
-			if (variables.contains(new JasonVar(var, null))) {
+			if (!variables.contains(new JasonVar(var, null))) {
 				varsToBeRemoved.add(var);
 			}
 		}
