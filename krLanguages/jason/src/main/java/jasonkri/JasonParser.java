@@ -158,14 +158,13 @@ public class JasonParser implements Parser {
 	@Override
 	public List<Query> parseQueries() {
 		List<Query> queries = new ArrayList<Query>();
-		LogicalFormula query;
 		try {
-			query = ASSyntax.parseFormula(text);
-			for (LogicalFormula formula : Utils.getConjuncts(query)) {
-				queries.add(new JasonQuery(formula, sourceInfo));
+			List<LogicalFormula> terms = ASSyntax.parseFormulas(text);
+			for (LogicalFormula term : terms) {
+				queries.add(new JasonQuery(term, sourceInfo));
 			}
 		} catch (ParseException e) {
-			addParserException("could not parse query", null, e);
+			addParserException("could not parse queries", null, e);
 		}
 		return queries;
 	}

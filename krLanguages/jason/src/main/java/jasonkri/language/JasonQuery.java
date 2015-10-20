@@ -1,6 +1,6 @@
 package jasonkri.language;
 
-import jason.asSyntax.Structure;
+import jason.asSyntax.LogicalFormula;
 import jason.asSyntax.Term;
 import jasonkri.Utils;
 import krTools.language.Query;
@@ -30,7 +30,7 @@ public class JasonQuery extends JasonExpression implements Query {
 
 	@Override
 	public Update toUpdate() {
-		return new JasonUpdate((Structure) getJasonTerm(), getSourceInfo());
+		return new JasonUpdate((LogicalFormula) getJasonTerm(), getSourceInfo());
 	}
 
 }

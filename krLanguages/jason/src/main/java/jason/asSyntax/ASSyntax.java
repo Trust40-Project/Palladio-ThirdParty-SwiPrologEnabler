@@ -352,4 +352,22 @@ public class ASSyntax {
 		}
 	}
 
+	/**
+	 * creates a set of Formulas from string. ADDED to JASON #3579
+	 */
+	public static List<LogicalFormula> parseFormulas(String sRule)
+			throws ParseException {
+		try {
+			List<LogicalFormula> rules = new ArrayList<LogicalFormula>();
+			as2j parser = new as2j(new StringReader(sRule));
+
+			while (parser.getToken(1).kind != as2jConstants.EOF) {
+				rules.add((LogicalFormula) parser.log_expr());
+			}
+			return rules;
+		} catch (TokenMgrError e) {
+			throw new ParseException("Failed to read text", e);
+		}
+	}
+
 }
