@@ -226,8 +226,11 @@ public class JasonParser implements Parser {
 
 		try {
 			jason.asSyntax.Term term = ASSyntax.parseTerm(text);
-
-			return new JasonTerm(term, new JasonSourceInfo(sourceInfo));
+			JasonSourceInfo inf = new JasonSourceInfo(sourceInfo);
+			if (term.isVar()) {
+				return new JasonVar((VarTerm) term, inf);
+			}
+			return new JasonTerm(term, inf);
 		} catch (ParseException e) {
 			addParserException("could not parse term", null, e);
 		}
