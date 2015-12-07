@@ -80,7 +80,8 @@ public class SWRLParserSourceInfo implements SourceInfo {
 		if (this.sourceFile == null) {
 			return that.sourceFile == null;
 		} else {
-			return this.sourceFile.getAbsoluteFile().equals(that.sourceFile.getAbsoluteFile());
+			return this.sourceFile.getAbsoluteFile().equals(
+					that.sourceFile.getAbsoluteFile());
 		}
 	}
 
@@ -98,17 +99,26 @@ public class SWRLParserSourceInfo implements SourceInfo {
 
 	@Override
 	public int compareTo(SourceInfo o) {
-		// ASSUMES the two sources being compared are in the same file.
-		if (this.lineNr < o.getLineNumber()) {
-			return -1;
-		} else if (this.lineNr > o.getLineNumber()) {
-			return 1;
-		} else if (this.charPos < o.getCharacterPosition()) {
-			return -1;
-		} else if (this.charPos > o.getCharacterPosition()) {
-			return 1;
+		if (getSource() == null) {
+			if (o.getSource() != null) {
+				return -1;
+			}
 		} else {
-			return 0;
+			if (o.getSource() == null) {
+				return 1;
+			}
+			// both files not null.
+			int filecompare = getSource().compareTo(o.getSource());
+			if (filecompare != 0) {
+				return filecompare;
+			}
 		}
+		// files are equal (or both null).
+		int linecompare = getLineNumber() - o.getLineNumber();
+		if (linecompare != 0) {
+			return linecompare;
+		}
+		// lines are equal
+		return getCharacterPosition() - o.getCharacterPosition();
 	}
 }
