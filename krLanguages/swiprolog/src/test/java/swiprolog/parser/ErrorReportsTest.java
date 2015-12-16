@@ -57,7 +57,7 @@ public class ErrorReportsTest {
 		parser.term0();
 
 		assertEquals(1, parser.getErrors().size());
-		assertEquals(2, parser.getErrors().first().getLineNumber());
+		assertEquals(1, parser.getErrors().first().getLineNumber());
 		assertEquals(11, parser.getErrors().first().getCharacterPosition());
 	}
 
@@ -67,7 +67,7 @@ public class ErrorReportsTest {
 		parser.term0();
 
 		assertEquals(1, parser.getErrors().size());
-		assertEquals(5, parser.getErrors().first().getLineNumber());
+		assertEquals(4, parser.getErrors().first().getLineNumber());
 	}
 
 	@Test
@@ -76,7 +76,8 @@ public class ErrorReportsTest {
 		parser.term0();
 
 		assertEquals(2, parser.getErrors().size());
-		assertEquals(ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"), parser.getErrors().first().getMessage());
+		assertEquals(ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"),
+				parser.getErrors().first().getMessage());
 		// TODO: other error?!
 	}
 }

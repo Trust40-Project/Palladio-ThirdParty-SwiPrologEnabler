@@ -5,8 +5,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
@@ -55,14 +59,16 @@ public final class SwiInstaller {
 		try {
 			addFolderToLibraryPath(SwiPath.getAbsolutePath());
 		} catch (NoSuchFieldException | IllegalAccessException e) {
-			throw new IllegalStateException("Failed to initialize SWI Prolog", e);
+			throw new IllegalStateException("Failed to initialize SWI Prolog",
+					e);
 		}
 
 		/*
 		 * Let JPL know which SWI_HOME_DIR we're using; this negates the need
 		 * for a SWI_HOME_DIR environment var
 		 */
-		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals" });
+		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath,
+				"--quiet", "--nosignals" });
 
 		initialized = true;
 	}
@@ -132,7 +138,8 @@ public final class SwiInstaller {
 	 * @throws IllegalArgumentException
 	 */
 	private static void addFolderToLibraryPath(final String s)
-			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+			throws NoSuchFieldException, SecurityException,
+			IllegalArgumentException, IllegalAccessException {
 		final Field field = ClassLoader.class.getDeclaredField("usr_paths");
 		field.setAccessible(true);
 		final String[] paths = (String[]) field.get(null);
@@ -145,7 +152,8 @@ public final class SwiInstaller {
 		System.arraycopy(paths, 0, tmp, 0, paths.length);
 		tmp[paths.length] = s;
 		field.set(null, tmp);
-		final String path = s + File.pathSeparator + System.getProperty("java.library.path");
+		final String path = s + File.pathSeparator
+				+ System.getProperty("java.library.path");
 		System.setProperty("java.library.path", path);
 	}
 
@@ -158,17 +166,23 @@ public final class SwiInstaller {
 	 * @throws IOException
 	 * @throws ZipException
 	 */
-	private static File unzipToTmp(String zipfilename) throws URISyntaxException, ZipException, IOException {
-		File base = File.createTempFile("swilibs", Long.toString(System.currentTimeMillis()));
-		if (!base.delete()) {
-			throw new IOException("Could not delete temp file: " + base);
-		}
-		if (!base.mkdir()) {
-			throw new IOException("Can't create tmp directory for SWI at " + base);
-		}
-		deleteOnExit(base);
+	private static File unzipToTmp(String zipfilename)
+			throws URISyntaxException, ZipException, IOException {
+		String tmpdir = System.getProperty("java.io.tmpdir");
+		Path path = Paths.get(tmpdir, "swilibs" + getSourceNumber());
+		File base = path.toFile();
 
-		System.out.println("unzipping SWI prolog libraries (" + zipfilename + ") to " + base);
+		if (base.exists()) {
+			return base;
+		}
+
+		if (!base.mkdir()) {
+			throw new IOException("Can't create tmp directory for SWI at "
+					+ base);
+		}
+
+		System.out.println("unzipping SWI prolog libraries (" + zipfilename
+				+ ") to " + base);
 
 		InputStream fis = Thread.currentThread().getContextClassLoader()
 				.getResourceAsStream("swiprolog/" + zipfilename);
@@ -194,7 +208,6 @@ public final class SwiInstaller {
 				fOutput.close();
 			}
 
-			deleteOnExit(fileInDir);
 			zis.closeEntry();
 		}
 		zis.close();
@@ -204,9 +217,17 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * Central deleteOnExit, convenient for debugging.
+	 * @return a unique number for the current source code, that changes when
+	 *         the GOAL version changes. Actually this number is the
+	 *         modification date of this class.
+	 * @throws UnsupportedEncodingException
 	 */
-	private static void deleteOnExit(File file) {
-		file.deleteOnExit();
+	private static long getSourceNumber() throws UnsupportedEncodingException {
+		String srcpath1 = SwiInstaller.class.getProtectionDomain()
+				.getCodeSource().getLocation().getPath();
+		String srcpath = URLDecoder.decode(srcpath1, "UTF-8");
+		File srcfile = new File(srcpath);
+		return srcfile.lastModified();
 	}
+
 }
