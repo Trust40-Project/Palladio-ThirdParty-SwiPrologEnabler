@@ -65,8 +65,8 @@ public class PrologDatabase implements Database {
 	 * @throws KRInitFailedException
 	 *             If database creation failed.
 	 */
-	public PrologDatabase(String name, Collection<DatabaseFormula> content, SwiPrologInterface owner)
-			throws KRDatabaseException {
+	public PrologDatabase(String name, Collection<DatabaseFormula> content,
+			SwiPrologInterface owner) throws KRDatabaseException {
 		this.name = new jpl.Atom(name);
 		this.owner = owner;
 		this.theory = new Theory(content);
@@ -75,14 +75,17 @@ public class PrologDatabase implements Database {
 			// FIXME: this is an expensive operation that is now run for
 			// knowledge bases as well, and might be run for bases in a mental
 			// model that will never be used anyway too.
-			rawquery(JPLUtils.createCompound(":", getJPLName(), new Atom("true")));
+			rawquery(JPLUtils.createCompound(":", getJPLName(),
+					new Atom("true")));
 			if (content != null) {
 				for (DatabaseFormula dbf : content) {
 					insert(((PrologDBFormula) dbf).getTerm());
 				}
 			}
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("unable to create a Prolog database module '" + name + "'.", e);
+			throw new KRDatabaseException(
+					"unable to create a Prolog database module '" + name + "'.",
+					e);
 		}
 	}
 
@@ -132,7 +135,8 @@ public class PrologDatabase implements Database {
 		// We need to create conjunctive query with "true" as first conjunct and
 		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		substSet.addAll(rawquery(JPLUtils.createCompound(",", new jpl.Atom("true"), db_query)));
+		substSet.addAll(rawquery(JPLUtils.createCompound(",", new jpl.Atom(
+				"true"), db_query)));
 		return substSet;
 	}
 
@@ -146,7 +150,8 @@ public class PrologDatabase implements Database {
 	 *            the set of knowledge that should be imposed on this database.
 	 * @throws KRDatabaseException
 	 */
-	public void addKnowledge(Set<DatabaseFormula> knowledge) throws KRDatabaseException {
+	public void addKnowledge(Set<DatabaseFormula> knowledge)
+			throws KRDatabaseException {
 		for (DatabaseFormula formula : knowledge) {
 			insert(((PrologDBFormula) formula).getTerm());
 		}
@@ -213,15 +218,19 @@ public class PrologDatabase implements Database {
 	private void insert(jpl.Term formula) throws KRDatabaseException {
 		try {
 			if (formula.name().equals(":-") && formula.arity() == 1) { // directive
-				jpl.Term query = JPLUtils.createCompound(":", getJPLName(), formula.arg(1));
-				Term queryt = JPLUtils.createCompound(",", new jpl.Atom("true"), query);
+				jpl.Term query = JPLUtils.createCompound(":", getJPLName(),
+						formula.arg(1));
+				Term queryt = JPLUtils.createCompound(",",
+						new jpl.Atom("true"), query);
 				rawquery(queryt);
 			} else { // clause
-				jpl.Term dbformula = JPLUtils.createCompound(":", getJPLName(), formula);
+				jpl.Term dbformula = JPLUtils.createCompound(":", getJPLName(),
+						formula);
 				rawquery(JPLUtils.createCompound("assert", dbformula));
 			}
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("inserting '" + formula + "' failed.", e);
+			throw new KRDatabaseException(
+					"inserting '" + formula + "' failed.", e);
 		}
 	}
 
@@ -273,11 +282,13 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	private void delete(jpl.Term formula) throws KRDatabaseException {
-		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
+		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
+				formula);
 		try {
 			rawquery(JPLUtils.createCompound("retract", db_formula));
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("deleting '" + formula + "' failed.", e);
+			throw new KRDatabaseException("deleting '" + formula + "' failed.",
+					e);
 		}
 	}
 
@@ -299,7 +310,8 @@ public class PrologDatabase implements Database {
 	 * @throws KRQueryFailedException
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static Set<PrologSubstitution> rawquery(jpl.Term query) throws KRQueryFailedException {
+	public static Set<PrologSubstitution> rawquery(jpl.Term query)
+			throws KRQueryFailedException {
 		// Create JPL query.
 		jpl.Query jplQuery = new jpl.Query(query);
 
@@ -312,13 +324,16 @@ public class PrologDatabase implements Database {
 		} catch (Throwable e) {
 			// catch all other (runtime) exceptions and wrap into checked
 			// exception with general message
-			throw new KRQueryFailedException("swi prolog says the query " + jplQuery + " failed", e);
+			throw new KRQueryFailedException("swi prolog says the query "
+					+ jplQuery + " failed", e);
 		}
 
 		// Convert to PrologSubstitution.
-		Set<PrologSubstitution> substitutions = new LinkedHashSet<>(solutions.length);
+		Set<PrologSubstitution> substitutions = new LinkedHashSet<>(
+				solutions.length);
 		for (Hashtable<String, jpl.Term> solution : solutions) {
-			substitutions.add(PrologSubstitution.getSubstitutionOrNull(solution));
+			substitutions.add(PrologSubstitution
+					.getSubstitutionOrNull(solution));
 		}
 
 		return substitutions;
@@ -354,12 +369,17 @@ public class PrologDatabase implements Database {
 		jpl.Variable predicate = new jpl.Variable("Predicate");
 		jpl.Variable head = new jpl.Variable("Head");
 		jpl.Term db_head = JPLUtils.createCompound(":", this.name, head);
-		jpl.Term current = JPLUtils.createCompound("current_predicate", predicate, head);
+		jpl.Term current = JPLUtils.createCompound("current_predicate",
+				predicate, head);
 		jpl.Term db_current = JPLUtils.createCompound(":", this.name, current);
-		jpl.Term built_in = JPLUtils.createCompound("predicate_property", db_head, new jpl.Atom("built_in"));
-		jpl.Term foreign = JPLUtils.createCompound("predicate_property", db_head, new jpl.Atom("foreign"));
-		jpl.Term imported_from = JPLUtils.createCompound("imported_from", new jpl.Variable("_"));
-		jpl.Term imported = JPLUtils.createCompound("predicate_property", db_head, imported_from);
+		jpl.Term built_in = JPLUtils.createCompound("predicate_property",
+				db_head, new jpl.Atom("built_in"));
+		jpl.Term foreign = JPLUtils.createCompound("predicate_property",
+				db_head, new jpl.Atom("foreign"));
+		jpl.Term imported_from = JPLUtils.createCompound("imported_from",
+				new jpl.Variable("_"));
+		jpl.Term imported = JPLUtils.createCompound("predicate_property",
+				db_head, imported_from);
 		jpl.Term not_built_in = JPLUtils.createCompound("not", built_in);
 		jpl.Term not_foreign = JPLUtils.createCompound("not", foreign);
 		jpl.Term not_imported = JPLUtils.createCompound("not", imported);
@@ -372,7 +392,8 @@ public class PrologDatabase implements Database {
 		try {
 			rawquery(query);
 		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("erasing the contents of database '" + this.name + "' failed.", e);
+			throw new KRDatabaseException("erasing the contents of database '"
+					+ this.name + "' failed.", e);
 		}
 	}
 
