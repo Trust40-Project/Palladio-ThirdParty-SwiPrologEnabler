@@ -174,7 +174,7 @@ term700
 
 term900 // CHECK UNKNOWN OPERATOR, NOT IN TABLE ON ISO-SPEC p.13 ?
   : term700
-  | op = '\\+' term900
+  | op = '\\+' term900 
   ;
 
 term1000
@@ -193,9 +193,15 @@ term1105
   :  term1100  (op='|' term1105)?
   ; 
   
+term1150 // NOT ISO, only SWI
+  : term1105
+  |	op=DYNAMIC term1000
+  ;
+  
+  
 term1200
-  : term1105  ( ( op=':-' | op='-->')  term1105)?
-  | op='?-'  term1105
+  : term1150  ( ( op=':-' | op='-->')  term1150)?
+  | op='?-'  term1150
   ;
 
 
@@ -262,6 +268,7 @@ term1200
   But no support for exotic number notations.
 11. It is not clear from the ISO standard how to  parse and print curly bracket notation (eg {1,2,3}). 
   It is not even clear to me whether {} is a good term, I think it is not but SWI still accepts it as term. 
+12. dynamic/1 is a fx operator as it is defined in SWI Prolog (but not in the ISO). 
 
  * Additional remarks.
  - As noted by others, existing Prolog implementations do not completely conform to the ISO/IEC 13211-1 standard.

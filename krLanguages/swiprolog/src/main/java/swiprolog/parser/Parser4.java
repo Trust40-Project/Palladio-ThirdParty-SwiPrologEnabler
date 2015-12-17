@@ -6,6 +6,9 @@ import java.util.BitSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import krTools.exceptions.ParserException;
+import krTools.parser.SourceInfo;
+
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonToken;
@@ -20,8 +23,6 @@ import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.atn.ParserATNSimulator;
 import org.antlr.v4.runtime.dfa.DFA;
 
-import krTools.exceptions.ParserException;
-import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Prolog4Parser.ListtermContext;
 import swiprolog.parser.Prolog4Parser.PossiblyEmptyConjunctContext;
@@ -29,6 +30,7 @@ import swiprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
 import swiprolog.parser.Prolog4Parser.PrologtextContext;
 import swiprolog.parser.Prolog4Parser.Term0Context;
 import swiprolog.parser.Prolog4Parser.Term1000Context;
+import swiprolog.parser.Prolog4Parser.Term1150Context;
 
 /**
  * {@link Prolog4Parser} but stores all errors coming from {@link ANTLR} so that
@@ -67,11 +69,13 @@ public class Parser4 implements ANTLRErrorListener {
 			this.sourceInfo = info;
 		}
 		this.stream = new ANTLRInputStream(reader);
-		this.stream.name = (this.sourceInfo.getSource() == null) ? "" : this.sourceInfo.getSource().getPath();
+		this.stream.name = (this.sourceInfo.getSource() == null) ? ""
+				: this.sourceInfo.getSource().getPath();
 
 		this.lexer = new Lexer4(this.stream, this);
-		this.lexer.setLine(this.sourceInfo.getLineNumber() );
-		this.lexer.setCharPositionInLine(this.sourceInfo.getCharacterPosition() + 1);
+		this.lexer.setLine(this.sourceInfo.getLineNumber());
+		this.lexer
+				.setCharPositionInLine(this.sourceInfo.getCharacterPosition() + 1);
 
 		CommonTokenStream tokens = new CommonTokenStream(this.lexer);
 		this.parser = new Prolog4Parser(tokens);
@@ -94,10 +98,13 @@ public class Parser4 implements ANTLRErrorListener {
 	 */
 	private void checkEndOfInputReached() {
 		if (this.stream.index() < this.stream.size()) {
-			final SourceInfoObject info = new SourceInfoObject(this.sourceInfo.getSource(), this.lexer.getLine(),
-					this.lexer.getCharPositionInLine(), this.sourceInfo.getStartIndex() + this.stream.index() + 1,
+			final SourceInfoObject info = new SourceInfoObject(
+					this.sourceInfo.getSource(), this.lexer.getLine(),
+					this.lexer.getCharPositionInLine(),
+					this.sourceInfo.getStartIndex() + this.stream.index() + 1,
 					this.sourceInfo.getStartIndex() + this.stream.size() + 1);
-			this.errors.add(new ParserException("Unrecognized spurious input", info));
+			this.errors.add(new ParserException("Unrecognized spurious input",
+					info));
 		}
 	}
 
@@ -137,7 +144,8 @@ public class Parser4 implements ANTLRErrorListener {
 
 	/*************** Implements {@link ANTLRErrorListener} *******************/
 	@Override
-	public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+	public void syntaxError(Recognizer<?, ?> recognizer,
+			Object offendingSymbol, int line, int charPositionInLine,
 			String msg, RecognitionException e) {
 		int start = recognizer.getInputStream().index();
 		int stop = start;
@@ -146,8 +154,10 @@ public class Parser4 implements ANTLRErrorListener {
 			start = token.getStartIndex();
 			stop = token.getStopIndex();
 		}
-		SourceInfoObject pos = new SourceInfoObject(this.sourceInfo.getSource(), line, charPositionInLine,
-				this.sourceInfo.getStartIndex() + start + 1, this.sourceInfo.getStartIndex() + stop + 1);
+		SourceInfoObject pos = new SourceInfoObject(
+				this.sourceInfo.getSource(), line, charPositionInLine,
+				this.sourceInfo.getStartIndex() + start + 1,
+				this.sourceInfo.getStartIndex() + stop + 1);
 		if (recognizer instanceof Lexer) {
 			handleLexerError(recognizer, offendingSymbol, pos, msg, e);
 		} else {
@@ -165,10 +175,13 @@ public class Parser4 implements ANTLRErrorListener {
 	 * @param text
 	 *            character(s) that could not be recognized
 	 */
-	public void handleLexerError(Recognizer<?, ?> recognizer, Object offendingSymbol, SourceInfoObject pos, String text,
+	public void handleLexerError(Recognizer<?, ?> recognizer,
+			Object offendingSymbol, SourceInfoObject pos, String text,
 			RecognitionException e) {
-		text = text.replace("\\r", "").replace("\\n", " ").replace("\\t", " ").replace("\\f", "");
-		this.errors.add(new ParserException(ParserErrorMessages.CANNOT_BE_USED.toReadableString(text), pos));
+		text = text.replace("\\r", "").replace("\\n", " ").replace("\\t", " ")
+				.replace("\\f", "");
+		this.errors.add(new ParserException(ParserErrorMessages.CANNOT_BE_USED
+				.toReadableString(text), pos));
 	}
 
 	/**
@@ -184,46 +197,56 @@ public class Parser4 implements ANTLRErrorListener {
 	 * @param msg
 	 *            reported parser error msg
 	 */
-	public void handleParserError(Recognizer<?, ?> recognizer, Object offendingSymbol, SourceInfoObject pos,
+	public void handleParserError(Recognizer<?, ?> recognizer,
+			Object offendingSymbol, SourceInfoObject pos,
 			String expectedtokens, RecognitionException e) {
 		// We need the strategy to get access to our customized token displays
-		ErrorStrategy4 strategy = (ErrorStrategy4) ((Parser) recognizer).getErrorHandler();
+		ErrorStrategy4 strategy = (ErrorStrategy4) ((Parser) recognizer)
+				.getErrorHandler();
 		// Report the various types of syntax errors
-		String offendingTokenText = strategy.getTokenErrorDisplay((Token) offendingSymbol);
+		String offendingTokenText = strategy
+				.getTokenErrorDisplay((Token) offendingSymbol);
 		// TODO: copies and hardcodes derived from LanguageTools->Validator
 		if (e.getMessage().equals("NoViableAlternative")) {
 			this.errors.add(new ParserException(
-					ParserErrorMessages.FOUND_BUT_NEED.toReadableString(offendingTokenText, expectedtokens), pos));
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+							offendingTokenText, expectedtokens), pos));
 		} else if (e.getMessage().equals("InputMismatch")) {
 			this.errors.add(new ParserException(
-					ParserErrorMessages.FOUND_BUT_NEED.toReadableString(offendingTokenText, expectedtokens), pos));
+					ParserErrorMessages.FOUND_BUT_NEED.toReadableString(
+							offendingTokenText, expectedtokens), pos));
 		} else if (e.getMessage().equals("FailedPredicate")) {
-			this.errors.add(new ParserException(ParserErrorMessages.FAILED_PREDICATE.toReadableString(), pos));
+			this.errors.add(new ParserException(
+					ParserErrorMessages.FAILED_PREDICATE.toReadableString(),
+					pos));
 		} else if (e.getMessage().equals("UnwantedToken")) {
-			this.errors
-					.add(new ParserException(ParserErrorMessages.TOKEN_BAD.toReadableString(offendingTokenText), pos));
+			this.errors.add(new ParserException(ParserErrorMessages.TOKEN_BAD
+					.toReadableString(offendingTokenText), pos));
 		} else if (e.getMessage().equals("MissingToken")) {
-			this.errors
-					.add(new ParserException(ParserErrorMessages.TOKEN_MISSING.toReadableString(expectedtokens), pos));
+			this.errors.add(new ParserException(
+					ParserErrorMessages.TOKEN_MISSING
+							.toReadableString(expectedtokens), pos));
 		} else {
 			this.errors.add(new ParserException(
-					ParserErrorMessages.EXPECTED_TEXT.toReadableString(offendingTokenText, expectedtokens), pos));
+					ParserErrorMessages.EXPECTED_TEXT.toReadableString(
+							offendingTokenText, expectedtokens), pos));
 		}
 	}
 
 	@Override
-	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, boolean exact,
-			BitSet ambigAlts, ATNConfigSet configs) {
+	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
+			int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {
 	}
 
 	@Override
-	public void reportAttemptingFullContext(Parser recognizer, DFA dfa, int startIndex, int stopIndex,
-			BitSet conflictingAlts, ATNConfigSet configs) {
-	}
-
-	@Override
-	public void reportContextSensitivity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, int prediction,
+	public void reportAttemptingFullContext(Parser recognizer, DFA dfa,
+			int startIndex, int stopIndex, BitSet conflictingAlts,
 			ATNConfigSet configs) {
+	}
+
+	@Override
+	public void reportContextSensitivity(Parser recognizer, DFA dfa,
+			int startIndex, int stopIndex, int prediction, ATNConfigSet configs) {
 	}
 
 	/************** Actual public Parser functionality *******************/
@@ -253,6 +276,15 @@ public class Parser4 implements ANTLRErrorListener {
 
 	public Term1000Context term1000() {
 		Term1000Context t = this.parser.term1000();
+		checkEndOfInputReached();
+		return t;
+	}
+
+	/**
+	 * @return parser for term1150. For test purposes.
+	 */
+	public Term1150Context term1150() {
+		Term1150Context t = this.parser.term1150();
 		checkEndOfInputReached();
 		return t;
 	}

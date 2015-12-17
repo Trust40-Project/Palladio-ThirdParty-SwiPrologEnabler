@@ -86,6 +86,8 @@ RDIV		: 'rdiv';
 
 NEGATION	: '\\+';
 
+DYNAMIC		: 'dynamic';
+
 
 /*  We have a NUMBER token, while the ISO spec has a FLOAT and a NUMBER token.
   However antlr can not determine properly whether a DOT is a decimal dot or a float number dot if
