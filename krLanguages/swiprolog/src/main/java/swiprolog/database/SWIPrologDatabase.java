@@ -258,7 +258,7 @@ public class SWIPrologDatabase implements Database {
 		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(),
 				formula);
 		try {
-			rawquery(JPLUtils.createCompound("retract", db_formula));
+			rawquery(JPLUtils.createCompound("retractall", db_formula));
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("swi prolog says the delete failed",
 					e);
