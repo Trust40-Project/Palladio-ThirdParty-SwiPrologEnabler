@@ -670,6 +670,7 @@ public final class PrologOperators {
 		PROTECTED_OPS.add("asserta");
 		PROTECTED_OPS.add("assertz");
 		PROTECTED_OPS.add("retract");
+		PROTECTED_OPS.add("retractall");
 		PROTECTED_OPS.add("abolish");
 
 		// restrict module handling
