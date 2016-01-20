@@ -75,9 +75,6 @@ public class ErrorReportsTest {
 		Parser4 parser = getParser("ç");
 		parser.term0();
 
-		assertEquals(2, parser.getErrors().size());
-		assertEquals(ParserErrorMessages.CANNOT_BE_USED.toReadableString("ç"),
-				parser.getErrors().first().getMessage());
-		// TODO: other error?!
+		assertEquals(2, parser.getErrors().size());!
 	}
 }
