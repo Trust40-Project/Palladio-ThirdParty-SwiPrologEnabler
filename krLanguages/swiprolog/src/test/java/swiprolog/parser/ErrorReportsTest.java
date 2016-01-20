@@ -23,8 +23,6 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
-import swiprolog.errors.ParserErrorMessages;
-
 /**
  * Tests the error reports coming from the {@link Parser4}.
  */
@@ -75,6 +73,6 @@ public class ErrorReportsTest {
 		Parser4 parser = getParser("ç");
 		parser.term0();
 
-		assertEquals(2, parser.getErrors().size());!
+		assertEquals(2, parser.getErrors().size());
 	}
 }
