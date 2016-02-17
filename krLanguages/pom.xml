@@ -53,11 +53,11 @@
   </properties>
   
   <modules>
-  	<module>jason</module>
-  	<module>owlrepo</module>
   	<module>swiprolog</module>
   	<module>swiprologlibs</module>
-  	<module>tuprolog</module>
+  	<!--<module>jason</module>
+  	<module>owlrepo</module>
+  	<module>tuprolog</module>-->
   </modules>
   
   <build>

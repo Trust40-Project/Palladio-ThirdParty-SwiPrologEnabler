@@ -21,13 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import jasonkri.JasonInterface;
 import krTools.KRInterface;
 import krTools.exceptions.KRInitFailedException;
 import krTools.exceptions.KRInterfaceNotSupportedException;
-import owlrepo.OWLRepoKRInterface;
 import swiprolog.SwiPrologInterface;
-import tuprolog.TuPrologInterface;
 
 /**
  * Factory of KR Interfaces.
@@ -46,9 +43,9 @@ import tuprolog.TuPrologInterface;
 public class KRFactory {
 	// The names of the supported KRIs
 	public static String SWI_PROLOG = "SWI Prolog";
-	public static String OWL_REPO = "OWL Repo";
-	public static String JASON = "Jason";
-	public static String TU_PROLOG = "TU Prolog";
+	// public static String OWL_REPO = "OWL Repo";
+	// public static String JASON = "Jason";
+	// public static String TU_PROLOG = "TU Prolog";
 
 	/**
 	 * A map of names to the {@link KRInterface}s that are supported.
@@ -57,9 +54,9 @@ public class KRFactory {
 
 	static {
 		kr.put(SWI_PROLOG, SwiPrologInterface.class);
-		kr.put(OWL_REPO, OWLRepoKRInterface.class);
-		kr.put(JASON, JasonInterface.class);
-		kr.put(TU_PROLOG, TuPrologInterface.class);
+		// kr.put(OWL_REPO, OWLRepoKRInterface.class);
+		// kr.put(JASON, JasonInterface.class);
+		// kr.put(TU_PROLOG, TuPrologInterface.class);
 	}
 
 	/**
