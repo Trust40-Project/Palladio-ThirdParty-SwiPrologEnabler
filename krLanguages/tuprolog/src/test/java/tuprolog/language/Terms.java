@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import krTools.language.Term;
-import tuprolog.language.PrologVar;
 
 public class Terms {
 
@@ -30,7 +29,8 @@ public class Terms {
 	public void atomtostring() {
 		// Check that toString works OK.
 		// TODO FIXME
-		// Term atom = new PrologTerm(new alice.tuprolog.Struct("'/tmp/pl_tmp_1089_0'"));
+		// Term atom = new PrologTerm(new
+		// alice.tuprolog.Struct("'/tmp/pl_tmp_1089_0'"));
 		// assertEquals("'/tmp/pl_tmp_1089_0'", atom.toString());
 	}
 

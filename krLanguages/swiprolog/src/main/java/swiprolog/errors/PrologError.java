@@ -39,38 +39,38 @@ public class PrologError extends KRQueryFailedException {
 		 * type_error(+Type, +Term) Tell the user that Term is not of the
 		 * expected Type
 		 */
-		TYPE_ERROR(2), /**
-						 * domain_error(+Type, +Term). The argument is of the
-						 * proper type, but has a value that is outside the
-						 * supported values
-						 */
-		DOMAIN_ERROR(
-				2), /**
-					 * existence_error(+Type, +Term). Term is of the correct
-					 * type and correct domain, but there is no existing
-					 * (external) resource that is represented by it.
-					 */
-		EXISTENCE_ERROR(2), /**
-							 * permission_error(+Action, +Type, +Term): It is
-							 * not allowed to perform Action on the object Term
-							 * that is of the given Type.
-							 */
-		PERMISSION_ERROR(3), /**
-								 * instantiation_error(+Term). An argument is
-								 * under-instantiated. I.e. it is not acceptable
-								 * as it is, but if some variables are bound to
-								 * appropriate values it would be acceptable.
-								 */
-		INSTANTIATION_ERROR(1), /**
-								 * uninstantiation_error(+Term): An argument is
-								 * over-instantiated.
-								 */
+		TYPE_ERROR(2),
+		/**
+		 * domain_error(+Type, +Term). The argument is of the proper type, but
+		 * has a value that is outside the supported values
+		 */
+		DOMAIN_ERROR(2),
+		/**
+		 * existence_error(+Type, +Term). Term is of the correct type and
+		 * correct domain, but there is no existing (external) resource that is
+		 * represented by it.
+		 */
+		EXISTENCE_ERROR(2),
+		/**
+		 * permission_error(+Action, +Type, +Term): It is not allowed to perform
+		 * Action on the object Term that is of the given Type.
+		 */
+		PERMISSION_ERROR(3),
+		/**
+		 * instantiation_error(+Term). An argument is under-instantiated. I.e.
+		 * it is not acceptable as it is, but if some variables are bound to
+		 * appropriate values it would be acceptable.
+		 */
+		INSTANTIATION_ERROR(1),
+		/**
+		 * uninstantiation_error(+Term): An argument is over-instantiated.
+		 */
 
-		UNINSTANTIATION_ERROR(
-				1), /**
-					 * representation_error(+Reason). A representation error
-					 * indicates a limitation of the implementation.
-					 */
+		UNINSTANTIATION_ERROR(1),
+		/**
+		 * representation_error(+Reason). A representation error indicates a
+		 * limitation of the implementation.
+		 */
 		REPRESENTATION_ERROR(1),
 
 		/**
@@ -105,9 +105,10 @@ public class PrologError extends KRQueryFailedException {
 		/**
 		 * predicate/procedure type.
 		 */
-		PROCEDURE, /**
-					 * files type
-					 */
+		PROCEDURE,
+		/**
+		 * files type
+		 */
 		SOURCE_SINK
 	};
 

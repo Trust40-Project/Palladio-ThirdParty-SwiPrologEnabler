@@ -22,14 +22,13 @@ import org.antlr.v4.runtime.dfa.DFA;
 
 import krTools.exceptions.ParserException;
 import krTools.parser.SourceInfo;
-import tuprolog.parser.Prolog4Parser;
+import tuprolog.errors.ParserErrorMessages;
 import tuprolog.parser.Prolog4Parser.ListtermContext;
 import tuprolog.parser.Prolog4Parser.PossiblyEmptyConjunctContext;
 import tuprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
 import tuprolog.parser.Prolog4Parser.PrologtextContext;
 import tuprolog.parser.Prolog4Parser.Term0Context;
 import tuprolog.parser.Prolog4Parser.Term1000Context;
-import tuprolog.errors.ParserErrorMessages;
 
 /**
  * {@link Prolog4Parser} but stores all errors coming from {@link ANTLR} so that

@@ -9,7 +9,6 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
 
-import tuprolog.parser.Prolog4Parser;
 import tuprolog.errors.ParserErrorMessages;
 
 public class ErrorStrategy4 extends DefaultErrorStrategy {

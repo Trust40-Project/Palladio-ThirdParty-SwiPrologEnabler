@@ -13,24 +13,20 @@ import swiprolog.errors.ParserErrorMessages;
 
 public class ErrorStrategy4 extends DefaultErrorStrategy {
 	@Override
-	public void reportNoViableAlternative(Parser parser, NoViableAltException e)
-			throws RecognitionException {
-		parser.notifyErrorListeners(e.getOffendingToken(),
-				getExpectationTxt((Parser) e.getRecognizer()),
+	public void reportNoViableAlternative(Parser parser, NoViableAltException e) throws RecognitionException {
+		parser.notifyErrorListeners(e.getOffendingToken(), getExpectationTxt((Parser) e.getRecognizer()),
 				getException("NoViableAlternative", parser));
 	}
 
 	@Override
 	public void reportInputMismatch(Parser parser, InputMismatchException e) {
-		parser.notifyErrorListeners(e.getOffendingToken(),
-				getExpectationTxt((Parser) e.getRecognizer()),
+		parser.notifyErrorListeners(e.getOffendingToken(), getExpectationTxt((Parser) e.getRecognizer()),
 				getException("InputMismatch", parser));
 	}
 
 	@Override
 	public void reportFailedPredicate(Parser parser, FailedPredicateException e) {
-		parser.notifyErrorListeners(e.getOffendingToken(),
-				getExpectationTxt((Parser) e.getRecognizer()),
+		parser.notifyErrorListeners(e.getOffendingToken(), getExpectationTxt((Parser) e.getRecognizer()),
 				getException("FailedPredicate", parser));
 	}
 
@@ -66,8 +62,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		if (!inErrorRecoveryMode(parser)) {
 			beginErrorCondition(parser);
 			Token t = parser.getCurrentToken();
-			parser.notifyErrorListeners(t, getExpectationTxt(parser),
-					getException("UnwantedToken", parser));
+			parser.notifyErrorListeners(t, getExpectationTxt(parser), getException("UnwantedToken", parser));
 		}
 	}
 
@@ -98,8 +93,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 		if (!inErrorRecoveryMode(parser)) {
 			beginErrorCondition(parser);
 			Token t = parser.getCurrentToken();
-			parser.notifyErrorListeners(t, getExpectationTxt(parser),
-					getException("MissingToken", parser));
+			parser.notifyErrorListeners(t, getExpectationTxt(parser), getException("MissingToken", parser));
 		}
 	}
 
@@ -148,8 +142,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 			}
 			return str;
 		} else { // otherwise output parser rule context
-			return prettyPrintRuleContext(parser.getRuleContext()
-					.getRuleIndex());
+			return prettyPrintRuleContext(parser.getRuleContext().getRuleIndex());
 		}
 	}
 
@@ -163,8 +156,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 	 * @return The recognition exception
 	 */
 	private RecognitionException getException(String text, Parser parser) {
-		return new RecognitionException(text, parser, parser.getInputStream(),
-				parser.getRuleContext());
+		return new RecognitionException(text, parser, parser.getInputStream(), parser.getRuleContext());
 	}
 
 	protected String prettyPrintToken(Token t) {
@@ -273,8 +265,7 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 			return ParserErrorMessages.TERM1200.toReadableString();
 		default:
 			// getting here would be a bug
-			throw new IllegalArgumentException("unknown parser rule index '"
-					+ ruleIndex + "'.");
+			throw new IllegalArgumentException("unknown parser rule index '" + ruleIndex + "'.");
 		}
 	}
 }

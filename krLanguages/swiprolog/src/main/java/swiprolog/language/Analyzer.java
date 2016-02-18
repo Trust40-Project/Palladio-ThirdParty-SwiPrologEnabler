@@ -154,26 +154,22 @@ public class Analyzer {
 		// there is only one /1 operator we need to unpack: not/1
 		if (termSig.equals("not/1")) {
 			addQuery(plTerm.arg(1), info);
-		} else if (termSig.equals(";/2") || termSig.equals(",/2")
-				|| termSig.equals("forall/2")) {
+		} else if (termSig.equals(";/2") || termSig.equals(",/2") || termSig.equals("forall/2")) {
 			// unpack the conjunction, disjunction and forall /2-operators
 			addQuery(plTerm.arg(1), info);
 			addQuery(plTerm.arg(2), info);
-		} else if (termSig.equals("findall/3") || termSig.equals("setof/3")
-				|| termSig.equals("aggregate/3")
+		} else if (termSig.equals("findall/3") || termSig.equals("setof/3") || termSig.equals("aggregate/3")
 				|| termSig.equals("aggregate_all/3")) {
 			// findall, setof aggregate and aggregate_all /3-operators only
 			// have a query in the second argument.
 			addQuery(plTerm.arg(2), info);
-		} else if (termSig.equals("aggregate/4")
-				|| termSig.equals("aggregate_all/4")) {
+		} else if (termSig.equals("aggregate/4") || termSig.equals("aggregate_all/4")) {
 			// aggregate and aggregate_all /4-operators have the query in
 			// the third argument.
 			addQuery(plTerm.arg(3), info);
 		} else if (termSig.equals("predsort/3")) {
 			// first argument is name that will be called as name/3
-			jpl.Term stubfunc = new Compound(plTerm.arg(1).name(),
-					new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			jpl.Term stubfunc = new Compound(plTerm.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			addQuery(stubfunc, info);
 		} else if (termSig.equals("dynamic/1")) {
 			// recognize predicate declaration(s).

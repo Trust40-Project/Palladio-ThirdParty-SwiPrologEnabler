@@ -21,14 +21,13 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import jpl.Term;
-import krTools.exceptions.ParserException;
-import krTools.parser.SourceInfo;
-
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import jpl.Term;
+import krTools.exceptions.ParserException;
+import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologTerm;
@@ -96,17 +95,15 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			// happens if we are at EOF...
 			stop = start;
 		}
-		return new SourceInfoObject(this.source.getSource(), start.getLine(),
-				start.getCharPositionInLine(), this.source.getStartIndex()
-						+ start.getStartIndex() + 1,
+		return new SourceInfoObject(this.source.getSource(), start.getLine(), start.getCharPositionInLine(),
+				this.source.getStartIndex() + start.getStartIndex() + 1,
 				this.source.getStartIndex() + stop.getStopIndex() + 1);
 	}
 
 	private SourceInfo getSourceInfo(TerminalNode leaf) {
 		Token symbol = leaf.getSymbol();
-		return new SourceInfoObject(this.source.getSource(), symbol.getLine(),
-				symbol.getCharPositionInLine(), this.source.getStartIndex()
-						+ symbol.getStartIndex() + 1,
+		return new SourceInfoObject(this.source.getSource(), symbol.getLine(), symbol.getCharPositionInLine(),
+				this.source.getStartIndex() + symbol.getStartIndex() + 1,
 				this.source.getStartIndex() + symbol.getStopIndex() + 1);
 	}
 
@@ -123,8 +120,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	 *            {@link SourceInfo}.
 	 * @return
 	 */
-	private PrologTerm compound(String name, jpl.Term[] args,
-			ParserRuleContext ctx) {
+	private PrologTerm compound(String name, jpl.Term[] args, ParserRuleContext ctx) {
 		return compound(name, args, getSourceInfo(ctx));
 	}
 
@@ -195,8 +191,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	@Override
 	public List<PrologTerm> visitPrologtext(PrologtextContext ctx) {
-		List<PrologTerm> clauses = new ArrayList<>(ctx.directiveorclause()
-				.size());
+		List<PrologTerm> clauses = new ArrayList<>(ctx.directiveorclause().size());
 		for (DirectiveorclauseContext d : ctx.directiveorclause()) {
 			clauses.add(visitDirectiveorclause(d));
 		}
@@ -204,8 +199,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	@Override
-	public PrologTerm visitDirectiveorclause(
-			Prolog4Parser.DirectiveorclauseContext ctx) {
+	public PrologTerm visitDirectiveorclause(Prolog4Parser.DirectiveorclauseContext ctx) {
 		if (ctx.directive() != null) {
 			return visitDirective(ctx.directive());
 		} else { // ctx.clause() // CHECK null?
@@ -237,8 +231,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	@Override
-	public PrologTerm visitPossiblyEmptyConjunct(
-			PossiblyEmptyConjunctContext ctx) {
+	public PrologTerm visitPossiblyEmptyConjunct(PossiblyEmptyConjunctContext ctx) {
 		if (ctx.term1000() != null) {
 			return visitTerm1000(ctx.term1000());
 		} else {
@@ -247,8 +240,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	@Override
-	public PrologTerm visitPossiblyEmptyDisjunct(
-			PossiblyEmptyDisjunctContext ctx) {
+	public PrologTerm visitPossiblyEmptyDisjunct(PossiblyEmptyDisjunctContext ctx) {
 		if (ctx.term1100() != null) {
 			return visitTerm1100(ctx.term1100());
 		} else {
@@ -281,8 +273,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		} else if (ctx.listterm() != null) {
 			tail = visitListterm(ctx.listterm());
 		} else if (ctx.VARIABLE() != null) {
-			tail = new PrologVar(new jpl.Variable(ctx.VARIABLE().getText()),
-					getSourceInfo(ctx.VARIABLE()));
+			tail = new PrologVar(new jpl.Variable(ctx.VARIABLE().getText()), getSourceInfo(ctx.VARIABLE()));
 		}
 
 		if (tail == null) {
@@ -319,28 +310,22 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				// int, octal, hex, etc.
 				return new PrologTerm(JPLUtils.createIntegerNumber(val), info);
 			} catch (NumberFormatException e) {
-				System.out
-						.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING
-								.toReadableString(num));
+				System.out.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING.toReadableString(num));
 			}
 		}
 		// float
 		try {
 			Double val = Double.valueOf(num);
 			if (val.isNaN()) {
-				throw new NumberFormatException(
-						ParserErrorMessages.NUMBER_NAN.toReadableString(num));
+				throw new NumberFormatException(ParserErrorMessages.NUMBER_NAN.toReadableString(num));
 			}
 			if (val.isInfinite()) {
-				throw new NumberFormatException(
-						ParserErrorMessages.NUMBER_INFINITY
-								.toReadableString(num));
+				throw new NumberFormatException(ParserErrorMessages.NUMBER_INFINITY.toReadableString(num));
 			}
 			return new PrologTerm(new jpl.Float(val), info);
 		} catch (NumberFormatException e) {
 			this.errors.add(new ParserException(
-					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString()
-							+ ":" + e.getMessage(), info));
+					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString() + ":" + e.getMessage(), info));
 		}
 		// never return null as others may post process our output.
 		return new PrologTerm(new jpl.Integer(1), info);
@@ -365,8 +350,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				return compound(name, terms.toArray(new jpl.Term[0]), ctx);
 			}
 		} else if (ctx.VARIABLE() != null) {
-			return new PrologVar(new jpl.Variable(ctx.VARIABLE().getText()),
-					getSourceInfo(ctx));
+			return new PrologVar(new jpl.Variable(ctx.VARIABLE().getText()), getSourceInfo(ctx));
 		} else if (ctx.STRING() != null) {
 			return atom(unquote(ctx.STRING().getText()), ctx);
 		} else if (ctx.LBR() != null || ctx.CLBR() != null) {
@@ -430,11 +414,9 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				// seems to fail ISO
 				// compliance here.
 				if (t.isFloat()) {
-					term = new PrologTerm(new jpl.Float(-1 * t.floatValue()),
-							info);
+					term = new PrologTerm(new jpl.Float(-1 * t.floatValue()), info);
 				} else if (t.isInteger()) {
-					term = new PrologTerm(new jpl.Integer(-1 * t.intValue()),
-							info);
+					term = new PrologTerm(new jpl.Integer(-1 * t.intValue()), info);
 				}
 			}
 		} else {
@@ -497,7 +479,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	@Override
 	public PrologTerm visitTerm700(Term700Context ctx) {
-/**
+		/**
 		 * term500 ( ( '=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | '@>' | '@>='
 		 * | '=@='| '=..' | 'is' | '=:=' | '=\\=' | '<' | '=<' | '>' | '>=')
 		 * term500 )?

@@ -21,12 +21,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.StringReader;
 
-import krTools.exceptions.KRInitFailedException;
-import krTools.exceptions.ParserException;
-
 import org.junit.Before;
 import org.junit.Test;
 
+import krTools.exceptions.KRInitFailedException;
+import krTools.exceptions.ParserException;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologTerm;
 import swiprolog.parser.Parser4;

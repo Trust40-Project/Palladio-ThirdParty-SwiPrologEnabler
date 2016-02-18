@@ -29,7 +29,7 @@ public class KRDatabaseException extends KRException {
 
 	/**
 	 * Constructor of KRDatabaseException with a given message
-	 * 
+	 *
 	 * @param message
 	 *            as string for this exception
 	 */

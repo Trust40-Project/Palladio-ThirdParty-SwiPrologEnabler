@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import tuprolog.parser.Parser4;
 import tuprolog.parser.Prolog4Parser.ListtermContext;
 
 /**

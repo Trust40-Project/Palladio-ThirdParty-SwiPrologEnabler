@@ -9,8 +9,6 @@ import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.antlr.v4.runtime.misc.Interval;
 
-import tuprolog.parser.Prolog4Lexer;
-
 public class Lexer4 extends Lexer {
 	private final Prolog4Lexer lexer;
 

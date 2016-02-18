@@ -21,6 +21,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.StringReader;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import krTools.exceptions.KRInitFailedException;
 import krTools.language.Update;
 import tuprolog.TuPrologInterface;
@@ -28,9 +31,6 @@ import tuprolog.language.PrologUpdate;
 import tuprolog.parser.Parser4;
 import tuprolog.validator.Validator4;
 import tuprolog.visitor.Visitor4;
-
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * Tests for {@link Validator4Internal} to see if pipeline
@@ -52,8 +52,7 @@ public class UpdateTest {
 	 * @return {@link Validator4Internal}
 	 */
 	public Validator4 validator(String in) throws Exception {
-		return new Validator4(new Visitor4(new Parser4(new StringReader(in),
-				null)));
+		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test

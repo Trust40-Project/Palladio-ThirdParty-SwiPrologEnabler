@@ -21,15 +21,15 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.StringReader;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import krTools.exceptions.KRInitFailedException;
 import krTools.exceptions.ParserException;
 import tuprolog.TuPrologInterface;
 import tuprolog.language.PrologTerm;
 import tuprolog.parser.Parser4;
 import tuprolog.visitor.Visitor4;
-
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * Tests for Prolog4Parser term0 to see if pipeline parser->visitor works ok.

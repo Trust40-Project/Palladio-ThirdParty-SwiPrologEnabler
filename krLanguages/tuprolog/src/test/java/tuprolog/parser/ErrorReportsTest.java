@@ -24,8 +24,6 @@ import java.io.StringReader;
 import org.junit.Test;
 
 import tuprolog.errors.ParserErrorMessages;
-import tuprolog.parser.ErrorStrategy4;
-import tuprolog.parser.Parser4;
 
 /**
  * Tests the error reports coming from the {@link Parser4}.

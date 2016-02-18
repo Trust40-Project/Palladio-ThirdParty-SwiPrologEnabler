@@ -28,6 +28,10 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import alice.tuprolog.Term;
 import krTools.exceptions.ParserException;
 import krTools.parser.SourceInfo;
+import tuprolog.errors.ParserErrorMessages;
+import tuprolog.language.JPLUtils;
+import tuprolog.language.PrologTerm;
+import tuprolog.language.PrologVar;
 import tuprolog.parser.Prolog4Parser;
 import tuprolog.parser.Prolog4Parser.ArglistContext;
 import tuprolog.parser.Prolog4Parser.ClauseContext;
@@ -57,10 +61,6 @@ import tuprolog.parser.Prolog4Parser.Term50Context;
 import tuprolog.parser.Prolog4Parser.Term700Context;
 import tuprolog.parser.Prolog4Parser.Term900Context;
 import tuprolog.parser.Prolog4ParserBaseVisitor;
-import tuprolog.errors.ParserErrorMessages;
-import tuprolog.language.JPLUtils;
-import tuprolog.language.PrologTerm;
-import tuprolog.language.PrologVar;
 import tuprolog.parser.SourceInfoObject;
 
 /**

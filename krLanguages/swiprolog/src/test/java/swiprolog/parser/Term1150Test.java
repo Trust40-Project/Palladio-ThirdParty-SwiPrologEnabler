@@ -39,8 +39,7 @@ public class Term1150Test {
 	 */
 	private Parser4 getParser(Reader textStream) throws Exception {
 		Parser4 parser = new Parser4(textStream, null);
-		parser.getInterpreter().setPredictionMode(
-				PredictionMode.LL_EXACT_AMBIG_DETECTION);
+		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
 	}
 
@@ -68,8 +67,7 @@ public class Term1150Test {
 	 */
 	@Test
 	public void testDynamicPredicate1() throws Exception {
-		checkParsesAsTerm1150(
-				"dynamic on/2, clear/0",
+		checkParsesAsTerm1150("dynamic on/2, clear/0",
 				"(term1150 dynamic (term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 on)))) (term400b / (term200 (term100 (term50 (term0 2))))))))) , (term1000 (term900 (term700 (term500 (term400 (term200 (term100 (term50 (term0 clear)))) (term400b / (term200 (term100 (term50 (term0 0))))))))))))");
 	}
 }

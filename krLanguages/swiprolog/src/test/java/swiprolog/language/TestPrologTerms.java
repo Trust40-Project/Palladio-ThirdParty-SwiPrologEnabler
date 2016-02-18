@@ -18,12 +18,12 @@
 package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
-import jpl.Variable;
-import krTools.exceptions.KRInitFailedException;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import jpl.Variable;
+import krTools.exceptions.KRInitFailedException;
 import swiprolog.SwiPrologInterface;
 
 public class TestPrologTerms {

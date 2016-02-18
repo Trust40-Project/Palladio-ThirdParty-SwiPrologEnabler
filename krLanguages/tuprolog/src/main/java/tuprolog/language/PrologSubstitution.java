@@ -38,11 +38,11 @@ public class PrologSubstitution implements Substitution {
 	 * TODO: Check!!!
 	 *
 	 * Substitution stored as a {@link Map} with tuples {@link String},
-	 * {@link alice.tuprolog.Term} indicating a substitution of
-	 * variable for term. We do not use {@link alice.tuprolog.Var} as
-	 * keys because {@link alice.tuprolog.Var} has no implementation
-	 * for hashCode and therefore putting these in a map will fail #2211. Using
-	 * String brings us closest to what JPL is doing internally.
+	 * {@link alice.tuprolog.Term} indicating a substitution of variable for
+	 * term. We do not use {@link alice.tuprolog.Var} as keys because
+	 * {@link alice.tuprolog.Var} has no implementation for hashCode and
+	 * therefore putting these in a map will fail #2211. Using String brings us
+	 * closest to what JPL is doing internally.
 	 */
 
 	/**

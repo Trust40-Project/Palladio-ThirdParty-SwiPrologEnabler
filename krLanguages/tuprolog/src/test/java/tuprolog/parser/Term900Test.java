@@ -26,7 +26,6 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
 import krTools.exceptions.ParserException;
-import tuprolog.parser.Parser4;
 import tuprolog.parser.Prolog4Parser.Term0Context;
 import tuprolog.parser.Prolog4Parser.Term1000Context;
 

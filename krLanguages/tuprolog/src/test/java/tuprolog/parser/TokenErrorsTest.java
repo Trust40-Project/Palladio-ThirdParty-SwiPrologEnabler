@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import krTools.exceptions.ParserException;
 import tuprolog.errors.ParserErrorMessages;
-import tuprolog.parser.Parser4;
 
 /**
  * Tests for token errors.

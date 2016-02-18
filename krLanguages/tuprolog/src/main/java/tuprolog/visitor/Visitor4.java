@@ -6,13 +6,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import krTools.exceptions.ParserException;
+import tuprolog.language.PrologTerm;
+import tuprolog.parser.Parser4;
 import tuprolog.parser.Prolog4Parser.PossiblyEmptyConjunctContext;
 import tuprolog.parser.Prolog4Parser.PossiblyEmptyDisjunctContext;
 import tuprolog.parser.Prolog4Parser.PrologtextContext;
 import tuprolog.parser.Prolog4Parser.Term0Context;
 import tuprolog.parser.Prolog4Parser.Term1000Context;
-import tuprolog.language.PrologTerm;
-import tuprolog.parser.Parser4;
 
 /**
  * Visitor that converts a parse tree coming from an {@link Parser4} into a

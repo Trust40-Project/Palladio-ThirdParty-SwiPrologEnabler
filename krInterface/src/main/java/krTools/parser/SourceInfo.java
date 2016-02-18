@@ -29,9 +29,9 @@ import java.io.File;
  * {@link File#compareTo(File)}. Only if the files are equal, the line number is
  * then compared. If these are also equal, the column numbers are to be
  * compared. This is the reference implementation:<br>
- * 
+ *
  * <code>
- * 
+ *
 	public int compareTo(SourceInfo o) {
 		if (getSource() == null) {
 			if (o.getSource() != null) {
@@ -54,7 +54,7 @@ import java.io.File;
 		}
 		// lines are equal
 		return getCharacterPosition() - o.getCharacterPosition();
-	} * 
+	} *
  *           </code>
  */
 public interface SourceInfo extends Comparable<SourceInfo> {

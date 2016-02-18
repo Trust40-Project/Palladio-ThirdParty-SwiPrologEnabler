@@ -49,7 +49,8 @@ public class PrologQuery extends PrologExpression implements Query {
 
 	@Override
 	public Query applySubst(Substitution s) {
-		Map<String, alice.tuprolog.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+		Map<String, alice.tuprolog.Term> jplSubstitution = (s == null) ? null
+				: ((PrologSubstitution) s).getJPLSolution();
 		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
 	}
 

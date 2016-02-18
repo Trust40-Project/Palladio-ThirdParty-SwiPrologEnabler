@@ -12,8 +12,7 @@ public class SourceInfoObject implements SourceInfo {
 	private final int end;
 	private final String msg = new String();
 
-	public SourceInfoObject(File file, int lineNr, int charPos, int start,
-			int end) {
+	public SourceInfoObject(File file, int lineNr, int charPos, int start, int end) {
 		this.sourceFile = file;
 		this.lineNr = lineNr;
 		this.charPos = charPos;
@@ -90,8 +89,7 @@ public class SourceInfoObject implements SourceInfo {
 		if (this.sourceFile == null) {
 			return that.sourceFile == null;
 		} else {
-			return this.sourceFile.getAbsoluteFile().equals(
-					that.sourceFile.getAbsoluteFile());
+			return this.sourceFile.getAbsoluteFile().equals(that.sourceFile.getAbsoluteFile());
 		}
 	}
 

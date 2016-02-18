@@ -421,8 +421,8 @@ public class JPLUtils {
 	 */
 	// TODO: needs careful review and checking...
 	public static boolean equals(jpl.Term term1, jpl.Term term2) {
-		assert(term1 != null);
-		assert(term2 != null);
+		assert (term1 != null);
+		assert (term2 != null);
 
 		if (term1 == term2) {
 			return true;

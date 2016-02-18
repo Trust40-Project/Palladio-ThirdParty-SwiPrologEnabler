@@ -21,12 +21,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.StringReader;
 
-import krTools.exceptions.KRInitFailedException;
-import krTools.language.Update;
-
 import org.junit.Before;
 import org.junit.Test;
 
+import krTools.exceptions.KRInitFailedException;
+import krTools.language.Update;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologUpdate;
 import swiprolog.parser.Parser4;
@@ -53,8 +52,7 @@ public class UpdateTest {
 	 * @return {@link Validator4Internal}
 	 */
 	public Validator4 validator(String in) throws Exception {
-		return new Validator4(new Visitor4(new Parser4(new StringReader(in),
-				null)));
+		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test
