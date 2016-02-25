@@ -89,6 +89,7 @@ public class Analyzer {
 		for (String df : this.unused) {
 			unused.addAll(this.definitions.get(df));
 		}
+		unused.remove("//2");
 		return unused;
 	}
 
