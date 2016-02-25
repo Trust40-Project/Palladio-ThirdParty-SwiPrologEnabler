@@ -79,9 +79,7 @@ public class Analyzer {
 	public Set<Query> getUndefined() {
 		Set<Query> undefined = new HashSet<>();
 		for (String undf : this.undefined) {
-			if (!undf.equals("me/1")) {
-				undefined.addAll(this.used.get(undf));
-			}
+			undefined.addAll(this.used.get(undf));
 		}
 		return undefined;
 	}
