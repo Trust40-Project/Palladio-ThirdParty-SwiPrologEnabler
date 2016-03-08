@@ -80,7 +80,6 @@ public class Parser4 implements ANTLRErrorListener {
 		this.parser.setErrorHandler(new ErrorStrategy4());
 		this.parser.removeErrorListeners();
 		this.parser.addErrorListener(this);
-		this.parser.setBuildParseTree(true);
 	}
 
 	/**
