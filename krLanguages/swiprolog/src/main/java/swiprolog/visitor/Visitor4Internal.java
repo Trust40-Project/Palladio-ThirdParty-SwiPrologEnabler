@@ -89,22 +89,24 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	 * @return {@link SourceInfoObject}
 	 */
 	private SourceInfo getSourceInfo(ParserRuleContext ctx) {
-		Token start = ctx.getStart();
-		Token stop = ctx.getStop();
+		Token start = (ctx == null) ? null : ctx.getStart();
+		Token stop = (ctx == null) ? null : ctx.getStop();
 		if (stop == null) {
 			// happens if we are at EOF...
 			stop = start;
 		}
-		return new SourceInfoObject(this.source.getSource(), start.getLine(), start.getCharPositionInLine(),
-				this.source.getStartIndex() + start.getStartIndex() + 1,
-				this.source.getStartIndex() + stop.getStopIndex() + 1);
+		return (start == null) ? null
+				: new SourceInfoObject(this.source.getSource(), start.getLine(), start.getCharPositionInLine(),
+						this.source.getStartIndex() + start.getStartIndex() + 1,
+						this.source.getStartIndex() + stop.getStopIndex() + 1);
 	}
 
 	private SourceInfo getSourceInfo(TerminalNode leaf) {
-		Token symbol = leaf.getSymbol();
-		return new SourceInfoObject(this.source.getSource(), symbol.getLine(), symbol.getCharPositionInLine(),
-				this.source.getStartIndex() + symbol.getStartIndex() + 1,
-				this.source.getStartIndex() + symbol.getStopIndex() + 1);
+		Token symbol = (leaf == null) ? null : leaf.getSymbol();
+		return (symbol == null) ? null
+				: new SourceInfoObject(this.source.getSource(), symbol.getLine(), symbol.getCharPositionInLine(),
+						this.source.getStartIndex() + symbol.getStartIndex() + 1,
+						this.source.getStartIndex() + symbol.getStopIndex() + 1);
 	}
 
 	/**
