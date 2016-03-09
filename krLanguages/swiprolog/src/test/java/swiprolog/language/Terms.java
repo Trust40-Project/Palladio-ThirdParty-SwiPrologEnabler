@@ -19,9 +19,13 @@ package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import java.util.Set;
 
+import jpl.Variable;
 import krTools.language.Term;
+import krTools.language.Var;
+
+import org.junit.Test;
 
 public class Terms {
 
@@ -39,4 +43,33 @@ public class Terms {
 		Term var2 = new PrologVar(new jpl.Variable("X"), null);
 		assertEquals(true, var1.equals(var2));
 	}
+
+	/**
+	 * Check if we get the vars from term q(p,X).
+	 */
+	@Test
+	public void testFreeVars() {
+		Variable X = new Variable("X");
+		jpl.Term term = new jpl.Compound("q", new jpl.Term[] {
+				new jpl.Atom("p"), X });
+		Term t = new PrologTerm(term, null);
+		Set<Var> vars = t.getFreeVar();
+		assertEquals(1, vars.size());
+		assertEquals(X, ((PrologVar) (vars.iterator().next())).getTerm());
+	}
+
+	/**
+	 * Check if the X in the term "X=1" is considered a "free" var.
+	 */
+	@Test
+	public void testFreeVarsInIs() {
+		Variable X = new Variable("X");
+		jpl.Term term = new jpl.Compound("=", new jpl.Term[] { X,
+				new jpl.Integer(1), });
+		Term t = new PrologTerm(term, null);
+		Set<Var> vars = t.getFreeVar();
+		assertEquals(1, vars.size());
+		assertEquals(X, ((PrologVar) (vars.iterator().next())).getTerm());
+	}
+
 }
