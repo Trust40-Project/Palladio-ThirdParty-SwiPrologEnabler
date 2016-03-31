@@ -72,6 +72,7 @@ public final class SwiPrologInterface implements KRInterface {
 		try {
 			PrologDatabase.rawquery(
 					JPLUtils.createCompound("set_prolog_flag", new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
+			PrologDatabase.rawquery(new jpl.Atom("make"));
 		} catch (KRQueryFailedException e) {
 			throw new KRInitFailedException("failed to initialize the interface.", e);
 		}
