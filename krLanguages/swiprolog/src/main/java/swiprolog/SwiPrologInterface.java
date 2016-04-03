@@ -67,7 +67,7 @@ public final class SwiPrologInterface implements KRInterface {
 	 * @throws KRInitFailedException
 	 *             If failed to create inference engine or database.
 	 */
-	public SwiPrologInterface() throws KRInitFailedException {
+	public SwiPrologInterface() {
 		// Initialize the inference engine.
 		try {
 			PrologDatabase.rawquery(
@@ -75,9 +75,6 @@ public final class SwiPrologInterface implements KRInterface {
 			PrologDatabase.rawquery(new jpl.Atom("make"));
 		} catch (KRQueryFailedException ignore) {
 		}
-		// Don't Tell Me Mode needs to be false as it ensures that variables
-		// with initial '_' are treated as regular variables.
-		jpl.JPL.setDTMMode(false);
 	}
 
 	/**

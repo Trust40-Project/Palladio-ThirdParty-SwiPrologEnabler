@@ -62,11 +62,12 @@ public final class SwiInstaller {
 			throw new IllegalStateException("Failed to initialize SWI Prolog", e);
 		}
 
-		/*
-		 * Let JPL know which SWI_HOME_DIR we're using; this negates the need
-		 * for a SWI_HOME_DIR environment var
-		 */
+		// Let JPL know which SWI_HOME_DIR we're using; this negates the need
+		// for a SWI_HOME_DIR environment var
 		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals" });
+		// Don't Tell Me Mode needs to be false as it ensures that variables
+		// with initial '_' are treated as regular variables.
+		jpl.JPL.setDTMMode(false);
 
 		initialized = true;
 	}
