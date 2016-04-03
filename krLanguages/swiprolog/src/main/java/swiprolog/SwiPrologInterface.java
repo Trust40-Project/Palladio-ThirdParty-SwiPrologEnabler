@@ -68,18 +68,15 @@ public final class SwiPrologInterface implements KRInterface {
 	 *             If failed to create inference engine or database.
 	 */
 	public SwiPrologInterface() throws KRInitFailedException {
-		// Initialize inference engine.
+		// Initialize the inference engine.
 		try {
 			PrologDatabase.rawquery(
 					JPLUtils.createCompound("set_prolog_flag", new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
 			PrologDatabase.rawquery(new jpl.Atom("make"));
-		} catch (KRQueryFailedException e) {
-			throw new KRInitFailedException("failed to initialize the interface.", e);
+		} catch (KRQueryFailedException ignore) {
 		}
-		// See http://www.swi-prolog.org/packages/jpl/release_notes.html for
-		// explanation why Don't Tell Me Mode needs to be false. Setting this
-		// mode to false ensures that variables with initial '_' are treated as
-		// regular variables.
+		// Don't Tell Me Mode needs to be false as it ensures that variables
+		// with initial '_' are treated as regular variables.
 		jpl.JPL.setDTMMode(false);
 	}
 
