@@ -6,7 +6,7 @@
 
 	<groupId>com.github.goalhub.krTools</groupId>
 	<artifactId>krInterface</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>The Knowledge Representation Interface</name>
