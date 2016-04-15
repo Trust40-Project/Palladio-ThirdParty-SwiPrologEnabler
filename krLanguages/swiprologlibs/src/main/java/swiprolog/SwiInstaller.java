@@ -67,7 +67,7 @@ public final class SwiInstaller {
 		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals" });
 		// Don't Tell Me Mode needs to be false as it ensures that variables
 		// with initial '_' are treated as regular variables.
-		jpl.JPL.setDTMMode(false);
+		JPL.setDTMMode(false);
 
 		initialized = true;
 	}
