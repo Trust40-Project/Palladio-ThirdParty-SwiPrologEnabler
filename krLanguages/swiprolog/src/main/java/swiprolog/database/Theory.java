@@ -122,7 +122,7 @@ public class Theory {
 	 * Generates string with all formulas in the theory on separate lines.
 	 */
 	@Override
-	public synchronized String toString() {
+	public String toString() {
 		String text = "";
 		for (DatabaseFormula formula : this.content) {
 			text += formula.toString() + ".\n";

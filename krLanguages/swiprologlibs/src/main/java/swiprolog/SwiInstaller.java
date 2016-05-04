@@ -49,7 +49,7 @@ public final class SwiInstaller {
 	 *             SecurityException if initialization failed. These are runtime
 	 *             exceptions and therefore not declared.
 	 */
-	public synchronized static void init() {
+	public static void init() {
 		if (initialized) {
 			return;
 		}
