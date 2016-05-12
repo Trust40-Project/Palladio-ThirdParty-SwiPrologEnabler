@@ -70,9 +70,8 @@ public final class SwiPrologInterface implements KRInterface {
 	public SwiPrologInterface() {
 		// Initialize the inference engine.
 		try {
-			PrologDatabase.rawquery(
-					JPLUtils.createCompound("set_prolog_flag", new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
-			PrologDatabase.rawquery(new jpl.Atom("make"));
+			PrologDatabase.rawquery(JPLUtils.createCompound("set_prolog_flag",
+					new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
 		} catch (KRQueryFailedException ignore) {
 		}
 	}
@@ -95,7 +94,8 @@ public final class SwiPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Database getDatabase(String name, Collection<DatabaseFormula> content) throws KRDatabaseException {
+	public Database getDatabase(String name, Collection<DatabaseFormula> content)
+			throws KRDatabaseException {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
 		PrologDatabase database = new PrologDatabase(name, content, this);
@@ -122,7 +122,8 @@ public final class SwiPrologInterface implements KRInterface {
 		try {
 			return new KRInterfaceParser4(r, info);
 		} catch (IOException e) {
-			throw new ParserException("failed to parse the reader data as SWI Prolog.", info, e);
+			throw new ParserException(
+					"failed to parse the reader data as SWI Prolog.", info, e);
 		}
 	}
 
@@ -168,7 +169,8 @@ public final class SwiPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries) {
+	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
+			Set<Query> queries) {
 		Analyzer analyzer = new Analyzer(dbfs, queries);
 		analyzer.analyze();
 		return analyzer.getUnused();
