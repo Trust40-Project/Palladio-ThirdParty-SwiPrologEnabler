@@ -60,25 +60,26 @@ public final class SwiInstaller {
 		try {
 			addFolderToLibraryPath(SwiPath.getAbsolutePath());
 		} catch (NoSuchFieldException | IllegalAccessException e) {
-			throw new IllegalStateException("Failed to initialize SWI Prolog",
-					e);
+			throw new IllegalStateException("Failed to initialize SWI Prolog", e);
 		}
 
 		// Let JPL know which SWI_HOME_DIR we're using; this negates the need
 		// for a SWI_HOME_DIR environment var
-		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath,
-				"--quiet", "--nosignals" });
+		JPL.setDefaultInitArgs(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals" });
 		// Don't Tell Me Mode needs to be false as it ensures that variables
 		// with initial '_' are treated as regular variables.
 		JPL.setDTMMode(false);
+
 		/**
 		 * Work around issue #3794: pre-load SWI libraries because
 		 * multi-threaded SWI calls may cause library loading errors. Following
 		 * the dependency graphml , you can see that the aggregate library
-		 * imports the libraries that are important for practical use.
+		 * imports all libraries that are important for practical use.
 		 */
+		new Query("set_prolog_flag(debug_on_error,false).").allSolutions();
 		new Query("use_module(library(aggregate)).").allSolutions();
 
+		// Finished
 		initialized = true;
 	}
 
@@ -147,8 +148,7 @@ public final class SwiInstaller {
 	 * @throws IllegalArgumentException
 	 */
 	private static void addFolderToLibraryPath(final String s)
-			throws NoSuchFieldException, SecurityException,
-			IllegalArgumentException, IllegalAccessException {
+			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		final Field field = ClassLoader.class.getDeclaredField("usr_paths");
 		field.setAccessible(true);
 		final String[] paths = (String[]) field.get(null);
@@ -161,8 +161,7 @@ public final class SwiInstaller {
 		System.arraycopy(paths, 0, tmp, 0, paths.length);
 		tmp[paths.length] = s;
 		field.set(null, tmp);
-		final String path = s + File.pathSeparator
-				+ System.getProperty("java.library.path");
+		final String path = s + File.pathSeparator + System.getProperty("java.library.path");
 		System.setProperty("java.library.path", path);
 	}
 
@@ -175,8 +174,7 @@ public final class SwiInstaller {
 	 * @throws IOException
 	 * @throws ZipException
 	 */
-	private static File unzipToTmp(String zipfilename)
-			throws URISyntaxException, ZipException, IOException {
+	private static File unzipToTmp(String zipfilename) throws URISyntaxException, ZipException, IOException {
 		String tmpdir = System.getProperty("java.io.tmpdir");
 		Path path = Paths.get(tmpdir, "swilibs" + getSourceNumber());
 		File base = path.toFile();
@@ -186,12 +184,10 @@ public final class SwiInstaller {
 		}
 
 		if (!base.mkdir()) {
-			throw new IOException("Can't create tmp directory for SWI at "
-					+ base);
+			throw new IOException("Can't create tmp directory for SWI at " + base);
 		}
 
-		System.out.println("unzipping SWI prolog libraries (" + zipfilename
-				+ ") to " + base);
+		System.out.println("unzipping SWI prolog libraries (" + zipfilename + ") to " + base);
 
 		InputStream fis = Thread.currentThread().getContextClassLoader()
 				.getResourceAsStream("swiprolog/" + zipfilename);
@@ -232,8 +228,7 @@ public final class SwiInstaller {
 	 * @throws UnsupportedEncodingException
 	 */
 	private static long getSourceNumber() throws UnsupportedEncodingException {
-		String srcpath1 = SwiInstaller.class.getProtectionDomain()
-				.getCodeSource().getLocation().getPath();
+		String srcpath1 = SwiInstaller.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String srcpath = URLDecoder.decode(srcpath1, "UTF-8");
 		File srcfile = new File(srcpath);
 		return srcfile.lastModified();

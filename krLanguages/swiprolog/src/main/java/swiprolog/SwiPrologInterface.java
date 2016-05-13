@@ -30,7 +30,6 @@ import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRInitFailedException;
-import krTools.exceptions.KRQueryFailedException;
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
@@ -41,7 +40,6 @@ import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 import swiprolog.database.PrologDatabase;
 import swiprolog.language.Analyzer;
-import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologSubstitution;
 import swiprolog.parser.KRInterfaceParser4;
 
@@ -62,21 +60,6 @@ public final class SwiPrologInterface implements KRInterface {
 	private Map<String, PrologDatabase> databases = new ConcurrentHashMap<>();
 
 	/**
-	 * Creates new inference engine and empty set of databases.
-	 *
-	 * @throws KRInitFailedException
-	 *             If failed to create inference engine or database.
-	 */
-	public SwiPrologInterface() {
-		// Initialize the inference engine.
-		try {
-			PrologDatabase.rawquery(JPLUtils.createCompound("set_prolog_flag",
-					new jpl.Atom("debug_on_error"), new jpl.Atom("false")));
-		} catch (KRQueryFailedException ignore) {
-		}
-	}
-
-	/**
 	 * Returns a database of a particular type associated with a given agent.
 	 * <p>
 	 * <b>Warning</b>: Cannot be used to get goal bases because in contrast with
@@ -94,8 +77,7 @@ public final class SwiPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Database getDatabase(String name, Collection<DatabaseFormula> content)
-			throws KRDatabaseException {
+	public Database getDatabase(String name, Collection<DatabaseFormula> content) throws KRDatabaseException {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
 		PrologDatabase database = new PrologDatabase(name, content, this);
@@ -122,8 +104,7 @@ public final class SwiPrologInterface implements KRInterface {
 		try {
 			return new KRInterfaceParser4(r, info);
 		} catch (IOException e) {
-			throw new ParserException(
-					"failed to parse the reader data as SWI Prolog.", info, e);
+			throw new ParserException("failed to parse the reader data as SWI Prolog.", info, e);
 		}
 	}
 
@@ -169,8 +150,7 @@ public final class SwiPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
-			Set<Query> queries) {
+	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries) {
 		Analyzer analyzer = new Analyzer(dbfs, queries);
 		analyzer.analyze();
 		return analyzer.getUnused();
