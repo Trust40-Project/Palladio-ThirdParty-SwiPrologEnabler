@@ -78,6 +78,8 @@ public final class SwiInstaller {
 		 */
 		new Query("set_prolog_flag(debug_on_error,false).").allSolutions();
 		new Query("use_module(library(aggregate)).").allSolutions();
+		new Query("use_module(library(arithmetic)).").allSolutions();
+		new Query("use_module(library(random)).").allSolutions();
 
 		// Finished
 		initialized = true;
