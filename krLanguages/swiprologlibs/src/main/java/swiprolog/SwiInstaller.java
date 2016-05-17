@@ -77,7 +77,7 @@ public final class SwiInstaller {
 		 * imports all libraries that are important for practical use.
 		 */
 		new Query("set_prolog_flag(debug_on_error,false)," + "use_module(library(aggregate)),"
-				+ "use_module(library(arithmetic))," + "use_module(library(random)).").allSolutions();
+				+ "use_module(library(listing))," + "use_module(library(random)).").allSolutions();
 		// Finished
 		initialized = true;
 	}
