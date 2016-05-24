@@ -47,7 +47,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<antlr.version>4.5.2-1</antlr.version>
+		<antlr.version>4.5.3</antlr.version>
 	</properties>
 
 	<repositories>
