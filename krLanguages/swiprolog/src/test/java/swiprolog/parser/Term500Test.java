@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.Reader;
 import java.io.StringReader;
 
-import org.antlr.v4.runtime.atn.PredictionMode;
 import org.junit.Test;
 
 import krTools.exceptions.ParserException;
@@ -40,7 +39,7 @@ public class Term500Test {
 	 */
 	private Parser4 getParser(Reader textStream) throws Exception {
 		Parser4 parser = new Parser4(textStream, null);
-		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+		parser.switchToFullLL();
 		return parser;
 	}
 

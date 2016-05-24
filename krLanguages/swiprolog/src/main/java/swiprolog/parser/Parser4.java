@@ -8,6 +8,7 @@ import java.util.TreeSet;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
@@ -17,8 +18,9 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
-import org.antlr.v4.runtime.atn.ParserATNSimulator;
+import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.dfa.DFA;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import krTools.exceptions.ParserException;
 import krTools.parser.SourceInfo;
@@ -47,6 +49,7 @@ public class Parser4 implements ANTLRErrorListener {
 	private final SourceInfo sourceInfo;
 	private final ANTLRInputStream stream;
 	private final Lexer lexer;
+	private final CommonTokenStream tokens;
 
 	/**
 	 * Constructor. Adjusts the tokeniser input stream position matching the
@@ -76,10 +79,13 @@ public class Parser4 implements ANTLRErrorListener {
 		this.lexer.setLine(this.sourceInfo.getLineNumber());
 		this.lexer.setCharPositionInLine(this.sourceInfo.getCharacterPosition() + 1);
 
-		this.parser = new Prolog4Parser(new CommonTokenStream(this.lexer));
-		this.parser.setErrorHandler(new ErrorStrategy4());
+		this.tokens = new CommonTokenStream(this.lexer);
+		this.parser = new Prolog4Parser(this.tokens);
+		// First try with simpler/faster SLL(*)
+		this.parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+		// We don't want error messages or recovery during first try
 		this.parser.removeErrorListeners();
-		this.parser.addErrorListener(this);
+		this.parser.setErrorHandler(new BailErrorStrategy());
 	}
 
 	/**
@@ -119,10 +125,6 @@ public class Parser4 implements ANTLRErrorListener {
 	 */
 	public boolean isSuccess() {
 		return this.errors.isEmpty();
-	}
-
-	public ParserATNSimulator getInterpreter() {
-		return this.parser.getInterpreter();
 	}
 
 	/**
@@ -227,33 +229,73 @@ public class Parser4 implements ANTLRErrorListener {
 			ATNConfigSet configs) {
 	}
 
+	public void switchToFullLL() {
+		// First rewind the token stream
+		this.tokens.reset();
+		// Use full (custom) error reporting now
+		this.parser.setErrorHandler(new ErrorStrategy4());
+		this.parser.addErrorListener(this);
+		// Now try full LL(*)
+		this.parser.getInterpreter().setPredictionMode(PredictionMode.LL);
+	}
+
 	/************** Actual public Parser functionality *******************/
 	public Term0Context term0() {
-		Term0Context t = this.parser.term0();
+		Term0Context t;
+		try {
+			t = this.parser.term0();
+		} catch (ParseCancellationException e) {
+			switchToFullLL();
+			t = this.parser.term0();
+		}
 		checkEndOfInputReached();
 		return t;
 	}
 
 	public PossiblyEmptyConjunctContext possiblyEmptyConjunct() {
-		PossiblyEmptyConjunctContext t = this.parser.possiblyEmptyConjunct();
+		PossiblyEmptyConjunctContext t;
+		try {
+			t = this.parser.possiblyEmptyConjunct();
+		} catch (ParseCancellationException e) {
+			switchToFullLL();
+			t = this.parser.possiblyEmptyConjunct();
+		}
 		checkEndOfInputReached();
 		return t;
 	}
 
 	public PrologtextContext prologtext() {
-		PrologtextContext t = this.parser.prologtext();
+		PrologtextContext t;
+		try {
+			t = this.parser.prologtext();
+		} catch (ParseCancellationException e) {
+			switchToFullLL();
+			t = this.parser.prologtext();
+		}
 		checkEndOfInputReached();
 		return t;
 	}
 
 	public PossiblyEmptyDisjunctContext possiblyEmptyDisjunct() {
-		PossiblyEmptyDisjunctContext t = this.parser.possiblyEmptyDisjunct();
+		PossiblyEmptyDisjunctContext t;
+		try {
+			t = this.parser.possiblyEmptyDisjunct();
+		} catch (ParseCancellationException e) {
+			switchToFullLL();
+			t = this.parser.possiblyEmptyDisjunct();
+		}
 		checkEndOfInputReached();
 		return t;
 	}
 
 	public Term1000Context term1000() {
-		Term1000Context t = this.parser.term1000();
+		Term1000Context t;
+		try {
+			t = this.parser.term1000();
+		} catch (ParseCancellationException e) {
+			switchToFullLL();
+			t = this.parser.term1000();
+		}
 		checkEndOfInputReached();
 		return t;
 	}
@@ -262,13 +304,25 @@ public class Parser4 implements ANTLRErrorListener {
 	 * @return parser for term1150. For test purposes.
 	 */
 	public Term1150Context term1150() {
-		Term1150Context t = this.parser.term1150();
+		Term1150Context t;
+		try {
+			t = this.parser.term1150();
+		} catch (ParseCancellationException e) {
+			switchToFullLL();
+			t = this.parser.term1150();
+		}
 		checkEndOfInputReached();
 		return t;
 	}
 
 	public ListtermContext listterm() {
-		ListtermContext t = this.parser.listterm();
+		ListtermContext t;
+		try {
+			t = this.parser.listterm();
+		} catch (ParseCancellationException e) {
+			switchToFullLL();
+			t = this.parser.listterm();
+		}
 		checkEndOfInputReached();
 		return t;
 	}

@@ -72,7 +72,7 @@ public class ErrorReportsTest {
 	public void testBadText() throws Exception {
 		Parser4 parser = getParser("ç");
 		parser.term0();
-
+		System.out.println(parser.getErrors());
 		assertEquals(2, parser.getErrors().size());
 	}
 }
