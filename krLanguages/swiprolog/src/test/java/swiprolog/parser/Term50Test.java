@@ -19,9 +19,6 @@ package swiprolog.parser;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
@@ -31,24 +28,19 @@ import org.junit.Test;
 /**
  * Tests for Prolog4Parser term50
  */
-@SuppressWarnings("deprecation")
 public class Term50Test {
 	/**
 	 * Parses the textStream.
 	 *
 	 * @return The ANTLR parser for the file.
 	 */
-	private Prolog4Parser getParser(InputStream textStream) throws Exception {
-		ANTLRInputStream input = new ANTLRInputStream(textStream);
+	private Prolog4Parser getParser(String text) throws Exception {
+		ANTLRInputStream input = new ANTLRInputStream(text);
 		Prolog4Lexer lexer = new Prolog4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		Prolog4Parser parser = new Prolog4Parser(tokens);
 		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		return parser;
-	}
-
-	private Prolog4Parser getParser(String text) throws Exception {
-		return getParser(new StringBufferInputStream(text));
 	}
 
 	/**
