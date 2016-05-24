@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import jpl.Query;
-
 import org.junit.Test;
+
+import jpl.Query;
 
 /**
  * Test if multiple swi engines can be started in parallel
- * 
+ *
  * @author W.Pasman 9may16
  */
 public class MultiThreadTest {
@@ -69,8 +69,7 @@ public class MultiThreadTest {
 
 		insert(module, "fibo(0,0)");
 		insert(module, "fibo(1,0)");
-		insert(module,
-				"fibo(X,Y):-X>1, X1 is X-1, X2 is X-2, fibo(X1,Y1), fibo(X2,Y2), Y is Y1 + Y2");
+		insert(module, "fibo(X,Y):-X>1, X1 is X-1, X2 is X-2, fibo(X1,Y1), fibo(X2,Y2), Y is Y1 + Y2");
 		query(module, "listing");
 
 		res = query(module, "fibo(22,Y)");

@@ -21,11 +21,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Set;
 
+import org.junit.Test;
+
 import jpl.Variable;
 import krTools.language.Term;
 import krTools.language.Var;
-
-import org.junit.Test;
 
 public class Terms {
 
@@ -50,8 +50,7 @@ public class Terms {
 	@Test
 	public void testFreeVars() {
 		Variable X = new Variable("X");
-		jpl.Term term = new jpl.Compound("q", new jpl.Term[] {
-				new jpl.Atom("p"), X });
+		jpl.Term term = new jpl.Compound("q", new jpl.Term[] { new jpl.Atom("p"), X });
 		Term t = new PrologTerm(term, null);
 		Set<Var> vars = t.getFreeVar();
 		assertEquals(1, vars.size());
@@ -64,8 +63,7 @@ public class Terms {
 	@Test
 	public void testFreeVarsInIs() {
 		Variable X = new Variable("X");
-		jpl.Term term = new jpl.Compound("=", new jpl.Term[] { X,
-				new jpl.Integer(1), });
+		jpl.Term term = new jpl.Compound("=", new jpl.Term[] { X, new jpl.Integer(1), });
 		Term t = new PrologTerm(term, null);
 		Set<Var> vars = t.getFreeVar();
 		assertEquals(1, vars.size());
