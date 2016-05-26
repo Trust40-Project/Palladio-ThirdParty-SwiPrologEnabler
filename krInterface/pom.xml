@@ -22,11 +22,11 @@
 
 	<developers>
 		<developer>
-	    	<name>Koen Hindriks</name>
-	      	<email>k.v.hindriks@gmail.com</email>
-	     	<organization>goalhub</organization>
-	      	<organizationUrl>https://github.com/koenhindriks</organizationUrl>
-	    </developer>
+			<name>Koen Hindriks</name>
+			<email>k.v.hindriks@gmail.com</email>
+			<organization>goalhub</organization>
+			<organizationUrl>https://github.com/koenhindriks</organizationUrl>
+		</developer>
 	</developers>
 
 	<organization>
@@ -40,10 +40,10 @@
 	</issueManagement>
 
 	<scm>
-  		<connection>scm:git:git@github.com:goalhub/krTools.git</connection>
-  		<developerConnection>scm:git:git@github.com:goalhub/krTools.git</developerConnection>
-  		<url>https://github.com:goalhub/krTools</url>
-  	</scm>
+		<connection>scm:git:git@github.com:goalhub/krTools.git</connection>
+		<developerConnection>scm:git:git@github.com:goalhub/krTools.git</developerConnection>
+		<url>https://github.com:goalhub/krTools</url>
+	</scm>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -117,19 +117,19 @@
 			</plugin>
 
 			<plugin>
-		    	<groupId>org.apache.maven.plugins</groupId>
-		      	<artifactId>maven-jar-plugin</artifactId>
-		      	<version>2.6</version>
-		      	<configuration>
-		        	<archive>                   
-		        		<manifest>
-		            		<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-		                	<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-		            	</manifest>
-		        	</archive>
-		    	</configuration>
-		    </plugin>
-			
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -141,7 +141,7 @@
 					<archive>
 						<manifest>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-		                	<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 						</manifest>
 					</archive>
 				</configuration>
@@ -155,7 +155,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
@@ -172,7 +172,8 @@
 				<configuration>
 					<server>github</server>
 					<!-- git commit message -->
-					<message>Maven artifacts for ${project.name} version ${project.version}</message>
+					<message>Maven artifacts for ${project.name} version
+						${project.version}</message>
 					<!-- matches distribution management repository url above -->
 					<outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
 					<!-- remote branch name -->
@@ -200,4 +201,15 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<profile>
+			<id>disable-java8-doclint</id>
+			<activation>
+				<jdk>[1.8,)</jdk>
+			</activation>
+			<properties>
+				<additionalparam>-Xdoclint:none</additionalparam>
+			</properties>
+		</profile>
+	</profiles>
 </project>
