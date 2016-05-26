@@ -447,7 +447,12 @@ public class JPLUtils {
 			return true;
 		}
 		if (term1 instanceof jpl.Atom || term1 instanceof Variable) {
-			return term1.name().equals(term2.name());
+			String t1 = term1.name(), t2 = term2.name();
+			if (t1.equals("_") || t2.equals("_")) {
+				return false;
+			} else {
+				return t1.equals(t2);
+			}
 		}
 		if (term1 instanceof jpl.Integer) {
 			// compare longs, #3399
