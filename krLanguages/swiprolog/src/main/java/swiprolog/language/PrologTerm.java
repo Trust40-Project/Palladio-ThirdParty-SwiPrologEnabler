@@ -52,14 +52,4 @@ public class PrologTerm extends PrologExpression implements Term {
 		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 		return new PrologTerm(term, getSourceInfo());
 	}
-
-	@Override
-	public int hashCode() {
-		return 0; // JPL does not implement Term.hashCode...
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		return (obj instanceof PrologTerm) && getTerm().equals(((PrologTerm) obj).getTerm());
-	}
 }
