@@ -198,26 +198,21 @@ public class JPLUtils {
 		// only compound has concrete implementation of name(). #3463
 		if (!(term instanceof jpl.Compound)) {
 			return false;
-		}
-
-		// CHECK this seems nonsense, jpl.Term objects are not String objects?
-		if (term.equals("&")) {
+		} else if (term.toString().equals("&")) {
 			return false;
-		}
-		if (term.equals(";")) {
+		} else if (term.toString().equals(";")) {
 			return false;
-		}
-		if (term.equals("->")) {
+		} else if (term.toString().equals("->")) {
 			return false;
+		} else {
+			/*
+			 * Arguments must be a D-is-an-arglist see ISO p.132 but all
+			 * arguments must already be PrologTerm and no further checks are
+			 * needed. TODO handle special D-is-a-predication cases. E.g., dewey
+			 * numbers, and other special cases.
+			 */
+			return PrologOperators.is_L_atom(term.name());
 		}
-
-		/*
-		 * Arguments must be a D-is-an-arglist see ISO p.132 but all arguments
-		 * must already be PrologTerm and no further checks are needed. TODO
-		 * handle special D-is-a-predication cases. E.g., dewey numbers, and
-		 * other special cases.
-		 */
-		return PrologOperators.is_L_atom(term.name());
 	}
 
 	/**
@@ -248,10 +243,10 @@ public class JPLUtils {
 			// to the original term.
 			Term term = applySubst(othersubst, thissubst.get(variable));
 			// Add binding if resulting term is not equal to variable.
-			if (!(new jpl.Variable(variable)).equals(term)) {
-				combination.put(variable, term);
-			} else {
+			if (equals(new jpl.Variable(variable), term)) {
 				combination.put(variable, thissubst.get(variable));
+			} else {
+				combination.put(variable, term);
 			}
 		}
 		// Add the bindings of the parameter substitution for variables that are
@@ -260,7 +255,7 @@ public class JPLUtils {
 		for (String variable : othersubst.keySet()) {
 			if (!domain.contains(variable)) {
 				Term term = applySubst(combination, othersubst.get(variable));
-				if (!(new jpl.Variable(variable)).equals(term)) {
+				if (!equals(new jpl.Variable(variable), term)) {
 					combination.put(variable, term);
 				}
 			} else { // two bindings for one and the same variable.
