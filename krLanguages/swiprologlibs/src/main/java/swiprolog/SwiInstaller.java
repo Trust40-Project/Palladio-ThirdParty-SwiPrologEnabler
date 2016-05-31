@@ -76,8 +76,9 @@ public final class SwiInstaller {
 		 * the dependency graphml , you can see that the aggregate library
 		 * imports all libraries that are important for practical use.
 		 */
-		new Query("set_prolog_flag(debug_on_error,false)," + "use_module(library(aggregate)),"
-				+ "use_module(library(listing))," + "use_module(library(random)).").allSolutions();
+		new Query("set_prolog_flag(debug_on_error,false)," + "catch(use_module(library(aggregate)),_,_),"
+				+ "catch(use_module(library(listing)),_,_)," + "catch(use_module(library(random)),_,_).")
+						.allSolutions();
 		// Finished
 		initialized = true;
 	}
