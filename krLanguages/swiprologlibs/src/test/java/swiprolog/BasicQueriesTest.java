@@ -5,11 +5,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Hashtable;
 
-import org.junit.Test;
-
+import jpl.Atom;
+import jpl.Compound;
 import jpl.PrologException;
 import jpl.Query;
+import jpl.Term;
 import jpl.Variable;
+
+import org.junit.Test;
 
 /**
  * A few basic tests to see if SwiInstaller is working as expected
@@ -55,7 +58,8 @@ public class BasicQueriesTest {
 		System.out.println("infinity term: " + inf);
 
 		Variable x = new jpl.Variable("X");
-		Query query = new Query(new jpl.Compound("is", new jpl.Term[] { x, inf }));
+		Query query = new Query(new jpl.Compound("is",
+				new jpl.Term[] { x, inf }));
 		Hashtable[] result = query.allSolutions();
 		System.out.println("query " + query + "->" + result[0]);
 	}
@@ -67,9 +71,39 @@ public class BasicQueriesTest {
 		jpl.Float ten = new jpl.Float(10.0);
 		Variable x = new jpl.Variable("X");
 
-		Query query = new Query(
-				new jpl.Compound("is", new jpl.Term[] { x, new jpl.Compound("/", new jpl.Term[] { ten, inf }) }));
+		Query query = new Query(new jpl.Compound("is", new jpl.Term[] { x,
+				new jpl.Compound("/", new jpl.Term[] { ten, inf }) }));
 		Hashtable[] result1 = query.allSolutions();
 		System.out.println("query " + query + "->" + result1[0]);
 	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testMember() {
+		Variable x = new jpl.Variable("X");
+		Term list = new Compound(".", new Term[] {
+				new jpl.Float(1.1),
+				new Compound(".", new Term[] { new jpl.Float(2.2),
+						new Atom("[]") }) });
+
+		Query query = new Query(new jpl.Compound("member", new jpl.Term[] { x,
+				list }));
+
+		// Query query = new Query("member(X,[1.1,2.2]");
+		Hashtable[] result1 = query.allSolutions();
+		System.out.println("query " + query + "->" + result1[0]);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testRandom() {
+		Variable x = new jpl.Variable("X");
+
+		Query query = new Query(new Compound("random", new Term[] { x }));
+
+		// Query query = new Query("member(X,[1.1,2.2]");
+		Hashtable[] result1 = query.allSolutions();
+		System.out.println("query " + query + "->" + result1[0]);
+	}
+
 }
