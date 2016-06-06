@@ -18,19 +18,30 @@
 package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
+import jpl.Atom;
+import jpl.Compound;
+import jpl.Term;
+import jpl.Util;
 
 import org.junit.Test;
 
-import jpl.Compound;
+import swiprolog.SwiInstaller;
 
 /**
  * Test the pretty printing of terms.
  */
 public class PrettyPrintTest {
+
+	static {
+		SwiInstaller.init();
+	}
+
+	private final static Atom EMPTYLIST = new Atom("[]");
+
 	@Test
 	public void printConjunct() {
-		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("aap"), new jpl.Atom("beer") };
-		Compound term = new jpl.Compound(",", args);
+		Term[] args = new Term[] { new Atom("aap"), new Atom("beer") };
+		Compound term = new Compound(",", args);
 		System.out.println("var1 toString=" + term);
 		assertEquals("aap , beer", JPLUtils.toString(term));
 
@@ -38,36 +49,51 @@ public class PrettyPrintTest {
 
 	@Test
 	public void printConjunct3() {
-		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("b"), new jpl.Atom("c") };
-		jpl.Term[] args2 = new jpl.Term[] { new jpl.Atom("a"), new jpl.Compound(",", args) };
+		Term[] args = new Term[] { new Atom("b"), new Atom("c") };
+		Term[] args2 = new Term[] { new Atom("a"), new Compound(",", args) };
 
-		Compound term = new jpl.Compound(",", args2);
+		Compound term = new Compound(",", args2);
 		assertEquals("a , b , c", JPLUtils.toString(term));
 	}
 
 	@Test
 	public void printClause1() {
-		jpl.Term[] clauseargs = new jpl.Term[] { new jpl.Atom("head"), new jpl.Atom("body") };
+		Term[] clauseargs = new Term[] { new Atom("head"), new Atom("body") };
 
-		Compound clause = new jpl.Compound(":-", clauseargs);
+		Compound clause = new Compound(":-", clauseargs);
 		assertEquals("head :- body", JPLUtils.toString(clause));
 	}
 
 	@Test
 	public void printClause3() {
-		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("b"), new jpl.Atom("c") };
-		jpl.Compound body = new jpl.Compound(",", new jpl.Term[] { new jpl.Atom("a"), new jpl.Compound(",", args) });
+		Term[] args = new Term[] { new Atom("b"), new Atom("c") };
+		Compound body = new Compound(",", new Term[] { new Atom("a"),
+				new Compound(",", args) });
 
-		jpl.Term[] clauseargs = new jpl.Term[] { new jpl.Atom("head"), body };
+		Term[] clauseargs = new Term[] { new Atom("head"), body };
 
-		Compound clause = new jpl.Compound(":-", clauseargs);
+		Compound clause = new Compound(":-", clauseargs);
 		assertEquals("head :- a , b , c", JPLUtils.toString(clause));
 	}
 
 	@Test
 	public void printList() {
-		jpl.Term[] args = new jpl.Term[] { new jpl.Atom("aap"), new jpl.Atom("[]") };
-		Compound term = new jpl.Compound(".", args);
-		assertEquals("[aap]", JPLUtils.toString(term));
+		Term[] args = new Term[] { new Atom("p"), new Atom("[]") };
+		Compound term = new Compound(".", args);
+		assertEquals("[p]", JPLUtils.toString(term));
 	}
+
+	@Test
+	public void printLongerList() {
+		Term list = Util.textToTerm("[a,b,c]");
+		assertEquals("[a,b,c]", JPLUtils.toString(list));
+	}
+
+	@Test
+	public void printListOfList() {
+		String input = "[[a,b,c],[d,e,f]]";
+		Term list = Util.textToTerm(input);
+		assertEquals(input, JPLUtils.toString(list));
+	}
+
 }
