@@ -70,7 +70,8 @@ public class JPLUtils {
 	 * @see PrologOperators.Fixity for a list of f-ixities.
 	 */
 	public static PrologOperators.Fixity getFixity(jpl.Term term) {
-		PrologOperators.Fixity spec = PrologOperators.getFixity(getSignature(term));
+		PrologOperators.Fixity spec = PrologOperators
+				.getFixity(getSignature(term));
 		if (spec == null) {
 			return PrologOperators.Fixity.NOT_OPERATOR;
 		}
@@ -138,7 +139,8 @@ public class JPLUtils {
 		}
 		// Case: Variable
 		if (term.isVariable()) {
-			Term value = (solution == null) ? null : ((Term) solution.get(term.name()));
+			Term value = (solution == null) ? null : ((Term) solution.get(term
+					.name()));
 			if (value == null) {
 				return term;
 			}
@@ -153,7 +155,8 @@ public class JPLUtils {
 			}
 			return new jpl.Compound(term.name(), instantiatedArgs);
 		}
-		throw new IllegalArgumentException("term ' " + term + "' is of an unknown type.");
+		throw new IllegalArgumentException("term ' " + term
+				+ "' is of an unknown type.");
 	}
 
 	/**
@@ -226,7 +229,8 @@ public class JPLUtils {
 	 * @return combined subst, or null if they can not be combined (variable
 	 *         conflict)
 	 */
-	protected static Map<String, Term> combineSubstitutions(Map<String, Term> thissubst, Map<String, Term> othersubst) {
+	protected static Map<String, Term> combineSubstitutions(
+			Map<String, Term> thissubst, Map<String, Term> othersubst) {
 		Map<String, Term> combination = new Hashtable<>();
 
 		// Combining with {@code null}, i.e., failure, yields a failure {@code
@@ -260,7 +264,8 @@ public class JPLUtils {
 				}
 			} else { // two bindings for one and the same variable.
 				// Check whether terms can be unified
-				Map<String, Term> mgu = mgu(othersubst.get(variable), thissubst.get(variable));
+				Map<String, Term> mgu = mgu(othersubst.get(variable),
+						thissubst.get(variable));
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
 				} else { // fail: two different bindings for one and the same
@@ -297,7 +302,8 @@ public class JPLUtils {
 	 */
 	public static List<jpl.Term> getOperands(String operator, jpl.Term term) {
 		List<jpl.Term> list = new LinkedList<>();
-		if (term.isCompound() && term.name().equals(operator) && term.arity() == 2) {
+		if (term.isCompound() && term.name().equals(operator)
+				&& term.arity() == 2) {
 			list.add(term.arg(1));
 			list.addAll(getOperands(operator, term.arg(2)));
 		} else {
@@ -363,8 +369,8 @@ public class JPLUtils {
 	public static jpl.Term createIntegerNumber(long number) {
 		// int or long. Check if it fits
 		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE) {
-			System.out.println(
-					"SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
+			System.out
+					.println("SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
 			return new jpl.Float(number);
 		}
 		return new jpl.Integer(number);
@@ -401,7 +407,8 @@ public class JPLUtils {
 			return Float.toString(((jpl.Float) term).floatValue()).hashCode();
 		}
 		// we're not using anything else.
-		throw new UnsupportedOperationException("the hashcode of '" + term + "' could not be computed.");
+		throw new UnsupportedOperationException("the hashcode of '" + term
+				+ "' could not be computed.");
 	}
 
 	/**
@@ -451,13 +458,16 @@ public class JPLUtils {
 		}
 		if (term1 instanceof jpl.Integer) {
 			// compare longs, #3399
-			return ((jpl.Integer) term1).longValue() == ((jpl.Integer) term2).longValue();
+			return ((jpl.Integer) term1).longValue() == ((jpl.Integer) term2)
+					.longValue();
 		}
 		if (term1 instanceof jpl.Float) {
-			return ((jpl.Float) term1).floatValue() == ((jpl.Float) term2).floatValue();
+			return ((jpl.Float) term1).floatValue() == ((jpl.Float) term2)
+					.floatValue();
 		}
 		// we're not using anything else.
-		throw new UnsupportedOperationException("equals for '" + term1 + "' and '" + term2 + "' is not defined.");
+		throw new UnsupportedOperationException("equals for '" + term1
+				+ "' and '" + term2 + "' is not defined.");
 	}
 
 	/**
@@ -489,7 +499,8 @@ public class JPLUtils {
 			 * Special treatment of (non-empty) lists.
 			 */
 			if (term.name().equals(".") && term.arity() == 2) {
-				return "[" + term.arg(1) + tailToString(term.arg(2)) + "]";
+				return "[" + toString(term.arg(1)) + tailToString(term.arg(2))
+						+ "]";
 			}
 
 			switch (JPLUtils.getFixity(term)) {
@@ -508,7 +519,8 @@ public class JPLUtils {
 			case XFX:
 			case XFY:
 			case YFX:
-				return maybeBracketed(term, 1) + " " + term.name() + " " + maybeBracketed(term, 2);
+				return maybeBracketed(term, 1) + " " + term.name() + " "
+						+ maybeBracketed(term, 2);
 			case XF:
 				return maybeBracketed(term, 1) + " " + term.name() + " ";
 			default:
@@ -630,9 +642,9 @@ public class JPLUtils {
 		if (term.isCompound()) {
 			jpl.Term[] args = term.args();
 			if (!(term.name().equals(".")) || args.length != 2) {
-				return "|" + term; // no good list.
+				return "|" + toString(term); // no good list.
 			}
-			return "," + args[0] + tailToString(args[1]);
+			return "," + toString(args[0]) + tailToString(args[1]);
 		}
 
 		// If we arrive here the remainder is either a var or not a good list.
@@ -677,7 +689,8 @@ public class JPLUtils {
 	 *            the substitutions used so far.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	public static Map<String, Term> unify(jpl.Term x, jpl.Term y, Map<String, Term> s) {
+	public static Map<String, Term> unify(jpl.Term x, jpl.Term y,
+			Map<String, Term> s) {
 		if (s == null) {
 			return null;
 		}
@@ -709,7 +722,8 @@ public class JPLUtils {
 	 *            the substitutions used so far. s must not be null.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	private static Map<String, Term> unifyCompounds(Compound x, Compound y, Map<String, Term> s) {
+	private static Map<String, Term> unifyCompounds(Compound x, Compound y,
+			Map<String, Term> s) {
 		if (x.arity() != y.arity()) {
 			return null;
 		}
@@ -739,7 +753,8 @@ public class JPLUtils {
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
 
-	private static Map<String, Term> unifyVar(Variable var, Term x, Map<String, Term> s) {
+	private static Map<String, Term> unifyVar(Variable var, Term x,
+			Map<String, Term> s) {
 		if (s.containsKey(var.name)) {
 			return unify(s.get(var.name), x, s);
 		}
