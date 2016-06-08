@@ -506,6 +506,7 @@ public class JPLUtils {
 			switch (JPLUtils.getFixity(term)) {
 			case FX:
 			case FY:
+				// if we get here, term is known prefix operator.
 				/*
 				 * "-" is tight binding in which case the extra brackets are not
 				 * needed but the :- is not tight binding so there we need
@@ -519,15 +520,18 @@ public class JPLUtils {
 			case XFX:
 			case XFY:
 			case YFX:
+				// if we get here, term is a known infix operator
 				return maybeBracketed(term, 1) + " " + term.name() + " "
 						+ maybeBracketed(term, 2);
 			case XF:
+				// if we get here, term is a known post-fix operator (we don't
+				// have any currently)
 				return maybeBracketed(term, 1) + " " + term.name() + " ";
 			default:
-				/**
-				 * Default: return functional notation (canonical form).
-				 */
-				String s = term.name() + "(" + maybeBracketedArgument(term, 1);
+				// if we get here, term is not a known operator.
+				// use default prefix functional notation.
+				String s = quotedName(term.name()) + "("
+						+ maybeBracketedArgument(term, 1);
 				for (int i = 2; i <= term.arity(); i++) {
 					s = s + "," + maybeBracketedArgument(term, i);
 				}
@@ -538,6 +542,23 @@ public class JPLUtils {
 
 		// Don't know what this is; throw.
 		throw new UnsupportedOperationException("unknown term '" + term + "'.");
+	}
+
+	/**
+	 * @param name
+	 *            the atom name for printing. ASSUMES the given name is not a
+	 *            known operator (eg ';', ':-', etc, see table 5 in ISO 12311).
+	 *            '.' is not an operator.
+	 * @return name, properly single-quoted if necessary. (known operators
+	 *         should not be quoted).
+	 */
+	private static String quotedName(String name) {
+		// simple names starting with lower case char are not quoted
+		if (name.matches("\\p{Lower}\\w*"))
+			return name;
+		// known operators should not be quoted, but then this should not be
+		// called. others are quoted.
+		return "'" + name + "'";
 	}
 
 	/**
