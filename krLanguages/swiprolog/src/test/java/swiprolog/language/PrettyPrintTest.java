@@ -43,7 +43,8 @@ public class PrettyPrintTest {
 		return Arrays.asList(new Object[][] { { "a, b" }, { "a, b , c" },
 				{ "head :- body" }, { "head :- a , b , c" }, { "[p]" },
 				{ "[a,b,c]" }, { "between(-1,1,X)" }, { "[[a,b,c],[d,e,f]]" },
-				{ "[1,2|4]" }, { "[1,2|3]" }, { "'.'" }, { "3.1415" } });
+				{ "[1,2|4]" }, { "[1,2|3]" }, { "'.'" }, { "3.1415" },
+				{ "- p" }, { ":- p" } });
 	}
 
 	static {
