@@ -51,7 +51,7 @@ public class PrettyPrintTest {
 				{ "'.'(1)" },
 				// terms covering maybeBracketed
 				{ "(a:-b),1" }, { " (a:-b):-c" }, { " a+(b - c)" },
-				{ "(a,b), c" }, { "a + b - c" }
+				{ "(a,b), c" }, { "a + b - c" }, { " - - - - 2" }
 
 		});
 	}

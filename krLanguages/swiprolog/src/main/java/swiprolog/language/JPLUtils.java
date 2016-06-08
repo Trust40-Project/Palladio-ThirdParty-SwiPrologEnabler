@@ -588,16 +588,20 @@ public class JPLUtils {
 			return "(" + argexpression.toString() + ")";
 		}
 		if (argprio == ourprio) {
-			// let's say we have an xfy operator here. The y side can have equal
-			// priority by default,
-			// and that side can be printed without brackets.
-			// but if the x side has same prio that's only possible if there
-			// were brackets.
+			/*
+			 * X arguments need brackets for same prio. Y arguments do not need
+			 * brackets for same prio. Eg, assume we have an xfy operator here.
+			 * The y side can have equal priority by default, and that side can
+			 * be printed without brackets. but if the x side has same prio
+			 * that's only possible if there were brackets.
+			 */
 			switch (JPLUtils.getFixity(term)) {
-			case FX: // args without Y need brackets anyway
+			case FX:
 			case XF:
 			case XFX:
 				return "(" + argexpression.toString() + ")";
+			case FY:
+				break; // argument can have same level of prio.
 			case YFX:
 				if (argument == 2) {
 					return "(" + argexpression.toString() + ")";
@@ -613,7 +617,11 @@ public class JPLUtils {
 						+ " is not a known operator");
 			}
 		}
-
+		/*
+		 * if we get here, the argument does not need bracketing, either because
+		 * it has lower prio or because it has equal prio and the operator
+		 * allows that without brackets.
+		 */
 		return argexpression.toString();
 	}
 
