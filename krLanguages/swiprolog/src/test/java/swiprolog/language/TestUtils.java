@@ -17,7 +17,9 @@
 
 package swiprolog.language;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import jpl.Float;
 
 import org.junit.Test;
 
@@ -34,6 +36,13 @@ public class TestUtils {
 		jpl.Atom constant = new jpl.Atom("Aap");
 		jpl.Term term = JPLUtils.createCompound("var", constant);
 		assertTrue(PrologDatabase.rawquery(term).isEmpty());
+	}
+
+	@Test
+	public void testJPLFloat() throws Exception {
+		Float constant = new jpl.Float(-1.2);
+		// bit weird but let's check anyway...
+		assertEquals("-1.2/0", JPLUtils.getSignature(constant));
 	}
 
 }
