@@ -66,7 +66,7 @@ public class JPLUtils {
 	 *
 	 *
 	 * @return The F-ixity of the term: returns NOT_OPERATOR for non-operator
-	 *         terms.
+	 *         terms. See ISO 12311, table 5.
 	 * @see PrologOperators.Fixity for a list of f-ixities.
 	 */
 	public static PrologOperators.Fixity getFixity(jpl.Term term) {
@@ -79,7 +79,8 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Returns the priority of the main operator of the term.
+	 * Returns the priority of the main operator of the term. See ISO 12311,
+	 * table 5.
 	 *
 	 * @return The priority of the term's operator. Default is 0.
 	 */
@@ -573,7 +574,7 @@ public class JPLUtils {
 	 * p.45 part h 2.
 	 *
 	 * @param term
-	 *            the Term
+	 *            the Term which MUST be known operator.
 	 * @param argument
 	 *            Either 1 or 2 to indicate JPL argument.
 	 */
@@ -592,11 +593,7 @@ public class JPLUtils {
 			// and that side can be printed without brackets.
 			// but if the x side has same prio that's only possible if there
 			// were brackets.
-			PrologOperators.Fixity spec = JPLUtils.getFixity(term);
-			if (spec == null) {
-				return argexpression.toString(); // no spec, no op.
-			}
-			switch (spec) {
+			switch (JPLUtils.getFixity(term)) {
 			case FX: // args without Y need brackets anyway
 			case XF:
 			case XFX:
@@ -611,8 +608,9 @@ public class JPLUtils {
 					return "(" + argexpression.toString() + ")";
 				}
 				break;
-			default:
-				//
+			case NOT_OPERATOR:
+				throw new IllegalArgumentException("bug: " + term.name()
+						+ " is not a known operator");
 			}
 		}
 
