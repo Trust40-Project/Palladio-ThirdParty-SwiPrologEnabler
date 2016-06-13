@@ -19,7 +19,8 @@ import jpl.JPL;
 import jpl.Query;
 
 /**
- * call init() once to install the libraries and prepare SWI for use.
+ * call init() once to install the libraries and prepare SWI for use. Call
+ * init() also when you want to check if the installation is still ok.
  *
  * @author W.Pasman 1dec2014
  */
@@ -35,7 +36,7 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * initialize SWI prolog for use. Unzips dlls and connects them to the
+	 * (re)initialize SWI prolog for use. Unzips dlls and connects them to the
 	 * system. This static function needs to be called once, to get SWI hooked
 	 * up to the java system.
 	 *
@@ -51,8 +52,21 @@ public final class SwiInstaller {
 	 *             exceptions and therefore not declared.
 	 */
 	public static void init() {
-		if (initialized) {
-			return;
+		if (initialized && SwiPath != null) {
+			Path changed = null;
+			try {
+				changed = new ChangeCheck(SwiPath.toPath()).getFile();
+			} catch (IOException e) {
+				// we should never get here. Maybe some permission error?
+				throw new IllegalStateException(
+						"Failed to check SWI installation", e);
+			}
+			if (changed == null) {
+				return;
+			}
+			System.out.println("The SWI Prolog installation in " + SwiPath
+					+ " has been corrupted! Re-installing");
+
 		}
 
 		makeSwiPath();
@@ -172,7 +186,8 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * Unzip a given zip file to /tmp.
+	 * Unzip a given zip file to /tmp. Will overwrite old installation if it
+	 * already exists.
 	 *
 	 * @param zipfilename
 	 * @return temp directory where swi files are contained.
@@ -187,7 +202,7 @@ public final class SwiInstaller {
 		File base = path.toFile();
 
 		if (base.exists()) {
-			return base;
+			delete(base);
 		}
 
 		if (!base.mkdir()) {
@@ -228,6 +243,36 @@ public final class SwiInstaller {
 		fis.close();
 
 		return base;
+	}
+
+	/**
+	 * recursively delete directory and all contents.
+	 * 
+	 * @param base
+	 *            the directory to delete.
+	 */
+	private static void delete(File file) {
+		File[] flist = null;
+
+		if (file == null) {
+			return;
+		} else if (file.isFile()) {
+			file.delete();
+		} else if (!file.isDirectory()) {
+			return;
+		} else {
+			// file is directory. Recursively delete contents first.
+			flist = file.listFiles();
+			if (flist != null && flist.length > 0) {
+				for (File f : flist) {
+					delete(f);
+				}
+			}
+			// then delete this directory
+			file.delete();
+			return;
+		}
+
 	}
 
 	/**
