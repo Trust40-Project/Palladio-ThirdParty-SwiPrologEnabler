@@ -77,8 +77,7 @@ public final class SwiPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Database getDatabase(String name, Collection<DatabaseFormula> content)
-			throws KRDatabaseException {
+	public Database getDatabase(String name, Collection<DatabaseFormula> content) throws KRDatabaseException {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
 		PrologDatabase database = new PrologDatabase(name, content, this);
@@ -105,8 +104,7 @@ public final class SwiPrologInterface implements KRInterface {
 		try {
 			return new KRInterfaceParser4(r, info);
 		} catch (IOException e) {
-			throw new ParserException(
-					"failed to parse the reader data as SWI Prolog.", info, e);
+			throw new ParserException("failed to parse the reader data as SWI Prolog.", info, e);
 		}
 	}
 
@@ -118,7 +116,7 @@ public final class SwiPrologInterface implements KRInterface {
 	 */
 	@Override
 	public void initialize(List<URI> uris) throws KRInitFailedException {
-		SwiInstaller.init();
+
 	}
 
 	/**
@@ -152,8 +150,7 @@ public final class SwiPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs,
-			Set<Query> queries) {
+	public Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries) {
 		Analyzer analyzer = new Analyzer(dbfs, queries);
 		analyzer.analyze();
 		return analyzer.getUnused();
