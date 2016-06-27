@@ -48,7 +48,11 @@ import swiprolog.parser.KRInterfaceParser4;
  */
 public final class SwiPrologInterface implements KRInterface {
 	static {
-		SwiInstaller.init();
+		try {
+			SwiInstaller.init(false);
+		} catch (Exception retry) {
+			SwiInstaller.init(true);
+		}
 	}
 
 	/**
@@ -96,9 +100,6 @@ public final class SwiPrologInterface implements KRInterface {
 		this.databases.remove(db.getName());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public Parser getParser(Reader r, SourceInfo info) throws ParserException {
 		try {
@@ -108,20 +109,11 @@ public final class SwiPrologInterface implements KRInterface {
 		}
 	}
 
-	/**
-	 * Computes predicates that need to be declared dynamically for later
-	 * reference. A SWI Prolog database assumes that all predicates that are
-	 * queried have been either asserted or dynamically declared, otherwise an
-	 * existence_error is produced. FIXME: does nothing?!
-	 */
 	@Override
 	public void initialize(List<URI> uris) throws KRInitFailedException {
 
 	}
 
-	/**
-	 * @throws KRDatabaseException
-	 */
 	@Override
 	public void release() throws KRDatabaseException {
 		for (PrologDatabase db : this.databases.values()) {

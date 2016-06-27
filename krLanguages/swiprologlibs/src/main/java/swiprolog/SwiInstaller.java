@@ -59,7 +59,7 @@ public final class SwiInstaller {
 			return;
 		}
 
-		makeSwiPath();
+		makeSwiPath(force);
 		preLoadDependencies();
 
 		try {
@@ -89,10 +89,10 @@ public final class SwiInstaller {
 		initialized = true;
 	}
 
-	private static void makeSwiPath() throws RuntimeException {
+	private static void makeSwiPath(boolean force) throws RuntimeException {
 		File basedir;
 		try {
-			basedir = unzipToTmp(system + ".zip");
+			basedir = unzipToTmp(system + ".zip", force);
 		} catch (URISyntaxException | IOException e) {
 			throw new RuntimeException("failed to install SWI: ", e);
 		}
@@ -180,12 +180,17 @@ public final class SwiInstaller {
 	 * @throws IOException
 	 * @throws ZipException
 	 */
-	private static File unzipToTmp(String zipfilename) throws URISyntaxException, ZipException, IOException {
+	private static File unzipToTmp(String zipfilename, boolean force)
+			throws URISyntaxException, ZipException, IOException {
 		String tmpdir = System.getProperty("java.io.tmpdir");
 		Path path = Paths.get(tmpdir, "swilibs" + getSourceNumber());
 		File base = path.toFile();
 		if (base.exists()) {
-			return base;
+			if (force) {
+				deleteFolder(base);
+			} else {
+				return base;
+			}
 		}
 
 		if (!base.mkdir()) {
@@ -236,4 +241,17 @@ public final class SwiInstaller {
 		return srcfile.lastModified();
 	}
 
+	public static void deleteFolder(File folder) {
+		File[] files = folder.listFiles();
+		if (files != null) {
+			for (File f : files) {
+				if (f.isDirectory()) {
+					deleteFolder(f);
+				} else {
+					f.delete();
+				}
+			}
+		}
+		folder.delete();
+	}
 }
