@@ -193,11 +193,8 @@ public final class SwiInstaller {
 			}
 		}
 
-		if (!base.mkdir()) {
-			throw new IOException("Can't create tmp directory for SWI at " + base);
-		}
-
 		System.out.println("unzipping SWI prolog libraries (" + zipfilename + ") to " + base);
+		base.mkdir();
 
 		InputStream fis = Thread.currentThread().getContextClassLoader()
 				.getResourceAsStream("swiprolog/" + zipfilename);
@@ -211,7 +208,7 @@ public final class SwiInstaller {
 				// Assume directories are stored parents first then children.
 				// System.err.println("Extracting dir: " + entry.getName());
 				fileInDir.mkdir();
-			} else {
+			} else if (!fileInDir.canRead()) {
 				FileOutputStream fOutput = new FileOutputStream(fileInDir);
 				int count = 0;
 				while ((count = zis.read(buffer)) > 0) {
