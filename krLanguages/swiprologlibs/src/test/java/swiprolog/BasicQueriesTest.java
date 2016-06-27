@@ -21,7 +21,7 @@ import jpl.Variable;
  */
 public class BasicQueriesTest {
 	static {
-		SwiInstaller.init(false);
+		SwiInstaller.init();
 	}
 
 	@Test

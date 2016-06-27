@@ -29,9 +29,13 @@ public final class SwiInstaller {
 	private static boolean initialized = false;
 
 	/**
-	 * This is a utility class. Just call init() once.
+	 * This is a utility class. Just call init().
 	 */
 	private SwiInstaller() {
+	}
+
+	public static void init() {
+		init(false);
 	}
 
 	/**

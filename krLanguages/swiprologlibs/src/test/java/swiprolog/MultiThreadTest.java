@@ -17,7 +17,7 @@ public class MultiThreadTest {
 	private static final int NTHREADS = 88;
 
 	static {
-		SwiInstaller.init(false);
+		SwiInstaller.init();
 	}
 
 	@Test
