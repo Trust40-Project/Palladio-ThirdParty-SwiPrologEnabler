@@ -17,7 +17,7 @@ public class MultiThreadTest {
 	private static final int NTHREADS = 88;
 
 	static {
-		SwiInstaller.init();
+		SwiInstaller.init(false);
 	}
 
 	@Test
@@ -32,7 +32,7 @@ public class MultiThreadTest {
 	@Test
 	public void multiThreadTest() throws InterruptedException {
 		System.out.println("Multi-thread test");
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		for (int n = 0; n < NTHREADS; n++) {
 			threads.add(runThread(n));
 		}
