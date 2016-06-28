@@ -48,8 +48,9 @@ public interface Database {
 	 * @return Set of substitutions. This set is empty if there are no
 	 *         solutions. If there is a one solution without substitutions,
 	 *         returns set with one empty substitution.
+	 * 
 	 * @throws KRQueryFailedException
-	 *             If performing the query failed for some reason.
+	 *             If performing the query failed for some technical reason.
 	 */
 	Set<Substitution> query(Query query) throws KRQueryFailedException;
 
@@ -66,8 +67,12 @@ public interface Database {
 	 * @param formula
 	 *            The database formula to be added. throws KRDatabaseException
 	 *            If formula could not be inserted.
+	 * @return True iff the formula was actually inserted.
+	 *
+	 * @throws KRDatabaseException
+	 *             If something went whilst inserting the formula.
 	 */
-	void insert(DatabaseFormula formula) throws KRDatabaseException;
+	boolean insert(DatabaseFormula formula) throws KRDatabaseException;
 
 	/**
 	 * Removes a formula from the database.
@@ -80,10 +85,12 @@ public interface Database {
 	 *
 	 * @param formula
 	 *            The formula to be removed.
+	 * @return True iff the formula was actually deleted.
+	 *
 	 * @throws KRDatabaseException
-	 *             If formula could not be removed.
+	 *             If something went whilst deleting the formula.
 	 */
-	void delete(DatabaseFormula formula) throws KRDatabaseException;
+	boolean delete(DatabaseFormula formula) throws KRDatabaseException;
 
 	/**
 	 * Cleans up a database. Should free all memory used by the database.

@@ -167,9 +167,12 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	@Override
-	public void insert(DatabaseFormula formula) throws KRDatabaseException {
+	public boolean insert(DatabaseFormula formula) throws KRDatabaseException {
 		if (this.theory.add(formula)) {
 			insert(((PrologDBFormula) formula).getTerm());
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -219,9 +222,12 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	@Override
-	public void delete(DatabaseFormula formula) throws KRDatabaseException {
+	public boolean delete(DatabaseFormula formula) throws KRDatabaseException {
 		if (this.theory.remove(formula)) {
 			delete(((PrologDBFormula) formula).getTerm());
+			return true;
+		} else {
+			return false;
 		}
 	}
 
