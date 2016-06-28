@@ -32,7 +32,6 @@ import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
-import krTools.language.Update;
 import swiprolog.SwiPrologInterface;
 import swiprolog.errors.PrologError;
 import swiprolog.language.JPLUtils;
@@ -175,29 +174,6 @@ public class PrologDatabase implements Database {
 	}
 
 	/**
-	 * Inserts positive literals that are part of the update into the database
-	 * and retracts the negative literals. CHECK maybe it is faster to compile
-	 * to a single large JPL call before
-	 *
-	 * @param update
-	 *            The basic databaseformula, not(databaseformula) or
-	 *            comma-separated list of dtabase formulas. comma-separated as
-	 *            usual in Prolog: (t1,(t2,(t3,(t4...,(..,tn)))))
-	 * @param database
-	 *            The database into which the update has been inserted.
-	 * @throws KRDatabaseException
-	 */
-	@Override
-	public void insert(Update update) throws KRDatabaseException {
-		for (DatabaseFormula formula : update.getDeleteList()) {
-			delete(formula);
-		}
-		for (DatabaseFormula formula : update.getAddList()) {
-			insert(formula);
-		}
-	}
-
-	/**
 	 * Creates JPL term that wraps given term inside "assert(databaseName:term)"
 	 * for clauses, and just databaseName:term for directives (without the :-).
 	 * <p>
@@ -226,16 +202,6 @@ public class PrologDatabase implements Database {
 	}
 
 	// ***************** delete methods ****************/
-
-	@Override
-	public void delete(Update update) throws KRDatabaseException {
-		for (DatabaseFormula formula : update.getAddList()) {
-			delete(formula);
-		}
-		for (DatabaseFormula formula : update.getDeleteList()) {
-			insert(formula);
-		}
-	}
 
 	/**
 	 * <p>

@@ -10,18 +10,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import jpl.Atom;
-import jpl.Term;
 import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Substitution;
-import krTools.language.Update;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.PrologUpdate;
 
 /**
  * Test the {@link UpdateEngine} BELIEFBASE part. Unfortunately we need also the
@@ -84,30 +81,6 @@ public class TestUpdate {
 		PrologQuery query = new PrologQuery(this.aap, null);
 		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
-	}
-
-	/**
-	 * Check that after updating with (not(aap),beer) that there is 1 sentence
-	 * in beliefbase and that 'beer' is true now and 'aap' false.
-	 */
-	@Test
-	public void testUpdate() throws Exception {
-		Update update = new PrologUpdate(
-				new jpl.Compound(",", new Term[] { new jpl.Compound("not", new Term[] { this.aap }), this.beer }),
-				null);
-		this.beliefbase.insert(update);
-
-		// assertEquals(1, beliefbase.getAllSentences().length);
-		// assertEquals(0, knowledgebase.getAllSentences().length);
-
-		// TODO FIXME
-		// PrologQuery query = new PrologQuery(aap);
-		// Set<Substitution> sol = beliefbase.query(query);
-		// assertEquals(sol.size(), 0);
-
-		PrologQuery query2 = new PrologQuery(this.beer, null);
-		Set<Substitution> sol2 = this.beliefbase.query(query2);
-		assertEquals(1, sol2.size());
 	}
 
 	/**

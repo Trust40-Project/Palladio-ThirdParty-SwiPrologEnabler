@@ -25,7 +25,6 @@ import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
-import krTools.language.Update;
 
 /**
  * A database that contains content represented in the KR language. A database
@@ -36,7 +35,6 @@ import krTools.language.Update;
  * </p>
  */
 public interface Database {
-
 	/**
 	 * @return The name of the database.
 	 */
@@ -72,22 +70,6 @@ public interface Database {
 	void insert(DatabaseFormula formula) throws KRDatabaseException;
 
 	/**
-	 * Updates the database with the {@link Update}.
-	 *
-	 * <p>
-	 * After performing the update, the database should entail the information
-	 * added by the update and, in principle, no longer entail the information
-	 * removed from the database.
-	 * </p>
-	 *
-	 * @param update
-	 *            The update made to the database.
-	 * @throws KRDatabaseException
-	 *             If update could not be performed.
-	 */
-	void insert(Update update) throws KRDatabaseException;
-
-	/**
 	 * Removes a formula from the database.
 	 *
 	 * <p>
@@ -104,27 +86,10 @@ public interface Database {
 	void delete(DatabaseFormula formula) throws KRDatabaseException;
 
 	/**
-	 * Updates the database with the {@link Update}.
-	 *
-	 * <p>
-	 * After performing the update, the database should entail the information
-	 * added by the update and, in principle, no longer entail the information
-	 * removed from the database.
-	 * </p>
-	 *
-	 * @param update
-	 *            The update made to the database.
-	 * @throws KRDatabaseException
-	 *             If update could not be performed.
-	 */
-	void delete(Update update) throws KRDatabaseException;
-
-	/**
 	 * Cleans up a database. Should free all memory used by the database.
 	 *
 	 * @throws KRDatabaseException
 	 *             If something went wrong while bringing the database down.
 	 */
 	void destroy() throws KRDatabaseException;
-
 }
