@@ -94,9 +94,9 @@ public class SemanticTools {
 	 * 2. head can not be converted to a predication (@see D-is-a-precication in
 	 * ISO p.132- )<br>
 	 * 3. body can not be converted to a goal<br>
-	 * CHECK 4.
-	 * "The predicate indicator Pred of Head is not that of a dynamic procedure"
-	 * . What does that mean and should we do something to prevent this?
+	 * CHECK 4. "The predicate indicator Pred of Head is not that of a dynamic
+	 * procedure" . What does that mean and should we do something to prevent
+	 * this?
 	 * </p>
 	 * <p>
 	 * ISO section 6.2 also deals with this. Basically it defines directive
@@ -207,6 +207,9 @@ public class SemanticTools {
 					ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(JPLUtils.toString(t)), source);
 		} else if (sig.equals(":-/2")) {
 			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
+					source);
+		} else if (sig.equals(":-/1")) {
+			throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
 					source);
 		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
 			toGoal(t.arg(1), source);

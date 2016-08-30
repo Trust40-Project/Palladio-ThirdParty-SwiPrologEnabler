@@ -95,7 +95,11 @@ public enum ParserErrorMessages {
 	/**
 	 * clauses cant be used as goal
 	 */
-	CLAUSE_NOT_AS_GOAL
+	CLAUSE_NOT_AS_GOAL,
+	/**
+	 * directives can't be goals
+	 */
+	DIRECTIVE_NOT_AS_GOAL
 
 	;
 
