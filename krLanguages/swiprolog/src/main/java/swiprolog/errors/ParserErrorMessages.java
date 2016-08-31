@@ -99,7 +99,11 @@ public enum ParserErrorMessages {
 	/**
 	 * directives can't be goals
 	 */
-	DIRECTIVE_NOT_AS_GOAL
+	DIRECTIVE_NOT_AS_GOAL,
+	/**
+	 * The directive is not supported.
+	 */
+	NOT_SUPPORTED_DIRECTIVE
 
 	;
 

@@ -157,6 +157,10 @@ public class SemanticTools {
 								term.getSourceInfo());
 					}
 				}
+			} else {
+				throw new ParserException(
+						ParserErrorMessages.NOT_SUPPORTED_DIRECTIVE.toReadableString(signature),
+						term.getSourceInfo());
 			}
 		} else if (PrologOperators.prologBuiltin(signature)) {
 			throw new ParserException(ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(signature),
