@@ -223,7 +223,7 @@ public class JPLUtils {
 	 *         term of form '/'(Atom, Integer).
 	 */
 	public static boolean isPredicateIndicator(jpl.Term t) {
-		return t.isCompound() && t.arity() == 2 && t.arg(1).isAtom() && t.arg(2).isInteger();
+		return t.isCompound() && t.name().equals("/") && t.arity() == 2 && t.arg(1).isAtom() && t.arg(2).isInteger();
 	}
 
 	/**
