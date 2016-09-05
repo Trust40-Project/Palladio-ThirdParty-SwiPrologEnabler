@@ -45,9 +45,11 @@ public class ParserException extends Exception implements SourceInfo {
 	 *
 	 * @param msg
 	 *            Informative message about the exception.
+	 * @param file
+	 *            the file that caused the error. Must be not null.
 	 */
-	public ParserException(String msg) {
-		this(msg, null);
+	public ParserException(String msg, File file) {
+		this(msg, new FileSourceInfo(msg, file));
 	}
 
 	/**
@@ -220,4 +222,56 @@ public class ParserException extends Exception implements SourceInfo {
 		boolean position = sourceEqual && lineNrEqual && (info1.getCharacterPosition() < info2.getCharacterPosition());
 		return source || lineNr || position;
 	}
+}
+
+/**
+ * Substitute SourceInfo if we receive only file .
+ *
+ */
+class FileSourceInfo implements SourceInfo {
+
+	private File source;
+	private String message;
+
+	public FileSourceInfo(String mess, File file) {
+		if (file == null)
+			throw new NullPointerException("file=null");
+		this.source = file;
+	}
+
+	@Override
+	public int compareTo(SourceInfo o) {
+		return source.compareTo(o.getSource());
+	}
+
+	@Override
+	public File getSource() {
+		return source;
+	}
+
+	@Override
+	public int getLineNumber() {
+		return 0;
+	}
+
+	@Override
+	public int getCharacterPosition() {
+		return 0;
+	}
+
+	@Override
+	public int getStartIndex() {
+		return 0;
+	}
+
+	@Override
+	public int getStopIndex() {
+		return 0;
+	}
+
+	@Override
+	public String getMessage() {
+		return message;
+	}
+
 }

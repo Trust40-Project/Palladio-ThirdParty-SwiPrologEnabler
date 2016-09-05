@@ -16,6 +16,7 @@
  */
 package swiprolog.validator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jpl.Term;
@@ -158,8 +159,7 @@ public class SemanticTools {
 					}
 				}
 			} else {
-				throw new ParserException(
-						ParserErrorMessages.NOT_SUPPORTED_DIRECTIVE.toReadableString(signature),
+				throw new ParserException(ParserErrorMessages.NOT_SUPPORTED_DIRECTIVE.toReadableString(signature),
 						term.getSourceInfo());
 			}
 		} else if (PrologOperators.prologBuiltin(signature)) {
@@ -245,4 +245,52 @@ public class SemanticTools {
 	public static PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
 		return new PrologQuery(toGoal(conjunction.getTerm(), conjunction.getSourceInfo()), conjunction.getSourceInfo());
 	}
+
+	/**
+	 * Extract defined signatures from a term.
+	 * 
+	 * @param term
+	 * @param info
+	 *            the source info of the term. Used when an error message needs
+	 *            to be thrown.
+	 * @return signatures of defined terms.
+	 * @throws ParserException
+	 */
+	public static List<String> getDefinedSignatures(Term term, SourceInfo info) throws ParserException {
+		List<String> signatures = new ArrayList<>();
+
+		if (term.isAtom()) {
+			signatures.add(JPLUtils.getSignature(term));
+		} else if (term.isCompound()) {
+			if (term.name().equals(":-")) {
+				switch (term.arity()) {
+				case 1:
+					Term directive = term.arg(1);
+					if (!directive.name().equals("dynamic") || directive.arity() != 1) {
+						throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
+					}
+					for (Term arg : JPLUtils.getOperands(",", directive.arg(1))) {
+						if (!JPLUtils.isPredicateIndicator(arg)) {
+							throw new ParserException("term " + arg + " is not a predicate indicator", info);
+						}
+						signatures.add(JPLUtils.getSignature(arg));
+					}
+					break;
+				case 2:
+					signatures.add(JPLUtils.getSignature(term.arg(1)));
+					break;
+				default:
+					throw new ParserException("':-' can be used only with 1 or 2 terms but found " + term.arity(),
+							info);
+				}
+			} else {
+				// if not :-, it must be a defined predicate.
+				signatures.add(JPLUtils.getSignature(term));
+			}
+		} else {
+			throw new ParserException("expected atom or definition but found '" + term + "'.", info);
+		}
+		return signatures;
+	}
+
 }

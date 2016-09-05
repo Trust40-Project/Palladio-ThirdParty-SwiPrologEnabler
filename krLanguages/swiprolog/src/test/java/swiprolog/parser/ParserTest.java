@@ -19,6 +19,7 @@ package swiprolog.parser;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -26,14 +27,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import krTools.exceptions.ParserException;
-import krTools.language.DatabaseFormula;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import krTools.exceptions.ParserException;
+import krTools.language.DatabaseFormula;
 import swiprolog.SwiInstaller;
 
 /**
@@ -44,16 +44,14 @@ public class ParserTest {
 
 	@Parameters
 	public static Collection<Object[]> data() {
-		return Arrays.asList(new Object[][] { { "p(a, b)" }, { "p(a, b , c)" },
-				{ "head :- body" }, { "head :- a , b , c" }, { "[p]" },
-				{ "[a,b,c]" }, { "bet(-1,1,X)" },
-				{ "[[a,b,c],[d,e,f]]" },
+		return Arrays.asList(new Object[][] { { "p(a, b)" }, { "p(a, b , c)" }, { "head :- body" },
+				{ "head :- a , b , c" }, { "[p]" }, { "[a,b,c]" }, { "bet(-1,1,X)" }, { "[[a,b,c],[d,e,f]]" },
 				// WE CAN NOT PARSE THIS { "[1,2|4]" },
-				{ "head :- X is 1- -1" }, { "head :- X*(-1 , 2)" },
-				{ "head :- X is 1+ -(1+2)" }, { "[p(1,2),3]" }, { "p" },
-				{ "'.'" }
-		// We apparently can't parse terms like "'bla.'" , "p('.'(1,2,3))"
-				});
+				{ "head :- X is 1- -1" }, { "head :- X*(-1 , 2)" }, { "head :- X is 1+ -(1+2)" }, { "[p(1,2),3]" },
+				{ "p" }, { "'.'" }
+				// We apparently can't parse terms like "'bla.'" ,
+				// "p('.'(1,2,3))"
+		});
 	}
 
 	static {
@@ -72,12 +70,10 @@ public class ParserTest {
 		KRInterfaceParser4 parser = new KRInterfaceParser4(r, null);
 		List<DatabaseFormula> terms = parser.parseDBFs();
 		if (!parser.getErrors().isEmpty()) {
-			throw new ParserException("parser error:"
-					+ parser.getErrors().get(0));
+			throw new ParserException("parser error:" + parser.getErrors().get(0), new File("string"));
 		}
 		if (!parser.getWarnings().isEmpty()) {
-			throw new ParserException("parser warning:"
-					+ parser.getWarnings().get(0));
+			throw new ParserException("parser warning:" + parser.getWarnings().get(0), new File("string"));
 		}
 
 		// check the outcome. We glue the terms together again
