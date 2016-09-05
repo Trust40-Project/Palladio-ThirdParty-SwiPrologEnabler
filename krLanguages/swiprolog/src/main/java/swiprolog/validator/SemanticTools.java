@@ -167,14 +167,6 @@ public class SemanticTools {
 					term.getSourceInfo());
 		}
 
-		// check for special directives, and refuse those.
-		String name = signature.substring(0, signature.indexOf('/'));
-		if (PrologOperators.goalProtected(name)) {
-			throw new ParserException(
-					ParserErrorMessages.PROTECTED_PREDICATE.toReadableString(head.toString(), term.toString()),
-					term.getSourceInfo());
-		}
-
 		// try to convert, it will throw if it fails.
 		toGoal(body, term.getSourceInfo());
 		return new PrologDBFormula(term.getTerm(), term.getSourceInfo());
