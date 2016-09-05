@@ -70,8 +70,7 @@ public class JPLUtils {
 	 * @see PrologOperators.Fixity for a list of f-ixities.
 	 */
 	public static PrologOperators.Fixity getFixity(jpl.Term term) {
-		PrologOperators.Fixity spec = PrologOperators
-				.getFixity(getSignature(term));
+		PrologOperators.Fixity spec = PrologOperators.getFixity(getSignature(term));
 		if (spec == null) {
 			return PrologOperators.Fixity.NOT_OPERATOR;
 		}
@@ -100,7 +99,7 @@ public class JPLUtils {
 	 * @return The variables that occur in the term.
 	 */
 	public static Set<Variable> getFreeVar(Term term) {
-		SetWithoutHash<Variable> freeVars = new SetWithoutHash<Variable>();
+		SetWithoutHash<Variable> freeVars = new SetWithoutHash<>();
 
 		if (term.isVariable()) {
 			freeVars.add((jpl.Variable) term);
@@ -140,8 +139,7 @@ public class JPLUtils {
 		}
 		// Case: Variable
 		if (term.isVariable()) {
-			Term value = (solution == null) ? null : ((Term) solution.get(term
-					.name()));
+			Term value = (solution == null) ? null : ((Term) solution.get(term.name()));
 			if (value == null) {
 				return term;
 			}
@@ -156,8 +154,7 @@ public class JPLUtils {
 			}
 			return new jpl.Compound(term.name(), instantiatedArgs);
 		}
-		throw new IllegalArgumentException("term ' " + term
-				+ "' is of an unknown type.");
+		throw new IllegalArgumentException("term ' " + term + "' is of an unknown type.");
 	}
 
 	/**
@@ -220,6 +217,16 @@ public class JPLUtils {
 	}
 
 	/**
+	 * @param t
+	 *            term to check
+	 * @return true iff the term is a predicate indicator as with ISO 3.90: a
+	 *         term of form '/'(Atom, Integer).
+	 */
+	public static boolean isPredicateIndicator(jpl.Term t) {
+		return t.isCompound() && t.arity() == 2 && t.arg(1).isAtom() && t.arg(2).isInteger();
+	}
+
+	/**
 	 * Try to combine two substitutions into a new substi.
 	 * <p>
 	 * The map that we return contains String as key objects, because
@@ -230,8 +237,7 @@ public class JPLUtils {
 	 * @return combined subst, or null if they can not be combined (variable
 	 *         conflict)
 	 */
-	protected static Map<String, Term> combineSubstitutions(
-			Map<String, Term> thissubst, Map<String, Term> othersubst) {
+	protected static Map<String, Term> combineSubstitutions(Map<String, Term> thissubst, Map<String, Term> othersubst) {
 		Map<String, Term> combination = new Hashtable<>();
 
 		// Combining with {@code null}, i.e., failure, yields a failure {@code
@@ -265,8 +271,7 @@ public class JPLUtils {
 				}
 			} else { // two bindings for one and the same variable.
 				// Check whether terms can be unified
-				Map<String, Term> mgu = mgu(othersubst.get(variable),
-						thissubst.get(variable));
+				Map<String, Term> mgu = mgu(othersubst.get(variable), thissubst.get(variable));
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
 				} else { // fail: two different bindings for one and the same
@@ -303,8 +308,7 @@ public class JPLUtils {
 	 */
 	public static List<jpl.Term> getOperands(String operator, jpl.Term term) {
 		List<jpl.Term> list = new LinkedList<>();
-		if (term.isCompound() && term.name().equals(operator)
-				&& term.arity() == 2) {
+		if (term.isCompound() && term.name().equals(operator) && term.arity() == 2) {
 			list.add(term.arg(1));
 			list.addAll(getOperands(operator, term.arg(2)));
 		} else {
@@ -370,8 +374,8 @@ public class JPLUtils {
 	public static jpl.Term createIntegerNumber(long number) {
 		// int or long. Check if it fits
 		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE) {
-			System.out
-					.println("SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
+			System.out.println(
+					"SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
 			return new jpl.Float(number);
 		}
 		return new jpl.Integer(number);
@@ -408,8 +412,7 @@ public class JPLUtils {
 			return Float.toString(((jpl.Float) term).floatValue()).hashCode();
 		}
 		// we're not using anything else.
-		throw new UnsupportedOperationException("the hashcode of '" + term
-				+ "' could not be computed.");
+		throw new UnsupportedOperationException("the hashcode of '" + term + "' could not be computed.");
 	}
 
 	/**
@@ -459,16 +462,13 @@ public class JPLUtils {
 		}
 		if (term1 instanceof jpl.Integer) {
 			// compare longs, #3399
-			return ((jpl.Integer) term1).longValue() == ((jpl.Integer) term2)
-					.longValue();
+			return ((jpl.Integer) term1).longValue() == ((jpl.Integer) term2).longValue();
 		}
 		if (term1 instanceof jpl.Float) {
-			return ((jpl.Float) term1).floatValue() == ((jpl.Float) term2)
-					.floatValue();
+			return ((jpl.Float) term1).floatValue() == ((jpl.Float) term2).floatValue();
 		}
 		// we're not using anything else.
-		throw new UnsupportedOperationException("equals for '" + term1
-				+ "' and '" + term2 + "' is not defined.");
+		throw new UnsupportedOperationException("equals for '" + term1 + "' and '" + term2 + "' is not defined.");
 	}
 
 	/**
@@ -500,8 +500,7 @@ public class JPLUtils {
 			 * Special treatment of (non-empty) lists.
 			 */
 			if (term.name().equals(".") && term.arity() == 2) {
-				return "[" + toString(term.arg(1)) + tailToString(term.arg(2))
-						+ "]";
+				return "[" + toString(term.arg(1)) + tailToString(term.arg(2)) + "]";
 			}
 
 			switch (JPLUtils.getFixity(term)) {
@@ -522,8 +521,7 @@ public class JPLUtils {
 			case XFY:
 			case YFX:
 				// if we get here, term is a known infix operator
-				return maybeBracketed(term, 1) + " " + term.name() + " "
-						+ maybeBracketed(term, 2);
+				return maybeBracketed(term, 1) + " " + term.name() + " " + maybeBracketed(term, 2);
 			case XF:
 				// if we get here, term is a known post-fix operator (we don't
 				// have any currently)
@@ -531,8 +529,7 @@ public class JPLUtils {
 			default:
 				// if we get here, term is not a known operator.
 				// use default prefix functional notation.
-				String s = quotedName(term.name()) + "("
-						+ maybeBracketedArgument(term, 1);
+				String s = quotedName(term.name()) + "(" + maybeBracketedArgument(term, 1);
 				for (int i = 2; i <= term.arity(); i++) {
 					s = s + "," + maybeBracketedArgument(term, i);
 				}
@@ -613,8 +610,7 @@ public class JPLUtils {
 				}
 				break;
 			case NOT_OPERATOR:
-				throw new IllegalArgumentException("bug: " + term.name()
-						+ " is not a known operator");
+				throw new IllegalArgumentException("bug: " + term.name() + " is not a known operator");
 			}
 		}
 		/*
@@ -716,8 +712,7 @@ public class JPLUtils {
 	 *            the substitutions used so far.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	public static Map<String, Term> unify(jpl.Term x, jpl.Term y,
-			Map<String, Term> s) {
+	public static Map<String, Term> unify(jpl.Term x, jpl.Term y, Map<String, Term> s) {
 		if (s == null) {
 			return null;
 		}
@@ -749,8 +744,7 @@ public class JPLUtils {
 	 *            the substitutions used so far. s must not be null.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	private static Map<String, Term> unifyCompounds(Compound x, Compound y,
-			Map<String, Term> s) {
+	private static Map<String, Term> unifyCompounds(Compound x, Compound y, Map<String, Term> s) {
 		if (x.arity() != y.arity()) {
 			return null;
 		}
@@ -780,8 +774,7 @@ public class JPLUtils {
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
 
-	private static Map<String, Term> unifyVar(Variable var, Term x,
-			Map<String, Term> s) {
+	private static Map<String, Term> unifyVar(Variable var, Term x, Map<String, Term> s) {
 		if (s.containsKey(var.name)) {
 			return unify(s.get(var.name), x, s);
 		}
