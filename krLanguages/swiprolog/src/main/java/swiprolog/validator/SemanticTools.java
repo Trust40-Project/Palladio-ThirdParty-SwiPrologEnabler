@@ -239,7 +239,9 @@ public class SemanticTools {
 	}
 
 	/**
-	 * Extract defined signatures from a term.
+	 * Extract the defined signature(s) from the term. A signature is defined if
+	 * the databaseformula defines a predicate of that signature (as fact or as
+	 * following from inference.
 	 * 
 	 * @param term
 	 * @param info
@@ -257,23 +259,13 @@ public class SemanticTools {
 			if (term.name().equals(":-")) {
 				switch (term.arity()) {
 				case 1:
-					Term directive = term.arg(1);
-					if (!directive.name().equals("dynamic") || directive.arity() != 1) {
-						throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
-					}
-					for (Term arg : JPLUtils.getOperands(",", directive.arg(1))) {
-						if (!JPLUtils.isPredicateIndicator(arg)) {
-							throw new ParserException("term " + arg + " is not a predicate indicator", info);
-						}
-						signatures.add(JPLUtils.getSignature(arg));
-					}
 					break;
 				case 2:
 					signatures.add(JPLUtils.getSignature(term.arg(1)));
 					break;
 				default:
-					throw new ParserException("':-' can be used only with 1 or 2 terms but found " + term.arity(),
-							info);
+					// ':-' has prolog meaning only with 1 or 2 terms. ignore
+					break;
 				}
 			} else {
 				// if not :-, it must be a defined predicate.
@@ -281,6 +273,31 @@ public class SemanticTools {
 			}
 		} else {
 			throw new ParserException("expected atom or definition but found '" + term + "'.", info);
+		}
+		return signatures;
+	}
+
+	/**
+	 * Extract the signatures of dynamic declarations from the term.
+	 * 
+	 * @param term
+	 * @param info
+	 * @return declared but undefined signatures
+	 * @throws ParserException
+	 */
+	public static List<String> getDeclaredSignatures(Term term, SourceInfo info) throws ParserException {
+		List<String> signatures = new ArrayList<>();
+		if (term.isCompound() && term.name().equals(":-") && term.arity() == 1) {
+			Term directive = term.arg(1);
+			if (!directive.name().equals("dynamic") || directive.arity() != 1) {
+				throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
+			}
+			for (Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {
+				if (!JPLUtils.isPredicateIndicator(signatureterm)) {
+					throw new ParserException("term " + signatureterm + " is not a predicate indicator", info);
+				}
+				signatures.add(signatureterm.arg(1) + "/" + signatureterm.arg(2));
+			}
 		}
 		return signatures;
 	}
