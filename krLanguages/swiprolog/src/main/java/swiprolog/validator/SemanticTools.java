@@ -16,6 +16,7 @@
  */
 package swiprolog.validator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jpl.Term;
@@ -94,9 +95,9 @@ public class SemanticTools {
 	 * 2. head can not be converted to a predication (@see D-is-a-precication in
 	 * ISO p.132- )<br>
 	 * 3. body can not be converted to a goal<br>
-	 * CHECK 4.
-	 * "The predicate indicator Pred of Head is not that of a dynamic procedure"
-	 * . What does that mean and should we do something to prevent this?
+	 * CHECK 4. "The predicate indicator Pred of Head is not that of a dynamic
+	 * procedure" . What does that mean and should we do something to prevent
+	 * this?
 	 * </p>
 	 * <p>
 	 * ISO section 6.2 also deals with this. Basically it defines directive
@@ -157,17 +158,12 @@ public class SemanticTools {
 								term.getSourceInfo());
 					}
 				}
+			} else {
+				throw new ParserException(ParserErrorMessages.NOT_SUPPORTED_DIRECTIVE.toReadableString(signature),
+						term.getSourceInfo());
 			}
 		} else if (PrologOperators.prologBuiltin(signature)) {
 			throw new ParserException(ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(signature),
-					term.getSourceInfo());
-		}
-
-		// check for special directives, and refuse those.
-		String name = signature.substring(0, signature.indexOf('/'));
-		if (PrologOperators.goalProtected(name)) {
-			throw new ParserException(
-					ParserErrorMessages.PROTECTED_PREDICATE.toReadableString(head.toString(), term.toString()),
 					term.getSourceInfo());
 		}
 
@@ -208,6 +204,9 @@ public class SemanticTools {
 		} else if (sig.equals(":-/2")) {
 			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
 					source);
+		} else if (sig.equals(":-/1")) {
+			throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
+					source);
 		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
 			toGoal(t.arg(1), source);
 			toGoal(t.arg(2), source);
@@ -238,4 +237,69 @@ public class SemanticTools {
 	public static PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
 		return new PrologQuery(toGoal(conjunction.getTerm(), conjunction.getSourceInfo()), conjunction.getSourceInfo());
 	}
+
+	/**
+	 * Extract the defined signature(s) from the term. A signature is defined if
+	 * the databaseformula defines a predicate of that signature (as fact or as
+	 * following from inference.
+	 * 
+	 * @param term
+	 * @param info
+	 *            the source info of the term. Used when an error message needs
+	 *            to be thrown.
+	 * @return signatures of defined terms.
+	 * @throws ParserException
+	 */
+	public static List<String> getDefinedSignatures(Term term, SourceInfo info) throws ParserException {
+		List<String> signatures = new ArrayList<>();
+
+		if (term.isAtom()) {
+			signatures.add(JPLUtils.getSignature(term));
+		} else if (term.isCompound()) {
+			if (term.name().equals(":-")) {
+				switch (term.arity()) {
+				case 1:
+					break;
+				case 2:
+					signatures.add(JPLUtils.getSignature(term.arg(1)));
+					break;
+				default:
+					// ':-' has prolog meaning only with 1 or 2 terms. ignore
+					break;
+				}
+			} else {
+				// if not :-, it must be a defined predicate.
+				signatures.add(JPLUtils.getSignature(term));
+			}
+		} else {
+			throw new ParserException("expected atom or definition but found '" + term + "'.", info);
+		}
+		return signatures;
+	}
+
+	/**
+	 * Extract the signatures of dynamic declarations from the term.
+	 * 
+	 * @param term
+	 * @param info
+	 * @return declared but undefined signatures
+	 * @throws ParserException
+	 */
+	public static List<String> getDeclaredSignatures(Term term, SourceInfo info) throws ParserException {
+		List<String> signatures = new ArrayList<>();
+		if (term.isCompound() && term.name().equals(":-") && term.arity() == 1) {
+			Term directive = term.arg(1);
+			if (!directive.name().equals("dynamic") || directive.arity() != 1) {
+				throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
+			}
+			for (Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {
+				if (!JPLUtils.isPredicateIndicator(signatureterm)) {
+					throw new ParserException("term " + signatureterm + " is not a predicate indicator", info);
+				}
+				signatures.add(signatureterm.arg(1) + "/" + signatureterm.arg(2));
+			}
+		}
+		return signatures;
+	}
+
 }
