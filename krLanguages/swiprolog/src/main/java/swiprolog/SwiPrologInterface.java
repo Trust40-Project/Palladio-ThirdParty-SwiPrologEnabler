@@ -50,7 +50,7 @@ public final class SwiPrologInterface implements KRInterface {
 	static {
 		try {
 			SwiInstaller.init(false);
-		} catch (Exception retry) {
+		} catch (Throwable retry) {
 			SwiInstaller.init(true);
 		}
 	}
