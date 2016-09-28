@@ -7,7 +7,7 @@
   <artifactId>owlrepo</artifactId>
   <name>owl repo impl</name>
   <packaging>jar</packaging>
-  <version>1.0.0</version>
+  <version>1.0.0-SNAPSHOT</version>
   <url>https://github.com/goalhub/krTools/tree/master/krLanguages/owlrepo</url>
   
   <properties>
@@ -59,7 +59,7 @@
   	<dependency>
   		<groupId>com.github.goalhub.krTools</groupId>
   		<artifactId>krInterface</artifactId>
-  		<version>1.2.0</version>
+  		<version>1.2.3-SNAPSHOT</version>
   	</dependency>
     
 
