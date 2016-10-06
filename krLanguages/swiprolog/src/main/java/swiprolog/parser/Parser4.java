@@ -45,7 +45,7 @@ import swiprolog.parser.Prolog4Parser.Term1150Context;
  */
 public class Parser4 implements ANTLRErrorListener {
 	private final Prolog4Parser parser;
-	private final SortedSet<ParserException> errors = new TreeSet<ParserException>();
+	private final SortedSet<ParserException> errors = new TreeSet<>();
 	private final SourceInfo sourceInfo;
 	private final ANTLRInputStream stream;
 	private final Lexer lexer;
@@ -71,7 +71,7 @@ public class Parser4 implements ANTLRErrorListener {
 			this.sourceInfo = info;
 		}
 		this.stream = new ANTLRInputStream(reader);
-		this.stream.name = (this.sourceInfo.getSource() == null) ? "" : this.sourceInfo.getSource().getPath();
+		this.stream.name = (this.sourceInfo.getSource() == null) ? "" : this.sourceInfo.getSource();
 
 		this.lexer = new Prolog4Lexer(this.stream);
 		this.lexer.removeErrorListeners();

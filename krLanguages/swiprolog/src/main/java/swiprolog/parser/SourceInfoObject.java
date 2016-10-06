@@ -1,18 +1,16 @@
 package swiprolog.parser;
 
-import java.io.File;
-
 import krTools.parser.SourceInfo;
 
 public class SourceInfoObject implements SourceInfo {
-	private final File sourceFile;
+	private final String sourceFile;
 	private final int lineNr;
 	private final int charPos;
 	private final int start;
 	private final int end;
 	private final String msg = new String();
 
-	public SourceInfoObject(File file, int lineNr, int charPos, int start, int end) {
+	public SourceInfoObject(String file, int lineNr, int charPos, int start, int end) {
 		this.sourceFile = file;
 		this.lineNr = lineNr;
 		this.charPos = charPos;
@@ -21,7 +19,7 @@ public class SourceInfoObject implements SourceInfo {
 	}
 
 	@Override
-	public File getSource() {
+	public String getSource() {
 		return this.sourceFile;
 	}
 
@@ -59,7 +57,7 @@ public class SourceInfoObject implements SourceInfo {
 		builder.append(this.charPos);
 		if (this.sourceFile != null) {
 			builder.append(" in ");
-			builder.append(this.sourceFile.getName());
+			builder.append(this.sourceFile);
 		}
 		return builder.toString();
 	}
@@ -89,7 +87,7 @@ public class SourceInfoObject implements SourceInfo {
 		if (this.sourceFile == null) {
 			return that.sourceFile == null;
 		} else {
-			return this.sourceFile.getAbsoluteFile().equals(that.sourceFile.getAbsoluteFile());
+			return this.sourceFile.equals(that.sourceFile);
 		}
 	}
 
