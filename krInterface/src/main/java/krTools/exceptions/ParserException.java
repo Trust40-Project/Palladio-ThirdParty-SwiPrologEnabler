@@ -86,7 +86,7 @@ public class ParserException extends Exception implements SourceInfo {
 	 *         available.
 	 */
 	@Override
-	public File getSource() {
+	public String getSource() {
 		if (this.info != null) {
 			return this.info.getSource();
 		} else {
@@ -214,9 +214,9 @@ public class ParserException extends Exception implements SourceInfo {
 	 */
 	private static boolean before(SourceInfo info1, SourceInfo info2) {
 		boolean source = info1.getSource() != null && info2.getSource() != null
-				&& (info1.getSource().getName().compareTo(info2.getSource().getName()) < 0);
+				&& (info1.getSource().compareTo(info2.getSource()) < 0);
 		boolean sourceEqual = info1.getSource() != null && info2.getSource() != null
-				&& (info1.getSource().getName().compareTo(info2.getSource().getName()) == 0);
+				&& (info1.getSource().compareTo(info2.getSource()) == 0);
 		boolean lineNr = sourceEqual && (info1.getLineNumber() < info2.getLineNumber());
 		boolean lineNrEqual = (info1.getLineNumber() == info2.getLineNumber());
 		boolean position = sourceEqual && lineNrEqual && (info1.getCharacterPosition() < info2.getCharacterPosition());
@@ -229,24 +229,24 @@ public class ParserException extends Exception implements SourceInfo {
  *
  */
 class FileSourceInfo implements SourceInfo {
-
-	private File source;
+	private String source;
 	private String message;
 
 	public FileSourceInfo(String mess, File file) {
-		if (file == null)
+		if (file == null) {
 			throw new NullPointerException("file=null");
-		this.source = file;
+		}
+		this.source = file.getPath();
 	}
 
 	@Override
 	public int compareTo(SourceInfo o) {
-		return source.compareTo(o.getSource());
+		return this.source.compareTo(o.getSource());
 	}
 
 	@Override
-	public File getSource() {
-		return source;
+	public String getSource() {
+		return this.source;
 	}
 
 	@Override
@@ -271,7 +271,7 @@ class FileSourceInfo implements SourceInfo {
 
 	@Override
 	public String getMessage() {
-		return message;
+		return this.message;
 	}
 
 }

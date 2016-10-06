@@ -59,11 +59,11 @@ import java.io.File;
  */
 public interface SourceInfo extends Comparable<SourceInfo> {
 	/**
-	 * Get the source file of this SourceInfo.
+	 * Get the source path of this SourceInfo.
 	 *
 	 * @return The source that this info is associated with.
 	 */
-	public File getSource();
+	public String getSource();
 
 	/**
 	 * Get the line number of this SourceInfo.
