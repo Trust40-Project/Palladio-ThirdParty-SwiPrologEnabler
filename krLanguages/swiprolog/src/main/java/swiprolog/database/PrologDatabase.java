@@ -362,8 +362,7 @@ public class PrologDatabase implements Database {
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
-		}
-		if (getClass() != obj.getClass()) {
+		} else if (obj == null || !(obj instanceof PrologDatabase)) {
 			return false;
 		}
 		PrologDatabase other = (PrologDatabase) obj;
