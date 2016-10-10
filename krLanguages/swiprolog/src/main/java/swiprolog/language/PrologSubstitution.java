@@ -17,10 +17,11 @@
 
 package swiprolog.language;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -95,7 +96,7 @@ public class PrologSubstitution implements Substitution {
 	}
 
 	/**
-	 * Returns the set of {@link Var}iables bound by this
+	 * Returns the list of {@link Var}iables bound by this
 	 * {@link PrologSubstitution}.
 	 *
 	 * <p>
@@ -105,8 +106,8 @@ public class PrologSubstitution implements Substitution {
 	 * @return The variables in the domain of this substitution.
 	 */
 	@Override
-	public Set<Var> getVariables() {
-		Set<Var> variables = new LinkedHashSet<>(this.jplSubstitution.size());
+	public List<Var> getVariables() {
+		List<Var> variables = new ArrayList<>(this.jplSubstitution.size());
 		// Build VariableTerm from jpl.Variable.
 		for (String varname : this.jplSubstitution.keySet()) {
 			jpl.Variable var = new Variable(varname);

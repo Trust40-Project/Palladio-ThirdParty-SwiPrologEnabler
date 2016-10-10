@@ -18,7 +18,7 @@
 package krTools.language;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 import krTools.KRInterface;
 
@@ -33,11 +33,11 @@ import krTools.KRInterface;
  */
 public interface Substitution {
 	/**
-	 * Returns the set of {@link Var}s bound by this {@link Substitution}.
+	 * Returns the list of {@link Var}s bound by this {@link Substitution}.
 	 *
 	 * @return The variables in the domain of this substitution.
 	 */
-	Set<Var> getVariables();
+	List<Var> getVariables();
 
 	/**
 	 * Returns the term to which the variable is bound, if any.
