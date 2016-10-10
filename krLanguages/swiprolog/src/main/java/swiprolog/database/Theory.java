@@ -18,7 +18,6 @@
 package swiprolog.database;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -64,7 +63,7 @@ public class Theory {
 	 * @return the {@link DatabaseFormula}s in this theory.
 	 */
 	public Set<DatabaseFormula> getFormulas() {
-		return Collections.unmodifiableSet(this.content);
+		return this.content;
 	}
 
 	// *************** insertion methods *************/
@@ -132,21 +131,14 @@ public class Theory {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((this.content == null) ? 0 : this.content.hashCode());
-		return result;
+		return this.content.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof Theory)) {
+		} else if (obj == null || !(obj instanceof Theory)) {
 			return false;
 		}
 		Theory other = (Theory) obj;
