@@ -19,6 +19,7 @@ package krTools.language;
 
 import java.util.Set;
 
+import krTools.parser.ParsedObject;
 import krTools.parser.SourceInfo;
 
 /**
@@ -55,7 +56,7 @@ import krTools.parser.SourceInfo;
  * {@link java.lang.Object#hashCode} and {@link java.lang.Object#equals}.
  * </p>
  */
-public interface Expression {
+public interface Expression extends ParsedObject {
 	/**
 	 * @return String of the form "{operator name}/{arity}" where arity is
 	 *         number of arguments associated with the operator.
@@ -100,5 +101,6 @@ public interface Expression {
 	 * @return A {@link SourceInfo} object with information about the source
 	 *         used to construct this {@link Expression}.
 	 */
+	@Override
 	SourceInfo getSourceInfo();
 }
