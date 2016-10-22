@@ -20,7 +20,6 @@ package krTools.language;
 import java.util.Set;
 
 import krTools.parser.ParsedObject;
-import krTools.parser.SourceInfo;
 
 /**
  * An expression is any grammatically correct string of symbols of a knowledge
@@ -96,11 +95,4 @@ public interface Expression extends ParsedObject {
 	 *         (unifies), or null if unification is impossible.
 	 */
 	Substitution mgu(Expression expression);
-
-	/**
-	 * @return A {@link SourceInfo} object with information about the source
-	 *         used to construct this {@link Expression}.
-	 */
-	@Override
-	SourceInfo getSourceInfo();
 }
