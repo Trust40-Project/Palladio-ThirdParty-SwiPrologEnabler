@@ -21,8 +21,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import jpl.Variable;
@@ -224,8 +226,23 @@ public class PrologSubstitution implements Substitution {
 			if (other.jplSubstitution != null) {
 				return false;
 			}
-		} else if (!this.jplSubstitution.equals(other.jplSubstitution)) {
+		} else if (this.jplSubstitution.size() != other.jplSubstitution.size()) {
 			return false;
+		} else {
+			Iterator<Entry<String, jpl.Term>> i = this.jplSubstitution.entrySet().iterator();
+			while (i.hasNext()) {
+				Entry<String, jpl.Term> e = i.next();
+				if (e.getValue() == null) {
+					if (!(other.jplSubstitution.get(e.getKey()) == null
+							&& other.jplSubstitution.containsKey(e.getKey()))) {
+						return false;
+					}
+				} else {
+					if (!JPLUtils.equals(e.getValue(), other.jplSubstitution.get(e.getKey()))) {
+						return false;
+					}
+				}
+			}
 		}
 		return true;
 	}
