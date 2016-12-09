@@ -211,7 +211,15 @@ public class PrologSubstitution implements Substitution {
 
 	@Override
 	public int hashCode() {
-		return this.jplSubstitution.hashCode();
+		final int prime = 31;
+		int h = 1;
+		Iterator<Entry<String, jpl.Term>> i = this.jplSubstitution.entrySet().iterator();
+		while (i.hasNext()) {
+			Entry<String, jpl.Term> e = i.next();
+			h = prime * h + e.getKey().hashCode();
+			h = prime * h + JPLUtils.hashCode(e.getValue());
+		}
+		return h;
 	}
 
 	@Override
