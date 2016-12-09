@@ -20,7 +20,7 @@ package swiprolog.language;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.SortedMap;
 
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
@@ -97,7 +97,7 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 */
 	@Override
 	public PrologUpdate applySubst(Substitution s) {
-		Map<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+		SortedMap<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
 		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 
 		PrologUpdate update = new PrologUpdate(term, getSourceInfo());

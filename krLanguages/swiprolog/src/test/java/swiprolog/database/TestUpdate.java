@@ -42,7 +42,7 @@ public class TestUpdate {
 	private Database knowledgebase;
 
 	private final Atom aap = new jpl.Atom("aap");
-	private final Atom beer = new jpl.Atom("beer");
+	// private final Atom beer = new jpl.Atom("beer");
 	private final Atom kat = new jpl.Atom("kat");
 
 	@Before
