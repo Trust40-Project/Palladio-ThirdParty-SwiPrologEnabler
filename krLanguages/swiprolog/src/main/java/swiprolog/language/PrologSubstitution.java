@@ -20,12 +20,12 @@ package swiprolog.language;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import jpl.Variable;
 import krTools.language.Substitution;
@@ -52,7 +52,7 @@ public class PrologSubstitution implements Substitution {
 	/**
 	 * Create empty JPL substitution.
 	 */
-	private Map<String, jpl.Term> jplSubstitution = new Hashtable<>();
+	private SortedMap<String, jpl.Term> jplSubstitution = new TreeMap<>();
 
 	/**
 	 * Creates an empty {@link Substitution}.
@@ -78,11 +78,11 @@ public class PrologSubstitution implements Substitution {
 	 * @param solutions
 	 *            JPL substitution.
 	 */
-	private PrologSubstitution(Map<String, jpl.Term> solution) {
+	private PrologSubstitution(SortedMap<String, jpl.Term> solution) {
 		this.jplSubstitution = solution;
 	}
 
-	public static PrologSubstitution getSubstitutionOrNull(Map<String, jpl.Term> solution) {
+	public static PrologSubstitution getSubstitutionOrNull(SortedMap<String, jpl.Term> solution) {
 		if (solution == null) {
 			return null;
 		} else {
@@ -93,7 +93,7 @@ public class PrologSubstitution implements Substitution {
 	/**
 	 * @return A JPL substitution.
 	 */
-	public Map<String, jpl.Term> getJPLSolution() {
+	public SortedMap<String, jpl.Term> getJPLSolution() {
 		return this.jplSubstitution;
 	}
 
@@ -140,7 +140,7 @@ public class PrologSubstitution implements Substitution {
 
 	@Override
 	public Substitution combine(Substitution substitution) {
-		Map<String, jpl.Term> combined = null;
+		SortedMap<String, jpl.Term> combined = null;
 		if (substitution != null) {
 			combined = JPLUtils.combineSubstitutions(this.jplSubstitution,
 					((PrologSubstitution) substitution).getJPLSolution());
@@ -178,7 +178,7 @@ public class PrologSubstitution implements Substitution {
 
 	@Override
 	public PrologSubstitution clone() {
-		return new PrologSubstitution(new Hashtable<>(this.jplSubstitution));
+		return new PrologSubstitution(new TreeMap<>(this.jplSubstitution));
 	}
 
 	/**

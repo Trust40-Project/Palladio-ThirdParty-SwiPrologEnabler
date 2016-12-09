@@ -17,7 +17,7 @@
 
 package swiprolog.language;
 
-import java.util.Map;
+import java.util.SortedMap;
 
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
@@ -54,7 +54,7 @@ public class PrologDBFormula extends PrologExpression implements DatabaseFormula
 
 	@Override
 	public PrologDBFormula applySubst(Substitution substitution) {
-		Map<String, jpl.Term> jplSubstitution = (substitution == null) ? null
+		SortedMap<String, jpl.Term> jplSubstitution = (substitution == null) ? null
 				: ((PrologSubstitution) substitution).getJPLSolution();
 		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
 	}

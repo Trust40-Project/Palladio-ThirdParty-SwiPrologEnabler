@@ -20,7 +20,8 @@ package swiprolog.language;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Hashtable;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.junit.Test;
 
@@ -39,7 +40,7 @@ public class TestPrologSubstitution {
 	 */
 	@Test
 	public void testSubstitution() {
-		Hashtable<String, Term> solution = new Hashtable<>(2);
+		SortedMap<String, Term> solution = new TreeMap<>();
 
 		Variable Y = new Variable("Y");
 		Variable Z = new Variable("Z");
@@ -60,7 +61,7 @@ public class TestPrologSubstitution {
 
 	@Test
 	public void testToString() {
-		Hashtable<String, Term> solution = new Hashtable<>(3);
+		SortedMap<String, Term> solution = new TreeMap<>();
 		PrologSubstitution substitution1 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertTrue(substitution1.getJPLSolution().isEmpty());
 
@@ -88,5 +89,4 @@ public class TestPrologSubstitution {
 		assertEquals(term1, substitution4.getJPLSolution().get(var1.name()));
 		assertEquals(var3, substitution4.getJPLSolution().get(var2.name()));
 	}
-
 }

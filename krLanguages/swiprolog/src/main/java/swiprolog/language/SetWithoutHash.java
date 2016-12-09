@@ -41,6 +41,7 @@ public class SetWithoutHash<T> implements Set<T> {
 		return this.set.toArray();
 	}
 
+	@SuppressWarnings("hiding")
 	@Override
 	public <T> T[] toArray(T[] a) {
 		return this.set.toArray(a);

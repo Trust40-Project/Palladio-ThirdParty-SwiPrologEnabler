@@ -17,7 +17,7 @@
 
 package swiprolog.language;
 
-import java.util.Map;
+import java.util.SortedMap;
 
 import krTools.language.Query;
 import krTools.language.Substitution;
@@ -49,7 +49,7 @@ public class PrologQuery extends PrologExpression implements Query {
 
 	@Override
 	public Query applySubst(Substitution s) {
-		Map<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+		SortedMap<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
 		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
 	}
 

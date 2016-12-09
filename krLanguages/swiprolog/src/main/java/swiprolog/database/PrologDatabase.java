@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeMap;
 
 import jpl.Atom;
 import jpl.PrologException;
@@ -318,7 +319,7 @@ public class PrologDatabase implements Database {
 		// Convert to PrologSubstitution.
 		Set<PrologSubstitution> substitutions = new LinkedHashSet<>(solutions.length);
 		for (Hashtable<String, jpl.Term> solution : solutions) {
-			substitutions.add(PrologSubstitution.getSubstitutionOrNull(solution));
+			substitutions.add(PrologSubstitution.getSubstitutionOrNull(new TreeMap<>(solution)));
 		}
 
 		return substitutions;

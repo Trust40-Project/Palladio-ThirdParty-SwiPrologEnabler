@@ -18,12 +18,11 @@
 package swiprolog.language;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import jpl.Compound;
 import jpl.Term;
@@ -132,7 +131,7 @@ public class JPLUtils {
 	 * @return a copy of t but with all occurences of variables substituted as
 	 *         indicated in the substi map.
 	 */
-	public static jpl.Term applySubst(Map<String, Term> solution, jpl.Term term) {
+	public static jpl.Term applySubst(SortedMap<String, Term> solution, jpl.Term term) {
 		// Cases: Atom, Integer, Float.
 		if (term.isAtom() || term.isInteger() || term.isFloat()) {
 			return term;
@@ -237,14 +236,14 @@ public class JPLUtils {
 	 * @return combined subst, or null if they can not be combined (variable
 	 *         conflict)
 	 */
-	protected static Map<String, Term> combineSubstitutions(Map<String, Term> thissubst, Map<String, Term> othersubst) {
-		Map<String, Term> combination = new Hashtable<>();
-
+	protected static SortedMap<String, Term> combineSubstitutions(SortedMap<String, Term> thissubst,
+			SortedMap<String, Term> othersubst) {
 		// Combining with {@code null}, i.e., failure, yields a failure {@code
 		// null}.
 		if (othersubst == null) {
 			return null;
 		}
+		SortedMap<String, Term> combination = new TreeMap<>();
 
 		// Apply the parameter substitution to this substitution.
 		Set<String> domain = thissubst.keySet();
@@ -271,7 +270,7 @@ public class JPLUtils {
 				}
 			} else { // two bindings for one and the same variable.
 				// Check whether terms can be unified
-				Map<String, Term> mgu = mgu(othersubst.get(variable), thissubst.get(variable));
+				SortedMap<String, Term> mgu = mgu(othersubst.get(variable), thissubst.get(variable));
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
 				} else { // fail: two different bindings for one and the same
@@ -552,8 +551,9 @@ public class JPLUtils {
 	 */
 	private static String quotedName(String name) {
 		// simple names starting with lower case char are not quoted
-		if (name.matches("\\p{Lower}\\w*"))
+		if (name.matches("\\p{Lower}\\w*")) {
 			return name;
+		}
 		// known operators should not be quoted, but then this should not be
 		// called. others are quoted.
 		return "'" + name + "'";
@@ -690,8 +690,8 @@ public class JPLUtils {
 	 *            second term
 	 * @return mgu, or null if no mgu exists.
 	 */
-	public static Map<String, Term> mgu(jpl.Term x, jpl.Term y) {
-		return unify(x, y, new HashMap<String, Term>(0));
+	public static SortedMap<String, Term> mgu(jpl.Term x, jpl.Term y) {
+		return unify(x, y, new TreeMap<String, Term>());
 	}
 
 	/**
@@ -712,7 +712,7 @@ public class JPLUtils {
 	 *            the substitutions used so far.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	public static Map<String, Term> unify(jpl.Term x, jpl.Term y, Map<String, Term> s) {
+	public static SortedMap<String, Term> unify(jpl.Term x, jpl.Term y, SortedMap<String, Term> s) {
 		if (s == null) {
 			return null;
 		}
@@ -744,7 +744,7 @@ public class JPLUtils {
 	 *            the substitutions used so far. s must not be null.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	private static Map<String, Term> unifyCompounds(Compound x, Compound y, Map<String, Term> s) {
+	private static SortedMap<String, Term> unifyCompounds(Compound x, Compound y, SortedMap<String, Term> s) {
 		if (x.arity() != y.arity()) {
 			return null;
 		}
@@ -774,7 +774,7 @@ public class JPLUtils {
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
 
-	private static Map<String, Term> unifyVar(Variable var, Term x, Map<String, Term> s) {
+	private static SortedMap<String, Term> unifyVar(Variable var, Term x, SortedMap<String, Term> s) {
 		if (s.containsKey(var.name)) {
 			return unify(s.get(var.name), x, s);
 		}
