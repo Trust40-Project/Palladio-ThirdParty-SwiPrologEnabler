@@ -1,69 +1,191 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.github.goalhub</groupId>
-  <artifactId>krTools</artifactId>
-  <!-- only modules are under version control -->
-  <version>-</version>
-  <packaging>pom</packaging>
+	<groupId>org.bitbucket.goalhub</groupId>
+	<artifactId>krTools</artifactId>
+	<version>1.2.3-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
-  <name>The Knowledge Representation Tools</name>
-  <url>https://github.com/goalhub/krTools</url>
-  <description>A set of tools that support an interface to various knowledge representation (KR) technologies. The interface provides support for: (i) processing (e.g., parsing) a KR language, (ii) storage in a related KR database, (iii) actions for querying, and updating a KR database.</description>
-  
-  <licenses>
-  	<license>
-    	<name>The GNU General Public License, Version 3.0</name>
-    	<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
-  	</license>
-  </licenses>
-  
-  <developers>
-    <developer>
-      <name>Koen Hindriks</name>
-      <email>k.v.hindriks@gmail.com</email>
-      <organization>goalhub</organization>
-      <organizationUrl>https://github.com/koenhindriks</organizationUrl>
-    </developer>
-  </developers>
-  
-  <organization>
-  	<name>goalhub</name>
-  	<url>https://github.com/goalhub</url>
-  </organization>
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>A set of tools that support an interface to various knowledge representation (KR) technologies. The interface provides support for: (i) processing (e.g., parsing) a KR language, (ii) storage in a related KR database, (iii) actions for querying, and updating a KR database.</description>
+	<url>https://goalapl.atlassian.net/wiki</url>
 
-  <issueManagement>
-  	<url>https://github.com/goalhub/krTools/issues</url>
-  	<system>Github Issues</system>
-  </issueManagement>
-  
-  <scm>
-  	<connection>scm:git:git@github.com:goalhub/krTools.git</connection>
-  	<developerConnection>scm:git:git@github.com:goalhub/krTools.git</developerConnection>
-  	<url>https://github.com:goalhub/krTools</url>
-  </scm>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  
-  <modules>
-    <module>krInterface</module>
-    <module>krFactory</module>
-    <module>krLanguages</module>
-  </modules>
-  
-  <build>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-deploy-plugin</artifactId>
-            <version>2.8.2</version>
-            <configuration>
-                <skip>true</skip>
-            </configuration>
-        </plugin>
-    </plugins>
-  </build>
+	<licenses>
+		<license>
+			<name>The GNU General Public License, Version 3.0</name>
+			<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Koen Hindriks</name>
+			<email>k.v.hindriks@gmail.com</email>
+			<organization>goalhub</organization>
+			<organizationUrl>https://goalapl.atlassian.net/wiki</organizationUrl>
+		</developer>
+	</developers>
+
+	<issueManagement>
+		<url>https://goalapl.atlassian.net</url>
+		<system>GOAL JIRA</system>
+	</issueManagement>
+
+	<scm>
+		<connection>scm:git:git://bitbucket.org/goalhub/krtools.git</connection>
+		<developerConnection>scm:git:ssh://bitbucket.org:goalhub/krtools.git</developerConnection>
+		<url>https://bitbucket.org/goalhub/krtools/src</url>
+	</scm>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<modules>
+		<module>krInterface</module>
+		<module>krFactory</module>
+		<module>krLanguages</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.10</version>
+				<executions>
+					<execution>
+						<id>analyze</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>analyze-only</goal>
+						</goals>
+						<configuration>
+							<failOnWarning>true</failOnWarning>
+							<ignoreNonCompile>true</ignoreNonCompile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>disable-java8-doclint</id>
+			<activation>
+				<jdk>[1.8,)</jdk>
+			</activation>
+			<properties>
+				<additionalparam>-Xdoclint:none</additionalparam>
+			</properties>
+		</profile>
+	</profiles>
 </project>
