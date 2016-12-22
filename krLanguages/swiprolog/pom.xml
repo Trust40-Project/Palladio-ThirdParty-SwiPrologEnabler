@@ -4,9 +4,10 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>swiProlog</artifactId>
+	<groupId>org.bitbucket.goalhub.krTools.krLanguages</groupId>
+	<artifactId>swiprolog</artifactId>
 	<parent>
-		<groupId>org.bitbucket.goalhub.krLanguages</groupId>
+		<groupId>org.bitbucket.goalhub.krTools</groupId>
 		<artifactId>krLanguages</artifactId>
 		<version>1.2.3-SNAPSHOT</version>
 	</parent>
@@ -19,13 +20,13 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.github.goalhub.krTools</groupId>
+			<groupId>${project.parent.groupId}</groupId>
 			<artifactId>krInterface</artifactId>
-			<version>${project.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.goalhub.krTools.krLanguages</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>swiPrologEnabler</artifactId>
 			<version>${project.version}</version>
 		</dependency>
