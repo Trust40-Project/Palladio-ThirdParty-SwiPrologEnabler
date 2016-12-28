@@ -4,4 +4,4 @@ pipelines:
   default:
     - step:
         script:
-          - mvn clean install -Dgpg.skip
+          - mvn clean deploy -Dgpg.skip
