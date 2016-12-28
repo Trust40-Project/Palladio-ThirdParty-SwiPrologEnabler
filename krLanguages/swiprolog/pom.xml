@@ -9,13 +9,13 @@
 	<parent>
 		<groupId>org.bitbucket.goalhub.krTools</groupId>
 		<artifactId>krLanguages</artifactId>
-		<version>1.2.3-SNAPSHOT</version>
+		<version>1.2.3</version>
 	</parent>
 	
 	<description>An implementation of the KR Interface defined in the KR Tools project for SWI Prolog.</description>
 	
 	<properties>
-		<antlr.version>4.5.3</antlr.version>
+		<antlr.version>4.6</antlr.version>
 	</properties>
 
 	<dependencies>
