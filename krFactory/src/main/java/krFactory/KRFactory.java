@@ -107,7 +107,7 @@ public class KRFactory {
 				}
 			}
 		}
-		return null;
+		return "undetermined";
 	}
 
 	/**

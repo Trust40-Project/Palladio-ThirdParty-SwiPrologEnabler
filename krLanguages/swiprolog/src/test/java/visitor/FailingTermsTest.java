@@ -78,7 +78,7 @@ public class FailingTermsTest {
 	// :- is term1200 and paramlist holds term1000
 	public void testTerm1200InListB() throws Exception {
 		checkFailsAsTerm1000("assert(a:-b,c)", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
-				ParserErrorMessages.TERM900.toReadableString()));
+				ParserErrorMessages.TERM0.toReadableString()));
 	}
 
 	@Test
@@ -90,8 +90,7 @@ public class FailingTermsTest {
 	@Test
 	// . % can not accept , as operator.
 	public void testListWithoutFirstArgument() throws Exception {
-		checkFailsAsTerm1000("[,(var(X), X=1), [[X ]]]", ParserErrorMessages.TOKEN_MISSING.toReadableString("']'"));
-		// CHECK why is parser complaining about ] and not about ,?
+		checkFailsAsTerm1000("[,(var(X), X=1), [[X ]]]", ParserErrorMessages.TOKEN_BAD.toReadableString("','"));
 	}
 
 	@Test
