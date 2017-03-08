@@ -17,6 +17,7 @@
 
 package swiprolog.language.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -149,8 +150,8 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	}
 
 	@Override
-	public List<PrologTerm> getOperands(String operator) {
-		List<PrologTerm> list = new LinkedList<>();
+	public List<Term> getOperands(String operator) {
+		List<Term> list = new LinkedList<>();
 		if (getSignature().equals(operator + "/2")) {
 			list.add(getArg(0));
 			PrologTerm next = getArg(1);
@@ -175,7 +176,9 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	}
 
 	@Override
-	public Iterator<PrologTerm> iterator() {
-		return Arrays.asList(this.args).iterator();
+	public Iterator<Term> iterator() {
+		List<Term> asList = new ArrayList<>(getArity());
+		asList.addAll(Arrays.asList(this.args));
+		return asList.iterator();
 	}
 }

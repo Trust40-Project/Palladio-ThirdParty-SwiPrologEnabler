@@ -29,11 +29,12 @@ import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
 import swiprolog.errors.ParserErrorMessages;
-import swiprolog.language.JPLUtils;
+import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
-import swiprolog.language.PrologUpdate;
 import swiprolog.language.PrologVar;
+import swiprolog.language.impl.PrologQueryImpl;
+import swiprolog.language.impl.PrologUpdateImpl;
 import swiprolog.visitor.Visitor4;
 
 /**
@@ -66,10 +67,10 @@ public class Validator4 {
 	 */
 	public Update updateOrEmpty() {
 		PrologTerm conj = this.visitor.visitPossiblyEmptyConjunct();
-		if (conj == null) {
+		if (!(conj instanceof PrologCompound)) {
 			return null;
 		} else if (conj.toString().equals("true")) { // special case.
-			return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
+			return new PrologUpdateImpl((PrologCompound) conj);
 		} else {
 			try {
 				return SemanticTools.conj2Update(conj);
@@ -109,7 +110,7 @@ public class Validator4 {
 		for (PrologTerm t : this.visitor.visitPrologtext()) {
 			// check that each term is a valid Prolog goal / query
 			try {
-				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(), t.getSourceInfo()), t.getSourceInfo()));
+				goals.add(new PrologQueryImpl(SemanticTools.toGoal(t)));
 			} catch (ParserException e) {
 				this.errors.add(e);
 			}
@@ -167,19 +168,11 @@ public class Validator4 {
 	 */
 	public List<Term> terms() {
 		PrologTerm t = this.visitor.visitTerm1000();
-		if (t == null) {
-			return new ArrayList<>(0);
+		if (t instanceof PrologCompound) {
+			// type conversion needed
+			return new ArrayList<>(((PrologCompound) t).getOperands(","));
 		} else {
-			List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
-			List<Term> terms = new ArrayList<>(original.size());
-			for (jpl.Term term : original) {
-				if (term instanceof jpl.Variable) {
-					terms.add(new PrologVar((jpl.Variable) term, t.getSourceInfo()));
-				} else {
-					terms.add(new PrologTerm(term, t.getSourceInfo()));
-				}
-			}
-			return terms;
+			return new ArrayList<>(0);
 		}
 
 	}
@@ -190,7 +183,7 @@ public class Validator4 {
 	 * @return all errors that occurred
 	 */
 	public SortedSet<ParserException> getErrors() {
-		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
+		SortedSet<ParserException> allErrors = new TreeSet<>();
 		allErrors.addAll(this.visitor.getErrors());
 		allErrors.addAll(this.errors);
 		return allErrors;

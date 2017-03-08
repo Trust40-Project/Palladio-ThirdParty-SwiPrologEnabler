@@ -70,26 +70,6 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Workaround for bug in jpl #3399. Create float for large integers.
-	 *
-	 * @param number
-	 *            long number
-	 * @param info
-	 *            source info
-	 * @return term representing the long.
-	 */
-	public static PrologTerm createIntegerNumber(long number, SourceInfo info) {
-		// int or long. Check if it fits
-		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE) {
-			System.out.println(
-					"SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
-			return new PrologFloatImpl(number, info);
-		} else {
-			return new PrologIntImpl(number, info);
-		}
-	}
-
-	/**
 	 * Create most general unifier (mgu) of two terms. The returned most general
 	 * unifier is a substitution which, if applied to both terms, will make the
 	 * terms equal. This algorithm currently will first try to set variables in

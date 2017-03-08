@@ -2,7 +2,9 @@ package swiprolog.language;
 
 import java.util.List;
 
-public interface PrologCompound extends PrologTerm, Iterable<PrologTerm> {
+import krTools.language.Term;
+
+public interface PrologCompound extends PrologTerm, Iterable<Term> {
 	/**
 	 * @return the (unquoted) name of this Compound
 	 */
@@ -48,5 +50,5 @@ public interface PrologCompound extends PrologTerm, Iterable<PrologTerm> {
 	 *            The binary operator.
 	 * @return A list of operands.
 	 */
-	public List<PrologTerm> getOperands(String operator);
+	public List<Term> getOperands(String operator);
 }

@@ -26,10 +26,10 @@ import java.util.Set;
 
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
+import krTools.language.Term;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
 import swiprolog.parser.PrologOperators;
 
@@ -177,7 +177,7 @@ public class Analyzer {
 		} else if (termSig.equals("dynamic/1")) {
 			// recognize predicate declaration(s).
 			PrologCompound firstarg = (PrologCompound) compound.getArg(0);
-			for (PrologTerm dynamicPred : firstarg.getOperands(",")) {
+			for (Term dynamicPred : firstarg.getOperands(",")) {
 				addDefinition(new PrologDBFormulaImpl((PrologCompound) dynamicPred));
 			}
 		} else if (!PrologOperators.prologBuiltin(termSig)) {

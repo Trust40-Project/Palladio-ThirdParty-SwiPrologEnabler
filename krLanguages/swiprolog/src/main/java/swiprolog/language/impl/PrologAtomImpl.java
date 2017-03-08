@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
@@ -103,8 +104,8 @@ public class PrologAtomImpl extends jpl.Atom implements PrologCompound {
 	}
 
 	@Override
-	public List<PrologTerm> getOperands(String operator) {
-		List<PrologTerm> list = new ArrayList<>(1);
+	public List<Term> getOperands(String operator) {
+		List<Term> list = new ArrayList<>(1);
 		list.add(this);
 		return list;
 	}
@@ -120,7 +121,7 @@ public class PrologAtomImpl extends jpl.Atom implements PrologCompound {
 	}
 
 	@Override
-	public Iterator<PrologTerm> iterator() {
+	public Iterator<Term> iterator() {
 		return getOperands(null).iterator();
 	}
 }

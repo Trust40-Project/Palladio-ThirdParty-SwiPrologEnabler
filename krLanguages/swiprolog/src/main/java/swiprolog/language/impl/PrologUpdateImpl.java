@@ -26,11 +26,11 @@ import krTools.language.DatabaseFormula;
 import krTools.language.Expression;
 import krTools.language.Query;
 import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
-import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologUpdate;
 
 /**
@@ -71,7 +71,7 @@ public class PrologUpdateImpl implements PrologUpdate {
 
 		// Sort positive and negative literals, assuming that each conjunct
 		// is a database formula (which should have been checked by the parser).
-		for (PrologTerm conjunct : compound.getOperands(",")) {
+		for (Term conjunct : compound.getOperands(",")) {
 			if (conjunct.getSignature().equals("not/1")) {
 				PrologCompound content = (PrologCompound) ((PrologCompound) conjunct).getArg(0);
 				this.negativeLiterals.add(new PrologDBFormulaImpl(content));

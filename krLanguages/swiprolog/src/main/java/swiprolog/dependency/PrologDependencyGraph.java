@@ -26,6 +26,7 @@ import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
+import krTools.language.Term;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
@@ -167,8 +168,8 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 		} else if (signature.equals(";/2") || signature.equals(",/2") || signature.equals("forall/2")) {
 			// Unpack the conjunction, disjunction and forall /2-operators.
 			PrologCompound content = (PrologCompound) term;
-			for (PrologTerm arg : content) {
-				terms.addAll(unpack(arg));
+			for (Term arg : content) {
+				terms.addAll(unpack((PrologTerm) arg));
 			}
 		} else if (signature.equals("findall/3") || signature.equals("setof/3") || signature.equals("aggregate/3")
 				|| signature.equals("aggregate_all/3")) {
