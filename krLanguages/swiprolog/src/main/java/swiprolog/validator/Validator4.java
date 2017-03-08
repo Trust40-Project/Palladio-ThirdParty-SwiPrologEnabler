@@ -73,7 +73,7 @@ public class Validator4 {
 			return new PrologUpdateImpl((PrologCompound) conj);
 		} else {
 			try {
-				return SemanticTools.conj2Update(conj);
+				return SemanticTools.conj2Update((PrologCompound) conj);
 			} catch (ParserException e) {
 				this.errors.add(e);
 				return null;
@@ -92,7 +92,7 @@ public class Validator4 {
 		List<DatabaseFormula> dbfs = new LinkedList<>();
 		for (PrologTerm t : prologTerms) {
 			try {
-				dbfs.add(SemanticTools.DBFormula(t));
+				dbfs.add(SemanticTools.DBFormula((PrologCompound) t));
 			} catch (ParserException e) {
 				this.errors.add(e);
 			}
@@ -110,7 +110,7 @@ public class Validator4 {
 		for (PrologTerm t : this.visitor.visitPrologtext()) {
 			// check that each term is a valid Prolog goal / query
 			try {
-				goals.add(new PrologQueryImpl(SemanticTools.toGoal(t)));
+				goals.add(new PrologQueryImpl(SemanticTools.toGoal((PrologCompound) t)));
 			} catch (ParserException e) {
 				this.errors.add(e);
 			}
@@ -125,9 +125,9 @@ public class Validator4 {
 	 */
 	public PrologQuery queryOrEmpty() {
 		PrologTerm term = this.visitor.visitPossiblyEmptyDisjunct();
-		if (term != null) {
+		if (term instanceof PrologCompound) {
 			try {
-				return SemanticTools.toQuery(term);
+				return SemanticTools.toQuery((PrologCompound) term);
 			} catch (ParserException e) {
 				this.errors.add(e);
 			}
