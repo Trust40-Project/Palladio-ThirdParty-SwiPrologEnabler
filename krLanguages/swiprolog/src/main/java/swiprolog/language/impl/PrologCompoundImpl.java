@@ -44,7 +44,7 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	/**
 	 *
 	 */
-	private PrologTerm[] args;
+	private Term[] args;
 
 	/**
 	 * Creates a compound with 1 or more arguments.
@@ -56,13 +56,13 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologCompoundImpl(String name, PrologTerm[] args, SourceInfo info) {
+	public PrologCompoundImpl(String name, Term[] args, SourceInfo info) {
 		super(name, jplTypedArray(args));
 		this.info = info;
 		this.args = args;
 	}
 
-	private static jpl.Term[] jplTypedArray(PrologTerm[] args) {
+	private static jpl.Term[] jplTypedArray(Term[] args) {
 		jpl.Term[] jpl = new jpl.Term[args.length];
 		for (int i = 1; i <= args.length; ++i) {
 			jpl[i] = (jpl.Term) args[i];
@@ -86,7 +86,7 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	}
 
 	@Override
-	public PrologTerm getArg(int i) {
+	public Term getArg(int i) {
 		return this.args[i];
 	}
 
@@ -117,7 +117,7 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 		if (sig.equals(":-/2")) {
 			return false;
 		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
-			return getArg(0).isQuery() && getArg(1).isQuery();
+			return ((PrologCompound) getArg(0)).isQuery() && ((PrologCompound) getArg(1)).isQuery();
 		} else {
 			return true;
 		}
@@ -154,7 +154,7 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 		List<Term> list = new LinkedList<>();
 		if (getSignature().equals(operator + "/2")) {
 			list.add(getArg(0));
-			PrologTerm next = getArg(1);
+			PrologTerm next = (PrologTerm) getArg(1);
 			if (next instanceof PrologCompound) {
 				list.addAll(((PrologCompound) next).getOperands(operator));
 			} else {

@@ -18,7 +18,7 @@ public interface PrologCompound extends PrologTerm, Iterable<Term> {
 	/**
 	 * @return the ith argument (counting from 0) of this Compound
 	 */
-	public PrologTerm getArg(int i);
+	public Term getArg(int i);
 
 	/**
 	 * @return true iff D-is-a-predication in ISO p.132-.

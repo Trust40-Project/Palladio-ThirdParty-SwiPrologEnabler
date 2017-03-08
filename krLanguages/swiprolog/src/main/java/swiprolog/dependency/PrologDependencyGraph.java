@@ -63,10 +63,10 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			if (defined) {
 				// List<PrologTerm> args = ((FuncTerm) term).getArguments();
 				// The first argument is the term that is being defined.
-				PrologTerm content1 = term.getArg(0);
+				PrologTerm content1 = (PrologTerm) term.getArg(0);
 				List<Node<PrologTerm>> definitionNode = addTerm(content1, true, false);
 				// The other argument consists of terms that are queried.
-				PrologTerm content2 = term.getArg(1);
+				PrologTerm content2 = (PrologTerm) term.getArg(1);
 				List<Node<PrologTerm>> queryNodes = addTerm(content2, false, true);
 				for (Node<PrologTerm> node : queryNodes) {
 					definitionNode.get(0).addDependency(node);

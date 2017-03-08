@@ -56,12 +56,12 @@ public class JPLUtils {
 	 *            source info
 	 * @return possibly empty conjunct containing the given terms
 	 */
-	public static PrologTerm termsToConjunct(List<PrologTerm> terms, SourceInfo info) {
+	public static PrologCompound termsToConjunct(List<PrologTerm> terms, SourceInfo info) {
 		if (terms.isEmpty()) {
 			return new PrologAtomImpl("true", info);
 		} else {
 			// build up list last to first.
-			PrologTerm list = terms.get(terms.size() - 1); // last
+			PrologCompound list = (PrologCompound) terms.get(terms.size() - 1); // last
 			for (int i = terms.size() - 2; i >= 0; i--) {
 				list = new PrologCompoundImpl(",", new PrologTerm[] { terms.get(i), list }, info);
 			}
@@ -141,7 +141,7 @@ public class JPLUtils {
 			return null;
 		} else {
 			for (int i = 0; i < x.getArity(); ++i) {
-				s = unify(x.getArg(i), y.getArg(i), s);
+				s = unify((PrologTerm) x.getArg(i), (PrologTerm) y.getArg(i), s);
 			}
 			return s;
 		}
