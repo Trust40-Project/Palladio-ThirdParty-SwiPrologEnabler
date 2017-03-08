@@ -24,9 +24,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import jpl.Compound;
-import jpl.Term;
-import jpl.Variable;
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -97,14 +94,14 @@ public class JPLUtils {
 	 *            The term whose variables are returned.
 	 * @return The variables that occur in the term.
 	 */
-	public static Set<Variable> getFreeVar(Term term) {
-		SetWithoutHash<Variable> freeVars = new SetWithoutHash<>();
+	public static Set<jpl.Variable> getFreeVar(jpl.Term term) {
+		SetWithoutHash<jpl.Variable> freeVars = new SetWithoutHash<>();
 
 		if (term.isVariable()) {
 			freeVars.add((jpl.Variable) term);
 		}
 		if (term.isCompound()) {
-			for (Term argument : term.args()) {
+			for (jpl.Term argument : term.args()) {
 				freeVars.addAll(getFreeVar(argument));
 			}
 		}
@@ -131,14 +128,14 @@ public class JPLUtils {
 	 * @return a copy of t but with all occurences of variables substituted as
 	 *         indicated in the substi map.
 	 */
-	public static jpl.Term applySubst(SortedMap<String, Term> solution, jpl.Term term) {
+	public static jpl.Term applySubst(SortedMap<String, jpl.Term> solution, jpl.Term term) {
 		// Cases: Atom, Integer, Float.
 		if (term.isAtom() || term.isInteger() || term.isFloat()) {
 			return term;
 		}
 		// Case: Variable
 		if (term.isVariable()) {
-			Term value = (solution == null) ? null : ((Term) solution.get(term.name()));
+			jpl.Term value = (solution == null) ? null : ((jpl.Term) solution.get(term.name()));
 			if (value == null) {
 				return term;
 			}
@@ -146,7 +143,7 @@ public class JPLUtils {
 		}
 		// Case: Compound
 		if (term.isCompound()) {
-			jpl.Term[] instantiatedArgs = new Term[term.args().length];
+			jpl.Term[] instantiatedArgs = new jpl.Term[term.args().length];
 			// Recursively apply the substitution to all sub-terms.
 			for (int i = 1; i <= term.args().length; i++) {
 				instantiatedArgs[i - 1] = applySubst(solution, term.arg(i));
@@ -236,14 +233,14 @@ public class JPLUtils {
 	 * @return combined subst, or null if they can not be combined (variable
 	 *         conflict)
 	 */
-	protected static SortedMap<String, Term> combineSubstitutions(SortedMap<String, Term> thissubst,
-			SortedMap<String, Term> othersubst) {
+	protected static SortedMap<String, jpl.Term> combineSubstitutions(SortedMap<String, jpl.Term> thissubst,
+			SortedMap<String, jpl.Term> othersubst) {
 		// Combining with {@code null}, i.e., failure, yields a failure {@code
 		// null}.
 		if (othersubst == null) {
 			return null;
 		}
-		SortedMap<String, Term> combination = new TreeMap<>();
+		SortedMap<String, jpl.Term> combination = new TreeMap<>();
 
 		// Apply the parameter substitution to this substitution.
 		Set<String> domain = thissubst.keySet();
@@ -251,7 +248,7 @@ public class JPLUtils {
 			// Add binding for variable to term obtained by applying the
 			// parameter substitution
 			// to the original term.
-			Term term = applySubst(othersubst, thissubst.get(variable));
+			jpl.Term term = applySubst(othersubst, thissubst.get(variable));
 			// Add binding if resulting term is not equal to variable.
 			if (equals(new jpl.Variable(variable), term)) {
 				combination.put(variable, thissubst.get(variable));
@@ -264,13 +261,13 @@ public class JPLUtils {
 		// domain of this substitution; otherwise check for inconsistencies.
 		for (String variable : othersubst.keySet()) {
 			if (!domain.contains(variable)) {
-				Term term = applySubst(combination, othersubst.get(variable));
+				jpl.Term term = applySubst(combination, othersubst.get(variable));
 				if (!equals(new jpl.Variable(variable), term)) {
 					combination.put(variable, term);
 				}
 			} else { // two bindings for one and the same variable.
 				// Check whether terms can be unified
-				SortedMap<String, Term> mgu = mgu(othersubst.get(variable), thissubst.get(variable));
+				SortedMap<String, jpl.Term> mgu = mgu(othersubst.get(variable), thissubst.get(variable));
 				if (mgu != null) {
 					combination = combineSubstitutions(combination, mgu);
 				} else { // fail: two different bindings for one and the same
@@ -329,7 +326,7 @@ public class JPLUtils {
 		// the last term.
 		jpl.Term list = new jpl.Atom("[]");
 		for (int i = terms.size() - 1; i >= 0; i--) {
-			list = new Compound(".", new Term[] { terms.get(i), list });
+			list = new jpl.Compound(".", new jpl.Term[] { terms.get(i), list });
 		}
 		return list;
 	}
@@ -340,14 +337,14 @@ public class JPLUtils {
 	 * @param newterm
 	 * @return possibly empty conjunct containing the given terms
 	 */
-	public static Term termsToConjunct(List<Term> terms) {
+	public static jpl.Term termsToConjunct(List<jpl.Term> terms) {
 		if (terms.isEmpty()) {
 			return new jpl.Atom("true");
 		}
 		// build up list last to first.
 		jpl.Term list = terms.get(terms.size() - 1);// last
 		for (int i = terms.size() - 2; i >= 0; i--) {
-			list = new Compound(",", new Term[] { terms.get(i), list });
+			list = new jpl.Compound(",", new jpl.Term[] { terms.get(i), list });
 		}
 		return list;
 	}
@@ -451,7 +448,7 @@ public class JPLUtils {
 			}
 			return true;
 		}
-		if (term1 instanceof jpl.Atom || term1 instanceof Variable) {
+		if (term1 instanceof jpl.Atom || term1 instanceof jpl.Variable) {
 			String t1 = term1.name(), t2 = term2.name();
 			if (t1.equals("_") || t2.equals("_")) {
 				return false;
@@ -477,7 +474,7 @@ public class JPLUtils {
 	 *            the term to print
 	 * @return pretty printed term.
 	 */
-	public static String toString(Term term) {
+	public static String toString(jpl.Term term) {
 		if (term.isAtom()) {
 			return term.toString();
 		}
@@ -575,7 +572,7 @@ public class JPLUtils {
 	 * @param argument
 	 *            Either 1 or 2 to indicate JPL argument.
 	 */
-	private static String maybeBracketed(Term term, int argument) {
+	private static String maybeBracketed(jpl.Term term, int argument) {
 		jpl.Term arg = term.arg(argument);
 		PrologExpression argexpression = new PrologTerm(arg, null);
 		int argprio = JPLUtils.getPriority(arg);
@@ -628,12 +625,12 @@ public class JPLUtils {
 	 * that must have been bracketed.
 	 *
 	 * @param term
-	 *            the {@link Term} to convert
+	 *            the {@link jpl.Term} to convert
 	 * @param argument
 	 *            Either 1 or 2 to indicate JPL argument.
 	 * @return bracketed term if required, and without brackets if not needed.
 	 */
-	private static String maybeBracketedArgument(Term term, int argument) {
+	private static String maybeBracketedArgument(jpl.Term term, int argument) {
 		jpl.Term arg = term.arg(argument);
 		int argprio = JPLUtils.getPriority(arg);
 
@@ -654,7 +651,7 @@ public class JPLUtils {
 	 *            is a Prolog term that is part of a list.
 	 * @return given term t in pretty-printed list form but without "[" or "]"
 	 */
-	private static String tailToString(Term term) {
+	private static String tailToString(jpl.Term term) {
 		// Did we reach end of the list?
 		// TODO: empty list
 		if (term.isAtom() && term.name().equals("[]")) {
@@ -690,8 +687,8 @@ public class JPLUtils {
 	 *            second term
 	 * @return mgu, or null if no mgu exists.
 	 */
-	public static SortedMap<String, Term> mgu(jpl.Term x, jpl.Term y) {
-		return unify(x, y, new TreeMap<String, Term>());
+	public static SortedMap<String, jpl.Term> mgu(jpl.Term x, jpl.Term y) {
+		return unify(x, y, new TreeMap<String, jpl.Term>());
 	}
 
 	/**
@@ -712,7 +709,7 @@ public class JPLUtils {
 	 *            the substitutions used so far.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	public static SortedMap<String, Term> unify(jpl.Term x, jpl.Term y, SortedMap<String, Term> s) {
+	public static SortedMap<String, jpl.Term> unify(jpl.Term x, jpl.Term y, SortedMap<String, jpl.Term> s) {
 		if (s == null) {
 			return null;
 		}
@@ -720,31 +717,32 @@ public class JPLUtils {
 			return s;
 		}
 		if (x.isVariable()) {
-			return unifyVar((Variable) x, y, s);
+			return unifyVar((jpl.Variable) x, y, s);
 		}
 		if (y.isVariable()) {
-			return unifyVar((Variable) y, x, s);
+			return unifyVar((jpl.Variable) y, x, s);
 		}
 		if (x.isCompound() && y.isCompound()) {
-			return unifyCompounds((Compound) x, (Compound) y, s);
+			return unifyCompounds((jpl.Compound) x, (jpl.Compound) y, s);
 		}
 		// we do not have lists. List is just another compound.
 		return null;
 	}
 
 	/**
-	 * Unify 2 {@link Compound}s. Implements the bit vague element in the
+	 * Unify 2 {@link jpl.Compound}s. Implements the bit vague element in the
 	 * textbook UNIFY(x.ARGS, y.ARGS, UNIFY(x.OP, y.OP,s)).
 	 *
 	 * @param x
-	 *            the first {@link Compound}
+	 *            the first {@link jpl.Compound}
 	 * @param y
-	 *            The second {@link Compound}
+	 *            The second {@link jpl.Compound}
 	 * @param s
 	 *            the substitutions used so far. s must not be null.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	private static SortedMap<String, Term> unifyCompounds(Compound x, Compound y, SortedMap<String, Term> s) {
+	private static SortedMap<String, jpl.Term> unifyCompounds(jpl.Compound x, jpl.Compound y,
+			SortedMap<String, jpl.Term> s) {
 		if (x.arity() != y.arity()) {
 			return null;
 		}
@@ -766,7 +764,7 @@ public class JPLUtils {
 	 * @param var
 	 *            the {@link jpl.Variable}.
 	 * @param y
-	 *            the {@link Term}.
+	 *            the {@link jpl.Term}.
 	 * @param s
 	 *            the substitutions used so far. Must not be null. This set can
 	 *            be modified by this function.
@@ -774,12 +772,12 @@ public class JPLUtils {
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
 
-	private static SortedMap<String, Term> unifyVar(Variable var, Term x, SortedMap<String, Term> s) {
+	private static SortedMap<String, jpl.Term> unifyVar(jpl.Variable var, jpl.Term x, SortedMap<String, jpl.Term> s) {
 		if (s.containsKey(var.name)) {
 			return unify(s.get(var.name), x, s);
 		}
-		if (x.isVariable() && s.containsKey(((Variable) x).name)) {
-			return unify(var, s.get(((Variable) x).name), s);
+		if (x.isVariable() && s.containsKey(((jpl.Variable) x).name)) {
+			return unify(var, s.get(((jpl.Variable) x).name), s);
 		}
 		if (getFreeVar(x).contains(var)) {
 			return null;

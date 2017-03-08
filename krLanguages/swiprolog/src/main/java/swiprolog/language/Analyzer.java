@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jpl.Compound;
-import jpl.Term;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.parser.SourceInfo;
@@ -35,7 +33,7 @@ import swiprolog.parser.PrologOperators;
  * Analyzer to identify unused and undefined predicates.
  */
 public class Analyzer {
-	private static final Term ANON_VAR = new jpl.Variable("_");
+	private static final jpl.Term ANON_VAR = new jpl.Variable("_");
 	/**
 	 * Map of definitions.
 	 */
@@ -167,11 +165,11 @@ public class Analyzer {
 			addQuery(plTerm.arg(3), info);
 		} else if (termSig.equals("predsort/3")) {
 			// first argument is name that will be called as name/3
-			jpl.Term stubfunc = new Compound(plTerm.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			jpl.Term stubfunc = new jpl.Compound(plTerm.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			addQuery(stubfunc, info);
 		} else if (termSig.equals("dynamic/1")) {
 			// recognize predicate declaration(s).
-			for (Term dynamicPred : JPLUtils.getOperands(",", plTerm.arg(1))) {
+			for (jpl.Term dynamicPred : JPLUtils.getOperands(",", plTerm.arg(1))) {
 				addDefinition(new PrologDBFormula(dynamicPred, info));
 			}
 		} else if (!PrologOperators.prologBuiltin(termSig)) {

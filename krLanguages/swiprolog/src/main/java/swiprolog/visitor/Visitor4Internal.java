@@ -25,7 +25,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import jpl.Term;
 import krTools.exceptions.ParserException;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
@@ -405,8 +404,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 		if ("-".equals(op) || "\\".equals(op)) {
 			// (op = '-' | op= '\\' ) term200
-			Term t = visitTerm200(ctx.term200()).getTerm();
-			Term[] args = { t };
+			jpl.Term t = visitTerm200(ctx.term200()).getTerm();
+			jpl.Term[] args = { t };
 			term = compound(op, args, ctx);
 			if (op.equals("-")) {
 				// minus sign, check special case of numeric constant. See ISO
@@ -423,17 +422,17 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			}
 		} else {
 			// term100 ( (op= '^' term200) | (op= '**' term100) )?
-			Term t1 = visitTerm100(ctx.term100(0)).getTerm();
+			jpl.Term t1 = visitTerm100(ctx.term100(0)).getTerm();
 			if (op == null) { // only term100.
 				term = new PrologTerm(t1, info);
 			} else {
-				Term t2;
+				jpl.Term t2;
 				if ("^".equals(op)) {
 					t2 = visitTerm200(ctx.term200()).getTerm();
 				} else {
 					t2 = visitTerm100(ctx.term100(1)).getTerm();
 				}
-				Term[] args = { t1, t2 };
+				jpl.Term[] args = { t1, t2 };
 				term = compound(op, args, ctx);
 			}
 		}
@@ -448,7 +447,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		 */
 		PrologTerm term = visitTerm200(ctx.term200());
 		for (Term400bContext t : ctx.term400b()) {
-			Term t1 = visitTerm400b(t);
+			jpl.Term t1 = visitTerm400b(t);
 			jpl.Term[] args = { term.getTerm(), t1 };
 			term = compound(t.op.getText(), args, ctx);
 		}
@@ -456,7 +455,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	@Override
-	public Term visitTerm400b(Term400bContext ctx) {
+	public jpl.Term visitTerm400b(Term400bContext ctx) {
 		return visitTerm200(ctx.term200()).getTerm();
 	}
 
@@ -467,7 +466,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		 */
 		PrologTerm term = visitTerm400(ctx.term400());
 		for (Term500bContext t : ctx.term500b()) {
-			Term t1 = visitTerm500b(t);
+			jpl.Term t1 = visitTerm500b(t);
 			jpl.Term[] args = { term.getTerm(), t1 };
 			term = compound(t.op.getText(), args, ctx);
 		}
@@ -475,7 +474,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	@Override
-	public Term visitTerm500b(Term500bContext ctx) {
+	public jpl.Term visitTerm500b(Term500bContext ctx) {
 		return visitTerm400(ctx.term400()).getTerm();
 	}
 

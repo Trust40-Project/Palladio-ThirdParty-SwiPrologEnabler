@@ -20,8 +20,6 @@ package swiprolog.dependency;
 import java.util.LinkedList;
 import java.util.List;
 
-import jpl.Compound;
-import jpl.Term;
 import krTools.dependency.DependencyGraph;
 import krTools.dependency.Node;
 import krTools.exceptions.KRDatabaseException;
@@ -38,7 +36,7 @@ import swiprolog.parser.PrologOperators;
  * A dependency graph for the SWI Prolog language.
  */
 public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
-	private static final Term ANON_VAR = new jpl.Variable("_");
+	private static final jpl.Term ANON_VAR = new jpl.Variable("_");
 
 	/**
 	 * {@inheritDoc} <br>
@@ -118,7 +116,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			if (!reserved(signature)) {
 				Node<PrologTerm> node = super.graph.get(signature);
 				if (node == null) {
-					node = new Node<PrologTerm>(signature);
+					node = new Node<>(signature);
 					super.graph.put(signature, node);
 				}
 				if (defined) {
@@ -162,7 +160,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			 * term.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			jpl.Term stubfunc = new Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR });
+			jpl.Term stubfunc = new jpl.Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR });
 			terms.add(stubfunc);
 		} else if (signature.equals(";/2") || signature.equals(",/2") || signature.equals("forall/2")) {
 			// Unpack the conjunction, disjunction and forall /2-operators.
@@ -185,7 +183,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			 * correct term. We will be using 3 anonymous variables.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			jpl.Term stubfunc = new Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			jpl.Term stubfunc = new jpl.Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			terms.add(stubfunc);
 		} else {
 			terms.add(term);
