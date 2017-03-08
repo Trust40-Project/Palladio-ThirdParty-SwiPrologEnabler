@@ -19,15 +19,10 @@ package swiprolog.language;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import jpl.Variable;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
@@ -37,27 +32,14 @@ import krTools.language.Var;
  * said to bind the term to the variable if it maps the variable to the term. A
  * substitution may be empty.
  */
-public class PrologSubstitution implements Substitution {
-	/**
-	 * TODO: Check!!!
-	 *
-	 * Substitution stored as a {@link Map} with tuples {@link String},
-	 * {@link jpl.Term} indicating a substitution of variable for term. We do
-	 * not use {@link jpl.Variable} as keys because {@link jpl.Variable} has no
-	 * implementation for hashCode and therefore putting these in a map will
-	 * fail #2211. Using String brings us closest to what JPL is doing
-	 * internally.
-	 */
-
-	/**
-	 * Create empty JPL substitution.
-	 */
-	private SortedMap<String, jpl.Term> jplSubstitution = new TreeMap<>();
+public class PrologSubstitution extends TreeMap<PrologVar, PrologTerm> implements Substitution {
+	private static final long serialVersionUID = 5134215246806477693L;
 
 	/**
 	 * Creates an empty {@link Substitution}.
 	 */
 	public PrologSubstitution() {
+		super();
 	}
 
 	/**
@@ -68,8 +50,9 @@ public class PrologSubstitution implements Substitution {
 	 * @param term
 	 *            Term that is bound to variable.
 	 */
-	public PrologSubstitution(jpl.Variable var, jpl.Term term) {
-		this.jplSubstitution.put(var.name(), term);
+	public PrologSubstitution(PrologVar var, PrologTerm term) {
+		super();
+		put(var, term);
 	}
 
 	/**
@@ -78,23 +61,17 @@ public class PrologSubstitution implements Substitution {
 	 * @param solutions
 	 *            JPL substitution.
 	 */
-	private PrologSubstitution(SortedMap<String, jpl.Term> solution) {
-		this.jplSubstitution = solution;
+	private PrologSubstitution(SortedMap<PrologVar, PrologTerm> solution) {
+		super();
+		putAll(solution);
 	}
 
-	public static PrologSubstitution getSubstitutionOrNull(SortedMap<String, jpl.Term> solution) {
+	public static PrologSubstitution getSubstitutionOrNull(SortedMap<PrologVar, PrologTerm> solution) {
 		if (solution == null) {
 			return null;
 		} else {
 			return new PrologSubstitution(solution);
 		}
-	}
-
-	/**
-	 * @return A JPL substitution.
-	 */
-	public SortedMap<String, jpl.Term> getJPLSolution() {
-		return this.jplSubstitution;
 	}
 
 	/**
@@ -109,67 +86,84 @@ public class PrologSubstitution implements Substitution {
 	 */
 	@Override
 	public List<Var> getVariables() {
-		List<Var> variables = new ArrayList<>(this.jplSubstitution.size());
-		// Build VariableTerm from jpl.Variable.
-		for (String varname : this.jplSubstitution.keySet()) {
-			jpl.Variable var = new Variable(varname);
-			variables.add(new PrologVar(var, null));
-		}
-		return variables;
+		return new ArrayList<>(keySet());
 	}
 
 	@Override
-	public Term get(Var variable) {
-		jpl.Variable jplvar = (jpl.Variable) ((PrologVar) variable).getTerm();
-		if (this.jplSubstitution.containsKey(jplvar.name())) {
-			return new PrologTerm(this.jplSubstitution.get(jplvar.name()), null);
-		} else {
-			return null;
-		}
+	public Term get(Var var) {
+		return super.get(var);
 	}
 
 	@Override
-	public void addBinding(Var v, Term term) {
-		jpl.Variable var = (jpl.Variable) ((PrologVar) v).getTerm();
-		if (this.jplSubstitution.containsKey(var.name())) {
+	public void addBinding(Var var, Term term) {
+		if (containsKey(var)) {
 			throw new RuntimeException(
-					"attempt to add '" + v + "' to substitution " + this + " that already binds the variable.");
+					"attempt to add '" + var + "' to substitution " + this + " that already binds the variable.");
+		} else {
+			put((PrologVar) var, (PrologTerm) term);
 		}
-		this.jplSubstitution.put(var.name(), ((PrologTerm) term).getTerm());
+	}
+
+	@Override
+	public boolean remove(Var var) {
+		return (super.remove(var) != null);
 	}
 
 	@Override
 	public Substitution combine(Substitution substitution) {
-		SortedMap<String, jpl.Term> combined = null;
-		if (substitution != null) {
-			combined = JPLUtils.combineSubstitutions(this.jplSubstitution,
-					((PrologSubstitution) substitution).getJPLSolution());
+		// Combining with {@code null}, i.e., failure, yields a failure {@code
+		// null}.
+		if (substitution == null) {
+			return null;
 		}
-		return getSubstitutionOrNull(combined);
-	}
+		Substitution combination = new PrologSubstitution();
 
-	@Override
-	public boolean remove(Var variable) {
-		jpl.Variable var = (jpl.Variable) ((PrologVar) variable).getTerm();
-		if (this.jplSubstitution.containsKey(var.name())) {
-			return this.jplSubstitution.remove(var.name()) != null;
-		} else {
-			return false;
+		// Apply the parameter substitution to this substitution.
+		for (Var variable : getVariables()) {
+			// Add binding for variable to term obtained by applying the
+			// parameter substitution
+			// to the original term.
+			PrologVar var = (PrologVar) variable;
+			PrologTerm term = (PrologTerm) var.applySubst(substitution);
+			// Add binding if resulting term is not equal to variable.
+			if (var.equals(term)) {
+				combination.addBinding(var, get(variable));
+			} else {
+				combination.addBinding(var, term);
+			}
 		}
+		// Add the bindings of the parameter substitution for variables that are
+		// not in the domain of this substitution; otherwise check for
+		// inconsistencies.
+		for (Var variable : substitution.getVariables()) {
+			PrologVar var = (PrologVar) variable;
+			if (get(var) == null) {
+				PrologTerm term = (PrologTerm) substitution.get(var).applySubst(substitution);
+				if (!variable.equals(term)) {
+					combination.addBinding(var, term);
+				}
+			} else { // two bindings for one and the same variable.
+				// Check whether terms can be unified
+				Substitution mgu = substitution.get(var).mgu(get(var));
+				if (mgu != null) {
+					combination = combination.combine(mgu);
+				} else { // fail: two different bindings for one and the same
+					// variable.
+					combination = null;
+					break;
+				}
+			}
+		}
+
+		return combination;
 	}
 
 	@Override
 	public boolean retainAll(Collection<Var> varsToRetain) {
-		Set<String> varnamesToRetain = new HashSet<>(varsToRetain.size());
-		for (Var v : varsToRetain) {
-			varnamesToRetain.add(((PrologVar) v).getVariable().name());
-		}
-		Set<String> currentVars = new HashSet<>(this.jplSubstitution.keySet());
-
 		boolean removed = false;
-		for (String varname : currentVars) {
-			if (!varnamesToRetain.contains(varname)) {
-				this.jplSubstitution.remove(varname);
+		for (Var var : getVariables()) {
+			if (!varsToRetain.contains(var)) {
+				remove(var);
 				removed = true;
 			}
 		}
@@ -178,7 +172,7 @@ public class PrologSubstitution implements Substitution {
 
 	@Override
 	public PrologSubstitution clone() {
-		return new PrologSubstitution(new TreeMap<>(this.jplSubstitution));
+		return new PrologSubstitution(this);
 	}
 
 	/**
@@ -188,70 +182,21 @@ public class PrologSubstitution implements Substitution {
 	 */
 	@Override
 	public String toString() {
-		Set<String> variables = this.jplSubstitution.keySet();
-
 		StringBuilder builder = new StringBuilder();
 
 		builder.append("[");
 		boolean addComma = false;
 
-		for (String var : variables) {
+		for (Var var : getVariables()) {
 			if (addComma) {
 				builder.append(", ");
 			}
 			builder.append(var).append("/");
-			PrologTerm term = new PrologTerm(this.jplSubstitution.get(var), null);
-			builder.append(term.toString());
+			builder.append(get(var).toString());
 			addComma = true;
 		}
 		builder.append("]");
 
 		return builder.toString();
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int h = 1;
-		Iterator<Entry<String, jpl.Term>> i = this.jplSubstitution.entrySet().iterator();
-		while (i.hasNext()) {
-			Entry<String, jpl.Term> e = i.next();
-			h = prime * h + e.getKey().hashCode();
-			h = prime * h + JPLUtils.hashCode(e.getValue());
-		}
-		return h;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		} else if (obj == null || !(obj instanceof PrologSubstitution)) {
-			return false;
-		}
-		PrologSubstitution other = (PrologSubstitution) obj;
-		if (this.jplSubstitution == null) {
-			if (other.jplSubstitution != null) {
-				return false;
-			}
-		} else if (this.jplSubstitution.size() != other.jplSubstitution.size()) {
-			return false;
-		} else {
-			Iterator<Entry<String, jpl.Term>> i = this.jplSubstitution.entrySet().iterator();
-			while (i.hasNext()) {
-				Entry<String, jpl.Term> e = i.next();
-				if (e.getValue() == null) {
-					if (!(other.jplSubstitution.get(e.getKey()) == null
-							&& other.jplSubstitution.containsKey(e.getKey()))) {
-						return false;
-					}
-				} else {
-					if (!JPLUtils.equals(e.getValue(), other.jplSubstitution.get(e.getKey()))) {
-						return false;
-					}
-				}
-			}
-		}
-		return true;
 	}
 }

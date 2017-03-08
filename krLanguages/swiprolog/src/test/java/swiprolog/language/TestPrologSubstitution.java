@@ -29,6 +29,7 @@ import jpl.Compound;
 import jpl.Term;
 import jpl.Variable;
 import swiprolog.SwiInstaller;
+import swiprolog.language.impl.JPLUtils;
 
 public class TestPrologSubstitution {
 	static {

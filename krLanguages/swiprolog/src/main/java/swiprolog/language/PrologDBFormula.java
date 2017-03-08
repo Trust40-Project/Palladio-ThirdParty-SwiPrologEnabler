@@ -17,12 +17,7 @@
 
 package swiprolog.language;
 
-import java.util.SortedMap;
-
 import krTools.language.DatabaseFormula;
-import krTools.language.Query;
-import krTools.language.Substitution;
-import krTools.parser.SourceInfo;
 import swiprolog.database.PrologDatabase;
 
 /**
@@ -39,41 +34,9 @@ import swiprolog.database.PrologDatabase;
  * the check is only performed at compile time).
  * </p>
  */
-public class PrologDBFormula extends PrologExpression implements DatabaseFormula {
+public interface PrologDBFormula extends PrologExpression, DatabaseFormula {
 	/**
-	 * Creates a Prolog database formula that can be part of a Prolog database.
-	 *
-	 * @param term
-	 *            A JPL term.
-	 * @param info
-	 *            A source info object.
+	 * @return The {@link PrologCompound} wrapped in this formula.
 	 */
-	public PrologDBFormula(jpl.Term term, SourceInfo info) {
-		super(term, info);
-	}
-
-	@Override
-	public PrologDBFormula applySubst(Substitution substitution) {
-		SortedMap<String, jpl.Term> jplSubstitution = (substitution == null) ? null
-				: ((PrologSubstitution) substitution).getJPLSolution();
-		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
-	}
-
-	@Override
-	public boolean isQuery() {
-		return JPLUtils.isQuery(getTerm());
-	}
-
-	/**
-	 * Converts this database formula into a query, simply using the JPL term of
-	 * this {@link DatabaseFormula}. Does not perform any check whether the JPL
-	 * term can also be used as a query. Use {@link #toQuery()} to perform this
-	 * check.
-	 *
-	 * @return A {@link Query}.
-	 */
-	@Override
-	public Query toQuery() {
-		return new PrologQuery(getTerm(), getSourceInfo());
-	}
+	public PrologCompound getCompound();
 }

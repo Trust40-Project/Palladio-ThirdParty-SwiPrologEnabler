@@ -30,6 +30,7 @@ import jpl.Term;
 import jpl.Variable;
 import krTools.language.Substitution;
 import swiprolog.SwiPrologInterface;
+import swiprolog.language.impl.JPLUtils;
 
 public class TestUnification2 {
 	/**

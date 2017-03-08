@@ -17,55 +17,14 @@
 
 package swiprolog.language;
 
-import java.util.SortedMap;
-
 import krTools.language.Query;
-import krTools.language.Substitution;
-import krTools.language.Update;
-import krTools.parser.SourceInfo;
 
 /**
  * A Prolog query.
  */
-public class PrologQuery extends PrologExpression implements Query {
+public interface PrologQuery extends PrologExpression, Query {
 	/**
-	 * Creates a Prolog query.
-	 *
-	 * <p>
-	 * Performs no checks whether the JPL term can be queried on a Prolog
-	 * database for efficiency reasons (to avoid checks at run time, e.g., as a
-	 * result from applying a substitution). These checks have been delegated to
-	 * the parser (to perform checks at compile time only).
-	 * </p>
-	 *
-	 * @param term
-	 *            A JPL term that can be used as a query.
-	 * @param info
-	 *            A source info object.
+	 * @return The {@link PrologCompound} wrapped in this query.
 	 */
-	public PrologQuery(jpl.Term term, SourceInfo info) {
-		super(term, info);
-	}
-
-	@Override
-	public Query applySubst(Substitution s) {
-		SortedMap<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
-		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
-	}
-
-	@Override
-	public boolean isUpdate() {
-		// TODO
-		return true;
-	}
-
-	/**
-	 * ASSUMES the inner prolog term of the query can also be parsed as an
-	 * update. If called on (a-)goal literals in the context of a module, this
-	 * has already been checked by the parser.
-	 */
-	@Override
-	public Update toUpdate() {
-		return new PrologUpdate(getTerm(), getSourceInfo());
-	}
+	public PrologCompound getCompound();
 }

@@ -31,6 +31,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import swiprolog.SwiInstaller;
+import swiprolog.language.impl.JPLUtils;
 
 /**
  * Test the pretty printing of terms.

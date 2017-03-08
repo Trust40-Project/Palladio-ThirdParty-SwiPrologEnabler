@@ -28,6 +28,7 @@ import jpl.PrologException;
 import jpl.Util;
 import swiprolog.SwiInstaller;
 import swiprolog.database.PrologDatabase;
+import swiprolog.language.impl.JPLUtils;
 
 public class TestUtils {
 	static {

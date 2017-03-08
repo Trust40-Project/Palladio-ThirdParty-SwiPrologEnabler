@@ -3,7 +3,6 @@ package swiprolog.errors;
 import krTools.KRInterface;
 import krTools.exceptions.KRException;
 import krTools.exceptions.KRQueryFailedException;
-import swiprolog.language.JPLUtils;
 
 /**
  * A wrapper for {@link jpl.PrologException}s.
@@ -201,24 +200,24 @@ public class PrologError extends KRQueryFailedException {
 					return defaultmessage;
 				}
 
-				return "the term " + JPLUtils.toString(explanation.arg(2)) + " is undefined";
+				return "the term " + explanation.arg(2) + " is undefined";
 			case SOURCE_SINK:
-				return "the file " + JPLUtils.toString(error.arg(2)) + " is unaccesable";
+				return "the file " + error.arg(2) + " is unaccesable";
 			default:
 				return defaultmessage;
 			}
 
 		case INSTANTIATION_ERROR:
-			return "the term " + JPLUtils.toString(error.arg(1)) + " is under-instantiated";
+			return "the term " + error.arg(1) + " is under-instantiated";
 		case DOMAIN_ERROR:
-			return "The term " + JPLUtils.toString(error.arg(2)) + " has a value that is outside the supported values";
+			return "The term " + error.arg(2) + " has a value that is outside the supported values";
 		case UNINSTANTIATION_ERROR:
-			return "the term " + JPLUtils.toString(error.arg(1)) + " is over-instantiated";
+			return "the term " + error.arg(1) + " is over-instantiated";
 		case PERMISSION_ERROR:
-			return "it is not allowed to perform " + JPLUtils.toString(error.arg(1)) + " on the object "
-					+ JPLUtils.toString(error.arg(2)) + " that is of type " + error.arg(3);
+			return "it is not allowed to perform " + error.arg(1) + " on the object " + error.arg(2)
+					+ " that is of type " + error.arg(3);
 		case TYPE_ERROR:
-			return "the term " + JPLUtils.toString(error.arg(2)) + " is not of the expected " + error.arg(1) + " type";
+			return "the term " + error.arg(2) + " is not of the expected " + error.arg(1) + " type";
 		case REPRESENTATION_ERROR:
 			return "implementation limits exceeded:" + error.arg(1);
 		case SYNTAX_ERROR:

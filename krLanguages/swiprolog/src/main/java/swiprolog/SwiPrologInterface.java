@@ -39,8 +39,8 @@ import krTools.language.Var;
 import krTools.parser.Parser;
 import krTools.parser.SourceInfo;
 import swiprolog.database.PrologDatabase;
-import swiprolog.language.Analyzer;
 import swiprolog.language.PrologSubstitution;
+import swiprolog.language.impl.Analyzer;
 import swiprolog.parser.KRInterfaceParser4;
 
 /**
