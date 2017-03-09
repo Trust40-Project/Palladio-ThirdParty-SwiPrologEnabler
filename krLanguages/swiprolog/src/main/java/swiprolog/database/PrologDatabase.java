@@ -75,7 +75,7 @@ public class PrologDatabase implements Database {
 			throws KRDatabaseException {
 		this.name = new PrologAtomImpl(name, null);
 		this.owner = owner;
-		this.theory = new Theory(content);
+		this.theory = new Theory();
 		try {
 			// Create SWI Prolog module that will act as our database.
 			// FIXME: this is an expensive operation that is now run for
