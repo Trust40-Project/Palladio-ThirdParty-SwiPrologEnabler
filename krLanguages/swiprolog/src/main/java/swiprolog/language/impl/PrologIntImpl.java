@@ -82,4 +82,9 @@ public class PrologIntImpl extends jpl.Integer implements PrologTerm {
 	public int hashCode() {
 		return Long.hashCode(this.value);
 	}
+
+	@Override
+	public Substitution unify(Term term, Substitution substitution) {
+		return equals(term) ? substitution : null;
+	}
 }

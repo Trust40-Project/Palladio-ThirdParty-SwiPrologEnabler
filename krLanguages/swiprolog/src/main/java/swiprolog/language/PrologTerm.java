@@ -20,7 +20,6 @@ package swiprolog.language;
 import krTools.language.Expression;
 import krTools.language.Substitution;
 import krTools.language.Term;
-import swiprolog.language.impl.JPLUtils;
 
 /**
  * Represents a Prolog term.
@@ -34,10 +33,11 @@ public interface PrologTerm extends PrologExpression, Term {
 	@Override
 	public default Substitution mgu(Expression expression) {
 		if (expression instanceof Term) {
-			Term other = (Term) expression;
-			return JPLUtils.mgu(this, other);
+			return unify((Term) expression, new PrologSubstitution());
 		} else {
 			return null;
 		}
 	}
+
+	public Substitution unify(Term term, Substitution substitution);
 }

@@ -82,4 +82,9 @@ public class PrologFloatImpl extends jpl.Float implements PrologTerm {
 	public int hashCode() {
 		return Double.hashCode(this.value);
 	}
+
+	@Override
+	public Substitution unify(Term term, Substitution substitution) {
+		return equals(term) ? substitution : null;
+	}
 }

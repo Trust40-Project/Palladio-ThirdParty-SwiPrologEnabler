@@ -17,6 +17,8 @@
 
 package swiprolog.language;
 
+import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Var;
 
 /**
@@ -36,5 +38,27 @@ public interface PrologVar extends PrologTerm, Var {
 	 */
 	public default boolean isAnonymous() {
 		return getName().equals("_");
+	}
+
+	@Override
+	public default Substitution unify(Term x, Substitution s) {
+		if (s == null) {
+			return null;
+		} else if (equals(x)) {
+			return s;
+		}
+		PrologTerm st = (PrologTerm) s.get(this);
+		if (st != null) {
+			return st.unify(x, s);
+		}
+		PrologTerm sx = (x instanceof Var) ? (PrologTerm) s.get((Var) x) : null;
+		if (sx != null) {
+			return unify(sx, s);
+		} else if (x.getFreeVar().contains(this)) {
+			return null;
+		} else {
+			s.addBinding(this, x);
+			return s;
+		}
 	}
 }

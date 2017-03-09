@@ -2,6 +2,7 @@ package swiprolog.language;
 
 import java.util.List;
 
+import krTools.language.Substitution;
 import krTools.language.Term;
 
 public interface PrologCompound extends PrologTerm, Iterable<Term> {
@@ -51,4 +52,28 @@ public interface PrologCompound extends PrologTerm, Iterable<Term> {
 	 * @return A list of operands.
 	 */
 	public List<Term> getOperands(String operator);
+
+	@Override
+	public default Substitution unify(Term x, Substitution s) {
+		if (s == null) {
+			return null;
+		} else if (equals(x)) {
+			return s;
+		} else if (x instanceof PrologCompound) {
+			PrologCompound y = (PrologCompound) x;
+			if (getSignature().equals(y.getSignature())) {
+				for (int i = 0; i < getArity(); ++i) {
+					s = ((PrologTerm) getArg(i)).unify(y.getArg(i), s);
+				}
+				return s;
+			} else {
+				return null;
+			}
+		} else if (x instanceof PrologVar) {
+			PrologVar var = (PrologVar) x;
+			return var.unify(this, s);
+		} else {
+			return null;
+		}
+	}
 }
