@@ -104,7 +104,7 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 
 	@Override
 	public boolean isPredicateIndicator() {
-		return getSignature().equals("/2") && (getArg(0) instanceof PrologAtomImpl)
+		return getSignature().equals("//2") && (getArg(0) instanceof PrologAtomImpl)
 				&& (getArg(1) instanceof PrologIntImpl);
 	}
 
