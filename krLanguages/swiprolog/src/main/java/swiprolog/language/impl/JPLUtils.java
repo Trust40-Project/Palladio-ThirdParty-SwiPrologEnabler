@@ -57,7 +57,7 @@ public class JPLUtils {
 	 *            source info
 	 * @return possibly empty conjunct containing the given terms
 	 */
-	public static Term termsToConjunct(List<Term> terms, SourceInfo info) {
+	public static PrologCompound termsToConjunct(List<Term> terms, SourceInfo info) {
 		if (terms.isEmpty()) {
 			return new PrologAtomImpl("true", info);
 		} else {
