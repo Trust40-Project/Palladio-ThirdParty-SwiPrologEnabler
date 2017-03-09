@@ -148,7 +148,8 @@ public class SemanticTools {
 					signature = headTerm.getSignature();
 					if (signature.equals("//2")) {
 						// the term is already a signature itself
-						signature = headTerm.toString();
+						PrologCompound sigterm = (PrologCompound) headTerm;
+						signature = sigterm.getArg(0) + "/" + sigterm.getArg(1);
 					}
 					if (PrologOperators.prologBuiltin(signature)) {
 						throw new ParserException(
