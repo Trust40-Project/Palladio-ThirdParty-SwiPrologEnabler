@@ -283,7 +283,7 @@ public class SemanticTools {
 			for (Term signatureterm : content.getOperands(",")) {
 				PrologCompound signature = (PrologCompound) signatureterm;
 				if (signature.isPredicateIndicator()) {
-					signatures.add(signature.toString());
+					signatures.add(signature.getArg(0) + "/" + signature.getArg(1));
 				} else {
 					throw new ParserException("term '" + signatureterm + "' is not a predicate indicator", info);
 				}
