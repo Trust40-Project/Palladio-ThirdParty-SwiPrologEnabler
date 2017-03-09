@@ -53,7 +53,7 @@ public class ProgramTest {
 		validator.queryOrEmpty();
 
 		assertEquals(1, validator.getErrors().size());
-		assertEquals(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString("1"),
+		assertEquals(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString("1"),
 				validator.getErrors().first().getMessage());
 	}
 
@@ -62,8 +62,10 @@ public class ProgramTest {
 		Validator4 validator = validator("X");
 		validator.queryOrEmpty();
 
+		System.out.println(validator.getErrors());
+
 		assertEquals(1, validator.getErrors().size());
-		assertEquals(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString("X"),
+		assertEquals(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString("X"),
 				validator.getErrors().first().getMessage());
 	}
 }

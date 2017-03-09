@@ -61,6 +61,8 @@ public class Validator4 {
 	public Update updateOrEmpty() {
 		Term conj = this.visitor.visitPossiblyEmptyConjunct();
 		if (!(conj instanceof PrologCompound)) {
+			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(conj.toString()),
+					conj.getSourceInfo()));
 			return null;
 		} else if (conj.toString().equals("true")) { // special case.
 			return new PrologUpdateImpl((PrologCompound) conj);
@@ -89,6 +91,9 @@ public class Validator4 {
 				} catch (ParserException e) {
 					this.errors.add(e);
 				}
+			} else {
+				this.errors.add(new ParserException(
+						ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t.toString()), t.getSourceInfo()));
 			}
 		}
 		return dbfs;
@@ -108,6 +113,9 @@ public class Validator4 {
 				} catch (ParserException e) {
 					this.errors.add(e);
 				}
+			} else {
+				this.errors.add(new ParserException(
+						ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t.toString()), t.getSourceInfo()));
 			}
 		}
 		return goals;
@@ -126,6 +134,9 @@ public class Validator4 {
 			} catch (ParserException e) {
 				this.errors.add(e);
 			}
+		} else {
+			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(term.toString()),
+					term.getSourceInfo()));
 		}
 		return null;
 	}

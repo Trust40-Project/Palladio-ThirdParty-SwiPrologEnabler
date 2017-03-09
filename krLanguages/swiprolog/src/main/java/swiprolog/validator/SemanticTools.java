@@ -184,19 +184,6 @@ public class SemanticTools {
 	 *             If t is not a well formed Prolog goal.
 	 */
 	public static PrologCompound toGoal(PrologCompound t) throws ParserException {
-		// 7.6.2.a use article 7.8.3
-		// if (t instanceof PrologVarImpl) {
-		// throw new
-		// ParserException(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString(t.toString()),
-		// t.getSourceInfo());
-		// }
-		// footnote of 7.6.2. If T is a number then there is no goal which
-		// corresponds to T.
-		// if (t instanceof PrologFloatImpl || t instanceof PrologIntImpl) {
-		// throw new
-		// ParserException(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString(t.toString()),
-		// t.getSourceInfo());
-		// }
 		// 7.6.2.b
 		String sig = t.getSignature();
 		if (PrologOperators.goalProtected(t.getName())) {

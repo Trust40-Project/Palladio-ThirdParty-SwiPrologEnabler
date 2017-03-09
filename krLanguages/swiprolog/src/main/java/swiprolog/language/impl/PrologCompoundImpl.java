@@ -29,6 +29,7 @@ import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
+import swiprolog.language.PrologTerm;
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -177,5 +178,164 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	@Override
 	public Iterator<Term> iterator() {
 		return this.args.iterator();
+	}
+
+	@Override
+	public String toString() {
+		// Special treatment of (non-empty) lists.
+		if (getSignature().equals("./2")) {
+			return "[" + getArg(0) + tailToString(getArg(1)) + "]";
+		} else {
+			switch (getFixity()) {
+			case FX:
+			case FY:
+				// if we get here, term is known prefix operator.
+				/*
+				 * "-" is tight binding in which case the extra brackets are not
+				 * needed but :- is not tight binding so there we need brackets.
+				 */
+				if (this.name.equals("-")) {
+					return this.name + maybeBracketed(0);
+				} else {
+					return this.name + " " + maybeBracketed(0);
+				}
+			case XFX:
+			case XFY:
+			case YFX:
+				// if we get here, term is a known infix operator
+				return maybeBracketed(0) + " " + this.name + " " + maybeBracketed(1);
+			case XF:
+				// if we get here, term is a known post-fix operator (we don't
+				// have any currently)
+				return maybeBracketed(0) + " " + this.name + " ";
+			default:
+				// if we get here, term is not a known operator.
+				// use default prefix functional notation.
+				String s = getQuotedName() + "(" + maybeBracketedArgument(0);
+				for (int i = 1; i < getArity(); i++) {
+					s = s + "," + maybeBracketedArgument(i);
+				}
+				return s + ")";
+			}
+		}
+	}
+
+	/**
+	 * ASSUMES the name is not a known operator (eg ';', ':-', etc, see table 5
+	 * in ISO 12311). '.' is not an operator.
+	 *
+	 * @return name, properly single-quoted if necessary. (known operators
+	 *         should not be quoted).
+	 */
+	private String getQuotedName() {
+		// simple names starting with lower case char are not quoted
+		if (this.name.matches("\\p{Lower}\\w*")) {
+			return this.name;
+		} else {
+			// known operators should not be quoted, but then this should not be
+			// called. others are quoted.
+			return "'" + this.name + "'";
+		}
+	}
+
+	/**
+	 * Support function for toString that checks if context requires brackets
+	 * around term. Converts argument to string and possibly places brackets
+	 * around it, if the term has a principal functor whose priority is so high
+	 * that the term could not be re-input correctly. Use for operators. see ISO
+	 * p.45 part h 2.
+	 *
+	 * @param argument
+	 * @todo Is there a smarter way to do the bracketing? I guess so but then we
+	 *       need to determine actual priorities of subtrees.
+	 */
+	private String maybeBracketed(int argument) {
+		PrologTerm arg = (PrologTerm) getArg(argument);
+		int argprio = arg.getPriority();
+		int ourprio = getPriority();
+		if (argprio > ourprio) {
+			return "(" + arg + ")";
+		} else if (argprio == ourprio) {
+			/*
+			 * X arguments need brackets for same prio. Y arguments do not need
+			 * brackets for same prio. Eg, assume we have an xfy operator here.
+			 * The y side can have equal priority by default, and that side can
+			 * be printed without brackets. but if the x side has same prio
+			 * that's only possible if there were brackets.
+			 */
+			switch (getFixity()) {
+			case FX:
+			case XF:
+			case XFX:
+				return "(" + arg + ")";
+			case FY:
+				break; // argument can have same level of prio.
+			case YFX:
+				if (argument == 1) {
+					return "(" + arg + ")";
+				}
+				break;
+			case XFY:
+				if (argument == 0) {
+					return "(" + arg + ")";
+				}
+				break;
+			case NOT_OPERATOR:
+				throw new IllegalArgumentException("bug: " + getSignature() + " is not a known operator");
+			}
+		}
+		/*
+		 * if we get here, the argument does not need bracketing, either because
+		 * it has lower prio or because it has equal prio and the operator
+		 * allows that without brackets.
+		 */
+		return arg.toString();
+	}
+
+	/**
+	 * Support function for toString that checks if context requires brackets
+	 * around term. Checks if argument[argument] needs bracketing for printing.
+	 * Arguments inside a predicate are priority 1000. All arguments higher than
+	 * that must have been bracketed.
+	 *
+	 * @param argument
+	 * @return bracketed term if required, and without brackets if not needed.
+	 */
+	private String maybeBracketedArgument(int argument) {
+		PrologTerm arg = (PrologTerm) getArg(argument);
+		int argprio = arg.getPriority();
+		// prio of ','. If we encounter a ","(..) inside arglist we also need
+		// brackets.
+		if (argprio >= 1000) {
+			return "(" + arg + ")";
+		} else {
+			return arg.toString();
+		}
+	}
+
+	/**
+	 * Support function for toString of a tail of a lists.
+	 *
+	 * @param argument
+	 * @return argument in pretty-printed list form but without "[" or "]"
+	 */
+	private static String tailToString(Term arg) {
+		// Did we reach end of the list?
+		// TODO: empty list
+		if (arg instanceof PrologAtomImpl && ((PrologAtomImpl) arg).getName().equals("[]")) {
+			return "";
+		} else if (arg instanceof PrologCompound) {
+			// check that we are still in a list and continue.
+			if (arg.getSignature().equals("./2")) {
+				PrologCompound compound = (PrologCompound) arg;
+				return "," + compound.getArg(0) + tailToString(compound.getArg(1));
+			} else {
+				return "|" + arg; // not a good list.
+			}
+		} else {
+			// If we arrive here the remainder is either a var or not a good
+			// list. Finish it off.
+			return "|" + arg;
+		}
 	}
 }
