@@ -18,12 +18,13 @@
 package swiprolog.language;
 
 import krTools.language.Expression;
+import krTools.language.Var;
 import swiprolog.parser.PrologOperators;
 
 public interface PrologExpression extends Expression {
 	@Override
 	public default boolean isVar() {
-		return (this instanceof PrologVar);
+		return (this instanceof Var);
 	}
 
 	/**

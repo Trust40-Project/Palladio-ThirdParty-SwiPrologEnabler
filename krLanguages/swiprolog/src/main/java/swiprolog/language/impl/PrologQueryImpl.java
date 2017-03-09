@@ -102,4 +102,32 @@ public class PrologQueryImpl implements PrologQuery {
 	public Substitution mgu(Expression expression) {
 		return this.compound.mgu(expression);
 	}
+
+	@Override
+	public String toString() {
+		return this.compound.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		return this.compound.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj || obj == null) {
+			return true;
+		} else if (!(obj instanceof PrologQueryImpl)) {
+			return false;
+		}
+		PrologQueryImpl other = (PrologQueryImpl) obj;
+		if (this.compound == null) {
+			if (other.compound != null) {
+				return false;
+			}
+		} else if (!this.compound.equals(other.compound)) {
+			return false;
+		}
+		return true;
+	}
 }

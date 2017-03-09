@@ -27,7 +27,6 @@ import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologUpdate;
 import swiprolog.language.impl.PrologAtomImpl;
 import swiprolog.language.impl.PrologCompoundImpl;
@@ -37,8 +36,8 @@ import swiprolog.language.impl.PrologUpdateImpl;
 import swiprolog.parser.PrologOperators;
 
 /**
- * Tools for semantic checking of {@link PrologTerm}s and conversion to
- * {@link Update} etc.
+ * Tools for semantic checking of {@link Term}s and conversion to {@link Update}
+ * etc.
  */
 public class SemanticTools {
 
@@ -250,7 +249,7 @@ public class SemanticTools {
 	 * @return signatures of defined terms.
 	 * @throws ParserException
 	 */
-	public static List<String> getDefinedSignatures(PrologTerm term, SourceInfo info) throws ParserException {
+	public static List<String> getDefinedSignatures(Term term, SourceInfo info) throws ParserException {
 		List<String> signatures = new LinkedList<>();
 		if (term instanceof PrologAtomImpl) {
 			signatures.add(term.getSignature());

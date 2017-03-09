@@ -17,7 +17,6 @@
 
 package swiprolog.language.impl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -30,7 +29,6 @@ import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
-import swiprolog.language.PrologTerm;
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -44,7 +42,7 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	/**
 	 *
 	 */
-	private Term[] args;
+	private List<Term> args;
 
 	/**
 	 * Creates a compound with 1 or more arguments.
@@ -59,13 +57,16 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	public PrologCompoundImpl(String name, Term[] args, SourceInfo info) {
 		super(name, jplTypedArray(args));
 		this.info = info;
-		this.args = args;
+		this.args = Arrays.asList(args);
 	}
 
 	private static jpl.Term[] jplTypedArray(Term[] args) {
 		jpl.Term[] jpl = new jpl.Term[args.length];
-		for (int i = 1; i <= args.length; ++i) {
+		for (int i = 0; i < args.length; ++i) {
 			jpl[i] = (jpl.Term) args[i];
+			if (jpl[i] == null) {
+				throw new IllegalArgumentException("Null term passed into compound");
+			}
 		}
 		return jpl;
 	}
@@ -82,12 +83,12 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 
 	@Override
 	public int getArity() {
-		return this.args.length;
+		return this.args.size();
 	}
 
 	@Override
 	public Term getArg(int i) {
-		return this.args[i];
+		return this.args.get(i);
 	}
 
 	@Override
@@ -141,10 +142,10 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 
 	@Override
 	public PrologCompoundImpl applySubst(Substitution s) {
-		PrologTerm[] instantiatedArgs = new PrologTerm[getArity()];
+		Term[] instantiatedArgs = new Term[getArity()];
 		// Recursively apply the substitution to all sub-terms.
 		for (int i = 0; i < getArity(); ++i) {
-			instantiatedArgs[i] = (PrologTerm) getArg(i).applySubst(s);
+			instantiatedArgs[i] = getArg(i).applySubst(s);
 		}
 		return new PrologCompoundImpl(getName(), instantiatedArgs, this.info);
 	}
@@ -154,7 +155,7 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 		List<Term> list = new LinkedList<>();
 		if (getSignature().equals(operator + "/2")) {
 			list.add(getArg(0));
-			PrologTerm next = (PrologTerm) getArg(1);
+			Term next = getArg(1);
 			if (next instanceof PrologCompound) {
 				list.addAll(((PrologCompound) next).getOperands(operator));
 			} else {
@@ -177,8 +178,6 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 
 	@Override
 	public Iterator<Term> iterator() {
-		List<Term> asList = new ArrayList<>(getArity());
-		asList.addAll(Arrays.asList(this.args));
-		return asList.iterator();
+		return this.args.iterator();
 	}
 }

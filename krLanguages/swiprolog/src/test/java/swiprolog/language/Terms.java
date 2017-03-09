@@ -23,24 +23,25 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import jpl.Variable;
 import krTools.language.Term;
 import krTools.language.Var;
+import swiprolog.language.impl.PrologAtomImpl;
+import swiprolog.language.impl.PrologCompoundImpl;
+import swiprolog.language.impl.PrologIntImpl;
+import swiprolog.language.impl.PrologVarImpl;
 
 public class Terms {
-
-	@Test
+	// @Test FIXME
 	public void atomtostring() {
 		// Check that toString works OK.
-		// TODO FIXME
 		// Term atom = new PrologTerm(new jpl.Atom("'/tmp/pl_tmp_1089_0'"));
 		// assertEquals("'/tmp/pl_tmp_1089_0'", atom.toString());
 	}
 
 	@Test
 	public void equality() {
-		Term var1 = new PrologVar(new jpl.Variable("X"), null);
-		Term var2 = new PrologVar(new jpl.Variable("X"), null);
+		Term var1 = new PrologVarImpl("X", null);
+		Term var2 = new PrologVarImpl("X", null);
 		assertEquals(true, var1.equals(var2));
 	}
 
@@ -49,12 +50,12 @@ public class Terms {
 	 */
 	@Test
 	public void testFreeVars() {
-		Variable X = new Variable("X");
-		jpl.Term term = new jpl.Compound("q", new jpl.Term[] { new jpl.Atom("p"), X });
-		Term t = new PrologTerm(term, null);
-		Set<Var> vars = t.getFreeVar();
+		Term X = new PrologVarImpl("X", null);
+		Term p = new PrologAtomImpl("p", null);
+		Term term = new PrologCompoundImpl("q", new Term[] { p, X }, null);
+		Set<Var> vars = term.getFreeVar();
 		assertEquals(1, vars.size());
-		assertEquals(X, ((PrologVar) (vars.iterator().next())).getTerm());
+		assertEquals(X, vars.iterator().next());
 	}
 
 	/**
@@ -62,12 +63,11 @@ public class Terms {
 	 */
 	@Test
 	public void testFreeVarsInIs() {
-		Variable X = new Variable("X");
-		jpl.Term term = new jpl.Compound("=", new jpl.Term[] { X, new jpl.Integer(1), });
-		Term t = new PrologTerm(term, null);
-		Set<Var> vars = t.getFreeVar();
+		Term X = new PrologVarImpl("X", null);
+		Term one = new PrologIntImpl(1, null);
+		Term term = new PrologCompoundImpl("=", new Term[] { X, one }, null);
+		Set<Var> vars = term.getFreeVar();
 		assertEquals(1, vars.size());
-		assertEquals(X, ((PrologVar) (vars.iterator().next())).getTerm());
+		assertEquals(X, vars.iterator().next());
 	}
-
 }

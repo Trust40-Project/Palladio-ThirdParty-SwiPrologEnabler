@@ -20,10 +20,11 @@ package swiprolog.language.impl;
 import java.util.List;
 
 import krTools.language.Substitution;
+import krTools.language.Term;
+import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologSubstitution;
-import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
 
 /**
@@ -38,12 +39,12 @@ public class JPLUtils {
 	 *            The elements to be included in the list.
 	 * @return A Prolog list using the "." and "[]" list constructors.
 	 */
-	public static PrologTerm termsToList(List<PrologTerm> terms, SourceInfo info) {
+	public static Term termsToList(List<Term> terms, SourceInfo info) {
 		// Start with element in list, since innermost term of Prolog list is
 		// the last term.
-		PrologTerm list = new PrologAtomImpl("[]", info);
+		Term list = new PrologAtomImpl("[]", info);
 		for (int i = terms.size() - 1; i >= 0; i--) {
-			list = new PrologCompoundImpl(".", new PrologTerm[] { terms.get(i), list }, info);
+			list = new PrologCompoundImpl(".", new Term[] { terms.get(i), list }, info);
 		}
 		return list;
 	}
@@ -56,14 +57,14 @@ public class JPLUtils {
 	 *            source info
 	 * @return possibly empty conjunct containing the given terms
 	 */
-	public static PrologCompound termsToConjunct(List<PrologTerm> terms, SourceInfo info) {
+	public static Term termsToConjunct(List<Term> terms, SourceInfo info) {
 		if (terms.isEmpty()) {
 			return new PrologAtomImpl("true", info);
 		} else {
 			// build up list last to first.
 			PrologCompound list = (PrologCompound) terms.get(terms.size() - 1); // last
 			for (int i = terms.size() - 2; i >= 0; i--) {
-				list = new PrologCompoundImpl(",", new PrologTerm[] { terms.get(i), list }, info);
+				list = new PrologCompoundImpl(",", new Term[] { terms.get(i), list }, info);
 			}
 			return list;
 		}
@@ -84,7 +85,7 @@ public class JPLUtils {
 	 *            second term
 	 * @return mgu, or null if no mgu exists.
 	 */
-	public static Substitution mgu(PrologTerm x, PrologTerm y) {
+	public static Substitution mgu(Term x, Term y) {
 		return unify(x, y, new PrologSubstitution());
 	}
 
@@ -106,7 +107,7 @@ public class JPLUtils {
 	 *            the substitutions used so far.
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
-	public static Substitution unify(PrologTerm x, PrologTerm y, Substitution s) {
+	public static Substitution unify(Term x, Term y, Substitution s) {
 		if (s == null) {
 			return null;
 		} else if (x.equals(y)) {
@@ -141,7 +142,7 @@ public class JPLUtils {
 			return null;
 		} else {
 			for (int i = 0; i < x.getArity(); ++i) {
-				s = unify((PrologTerm) x.getArg(i), (PrologTerm) y.getArg(i), s);
+				s = unify(x.getArg(i), y.getArg(i), s);
 			}
 			return s;
 		}
@@ -154,9 +155,9 @@ public class JPLUtils {
 	 * are assumed to be in the same namespace.
 	 *
 	 * @param var
-	 *            the {@link PrologVariable}.
+	 *            the {@link Var}.
 	 * @param y
-	 *            the {@link PrologTerm}.
+	 *            the {@link Term}.
 	 * @param s
 	 *            the substitutions used so far. Must not be null. This set can
 	 *            be modified by this function.
@@ -164,11 +165,11 @@ public class JPLUtils {
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
 
-	private static Substitution unifyVar(PrologVar var, PrologTerm x, Substitution s) {
+	private static Substitution unifyVar(Var var, Term x, Substitution s) {
 		if (s.get(var) != null) {
-			return unify((PrologTerm) s.get(var), x, s);
-		} else if (x instanceof PrologVar && s.get((PrologVar) x) != null) {
-			return unify(var, (PrologTerm) s.get((PrologVar) x), s);
+			return unify(s.get(var), x, s);
+		} else if (x instanceof Var && s.get((Var) x) != null) {
+			return unify(var, s.get((Var) x), s);
 		} else if (x.getFreeVar().contains(var)) {
 			return null;
 		} else {

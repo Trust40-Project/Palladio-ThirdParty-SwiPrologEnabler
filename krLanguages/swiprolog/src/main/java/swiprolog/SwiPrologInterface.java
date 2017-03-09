@@ -47,14 +47,6 @@ import swiprolog.parser.KRInterfaceParser4;
  * Implementation of {@link KRInterface} for SWI Prolog.
  */
 public final class SwiPrologInterface implements KRInterface {
-	static {
-		try {
-			SwiInstaller.init(false);
-		} catch (Throwable retry) {
-			SwiInstaller.init(true);
-		}
-	}
-
 	/**
 	 * Contains all databases that are maintained by SWI Prolog. The key is the
 	 * owner of the database. The value is a list of databases associated with
@@ -62,6 +54,17 @@ public final class SwiPrologInterface implements KRInterface {
 	 * from the map.
 	 */
 	private Map<String, PrologDatabase> databases = new ConcurrentHashMap<>();
+
+	/**
+	 * See {@link SwiInstaller#init(boolean)}.
+	 */
+	public SwiPrologInterface() {
+		try {
+			SwiInstaller.init(false);
+		} catch (Throwable retry) {
+			SwiInstaller.init(true);
+		}
+	}
 
 	/**
 	 * Returns a database of a particular type associated with a given agent.

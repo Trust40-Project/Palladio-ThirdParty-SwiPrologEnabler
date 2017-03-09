@@ -21,15 +21,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
-import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
 
 /**
  * A Prolog variable.
  */
-public class PrologVarImpl extends jpl.Variable implements PrologVar {
+public class PrologVarImpl extends jpl.Variable implements PrologVar, Comparable<PrologVar> {
 	/**
 	 * Information about the source used to construct this variable.
 	 */
@@ -104,13 +104,18 @@ public class PrologVarImpl extends jpl.Variable implements PrologVar {
 	}
 
 	@Override
-	public PrologTerm applySubst(Substitution s) {
-		PrologTerm value = (s == null) ? null : (PrologTerm) s.get(this);
+	public Term applySubst(Substitution s) {
+		Term value = (s == null) ? null : s.get(this);
 		return (value == null) ? this : value;
 	}
 
 	@Override
 	public int hashCode() {
 		return this.name.hashCode();
+	}
+
+	@Override
+	public int compareTo(PrologVar o) {
+		return this.name.compareTo(o.getName());
 	}
 }

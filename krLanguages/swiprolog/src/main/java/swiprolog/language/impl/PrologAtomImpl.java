@@ -28,7 +28,6 @@ import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
-import swiprolog.language.PrologTerm;
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -69,7 +68,7 @@ public class PrologAtomImpl extends jpl.Atom implements PrologCompound {
 	}
 
 	@Override
-	public PrologTerm getArg(int i) {
+	public Term getArg(int i) {
 		return null;
 	}
 

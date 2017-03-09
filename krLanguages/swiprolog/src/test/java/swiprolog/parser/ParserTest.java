@@ -34,14 +34,13 @@ import org.junit.runners.Parameterized.Parameters;
 
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
-import swiprolog.SwiInstaller;
+import swiprolog.SwiPrologInterface;
 
 /**
  * Test the parsing implementation of KRInterfaceParser4. e2e test.
  */
 @RunWith(Parameterized.class)
 public class ParserTest {
-
 	@Parameters
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] { { "p(a, b)" }, { "p(a, b , c)" }, { "head :- body" },
@@ -54,10 +53,6 @@ public class ParserTest {
 		});
 	}
 
-	static {
-		SwiInstaller.init();
-	}
-
 	private String input;
 
 	public ParserTest(String input) {
@@ -66,7 +61,8 @@ public class ParserTest {
 
 	@Test
 	public void test() throws IOException, ParserException {
-		Reader r = new StringReader(input + ".");
+		new SwiPrologInterface();
+		Reader r = new StringReader(this.input + ".");
 		KRInterfaceParser4 parser = new KRInterfaceParser4(r, null);
 		List<DatabaseFormula> terms = parser.parseDBFs();
 		if (!parser.getErrors().isEmpty()) {
@@ -88,6 +84,6 @@ public class ParserTest {
 		 * tricks: it inserts whitespaces where they are not in the original
 		 * term, and removes them where they are in the original term.
 		 */
-		assertEquals(input.replaceAll(" ", ""), result.replaceAll(" ", ""));
+		assertEquals(this.input.replaceAll(" ", ""), result.replaceAll(" ", ""));
 	}
 }

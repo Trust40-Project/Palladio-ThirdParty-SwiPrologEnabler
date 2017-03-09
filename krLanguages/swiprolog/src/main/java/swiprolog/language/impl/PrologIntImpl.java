@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import swiprolog.language.PrologTerm;
@@ -73,7 +74,7 @@ public class PrologIntImpl extends jpl.Integer implements PrologTerm {
 	}
 
 	@Override
-	public PrologTerm applySubst(Substitution s) {
+	public Term applySubst(Substitution s) {
 		return this;
 	}
 

@@ -31,8 +31,6 @@ import krTools.language.Var;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.PrologTerm;
-import swiprolog.language.PrologVar;
 import swiprolog.language.impl.PrologQueryImpl;
 import swiprolog.language.impl.PrologUpdateImpl;
 import swiprolog.visitor.Visitor4;
@@ -41,12 +39,6 @@ import swiprolog.visitor.Visitor4;
  * Parse, visit and validate. All errors occurring during parse or validation
  * are thrown. Normally you use Validator4 which also stores errors as they
  * occur.
- *
- * Usage example to parse string as prolog term:
- * <code>validator = new Validator4(new Prolog4VisitorPlus(
-				new ErrorStoringProlog4Parser(new StringReader(in), null)));
-				PrologTerm term = validator.term();
-				</code>
  */
 public class Validator4 {
 	private final Visitor4 visitor;
@@ -66,7 +58,7 @@ public class Validator4 {
 	 * @return {@link Update} or null if there is error.
 	 */
 	public Update updateOrEmpty() {
-		PrologTerm conj = this.visitor.visitPossiblyEmptyConjunct();
+		Term conj = this.visitor.visitPossiblyEmptyConjunct();
 		if (!(conj instanceof PrologCompound)) {
 			return null;
 		} else if (conj.toString().equals("true")) { // special case.
@@ -88,13 +80,14 @@ public class Validator4 {
 	 * @return List<DatabaseFormula>, or {@code null} if a parser error occurs.
 	 */
 	public List<DatabaseFormula> program() {
-		List<PrologTerm> prologTerms = this.visitor.visitPrologtext();
 		List<DatabaseFormula> dbfs = new LinkedList<>();
-		for (PrologTerm t : prologTerms) {
-			try {
-				dbfs.add(SemanticTools.DBFormula((PrologCompound) t));
-			} catch (ParserException e) {
-				this.errors.add(e);
+		for (Term t : this.visitor.visitPrologtext()) {
+			if (t instanceof PrologCompound) {
+				try {
+					dbfs.add(SemanticTools.DBFormula((PrologCompound) t));
+				} catch (ParserException e) {
+					this.errors.add(e);
+				}
 			}
 		}
 		return dbfs;
@@ -107,12 +100,13 @@ public class Validator4 {
 	 */
 	public List<Query> goalSection() {
 		List<Query> goals = new LinkedList<>();
-		for (PrologTerm t : this.visitor.visitPrologtext()) {
-			// check that each term is a valid Prolog goal / query
-			try {
-				goals.add(new PrologQueryImpl(SemanticTools.toGoal((PrologCompound) t)));
-			} catch (ParserException e) {
-				this.errors.add(e);
+		for (Term t : this.visitor.visitPrologtext()) {
+			if (t instanceof PrologCompound) {
+				try {
+					goals.add(new PrologQueryImpl(SemanticTools.toGoal((PrologCompound) t)));
+				} catch (ParserException e) {
+					this.errors.add(e);
+				}
 			}
 		}
 		return goals;
@@ -124,7 +118,7 @@ public class Validator4 {
 	 * @return A {@link PrologQuery}, or {@code null} if an error occurred.
 	 */
 	public PrologQuery queryOrEmpty() {
-		PrologTerm term = this.visitor.visitPossiblyEmptyDisjunct();
+		Term term = this.visitor.visitPossiblyEmptyDisjunct();
 		if (term instanceof PrologCompound) {
 			try {
 				return SemanticTools.toQuery((PrologCompound) term);
@@ -141,9 +135,9 @@ public class Validator4 {
 	 * @return {@link Var} or null if error occurred.
 	 */
 	public Var var() {
-		PrologTerm term = this.visitor.visitTerm0();
-		if (term != null && term.isVar()) {
-			return (PrologVar) term;
+		Term term = this.visitor.visitTerm0();
+		if (term instanceof Var) {
+			return (Var) term;
 		} else {
 			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_VAR.toReadableString(term.toString()),
 					term.getSourceInfo()));
@@ -157,7 +151,7 @@ public class Validator4 {
 	 * @return term, or null if error occurs
 	 * @throws ParserException
 	 */
-	public PrologTerm term() {
+	public Term term() {
 		return this.visitor.visitTerm0();
 	}
 
@@ -167,7 +161,7 @@ public class Validator4 {
 	 * @return A list of {@link Term}s.
 	 */
 	public List<Term> terms() {
-		PrologTerm t = this.visitor.visitTerm1000();
+		Term t = this.visitor.visitTerm1000();
 		if (t instanceof PrologCompound) {
 			// type conversion needed
 			return new ArrayList<>(((PrologCompound) t).getOperands(","));

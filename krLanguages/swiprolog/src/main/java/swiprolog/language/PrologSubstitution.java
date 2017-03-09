@@ -32,7 +32,7 @@ import krTools.language.Var;
  * said to bind the term to the variable if it maps the variable to the term. A
  * substitution may be empty.
  */
-public class PrologSubstitution extends TreeMap<PrologVar, PrologTerm> implements Substitution {
+public class PrologSubstitution extends TreeMap<Var, Term> implements Substitution {
 	private static final long serialVersionUID = 5134215246806477693L;
 
 	/**
@@ -50,23 +50,23 @@ public class PrologSubstitution extends TreeMap<PrologVar, PrologTerm> implement
 	 * @param term
 	 *            Term that is bound to variable.
 	 */
-	public PrologSubstitution(PrologVar var, PrologTerm term) {
+	public PrologSubstitution(Var var, Term term) {
 		super();
 		put(var, term);
 	}
 
 	/**
-	 * Create {@link PrologSubstitution} from JPL substitution.
+	 * Create a {@link PrologSubstitution} from a JPL substitution.
 	 *
 	 * @param solutions
 	 *            JPL substitution.
 	 */
-	private PrologSubstitution(SortedMap<PrologVar, PrologTerm> solution) {
+	private PrologSubstitution(SortedMap<Var, Term> solution) {
 		super();
 		putAll(solution);
 	}
 
-	public static PrologSubstitution getSubstitutionOrNull(SortedMap<PrologVar, PrologTerm> solution) {
+	public static PrologSubstitution getSubstitutionOrNull(SortedMap<Var, Term> solution) {
 		if (solution == null) {
 			return null;
 		} else {
@@ -100,7 +100,7 @@ public class PrologSubstitution extends TreeMap<PrologVar, PrologTerm> implement
 			throw new RuntimeException(
 					"attempt to add '" + var + "' to substitution " + this + " that already binds the variable.");
 		} else {
-			put((PrologVar) var, (PrologTerm) term);
+			put(var, term);
 		}
 	}
 
@@ -119,15 +119,13 @@ public class PrologSubstitution extends TreeMap<PrologVar, PrologTerm> implement
 		Substitution combination = new PrologSubstitution();
 
 		// Apply the parameter substitution to this substitution.
-		for (Var variable : getVariables()) {
+		for (Var var : getVariables()) {
 			// Add binding for variable to term obtained by applying the
-			// parameter substitution
-			// to the original term.
-			PrologVar var = (PrologVar) variable;
-			PrologTerm term = (PrologTerm) var.applySubst(substitution);
+			// parameter substitution to the original term.
+			Term term = var.applySubst(substitution);
 			// Add binding if resulting term is not equal to variable.
 			if (var.equals(term)) {
-				combination.addBinding(var, get(variable));
+				combination.addBinding(var, get(var));
 			} else {
 				combination.addBinding(var, term);
 			}
@@ -135,11 +133,10 @@ public class PrologSubstitution extends TreeMap<PrologVar, PrologTerm> implement
 		// Add the bindings of the parameter substitution for variables that are
 		// not in the domain of this substitution; otherwise check for
 		// inconsistencies.
-		for (Var variable : substitution.getVariables()) {
-			PrologVar var = (PrologVar) variable;
+		for (Var var : substitution.getVariables()) {
 			if (get(var) == null) {
-				PrologTerm term = (PrologTerm) substitution.get(var).applySubst(substitution);
-				if (!variable.equals(term)) {
+				Term term = substitution.get(var).applySubst(substitution);
+				if (!var.equals(term)) {
 					combination.addBinding(var, term);
 				}
 			} else { // two bindings for one and the same variable.
@@ -171,7 +168,7 @@ public class PrologSubstitution extends TreeMap<PrologVar, PrologTerm> implement
 	}
 
 	@Override
-	public PrologSubstitution clone() {
+	public Substitution clone() {
 		return new PrologSubstitution(this);
 	}
 

@@ -20,74 +20,58 @@ package swiprolog.language;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 import org.junit.Test;
 
-import jpl.Compound;
-import jpl.Term;
-import jpl.Variable;
-import swiprolog.SwiInstaller;
-import swiprolog.language.impl.JPLUtils;
+import krTools.language.Substitution;
+import krTools.language.Term;
+import krTools.language.Var;
+import swiprolog.language.impl.PrologAtomImpl;
+import swiprolog.language.impl.PrologCompoundImpl;
+import swiprolog.language.impl.PrologVarImpl;
 
 public class TestPrologSubstitution {
-	static {
-		SwiInstaller.init();
-	}
-
-	/**
-	 * Check that variables are substituted only once.
-	 */
 	@Test
 	public void testSubstitution() {
-		SortedMap<String, Term> solution = new TreeMap<>();
+		Substitution solution = new PrologSubstitution();
+		Var X = new PrologVarImpl("X", null);
+		Var Y = new PrologVarImpl("Y", null);
+		Var Z = new PrologVarImpl("Z", null);
+		solution.addBinding(X, Y);
+		solution.addBinding(Y, Z);
 
-		Variable Y = new Variable("Y");
-		Variable Z = new Variable("Z");
-		solution.put("X", Y);
-		solution.put("Y", Z);
+		Term term = new PrologCompoundImpl("aap", new Term[] { X, Y }, null);
 
-		Term[] args = new Term[2];
-		args[0] = new Variable("X");
-		args[1] = new Variable("Y");
-		Term term = new jpl.Compound("aap", args);
-
-		Term result = JPLUtils.applySubst(solution, term);
-		assertTrue(result instanceof Compound);
-		Compound compound = (Compound) result;
-		assertEquals(Y, compound.arg(1));
-		assertEquals(Z, compound.arg(2));
+		Term result = term.applySubst(solution);
+		assertTrue(result instanceof PrologCompound);
+		PrologCompound compound = (PrologCompound) result;
+		assertEquals(Y, compound.getArg(0));
+		assertEquals(Z, compound.getArg(1));
 	}
 
 	@Test
 	public void testToString() {
-		SortedMap<String, Term> solution = new TreeMap<>();
-		PrologSubstitution substitution1 = PrologSubstitution.getSubstitutionOrNull(solution);
-		assertTrue(substitution1.getJPLSolution().isEmpty());
+		Substitution solution = new PrologSubstitution();
+		assertTrue(solution.getVariables().isEmpty());
 
-		jpl.Variable var = new jpl.Variable("X");
-		jpl.Term term = new jpl.Atom("a");
-		solution.put(var.name(), term);
-		PrologSubstitution substitution2 = PrologSubstitution.getSubstitutionOrNull(solution);
-		assertEquals(1, substitution2.getJPLSolution().size());
-		assertEquals(term, substitution2.getJPLSolution().get(var.name()));
+		Var X = new PrologVarImpl("X", null);
+		Term a = new PrologAtomImpl("a", null);
+		solution.addBinding(X, a);
+		assertEquals(1, solution.getVariables().size());
+		assertEquals(a, solution.get(X));
 
-		jpl.Variable var1 = new jpl.Variable("Y");
-		jpl.Term term1 = new jpl.Atom("b");
-		solution.put(var1.name(), term1);
-		PrologSubstitution substitution3 = PrologSubstitution.getSubstitutionOrNull(solution);
-		assertEquals(2, substitution3.getJPLSolution().size());
-		assertEquals(term, substitution3.getJPLSolution().get(var.name()));
-		assertEquals(term1, substitution3.getJPLSolution().get(var1.name()));
+		Var Y = new PrologVarImpl("Y", null);
+		Term b = new PrologAtomImpl("b", null);
+		solution.addBinding(Y, b);
+		assertEquals(2, solution.getVariables().size());
+		assertEquals(a, solution.get(X));
+		assertEquals(b, solution.get(Y));
 
-		jpl.Variable var2 = new jpl.Variable("Z");
-		jpl.Variable var3 = new jpl.Variable("V");
-		solution.put(var2.name(), var3);
-		PrologSubstitution substitution4 = PrologSubstitution.getSubstitutionOrNull(solution);
-		assertEquals(3, substitution4.getJPLSolution().size());
-		assertEquals(term, substitution4.getJPLSolution().get(var.name()));
-		assertEquals(term1, substitution4.getJPLSolution().get(var1.name()));
-		assertEquals(var3, substitution4.getJPLSolution().get(var2.name()));
+		Var Z = new PrologVarImpl("Z", null);
+		Term V = new PrologVarImpl("V", null);
+		solution.addBinding(Z, V);
+		assertEquals(3, solution.getVariables().size());
+		assertEquals(a, solution.get(X));
+		assertEquals(b, solution.get(Y));
+		assertEquals(V, solution.get(Z));
 	}
 }

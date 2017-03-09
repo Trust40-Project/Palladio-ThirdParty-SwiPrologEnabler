@@ -7,36 +7,31 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import jpl.Atom;
 import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
 import krTools.language.DatabaseFormula;
 import swiprolog.SwiPrologInterface;
-import swiprolog.language.PrologDBFormula;
+import swiprolog.language.PrologCompound;
+import swiprolog.language.impl.PrologAtomImpl;
+import swiprolog.language.impl.PrologDBFormulaImpl;
 
-/**
- * Test the {@link UpdateEngine} KNOWLEDGEBASE part. Unfortunately we need also
- * the {@link InferenceEngine} to test if the update really worked so we're
- * partially testing {@link InferenceEngine} as well.
- * <p>
- * See also the comments in {@link TestUpdate}.
- */
 public class TestUpdate2 {
 	// components enabling us to run the tests...
 	private KRInterface language;
-
-	// basic knowledge
-	private final Atom k1 = new Atom("aap");
-	private final Atom k2 = new Atom("beer");
-	private final Atom k3 = new Atom("kat");
-
 	private Database knowledgebase;
 	private Database beliefbase;
+	// basic knowledge
+	private PrologCompound k1;
+	private PrologCompound k2;
+	private PrologCompound k3;
 
 	@Before
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
+		this.k1 = new PrologAtomImpl("aap", null);
+		this.k2 = new PrologAtomImpl("beer", null);
+		this.k3 = new PrologAtomImpl("kat", null);
 		fillKB();
 	}
 
@@ -57,8 +52,8 @@ public class TestUpdate2 {
 	 */
 	private void fillKB() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory = new LinkedHashSet<>(2);
-		kbtheory.add(new PrologDBFormula(this.k1, null));
-		kbtheory.add(new PrologDBFormula(this.k2, null));
+		kbtheory.add(new PrologDBFormulaImpl(this.k1));
+		kbtheory.add(new PrologDBFormulaImpl(this.k2));
 		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory);
 		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0));
 	}
@@ -70,7 +65,7 @@ public class TestUpdate2 {
 	 */
 	private void fillKB2() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<>(1);
-		kbtheory2.add(new PrologDBFormula(this.k3, null));
+		kbtheory2.add(new PrologDBFormulaImpl(this.k3));
 		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory2);
 		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0));
 	}

@@ -111,4 +111,32 @@ public class PrologDBFormulaImpl implements PrologDBFormula {
 	public Substitution mgu(Expression expression) {
 		return this.compound.mgu(expression);
 	}
+
+	@Override
+	public String toString() {
+		return this.compound.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		return this.compound.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj || obj == null) {
+			return true;
+		} else if (!(obj instanceof PrologDBFormulaImpl)) {
+			return false;
+		}
+		PrologDBFormulaImpl other = (PrologDBFormulaImpl) obj;
+		if (this.compound == null) {
+			if (other.compound != null) {
+				return false;
+			}
+		} else if (!this.compound.equals(other.compound)) {
+			return false;
+		}
+		return true;
+	}
 }

@@ -30,14 +30,12 @@ import krTools.language.Term;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.PrologVar;
 import swiprolog.parser.PrologOperators;
 
 /**
  * Analyzer to identify unused and undefined predicates.
  */
 public class Analyzer {
-	private static final PrologVar ANON_VAR = new PrologVarImpl("_", null);
 	/**
 	 * Map of definitions.
 	 */
@@ -171,8 +169,9 @@ public class Analyzer {
 		} else if (termSig.equals("predsort/3")) {
 			// first argument is name that will be called as name/3
 			PrologCompound firstarg = (PrologCompound) compound.getArg(0);
-			PrologCompound stubfunc = new PrologCompoundImpl(firstarg.getName(),
-					new PrologVar[] { ANON_VAR, ANON_VAR, ANON_VAR }, compound.getSourceInfo());
+			Term anon = new PrologVarImpl("_", null);
+			PrologCompound stubfunc = new PrologCompoundImpl(firstarg.getName(), new Term[] { anon, anon, anon },
+					compound.getSourceInfo());
 			addQuery(stubfunc);
 		} else if (termSig.equals("dynamic/1")) {
 			// recognize predicate declaration(s).

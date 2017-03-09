@@ -23,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import jpl.Term;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRInitFailedException;
@@ -31,7 +30,9 @@ import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Update;
+import krTools.language.Var;
 import swiprolog.SwiPrologInterface;
 import swiprolog.errors.PrologError;
 import swiprolog.language.PrologCompound;
@@ -39,7 +40,6 @@ import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologSubstitution;
 import swiprolog.language.PrologTerm;
-import swiprolog.language.PrologVar;
 import swiprolog.language.impl.PrologAtomImpl;
 import swiprolog.language.impl.PrologCompoundImpl;
 import swiprolog.language.impl.PrologFloatImpl;
@@ -47,7 +47,6 @@ import swiprolog.language.impl.PrologIntImpl;
 import swiprolog.language.impl.PrologVarImpl;
 
 public class PrologDatabase implements Database {
-	private final static PrologCompound trueterm = new PrologAtomImpl("true", null);
 	/**
 	 * Name of this database; used to name a SWI-Prolog module that implements
 	 * the database.
@@ -82,7 +81,7 @@ public class PrologDatabase implements Database {
 			// FIXME: this is an expensive operation that is now run for
 			// knowledge bases as well, and might be run for bases in a mental
 			// model that will never be used anyway too.
-			PrologCompound init = prefix(trueterm);
+			PrologCompound init = prefix(new PrologAtomImpl("true", null));
 			rawquery(init);
 			if (content != null) {
 				for (DatabaseFormula dbf : content) {
@@ -94,8 +93,8 @@ public class PrologDatabase implements Database {
 		}
 	}
 
-	private PrologCompound prefix(PrologTerm term) {
-		return new PrologCompoundImpl(":", new PrologTerm[] { this.name, term }, null);
+	private PrologCompound prefix(Term term) {
+		return new PrologCompoundImpl(":", new Term[] { this.name, term }, null);
 	}
 
 	@Override
@@ -135,7 +134,8 @@ public class PrologDatabase implements Database {
 		// We need to create conjunctive query with "true" as first conjunct and
 		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		PrologCompound conjunctive = new PrologCompoundImpl(",", new PrologTerm[] { trueterm, prefix(query) }, null);
+		PrologCompound conjunctive = new PrologCompoundImpl(",",
+				new Term[] { new PrologAtomImpl("true", null), prefix(query) }, null);
 		// Perform the query
 		return rawquery(conjunctive);
 	}
@@ -167,7 +167,7 @@ public class PrologDatabase implements Database {
 	 * ASSUMES formula can be argument of assert (fact, rules).
 	 *
 	 * @param formula
-	 *            is the PrologTerm to be inserted into database. appropriate
+	 *            is the formula to be inserted into database. appropriate
 	 *            database label will be prefixed to your formula
 	 * @throws KRDatabaseException
 	 */
@@ -218,9 +218,9 @@ public class PrologDatabase implements Database {
 		PrologCompound query = null;
 		if (formula.getSignature().equals(":-/1")) { // directive
 			formula = (PrologCompound) formula.getArg(0);
-			query = new PrologCompoundImpl(",", new PrologTerm[] { trueterm, prefix(formula) }, null);
+			query = new PrologCompoundImpl(",", new Term[] { new PrologAtomImpl("true", null), prefix(formula) }, null);
 		} else { // clause
-			query = new PrologCompoundImpl("assert", new PrologTerm[] { prefix(formula) }, null);
+			query = new PrologCompoundImpl("assert", new Term[] { prefix(formula) }, null);
 		}
 		try {
 			rawquery(query);
@@ -277,7 +277,7 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	private void delete(PrologCompound formula) throws KRDatabaseException {
-		PrologCompound retraction = new PrologCompoundImpl("retractall", new PrologTerm[] { prefix(formula) }, null);
+		PrologCompound retraction = new PrologCompoundImpl("retractall", new Term[] { prefix(formula) }, null);
 		try {
 			rawquery(retraction);
 		} catch (KRQueryFailedException e) {
@@ -323,9 +323,9 @@ public class PrologDatabase implements Database {
 		Set<Substitution> substitutions = new LinkedHashSet<>(solutions.length);
 		for (Hashtable<String, jpl.Term> solution : solutions) {
 			Substitution subst = new PrologSubstitution();
-			for (Entry<String, Term> entry : solution.entrySet()) {
-				PrologVar var = new PrologVarImpl(entry.getKey(), null);
-				PrologTerm term = fromJpl(entry.getValue());
+			for (Entry<String, jpl.Term> entry : solution.entrySet()) {
+				Var var = new PrologVarImpl(entry.getKey(), null);
+				Term term = fromJpl(entry.getValue());
 				subst.addBinding(var, term);
 			}
 			substitutions.add(subst);
@@ -334,13 +334,13 @@ public class PrologDatabase implements Database {
 		return substitutions;
 	}
 
-	private static PrologTerm fromJpl(jpl.Term term) {
+	private static Term fromJpl(jpl.Term term) {
 		if (term.isAtom()) {
 			jpl.Atom atom = (jpl.Atom) term;
 			return new PrologAtomImpl(atom.name(), null);
 		} else if (term.isCompound()) {
 			jpl.Compound compound = (jpl.Compound) term;
-			PrologTerm[] args = new PrologTerm[compound.arity()];
+			Term[] args = new Term[compound.arity()];
 			for (int i = 1; i <= compound.arity(); ++i) {
 				args[i - 1] = fromJpl(compound.arg(i));
 			}
@@ -386,30 +386,29 @@ public class PrologDatabase implements Database {
 		// + "retractall(" + this.name + ":Head)"
 		// + ").";
 		// Construct jpl term for above.
-		PrologVar predicate = new PrologVarImpl("Predicate", null);
-		PrologVar head = new PrologVarImpl("Head", null);
+		Term predicate = new PrologVarImpl("Predicate", null);
+		Term head = new PrologVarImpl("Head", null);
 		PrologCompound db_head = prefix(head);
-		PrologCompound current = new PrologCompoundImpl("current_predicate", new PrologTerm[] { predicate, head },
-				null);
+		PrologCompound current = new PrologCompoundImpl("current_predicate", new Term[] { predicate, head }, null);
 		PrologCompound db_current = prefix(current);
 		PrologCompound built_in_atom = new PrologAtomImpl("built_in", null);
-		PrologCompound built_in = new PrologCompoundImpl("predicate_property",
-				new PrologTerm[] { db_head, built_in_atom }, null);
+		PrologCompound built_in = new PrologCompoundImpl("predicate_property", new Term[] { db_head, built_in_atom },
+				null);
 		PrologCompound foreign_atom = new PrologAtomImpl("foreign", null);
-		PrologCompound foreign = new PrologCompoundImpl("predicate_property",
-				new PrologTerm[] { db_head, foreign_atom }, null);
-		PrologVar anon = new PrologVarImpl("_", null);
-		PrologCompound imported_from = new PrologCompoundImpl("imported_from", new PrologTerm[] { anon }, null);
-		PrologCompound imported = new PrologCompoundImpl("predicate_property",
-				new PrologTerm[] { db_head, imported_from }, null);
-		PrologCompound not_built_in = new PrologCompoundImpl("not", new PrologTerm[] { built_in }, null);
-		PrologCompound not_foreign = new PrologCompoundImpl("not", new PrologTerm[] { foreign }, null);
-		PrologCompound not_imported = new PrologCompoundImpl("not", new PrologTerm[] { imported }, null);
-		PrologCompound retract = new PrologCompoundImpl("retractall", new PrologTerm[] { db_head }, null);
-		PrologCompound conj45 = new PrologCompoundImpl(",", new PrologTerm[] { not_imported, retract }, null);
-		PrologCompound conj345 = new PrologCompoundImpl(",", new PrologTerm[] { not_foreign, conj45 }, null);
-		PrologCompound conj2345 = new PrologCompoundImpl(",", new PrologTerm[] { not_built_in, conj345 }, null);
-		PrologCompound query = new PrologCompoundImpl(",", new PrologTerm[] { db_current, conj2345 }, null);
+		PrologCompound foreign = new PrologCompoundImpl("predicate_property", new Term[] { db_head, foreign_atom },
+				null);
+		Term anon = new PrologVarImpl("_", null);
+		PrologCompound imported_from = new PrologCompoundImpl("imported_from", new Term[] { anon }, null);
+		PrologCompound imported = new PrologCompoundImpl("predicate_property", new Term[] { db_head, imported_from },
+				null);
+		PrologCompound not_built_in = new PrologCompoundImpl("not", new Term[] { built_in }, null);
+		PrologCompound not_foreign = new PrologCompoundImpl("not", new Term[] { foreign }, null);
+		PrologCompound not_imported = new PrologCompoundImpl("not", new Term[] { imported }, null);
+		PrologCompound retract = new PrologCompoundImpl("retractall", new Term[] { db_head }, null);
+		PrologCompound conj45 = new PrologCompoundImpl(",", new Term[] { not_imported, retract }, null);
+		PrologCompound conj345 = new PrologCompoundImpl(",", new Term[] { not_foreign, conj45 }, null);
+		PrologCompound conj2345 = new PrologCompoundImpl(",", new Term[] { not_built_in, conj345 }, null);
+		PrologCompound query = new PrologCompoundImpl(",", new Term[] { db_current, conj2345 }, null);
 
 		try {
 			rawquery(query);

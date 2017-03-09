@@ -33,8 +33,8 @@ public interface PrologTerm extends PrologExpression, Term {
 
 	@Override
 	public default Substitution mgu(Expression expression) {
-		if (expression instanceof PrologTerm) {
-			PrologTerm other = (PrologTerm) expression;
+		if (expression instanceof Term) {
+			Term other = (Term) expression;
 			return JPLUtils.mgu(this, other);
 		} else {
 			return null;
