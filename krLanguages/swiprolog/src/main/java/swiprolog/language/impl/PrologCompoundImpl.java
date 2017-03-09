@@ -128,9 +128,7 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	public Set<Var> getFreeVar() {
 		Set<Var> set = new LinkedHashSet<>();
 		for (Term term : this.args) {
-			if (term instanceof Var) {
-				set.add((Var) term);
-			}
+			set.addAll(term.getFreeVar());
 		}
 		return set;
 	}

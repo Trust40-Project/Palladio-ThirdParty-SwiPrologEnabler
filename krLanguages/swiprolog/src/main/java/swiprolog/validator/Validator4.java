@@ -31,6 +31,7 @@ import krTools.language.Var;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
+import swiprolog.language.PrologTerm;
 import swiprolog.language.impl.PrologQueryImpl;
 import swiprolog.language.impl.PrologUpdateImpl;
 import swiprolog.visitor.Visitor4;
@@ -163,12 +164,14 @@ public class Validator4 {
 	public List<Term> terms() {
 		Term t = this.visitor.visitTerm1000();
 		if (t instanceof PrologCompound) {
-			// type conversion needed
 			return new ArrayList<>(((PrologCompound) t).getOperands(","));
+		} else if (t instanceof PrologTerm) {
+			List<Term> single = new ArrayList<>(1);
+			single.add(t);
+			return single;
 		} else {
 			return new ArrayList<>(0);
 		}
-
 	}
 
 	/**
