@@ -1,28 +1,25 @@
 package swiprolog.errors;
 
-import jpl.Compound;
-import jpl.PrologException;
-import jpl.Term;
 import krTools.KRInterface;
 import krTools.exceptions.KRException;
 import krTools.exceptions.KRQueryFailedException;
 import swiprolog.language.JPLUtils;
 
 /**
- * A wrapper for {@link PrologException}s.
+ * A wrapper for {@link jpl.PrologException}s.
  *
  * reasons for having this:
  * <ul>
  * <li>a {@link KRInterface} can only throw {@link KRException}s
- * <li>We need to do pretty printing, {@link PrologException} toString is
+ * <li>We need to do pretty printing, {@link jpl.PrologException} toString is
  * unreadable for most humans
  * </ul>
  *
  * <p>
  * The error contents were determined with reverse engineering. We most likely
  * have not covered all possible cases. We try to give more general errors in
- * unknown cases. But including the original {@link PrologException} still is
- * necessary.
+ * unknown cases. But including the original {@link jpl.PrologException} still
+ * is necessary.
  *
  */
 public class PrologError extends KRQueryFailedException {
@@ -32,7 +29,7 @@ public class PrologError extends KRQueryFailedException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Known {@link PrologException}s
+	 * Known {@link jpl.PrologException}s
 	 */
 	enum ErrorType {
 		/**
@@ -116,13 +113,13 @@ public class PrologError extends KRQueryFailedException {
 	 * Creates prolog error from given error term.
 	 *
 	 * @param err
-	 *            must be a {@link PrologException} (not null) containing a
+	 *            must be a {@link jpl.PrologException} (not null) containing a
 	 *            compound term which in turn containing the error details term.
 	 *            The name of error details should be one of the known
 	 *            {@link ErrorType}s. Unknown error types can not be handled
 	 *            properly
 	 */
-	public PrologError(PrologException exc) {
+	public PrologError(jpl.PrologException exc) {
 		// we can't know message before processing exc.. as workaround we
 		// override #getMessage()
 		super("", exc);
@@ -144,8 +141,8 @@ public class PrologError extends KRQueryFailedException {
 	 * @return message, or null if we fail to create such a message.
 	 */
 	private String extractDetailMessage() {
-		PrologException cause = (PrologException) getCause();
-		Term term = cause.term();
+		jpl.PrologException cause = (jpl.PrologException) getCause();
+		jpl.Term term = cause.term();
 		// we are expecting error(specific error, context), so something
 		// like this:
 		// error(existence_error(procedure,
@@ -153,14 +150,14 @@ public class PrologError extends KRQueryFailedException {
 		// on(e,f) , on(f,table) , maintain', /(target, 2))),
 		// context(:(system, /(',', 2)), _36))
 		// we will try to translate the contained specific error.
-		if (!(term instanceof Compound)) {
+		if (!(term instanceof jpl.Compound)) {
 			return null;
 		}
-		Compound errterm = (Compound) term;
-		if ((!errterm.name().equals("error")) || errterm.arity() == 0 || !(errterm.arg(1) instanceof Compound)) {
+		jpl.Compound errterm = (jpl.Compound) term;
+		if ((!errterm.name().equals("error")) || errterm.arity() == 0 || !(errterm.arg(1) instanceof jpl.Compound)) {
 			return null;
 		}
-		return makeDetailMessage((Compound) errterm.arg(1));
+		return makeDetailMessage((jpl.Compound) errterm.arg(1));
 
 	}
 
@@ -169,7 +166,7 @@ public class PrologError extends KRQueryFailedException {
 	 *            a Compound term like existence_error(..,..).
 	 * @return human readable error message, or null if unknown term.
 	 */
-	private String makeDetailMessage(Compound error) {
+	private String makeDetailMessage(jpl.Compound error) {
 		ErrorType type;
 		try {
 			type = ErrorType.valueOf(error.name().toUpperCase());
@@ -195,11 +192,11 @@ public class PrologError extends KRQueryFailedException {
 			}
 			switch (subtype) {
 			case PROCEDURE:
-				Term t = error.arg(2);
-				if (!(t instanceof Compound)) {
+				jpl.Term t = error.arg(2);
+				if (!(t instanceof jpl.Compound)) {
 					return defaultmessage;
 				}
-				Compound explanation = (Compound) t;
+				jpl.Compound explanation = (jpl.Compound) t;
 				if (explanation.arity() != 2) {
 					return defaultmessage;
 				}

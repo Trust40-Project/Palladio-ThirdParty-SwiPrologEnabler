@@ -16,10 +16,9 @@
  */
 package swiprolog.validator;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-import jpl.Term;
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Update;
@@ -144,9 +143,8 @@ public class SemanticTools {
 			jpl.Term directive = term.getTerm().arg(1);
 			signature = JPLUtils.getSignature(directive);
 			if (JPLUtils.getSignature(directive).equals("dynamic/1")) {
-				List<Term> dynamicPreds = JPLUtils.getOperands(",", directive.arg(1));
-
-				for (Term headTerm : dynamicPreds) {
+				List<jpl.Term> dynamicPreds = JPLUtils.getOperands(",", directive.arg(1));
+				for (jpl.Term headTerm : dynamicPreds) {
 					signature = headTerm.name() + "/" + headTerm.arity();
 					if (signature.equals("//2")) {
 						// the term is already a signature itself
@@ -242,7 +240,7 @@ public class SemanticTools {
 	 * Extract the defined signature(s) from the term. A signature is defined if
 	 * the databaseformula defines a predicate of that signature (as fact or as
 	 * following from inference.
-	 * 
+	 *
 	 * @param term
 	 * @param info
 	 *            the source info of the term. Used when an error message needs
@@ -250,9 +248,8 @@ public class SemanticTools {
 	 * @return signatures of defined terms.
 	 * @throws ParserException
 	 */
-	public static List<String> getDefinedSignatures(Term term, SourceInfo info) throws ParserException {
-		List<String> signatures = new ArrayList<>();
-
+	public static List<String> getDefinedSignatures(jpl.Term term, SourceInfo info) throws ParserException {
+		List<String> signatures = new LinkedList<>();
 		if (term.isAtom()) {
 			signatures.add(JPLUtils.getSignature(term));
 		} else if (term.isCompound()) {
@@ -279,20 +276,20 @@ public class SemanticTools {
 
 	/**
 	 * Extract the signatures of dynamic declarations from the term.
-	 * 
+	 *
 	 * @param term
 	 * @param info
 	 * @return declared but undefined signatures
 	 * @throws ParserException
 	 */
-	public static List<String> getDeclaredSignatures(Term term, SourceInfo info) throws ParserException {
-		List<String> signatures = new ArrayList<>();
+	public static List<String> getDeclaredSignatures(jpl.Term term, SourceInfo info) throws ParserException {
+		List<String> signatures = new LinkedList<>();
 		if (term.isCompound() && term.name().equals(":-") && term.arity() == 1) {
-			Term directive = term.arg(1);
+			jpl.Term directive = term.arg(1);
 			if (!directive.name().equals("dynamic") || directive.arity() != 1) {
 				throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
 			}
-			for (Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {
+			for (jpl.Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {
 				if (!JPLUtils.isPredicateIndicator(signatureterm)) {
 					throw new ParserException("term " + signatureterm + " is not a predicate indicator", info);
 				}

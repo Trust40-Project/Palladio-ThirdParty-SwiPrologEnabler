@@ -23,9 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeMap;
 
-import jpl.Atom;
-import jpl.PrologException;
-import jpl.Term;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRInitFailedException;
@@ -75,7 +72,7 @@ public class PrologDatabase implements Database {
 			// FIXME: this is an expensive operation that is now run for
 			// knowledge bases as well, and might be run for bases in a mental
 			// model that will never be used anyway too.
-			rawquery(JPLUtils.createCompound(":", getJPLName(), new Atom("true")));
+			rawquery(JPLUtils.createCompound(":", getJPLName(), new jpl.Atom("true")));
 			if (content != null) {
 				for (DatabaseFormula dbf : content) {
 					insert(((PrologDBFormula) dbf).getTerm());
@@ -194,7 +191,7 @@ public class PrologDatabase implements Database {
 		try {
 			if (formula.name().equals(":-") && formula.arity() == 1) { // directive
 				jpl.Term query = JPLUtils.createCompound(":", getJPLName(), formula.arg(1));
-				Term queryt = JPLUtils.createCompound(",", new jpl.Atom("true"), query);
+				jpl.Term queryt = JPLUtils.createCompound(",", new jpl.Atom("true"), query);
 				rawquery(queryt);
 			} else { // clause
 				jpl.Term dbformula = JPLUtils.createCompound(":", getJPLName(), formula);
@@ -280,7 +277,7 @@ public class PrologDatabase implements Database {
 		Hashtable[] solutions;
 		try {
 			solutions = jplQuery.allSolutions();
-		} catch (PrologException e) {
+		} catch (jpl.PrologException e) {
 			throw new PrologError(e);
 		} catch (Throwable e) {
 			// catch all other (runtime) exceptions and wrap into checked
