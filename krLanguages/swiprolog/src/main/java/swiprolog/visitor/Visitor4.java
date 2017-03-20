@@ -44,7 +44,7 @@ public class Visitor4 {
 
 	public List<PrologTerm> visitPrologtext() {
 		PrologtextContext parsed = this.parser.prologtext();
-		return this.parser.isSuccess() ? this.visitor.visitPrologtext(parsed) : new ArrayList<PrologTerm>(0);
+		return this.parser.isSuccess() ? this.visitor.visitPrologtext(parsed) : new ArrayList<>(0);
 	}
 
 	public PrologTerm visitPossiblyEmptyDisjunct() {
@@ -68,7 +68,7 @@ public class Visitor4 {
 	 * @return all errors from both visitor and parser
 	 */
 	public SortedSet<ParserException> getErrors() {
-		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
+		SortedSet<ParserException> allErrors = new TreeSet<>();
 		allErrors.addAll(this.visitor.getVisitorErrors());
 		allErrors.addAll(this.parser.getErrors());
 		return allErrors;

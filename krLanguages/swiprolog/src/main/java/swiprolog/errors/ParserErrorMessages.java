@@ -81,13 +81,9 @@ public enum ParserErrorMessages {
 	 */
 	PROTECTED_PREDICATE,
 	/**
-	 * Variables cant be used as goal
+	 * Non-compounds cant be used as goal
 	 */
-	VARIABLES_NOT_AS_GOAL,
-	/**
-	 * numbers cant be used as goal
-	 */
-	NUMBER_NOT_AS_GOAL,
+	EXPECTED_COMPOUND,
 	/**
 	 * use of predicate not supoorted
 	 */

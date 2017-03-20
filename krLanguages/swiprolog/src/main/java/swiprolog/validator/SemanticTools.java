@@ -21,19 +21,23 @@ import java.util.List;
 
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
+import krTools.language.Term;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
-import swiprolog.language.JPLUtils;
-import swiprolog.language.PrologDBFormula;
+import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologUpdate;
+import swiprolog.language.impl.PrologAtomImpl;
+import swiprolog.language.impl.PrologCompoundImpl;
+import swiprolog.language.impl.PrologDBFormulaImpl;
+import swiprolog.language.impl.PrologQueryImpl;
+import swiprolog.language.impl.PrologUpdateImpl;
 import swiprolog.parser.PrologOperators;
 
 /**
- * Tools for semantic checking of {@link PrologTerm}s and conversion to
- * {@link Update} etc.
+ * Tools for semantic checking of {@link Term}s and conversion to {@link Update}
+ * etc.
  */
 public class SemanticTools {
 
@@ -44,47 +48,46 @@ public class SemanticTools {
 	 * </p>
 	 *
 	 * @param {@link
-	 * 			PrologTerm} that is supposedly an update (ie conjunct of [not]
-	 *            dbFormula)
+	 * 			PrologCompound} that is supposedly an update (ie conjunct of
+	 *            [not] dbFormula)
 	 * @returns the original term (no conversion is performed)
 	 * @throws ParserException
-	 *             if term is no good Update.
-	 * @see #checkDBFormula
+	 *             if the conjunction is not a good Update.
 	 */
-	public static PrologUpdate conj2Update(PrologTerm conjunct) throws ParserException {
-		return new PrologUpdate(basicUpdateCheck(conjunct), conjunct.getSourceInfo());
+	public static PrologUpdate conj2Update(PrologCompound conjunct) throws ParserException {
+		return new PrologUpdateImpl(basicUpdateCheck(conjunct));
 	}
 
 	/**
 	 * <p>
-	 * Checks if {@link PrologTerm} may be used as update, i.e. a conjunct of
-	 * either a {@link DatabaseFormula} or not(DatabaseFormula).
+	 * Checks if {@link PrologCompound} may be used as update, i.e. a conjunct
+	 * of either a {@link DatabaseFormula} or not(DatabaseFormula).
 	 *
 	 * @param conjunct
-	 *            is the PrologTerm to be checked which is a zipped conjunct.
-	 *            (see {@link PrologTerm#getConjuncts})
+	 *            is the PrologCompound to be checked which is a zipped
+	 *            conjunct. (see {@link PrologCompound#getConjuncts})
 	 * @throws ParserException
 	 *             if term not acceptable as DatabaseFormula.
 	 *             </p>
 	 * @returns original conjunct (if term is good update)
 	 */
-	private static jpl.Term basicUpdateCheck(PrologTerm conjunct) throws ParserException {
-		List<jpl.Term> terms = JPLUtils.getOperands(",", conjunct.getTerm());
-		for (jpl.Term term : terms) {
-			if (JPLUtils.getSignature(term).equals("not/1")) {
-				DBFormula(new PrologTerm(term.arg(1), conjunct.getSourceInfo()));
+	private static PrologCompound basicUpdateCheck(PrologCompound conjunct) throws ParserException {
+		for (Term term : conjunct.getOperands(",")) {
+			if (term.getSignature().equals("not/1")) {
+				PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
+				DBFormula(content);
 			} else {
-				DBFormula(new PrologTerm(term, conjunct.getSourceInfo()));
+				DBFormula((PrologCompound) term);
 			}
 		}
-		return conjunct.getTerm();
+		return conjunct;
 	}
 
 	/**
 	 * <p>
-	 * Converts given {@Link PrologTerm} into a {@link DatabaseFormula} object
-	 * made of it. Basic idea is that it checks that assert() will work (not
-	 * throw exceptions). This function checks only SINGLE formulas, not
+	 * Converts given {@link PrologCompound} into a {@link DatabaseFormula}
+	 * object made of it. Basic idea is that it checks that assert() will work
+	 * (not throw exceptions). This function checks only SINGLE formulas, not
 	 * conjunctions. Use toDBFormulaList for that.
 	 * </p>
 	 * <p>
@@ -111,44 +114,42 @@ public class SemanticTools {
 	 * </p>
 	 *
 	 * @param conjunction
-	 *            is a PrologTerm containing a conjunction
-	 * @see PrologTerm#getConjuncts
-	 * @see PrologTerm#useNotAllowed useNotAllowed
-	 * @see toDBFormulaList
 	 * @returns DatabaseFormula object made from conjunction
 	 * @throws ParserException
-	 *             If Prolog term is not a valid clause.
+	 *             If the conjunction is not a valid clause.
 	 */
-	public static DatabaseFormula DBFormula(PrologTerm term) throws ParserException {
-		jpl.Term head, body;
+	public static DatabaseFormula DBFormula(PrologCompound term) throws ParserException {
+		PrologCompound head, body;
 
 		if (term.getSignature().equals(":-/2")) {
-			head = term.getTerm().arg(1);
-			body = term.getTerm().arg(2);
+			head = (PrologCompound) term.getArg(0);
+			body = (PrologCompound) term.getArg(1);
 		} else {
-			head = term.getTerm();
-			body = new jpl.Atom("true");
+			head = term;
+			body = new PrologAtomImpl("true", term.getSourceInfo());
 		}
 
-		if (head.isVariable()) {
-			throw new ParserException(ParserErrorMessages.HEAD_CANT_BE_VAR.toReadableString(term.toString()),
-					term.getSourceInfo());
-		} else if (!JPLUtils.isPredication(head)) {
+		/*
+		 * if (head.isVariable()) { throw new
+		 * ParserException(ParserErrorMessages.HEAD_CANT_BE_VAR.toReadableString
+		 * (term.toString()), term.getSourceInfo()); } else
+		 */ if (!head.isPredication()) {
 			throw new ParserException(ParserErrorMessages.HEAD_MUST_BE_CLAUSE.toReadableString(term.toString()),
 					term.getSourceInfo());
 		}
 
-		String signature = JPLUtils.getSignature(head);
+		String signature = head.getSignature();
 		if (signature.equals(":-/1")) {
-			jpl.Term directive = term.getTerm().arg(1);
-			signature = JPLUtils.getSignature(directive);
-			if (JPLUtils.getSignature(directive).equals("dynamic/1")) {
-				List<jpl.Term> dynamicPreds = JPLUtils.getOperands(",", directive.arg(1));
-				for (jpl.Term headTerm : dynamicPreds) {
-					signature = headTerm.name() + "/" + headTerm.arity();
+			PrologCompound directive = (PrologCompound) term.getArg(0);
+			signature = directive.getSignature();
+			if (signature.equals("dynamic/1")) {
+				PrologCompound dynamicPreds = (PrologCompound) directive.getArg(0);
+				for (Term headTerm : dynamicPreds.getOperands(",")) {
+					signature = headTerm.getSignature();
 					if (signature.equals("//2")) {
 						// the term is already a signature itself
-						signature = headTerm.arg(1) + "/" + headTerm.arg(2);
+						PrologCompound sigterm = (PrologCompound) headTerm;
+						signature = sigterm.getArg(0) + "/" + sigterm.getArg(1);
 					}
 					if (PrologOperators.prologBuiltin(signature)) {
 						throw new ParserException(
@@ -166,52 +167,43 @@ public class SemanticTools {
 		}
 
 		// try to convert, it will throw if it fails.
-		toGoal(body, term.getSourceInfo());
-		return new PrologDBFormula(term.getTerm(), term.getSourceInfo());
+		toGoal(body);
+		return new PrologDBFormulaImpl(term);
 	}
 
 	/**
-	 * Checks that term is a well formed Prolog goal.
+	 * Checks that compound is a well formed Prolog goal.
 	 * <p>
 	 * ISO requires rebuild of the term but in our case we do not allow
 	 * variables and hence a real rebuild is not necessary. Instead, we simply
 	 * return the original term after checking.
 	 * </p>
 	 *
-	 * @return the term "rewritten" as a Prolog goal according to ISO.
+	 * @return the compound "rewritten" as a Prolog goal according to ISO.
 	 * @throws ParserException
 	 *             If t is not a well formed Prolog goal.
 	 */
-	public static jpl.Term toGoal(jpl.Term t, SourceInfo source) throws ParserException {
-		// 7.6.2.a use article 7.8.3
-		if (t.isVariable()) {
-			throw new ParserException(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
-					source);
-		}
-		// footnote of 7.6.2. If T is a number then there is no goal which
-		// corresponds to T.
-		if (t.isFloat() || t.isInteger()) {
-			throw new ParserException(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
-					source);
-		}
+	public static PrologCompound toGoal(PrologCompound t) throws ParserException {
 		// 7.6.2.b
-		String sig = JPLUtils.getSignature(t);
-		if (PrologOperators.goalProtected(t.name())) {
-			throw new ParserException(
-					ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(JPLUtils.toString(t)), source);
+		String sig = t.getSignature();
+		if (PrologOperators.goalProtected(t.getName())) {
+			throw new ParserException(ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(t.toString()),
+					t.getSourceInfo());
 		} else if (sig.equals(":-/2")) {
-			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
-					source);
+			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t.toString()),
+					t.getSourceInfo());
 		} else if (sig.equals(":-/1")) {
-			throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
-					source);
+			throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t.toString()),
+					t.getSourceInfo());
 		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
-			toGoal(t.arg(1), source);
-			toGoal(t.arg(2), source);
+			toGoal((PrologCompound) t.getArg(0));
+			toGoal((PrologCompound) t.getArg(1));
+			return t;
+		} else {
+			// 7.6.2.c
+			// no action required.
+			return t;
 		}
-		// 7.6.2.c
-		// no action required.
-		return t;
 	}
 
 	/**
@@ -225,21 +217,18 @@ public class SemanticTools {
 	 * </p>
 	 *
 	 * @param conjunction
-	 *            is a PrologTerm containing a conjunction
-	 * @see PrologTerm#getConjuncts
-	 * @see PrologTerm#useNotAllowed useNotAllowed
 	 * @returns Query object made from conjunction
 	 * @throws ParserException
-	 *             if prologTerm is not a good Query.
+	 *             if the conjunction is not a good Query.
 	 */
-	public static PrologQuery toQuery(PrologTerm conjunction) throws ParserException {
-		return new PrologQuery(toGoal(conjunction.getTerm(), conjunction.getSourceInfo()), conjunction.getSourceInfo());
+	public static PrologQuery toQuery(PrologCompound conjunction) throws ParserException {
+		return new PrologQueryImpl(toGoal(conjunction));
 	}
 
 	/**
-	 * Extract the defined signature(s) from the term. A signature is defined if
-	 * the databaseformula defines a predicate of that signature (as fact or as
-	 * following from inference.
+	 * Extract the defined signature(s) from the compound. A signature is
+	 * defined if the databaseformula defines a predicate of that signature (as
+	 * fact or as following from inference.
 	 *
 	 * @param term
 	 * @param info
@@ -248,17 +237,18 @@ public class SemanticTools {
 	 * @return signatures of defined terms.
 	 * @throws ParserException
 	 */
-	public static List<String> getDefinedSignatures(jpl.Term term, SourceInfo info) throws ParserException {
+	public static List<String> getDefinedSignatures(Term term, SourceInfo info) throws ParserException {
 		List<String> signatures = new LinkedList<>();
-		if (term.isAtom()) {
-			signatures.add(JPLUtils.getSignature(term));
-		} else if (term.isCompound()) {
-			if (term.name().equals(":-")) {
-				switch (term.arity()) {
+		if (term instanceof PrologAtomImpl) {
+			signatures.add(term.getSignature());
+		} else if (term instanceof PrologCompoundImpl) {
+			PrologCompound compound = (PrologCompound) term;
+			if (compound.getName().equals(":-")) {
+				switch (compound.getArity()) {
 				case 1:
 					break;
 				case 2:
-					signatures.add(JPLUtils.getSignature(term.arg(1)));
+					signatures.add(compound.getArg(0).getSignature());
 					break;
 				default:
 					// ':-' has prolog meaning only with 1 or 2 terms. ignore
@@ -266,7 +256,7 @@ public class SemanticTools {
 				}
 			} else {
 				// if not :-, it must be a defined predicate.
-				signatures.add(JPLUtils.getSignature(term));
+				signatures.add(term.getSignature());
 			}
 		} else {
 			throw new ParserException("expected atom or definition but found '" + term + "'.", info);
@@ -275,25 +265,28 @@ public class SemanticTools {
 	}
 
 	/**
-	 * Extract the signatures of dynamic declarations from the term.
+	 * Extract the signatures of dynamic declarations from the compound.
 	 *
 	 * @param term
 	 * @param info
 	 * @return declared but undefined signatures
 	 * @throws ParserException
 	 */
-	public static List<String> getDeclaredSignatures(jpl.Term term, SourceInfo info) throws ParserException {
+	public static List<String> getDeclaredSignatures(PrologCompound term, SourceInfo info) throws ParserException {
 		List<String> signatures = new LinkedList<>();
-		if (term.isCompound() && term.name().equals(":-") && term.arity() == 1) {
-			jpl.Term directive = term.arg(1);
-			if (!directive.name().equals("dynamic") || directive.arity() != 1) {
-				throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
+		if (term.getSignature().equals(":-/1")) {
+			PrologCompound directive = (PrologCompound) term.getArg(0);
+			if (!directive.getSignature().equals("dynamic/1")) {
+				throw new ParserException("only the 'dynamic/1' directive is supported, found " + directive, info);
 			}
-			for (jpl.Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {
-				if (!JPLUtils.isPredicateIndicator(signatureterm)) {
-					throw new ParserException("term " + signatureterm + " is not a predicate indicator", info);
+			PrologCompound content = (PrologCompound) directive.getArg(0);
+			for (Term signatureterm : content.getOperands(",")) {
+				PrologCompound signature = (PrologCompound) signatureterm;
+				if (signature.isPredicateIndicator()) {
+					signatures.add(signature.getArg(0) + "/" + signature.getArg(1));
+				} else {
+					throw new ParserException("term '" + signatureterm + "' is not a predicate indicator", info);
 				}
-				signatures.add(signatureterm.arg(1) + "/" + signatureterm.arg(2));
 			}
 		}
 		return signatures;

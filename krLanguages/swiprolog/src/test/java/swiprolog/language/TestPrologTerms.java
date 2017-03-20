@@ -19,44 +19,26 @@ package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import jpl.Variable;
-import krTools.exceptions.KRInitFailedException;
+import krTools.language.Term;
+import krTools.language.Var;
 import swiprolog.SwiPrologInterface;
+import swiprolog.language.impl.PrologAtomImpl;
+import swiprolog.language.impl.PrologVarImpl;
 
 public class TestPrologTerms {
-
-	@Before
-	public void init() throws KRInitFailedException {
-		new SwiPrologInterface();
-	}
-
 	@Test
 	public void testToString() {
-		jpl.Term term = new jpl.Atom("Aap");
+		new SwiPrologInterface();
+		Term term = new PrologAtomImpl("Aap", null);
 		assertEquals("'Aap'", term.toString());
 	}
 
-	/**
-	 * JPL lower level test
-	 */
 	@Test
 	public void testEqualVars() {
-		Variable X = new Variable("X");
-		Variable X1 = new Variable("X");
-
-		assertEquals(X, X1);
-	}
-
-	/**
-	 * PrologVariable test.
-	 */
-	@Test
-	public void testEqualPrologVars() {
-		PrologVar X = new PrologVar(new Variable("X"), null);
-		PrologVar X1 = new PrologVar(new Variable("X"), null);
+		Var X = new PrologVarImpl("X", null);
+		Var X1 = new PrologVarImpl("X", null);
 
 		assertEquals(X, X1);
 	}

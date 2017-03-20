@@ -17,7 +17,6 @@
 
 package swiprolog.database;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -53,8 +52,8 @@ public class Theory {
 	 * @param formulas
 	 *            A collection of formulas to set the theory's initial content.
 	 */
-	public Theory(Collection<DatabaseFormula> formulas) {
-		this.content = (formulas == null) ? new LinkedHashSet<DatabaseFormula>(0) : new LinkedHashSet<>(formulas);
+	public Theory() {
+		this.content = new LinkedHashSet<>();
 	}
 
 	/**

@@ -21,13 +21,12 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.StringReader;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import krTools.exceptions.KRInitFailedException;
 import krTools.language.Update;
 import swiprolog.SwiPrologInterface;
-import swiprolog.language.PrologUpdate;
+import swiprolog.language.impl.PrologAtomImpl;
+import swiprolog.language.impl.PrologUpdateImpl;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
 import swiprolog.visitor.Visitor4;
@@ -35,14 +34,8 @@ import swiprolog.visitor.Visitor4;
 /**
  * Tests for {@link Validator4Internal} to see if pipeline
  * parser->visitor->validator works ok. This is an end-to-end test.
- *
  */
 public class UpdateTest {
-	@Before
-	public void init() throws KRInitFailedException {
-		new SwiPrologInterface();
-	}
-
 	/**
 	 * Create a new prolog4 validator for the test, using given string as input
 	 * stream.
@@ -52,19 +45,20 @@ public class UpdateTest {
 	 * @return {@link Validator4Internal}
 	 */
 	public Validator4 validator(String in) throws Exception {
+		new SwiPrologInterface();
 		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
 	@Test
 	public void testValidateBasicUpdate() throws Exception {
 		Update term = validator("aap").updateOrEmpty();
-		assertEquals(term, new PrologUpdate(new jpl.Atom("aap"), null));
+		assertEquals(term, new PrologUpdateImpl(new PrologAtomImpl("aap", null)));
 	}
 
 	@Test
 	public void testValidateTrueUpdate() throws Exception {
 		// special update. Should work and not throw that true is protected.
 		Update term = validator("true").updateOrEmpty();
-		assertEquals(term, new PrologUpdate(new jpl.Atom("true"), null));
+		assertEquals(term, new PrologUpdateImpl(new PrologAtomImpl("true", null)));
 	}
 }

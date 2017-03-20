@@ -17,40 +17,18 @@
 
 package swiprolog.language;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import jpl.Variable;
+import krTools.language.Substitution;
+import krTools.language.Term;
 import krTools.language.Var;
-import krTools.parser.SourceInfo;
 
 /**
  * A Prolog variable.
  */
-public class PrologVar extends PrologTerm implements Var {
+public interface PrologVar extends PrologTerm, Var {
 	/**
-	 * Creates a variable.
-	 *
-	 * @param var
-	 *            A JPL variable.
-	 * @param info
-	 *            A source info object.
+	 * @return The full name of the variable.
 	 */
-	public PrologVar(jpl.Variable var, SourceInfo info) {
-		super(var, info);
-	}
-
-	/**
-	 * Returns JPL variable.
-	 */
-	public jpl.Variable getVariable() {
-		return (jpl.Variable) getTerm();
-	}
-
-	@Override
-	public boolean isVar() {
-		return true;
-	}
+	public String getName();
 
 	/**
 	 * An underscore is an anonymous Prolog variable. Note that variables that
@@ -58,34 +36,29 @@ public class PrologVar extends PrologTerm implements Var {
 	 *
 	 * @return {@code true} if variable is anonymous, {@code false} otherwise.
 	 */
-	public boolean isAnonymous() {
-		return getTerm().name().equals("_");
+	public default boolean isAnonymous() {
+		return getName().equals("_");
 	}
 
 	@Override
-	public boolean isClosed() {
-		return false;
-	}
-
-	@Override
-	public Set<Var> getFreeVar() {
-		LinkedHashSet<Var> set = new LinkedHashSet<>(1);
-		set.add(this);
-		return set;
-	}
-
-	@Override
-	public Var getVariant(Set<Var> usedNames) {
-		String name = getTerm().name();
-		SourceInfo theinfo = getSourceInfo();
-
-		int n = 1;
-		Var newVar;
-		do {
-			newVar = new PrologVar(new Variable(name + "_" + n), theinfo);
-			n++;
-		} while (usedNames.contains(newVar));
-
-		return newVar;
+	public default Substitution unify(Term x, Substitution s) {
+		if (s == null) {
+			return null;
+		} else if (equals(x)) {
+			return s;
+		}
+		PrologTerm st = (PrologTerm) s.get(this);
+		if (st != null) {
+			return st.unify(x, s);
+		}
+		PrologTerm sx = (x instanceof Var) ? (PrologTerm) s.get((Var) x) : null;
+		if (sx != null) {
+			return unify(sx, s);
+		} else if (x.getFreeVar().contains(this)) {
+			return null;
+		} else {
+			s.addBinding(this, x);
+			return s;
+		}
 	}
 }

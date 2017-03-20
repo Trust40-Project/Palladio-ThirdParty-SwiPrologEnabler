@@ -17,153 +17,41 @@
 
 package swiprolog.language;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import krTools.language.Expression;
-import krTools.language.Substitution;
 import krTools.language.Var;
-import krTools.parser.SourceInfo;
+import swiprolog.parser.PrologOperators;
 
-public abstract class PrologExpression implements Expression {
-	/**
-	 * A JPL term representing a Prolog expression.
-	 */
-	private final jpl.Term term;
-	/**
-	 * Information about the source used to construct this expression.
-	 */
-	private final SourceInfo info;
-
-	/**
-	 * Creates a Prolog expression.
-	 *
-	 * @term A JPL term.
-	 */
-	public PrologExpression(jpl.Term term, SourceInfo info) {
-		this.term = term;
-		this.info = info;
-	}
-
-	/**
-	 * Returns the JPL term.
-	 *
-	 * @return A {@link jpl.Term}.
-	 */
-	public jpl.Term getTerm() {
-		return this.term;
-	}
-
-	/**
-	 * @return A {@link SourceInfo} object with information about the source
-	 *         used to construct this expression.
-	 */
+public interface PrologExpression extends Expression {
 	@Override
-	public SourceInfo getSourceInfo() {
-		return this.info;
+	public default boolean isVar() {
+		return (this instanceof Var);
 	}
 
 	/**
-	 * Checks whether this expression is a variables.
-	 *
-	 * @return {@code true} if this expression is a variable; {@code false}
-	 *         otherwise.
+	 * Returns true iff the signature of the expression is true/0.
 	 */
-	@Override
-	public boolean isVar() {
-		return getTerm().isVariable();
-	}
-
-	/**
-	 * Returns the (free) variables that occur in this expression.
-	 *
-	 * @return The (free) variables that occur in this expression.
-	 */
-	@Override
-	public Set<Var> getFreeVar() {
-		List<jpl.Variable> jplvars = new ArrayList<>(JPLUtils.getFreeVar(getTerm()));
-		Set<Var> variables = new LinkedHashSet<>(jplvars.size());
-		// Build VariableTerm from jpl.Variable.
-		for (jpl.Variable var : jplvars) {
-			variables.add(new PrologVar(var, getSourceInfo()));
-		}
-		return variables;
-	}
-
-	/**
-	 * Checks whether this expression is closed, i.e., has no occurrences of
-	 * (free) variables.
-	 *
-	 * @return {@code true} if this expression is closed.
-	 */
-	@Override
-	public boolean isClosed() {
-		return JPLUtils.getFreeVar(getTerm()).isEmpty();
-	}
-
-	/**
-	 * Returns a most general unifier, if it exists, that unifies this and the
-	 * given expression.
-	 *
-	 * @return A unifier for this and the given expression, if it exists;
-	 *         {@code null} otherwise.
-	 */
-	@Override
-	public Substitution mgu(Expression expression) {
-		jpl.Term otherterm = ((PrologExpression) expression).getTerm();
-		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(getTerm(), otherterm));
-	}
-
-	/**
-	 * Returns the signature of this expression.
-	 * <p>
-	 * Signature is funcname+"/"+#arguments, eg "member/2". default is
-	 * mainoperator+"/"+arity so you do not have ot override this. Note that
-	 * signature of a variable is set to X/0.
-	 * </p>
-	 *
-	 * @return The signature of this Prolog expression.
-	 */
-	@Override
-	public String getSignature() {
-		return JPLUtils.getSignature(getTerm());
-	}
-
-	/**
-	 *
-	 */
-	public boolean isEmpty() {
+	public default boolean isEmpty() {
 		return getSignature().equals("true/0");
 	}
 
-	@Override
-	public String toString() {
-		return JPLUtils.toString(getTerm());
+	/**
+	 * @return The F-ixity of the term: returns NOT_OPERATOR for non-operator
+	 *         terms. See ISO 12311, table 5.
+	 * @see PrologOperators.Fixity for a list of f-ixities.
+	 */
+	public default PrologOperators.Fixity getFixity() {
+		PrologOperators.Fixity spec = PrologOperators.getFixity(getSignature());
+		return (spec == null) ? PrologOperators.Fixity.NOT_OPERATOR : spec;
 	}
 
-	@Override
-	public int hashCode() {
-		return JPLUtils.hashCode(getTerm());
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		} else if (obj == null || !(obj instanceof PrologExpression)) {
-			return false;
-		}
-		PrologExpression other = (PrologExpression) obj;
-		if (getTerm() == null) {
-			if (other.getTerm() != null) {
-				return false;
-			}
-		} // JPL does not implement equals...
-		else if (!JPLUtils.equals(getTerm(), other.getTerm())) {
-			return false;
-		}
-		return true;
+	/**
+	 * Returns the priority of the main operator of the term. See ISO 12311,
+	 * table 5.
+	 *
+	 * @return The priority of the term's operator. Default is 0.
+	 */
+	public default int getPriority() {
+		Integer prio = PrologOperators.getPriority(getSignature());
+		return (prio == null) ? 0 : prio;
 	}
 }

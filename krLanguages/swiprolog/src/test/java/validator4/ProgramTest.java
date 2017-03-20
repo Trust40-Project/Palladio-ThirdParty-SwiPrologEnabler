@@ -23,6 +23,7 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
+import swiprolog.SwiPrologInterface;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
@@ -31,7 +32,6 @@ import swiprolog.visitor.Visitor4;
 /**
  * Tests for {@link Validator4Internal} to see if pipeline
  * parser->visitor->validator works ok. This is an end-to-end test.
- *
  */
 public class ProgramTest {
 	/**
@@ -43,6 +43,7 @@ public class ProgramTest {
 	 * @return {@link Validator4Internal}
 	 */
 	public Validator4 validator(String in) throws Exception {
+		new SwiPrologInterface();
 		return new Validator4(new Visitor4(new Parser4(new StringReader(in), null)));
 	}
 
@@ -52,7 +53,7 @@ public class ProgramTest {
 		validator.queryOrEmpty();
 
 		assertEquals(1, validator.getErrors().size());
-		assertEquals(ParserErrorMessages.NUMBER_NOT_AS_GOAL.toReadableString("1"),
+		assertEquals(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString("1"),
 				validator.getErrors().first().getMessage());
 	}
 
@@ -61,8 +62,10 @@ public class ProgramTest {
 		Validator4 validator = validator("X");
 		validator.queryOrEmpty();
 
+		System.out.println(validator.getErrors());
+
 		assertEquals(1, validator.getErrors().size());
-		assertEquals(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString("X"),
+		assertEquals(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString("X"),
 				validator.getErrors().first().getMessage());
 	}
 }

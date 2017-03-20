@@ -23,8 +23,7 @@ import java.util.Hashtable;
 
 import org.junit.Test;
 
-import jpl.Query;
-import swiprolog.SwiInstaller;
+import swiprolog.SwiPrologInterface;
 
 /**
  * Test if inserting into module works ok. #3676 This also demonstrates that our
@@ -33,21 +32,19 @@ import swiprolog.SwiInstaller;
  * as the top level functor.
  */
 public class AssertModule {
-	static {
-		SwiInstaller.init();
-	}
-
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void assertIntoModule() {
-		Query insert = new jpl.Query("assert(:('owner:main:sippingbeer', sippingbeer))");
+		new SwiPrologInterface();
+
+		jpl.Query insert = new jpl.Query("assert(:('owner:main:sippingbeer', sippingbeer))");
 		insert.allSolutions();
 
-		Query check = new jpl.Query("'owner:main:sippingbeer':sippingbeer");
+		jpl.Query check = new jpl.Query("'owner:main:sippingbeer':sippingbeer");
 		Hashtable[] result = check.allSolutions();
 		assertEquals(1, result.length);
 
-		Query predicatesq = new jpl.Query(
+		jpl.Query predicatesq = new jpl.Query(
 				" 'owner:main:sippingbeer':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
 		Hashtable[] preds = predicatesq.allSolutions();
 		assertEquals(0, preds.length);
@@ -55,10 +52,9 @@ public class AssertModule {
 		// workaround.
 		// This demonstrates that JPL is FAILING our query.
 
-		Query predicatesq1 = new jpl.Query(
+		jpl.Query predicatesq1 = new jpl.Query(
 				"true, 'owner:main:sippingbeer':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
 		Hashtable[] preds1 = predicatesq1.allSolutions();
 		assertEquals(1, preds1.length);
 	}
-
 }

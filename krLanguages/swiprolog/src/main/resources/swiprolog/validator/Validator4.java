@@ -29,17 +29,23 @@ import krTools.language.Term;
 import krTools.language.Update;
 import krTools.language.Var;
 import swiprolog.errors.ParserErrorMessages;
-import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
-import swiprolog.language.impl.PrologQueryImpl;
-import swiprolog.language.impl.PrologUpdateImpl;
+import swiprolog.language.PrologUpdate;
+import swiprolog.language.PrologVar;
+import swiprolog.language.impl.JPLUtils;
 import swiprolog.visitor.Visitor4;
 
 /**
  * Parse, visit and validate. All errors occurring during parse or validation
  * are thrown. Normally you use Validator4 which also stores errors as they
  * occur.
+ *
+ * Usage example to parse string as prolog term:
+ * <code>validator = new Validator4(new Prolog4VisitorPlus(
+				new ErrorStoringProlog4Parser(new StringReader(in), null)));
+				PrologTerm term = validator.term();
+				</code>
  */
 public class Validator4 {
 	private final Visitor4 visitor;
@@ -59,16 +65,14 @@ public class Validator4 {
 	 * @return {@link Update} or null if there is error.
 	 */
 	public Update updateOrEmpty() {
-		Term conj = this.visitor.visitPossiblyEmptyConjunct();
-		if (!(conj instanceof PrologCompound)) {
-			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(conj.toString()),
-					conj.getSourceInfo()));
+		PrologTerm conj = this.visitor.visitPossiblyEmptyConjunct();
+		if (conj == null) {
 			return null;
 		} else if (conj.toString().equals("true")) { // special case.
-			return new PrologUpdateImpl((PrologCompound) conj);
+			return new PrologUpdate(conj.getTerm(), conj.getSourceInfo());
 		} else {
 			try {
-				return SemanticTools.conj2Update((PrologCompound) conj);
+				return SemanticTools.conj2Update(conj);
 			} catch (ParserException e) {
 				this.errors.add(e);
 				return null;
@@ -83,17 +87,13 @@ public class Validator4 {
 	 * @return List<DatabaseFormula>, or {@code null} if a parser error occurs.
 	 */
 	public List<DatabaseFormula> program() {
+		List<PrologTerm> prologTerms = this.visitor.visitPrologtext();
 		List<DatabaseFormula> dbfs = new LinkedList<>();
-		for (Term t : this.visitor.visitPrologtext()) {
-			if (t instanceof PrologCompound) {
-				try {
-					dbfs.add(SemanticTools.DBFormula((PrologCompound) t));
-				} catch (ParserException e) {
-					this.errors.add(e);
-				}
-			} else {
-				this.errors.add(new ParserException(
-						ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t.toString()), t.getSourceInfo()));
+		for (PrologTerm t : prologTerms) {
+			try {
+				dbfs.add(SemanticTools.DBFormula(t));
+			} catch (ParserException e) {
+				this.errors.add(e);
 			}
 		}
 		return dbfs;
@@ -106,16 +106,12 @@ public class Validator4 {
 	 */
 	public List<Query> goalSection() {
 		List<Query> goals = new LinkedList<>();
-		for (Term t : this.visitor.visitPrologtext()) {
-			if (t instanceof PrologCompound) {
-				try {
-					goals.add(new PrologQueryImpl(SemanticTools.toGoal((PrologCompound) t)));
-				} catch (ParserException e) {
-					this.errors.add(e);
-				}
-			} else {
-				this.errors.add(new ParserException(
-						ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t.toString()), t.getSourceInfo()));
+		for (PrologTerm t : this.visitor.visitPrologtext()) {
+			// check that each term is a valid Prolog goal / query
+			try {
+				goals.add(new PrologQuery(SemanticTools.toGoal(t.getTerm(), t.getSourceInfo()), t.getSourceInfo()));
+			} catch (ParserException e) {
+				this.errors.add(e);
 			}
 		}
 		return goals;
@@ -127,16 +123,13 @@ public class Validator4 {
 	 * @return A {@link PrologQuery}, or {@code null} if an error occurred.
 	 */
 	public PrologQuery queryOrEmpty() {
-		Term term = this.visitor.visitPossiblyEmptyDisjunct();
-		if (term instanceof PrologCompound) {
+		PrologTerm term = this.visitor.visitPossiblyEmptyDisjunct();
+		if (term != null) {
 			try {
-				return SemanticTools.toQuery((PrologCompound) term);
+				return SemanticTools.toQuery(term);
 			} catch (ParserException e) {
 				this.errors.add(e);
 			}
-		} else {
-			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(term.toString()),
-					term.getSourceInfo()));
 		}
 		return null;
 	}
@@ -147,9 +140,9 @@ public class Validator4 {
 	 * @return {@link Var} or null if error occurred.
 	 */
 	public Var var() {
-		Term term = this.visitor.visitTerm0();
-		if (term instanceof Var) {
-			return (Var) term;
+		PrologTerm term = this.visitor.visitTerm0();
+		if (term != null && term.isVar()) {
+			return (PrologVar) term;
 		} else {
 			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_VAR.toReadableString(term.toString()),
 					term.getSourceInfo()));
@@ -163,7 +156,7 @@ public class Validator4 {
 	 * @return term, or null if error occurs
 	 * @throws ParserException
 	 */
-	public Term term() {
+	public PrologTerm term() {
 		return this.visitor.visitTerm0();
 	}
 
@@ -173,16 +166,22 @@ public class Validator4 {
 	 * @return A list of {@link Term}s.
 	 */
 	public List<Term> terms() {
-		Term t = this.visitor.visitTerm1000();
-		if (t instanceof PrologCompound) {
-			return new ArrayList<>(((PrologCompound) t).getOperands(","));
-		} else if (t instanceof PrologTerm) {
-			List<Term> single = new ArrayList<>(1);
-			single.add(t);
-			return single;
-		} else {
+		PrologTerm t = this.visitor.visitTerm1000();
+		if (t == null) {
 			return new ArrayList<>(0);
+		} else {
+			List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
+			List<Term> terms = new ArrayList<>(original.size());
+			for (jpl.Term term : original) {
+				if (term instanceof jpl.Variable) {
+					terms.add(new PrologVar((jpl.Variable) term, t.getSourceInfo()));
+				} else {
+					terms.add(new PrologTerm(term, t.getSourceInfo()));
+				}
+			}
+			return terms;
 		}
+
 	}
 
 	/**
@@ -191,7 +190,7 @@ public class Validator4 {
 	 * @return all errors that occurred
 	 */
 	public SortedSet<ParserException> getErrors() {
-		SortedSet<ParserException> allErrors = new TreeSet<>();
+		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
 		allErrors.addAll(this.visitor.getErrors());
 		allErrors.addAll(this.errors);
 		return allErrors;

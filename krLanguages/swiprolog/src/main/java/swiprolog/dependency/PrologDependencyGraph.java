@@ -26,31 +26,31 @@ import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
-import krTools.parser.SourceInfo;
+import krTools.language.Term;
+import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.PrologTerm;
+import swiprolog.language.impl.PrologCompoundImpl;
+import swiprolog.language.impl.PrologVarImpl;
 import swiprolog.parser.PrologOperators;
 
 /**
  * A dependency graph for the SWI Prolog language.
  */
-public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
-	private static final jpl.Term ANON_VAR = new jpl.Variable("_");
-
+public class PrologDependencyGraph extends DependencyGraph<Term> {
 	/**
 	 * {@inheritDoc} <br>
 	 *
 	 * Assumes the given {@link DatabaseFormula} is a {@link PrologDBFormula},
-	 * i.e. either a simple fact (i.e., a {@link PrologTerm}), or a clause of
-	 * the form p(...):-(...) using the operator :-/2.
+	 * i.e. either a simple fact, or a clause of the form p(...):-(...) using
+	 * the operator :-/2.
 	 *
 	 * @throws GOALUserError
 	 */
 	@Override
 	public void add(DatabaseFormula formula, boolean defined, boolean queried) throws KRException {
-		jpl.Term term = ((PrologDBFormula) formula).getTerm();
-		String signature = term.name() + "/" + term.arity();
+		PrologCompound term = ((PrologDBFormula) formula).getCompound();
+		String signature = term.getSignature();
 
 		/**
 		 * The :- function needs to be treated differently from other terms; the
@@ -58,12 +58,13 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 		 */
 		if (signature.equals(":-/2")) {
 			if (defined) {
-				// List<PrologTerm> args = ((FuncTerm) term).getArguments();
 				// The first argument is the term that is being defined.
-				List<Node<PrologTerm>> definitionNode = addTerm(term.arg(1), formula.getSourceInfo(), true, false);
+				Term content1 = term.getArg(0);
+				List<Node<Term>> definitionNode = addTerm(content1, true, false);
 				// The other argument consists of terms that are queried.
-				List<Node<PrologTerm>> queryNodes = addTerm(term.arg(2), formula.getSourceInfo(), false, true);
-				for (Node<PrologTerm> node : queryNodes) {
+				Term content2 = term.getArg(1);
+				List<Node<Term>> queryNodes = addTerm(content2, false, true);
+				for (Node<Term> node : queryNodes) {
 					definitionNode.get(0).addDependency(node);
 				}
 			}
@@ -74,7 +75,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			if (reserved(signature) && defined) {
 				throw new KRDatabaseException("illegal attempt to redefine '" + signature + "'.");
 			} else {
-				addTerm(term, formula.getSourceInfo(), defined, queried);
+				addTerm(term, defined, queried);
 			}
 		}
 	}
@@ -84,11 +85,11 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 */
 	@Override
 	public void add(Query query) throws KRException {
-		jpl.Term term = ((PrologQuery) query).getTerm();
-		if (term.name().equals(":-") && term.arity() == 2) {
+		PrologCompound compound = ((PrologQuery) query).getCompound();
+		if (compound.getSignature().equals(":-/2")) {
 			throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 		} else {
-			addTerm(term, query.getSourceInfo(), false, true);
+			addTerm(compound, false, true);
 		}
 	}
 
@@ -103,38 +104,34 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 * @return The list of nodes associated with the term (either created or
 	 *         already existing nodes).
 	 */
-	private List<Node<PrologTerm>> addTerm(jpl.Term prologTerm, SourceInfo source, boolean defined, boolean queried) {
-		List<Node<PrologTerm>> nodes = new LinkedList<>();
-
+	private List<Node<Term>> addTerm(Term prologTerm, boolean defined, boolean queried) {
+		List<Node<Term>> nodes = new LinkedList<>();
 		// Unpack the term if needed (if so, we're handling a query).
-		List<jpl.Term> terms = unpack(prologTerm);
-
-		for (jpl.Term term : terms) {
-			String signature = term.name() + "/" + term.arity();
+		for (Term term : unpack(prologTerm)) {
+			String signature = term.getSignature();
 			// Ignore built-in operators of Prolog as well as reserved GOAL
 			// operators.
 			if (!reserved(signature)) {
-				Node<PrologTerm> node = super.graph.get(signature);
+				Node<Term> node = super.graph.get(signature);
 				if (node == null) {
 					node = new Node<>(signature);
 					super.graph.put(signature, node);
 				}
 				if (defined) {
-					node.addDefinition(new PrologTerm(term, source));
+					node.addDefinition(term);
 				}
 				if (queried) {
-					node.addQuery(new PrologTerm(term, source));
+					node.addQuery(term);
 				}
 				nodes.add(node);
 			}
 		}
-
 		return nodes;
 	}
 
 	/**
-	 * Unpacks the given {@link PrologTerm} and returns all simple facts that do
-	 * not have any occurrences of built-in Prolog operators or reserved GOAL
+	 * Unpacks the given {@link Term} and returns all simple facts that do not
+	 * have any occurrences of built-in Prolog operators or reserved GOAL
 	 * operators.
 	 * <p>
 	 * Unpacking is needed if the term contains at top level a build-in
@@ -146,13 +143,13 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 * @return The resulting terms without any built-in or reserved operators.
 	 *         May be the empty list.
 	 */
-	private List<jpl.Term> unpack(jpl.Term term) {
-		String signature = term.name() + "/" + term.arity();
-		List<jpl.Term> terms = new LinkedList<>();
-
+	private List<Term> unpack(Term term) {
+		List<Term> terms = new LinkedList<>();
+		String signature = term.getSignature();
 		// If we need to unpack the operators below, we're dealing with a query.
 		if (signature.equals("not/1")) {
-			terms.addAll(unpack(term.arg(1)));
+			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
+			terms.addAll(unpack(content));
 		} else if (signature.equals("include/3")) {
 			/*
 			 * special case. first argument of include/3 is the NAME of the func
@@ -160,22 +157,27 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			 * term.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			jpl.Term stubfunc = new jpl.Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR });
+			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
+			Term anon = new PrologVarImpl("_", null);
+			Term stubfunc = new PrologCompoundImpl(content.getName(), new Term[] { anon }, term.getSourceInfo());
 			terms.add(stubfunc);
 		} else if (signature.equals(";/2") || signature.equals(",/2") || signature.equals("forall/2")) {
 			// Unpack the conjunction, disjunction and forall /2-operators.
-			for (jpl.Term argument : term.args()) {
-				terms.addAll(unpack(argument));
+			PrologCompound content = (PrologCompound) term;
+			for (Term arg : content) {
+				terms.addAll(unpack(arg));
 			}
-			// findall, setof aggregate and aggregate_all /3-operators only
-			// have a query in the second argument.
 		} else if (signature.equals("findall/3") || signature.equals("setof/3") || signature.equals("aggregate/3")
 				|| signature.equals("aggregate_all/3")) {
-			terms.addAll(unpack(term.arg(2)));
+			// findall, setof aggregate and aggregate_all /3-operators only
+			// have a query in the second argument.
+			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(1);
+			terms.addAll(unpack(content));
+		} else if (signature.equals("aggregate/4") || signature.equals("aggregate_all/4")) {
 			// aggregate and aggregate_all /4-operators have the query in
 			// the third argument.
-		} else if (signature.equals("aggregate/4") || signature.equals("aggregate_all/4")) {
-			terms.addAll(unpack(term.arg(3)));
+			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(2);
+			terms.addAll(unpack(content));
 		} else if (signature.equals("predsort/3")) {
 			/*
 			 * special case. first argument of predsort is the NAME of the func
@@ -183,7 +185,10 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			 * correct term. We will be using 3 anonymous variables.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			jpl.Term stubfunc = new jpl.Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
+			Term anon = new PrologVarImpl("_", null);
+			Term stubfunc = new PrologCompoundImpl(content.getName(), new Term[] { anon, anon, anon },
+					term.getSourceInfo());
 			terms.add(stubfunc);
 		} else {
 			terms.add(term);

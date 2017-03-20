@@ -17,39 +17,27 @@
 
 package swiprolog.language;
 
-import java.util.SortedMap;
-
+import krTools.language.Expression;
 import krTools.language.Substitution;
 import krTools.language.Term;
-import krTools.parser.SourceInfo;
 
 /**
  * Represents a Prolog term.
  */
-public class PrologTerm extends PrologExpression implements Term {
+public interface PrologTerm extends PrologExpression, Term {
 	/**
-	 * Creates a {@link PrologTerm} from a JPL term.
-	 *
-	 * @param term
-	 *            A JPL term.
-	 * @param info
-	 *            A source info object.
+	 * @return Iff the term can be (and is allowed to be) used as a query.
 	 */
-	public PrologTerm(jpl.Term term, SourceInfo info) {
-		super(term, info);
-	}
-
-	/**
-	 * A term is an anonymous variable if it is a variable and anonymous.
-	 */
-	public boolean isAnonymousVar() {
-		return getTerm().isVariable() && ((PrologVar) this).isAnonymous();
-	}
+	public boolean isQuery();
 
 	@Override
-	public PrologTerm applySubst(Substitution s) {
-		SortedMap<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
-		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
-		return new PrologTerm(term, getSourceInfo());
+	public default Substitution mgu(Expression expression) {
+		if (expression instanceof Term) {
+			return unify((Term) expression, new PrologSubstitution());
+		} else {
+			return null;
+		}
 	}
+
+	public Substitution unify(Term term, Substitution substitution);
 }
