@@ -20,9 +20,6 @@
  * for the programming language. It is also used by the parser grammar for tests (test2g files).
  */
 lexer grammar Prolog4Lexer;
-
-
-
 tokens{ HIDDEN }
 
 IF		: ':-';
@@ -36,15 +33,15 @@ RBR		: ')';
 CLBR	: '{';
 CRBR	: '}';
 
-BAR		: '|';
-LARROW	: '-->';
-ARROW	: '->';
-STARARROW: '*->';
-EQ		: '=';
-NOTEQ	: '\\=';
+BAR			: '|';
+LARROW		: '-->';
+ARROW		: '->';
+STARARROW	: '*->';
+EQ			: '=';
+NOTEQ		: '\\=';
 IDENTICAL	: '==';
-NOTIDENTICAL	: '\\==';
-COLON	: ':';
+NOTIDENTICAL: '\\==';
+COLON		: ':';
 SEMICOLON	: ';';
 
 AT			: '@';
@@ -88,7 +85,6 @@ NEGATION	: '\\+';
 
 DYNAMIC		: 'dynamic';
 
-
 /*  We have a NUMBER token, while the ISO spec has a FLOAT and a NUMBER token.
   However antlr can not determine properly whether a DOT is a decimal dot or a float number dot if
   we follow the ISO.
@@ -110,7 +106,6 @@ NUMBER  // 6.4.4. + 6.4.5
   | OCTALCONSTANT
   | HEXADECIMALCONSTANT
   ;
-
 
 // Floating point number (used in test2g file).
 fragment 
@@ -134,7 +129,6 @@ NAME  // 6.4.2 (graphic tokens, semicolon token nor quoted tokens (of the form '
 VARIABLE// 6.4.3
   : ('A'..'Z' | '_') (ALPHACHAR | DIGIT |'_')*
   ;
-
 
 fragment 
 INTEGERCONSTANT  // 6.4.4
@@ -176,7 +170,7 @@ STRING  // Compare 6.4.2 (quoted char); in contrast with 6.5.4 new line chars ar
   | '`' (CHAR | '``' | '\'' | '"' )* '`'    // back quoted string
   ; 
 
-fragment ESCAPE_SEQUENCE: '\\' (META_CHAR | SYMBOLIC_CONTROL_CHAR) ;  
+fragment ESCAPE_SEQUENCE: '\\' (META_CHAR | SYMBOLIC_CONTROL_CHAR);  
 
 fragment META_CHAR: '\\' | '\'' | '"' | '`'; // 6.5.5
 
@@ -184,15 +178,15 @@ fragment SYMBOLIC_CONTROL_CHAR: 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | 'x'; /
 
 // Cf. 6.4.8: The end char '.' must be followed by a layout text; 
 // The footnote there also allows comments; we are more generous also allowing /* there
-ENDTOKEN   : '.' ( WHITESPACECHAR | COMMENTCHARS | EOF );
+ENDTOKEN   : '.' (WHITESPACE | COMMENT | EOF);
 
 // Layout text. Note that comments and whitespace are handled slightly differently than the Standard does.
 // See also remark (1) in list of deviations below.
-COMMENT   : COMMENTCHARS -> skip ; 
+COMMENT   : COMMENTCHARS -> skip;
     // skip() means that COMMENT can be placed anywhere.
     // I think that's not conform the standard?
    
-fragment COMMENTCHARS:  '%'(~('\n'|'\r'))*                // 6.4.1 (single line comment)
+fragment COMMENTCHARS:  '%' ~[\r\n]* '\r'? '\n' // 6.4.1 (single line comment)
         | '/*' .*? '*/'  // 6.4.1 (bracketed comment)
         ;
 
@@ -200,5 +194,4 @@ WHITESPACE  : WHITESPACECHAR+  -> skip; // 6.4.1 (layout text)//FIXME channel=HI
     // because skip() is called, WHITESPACE never will appear as a token.
     // hence you can not refer to WHITESPACE in the parser
 
-fragment WHITESPACECHAR: (' '|'\t'|'\f'|'\r'|'\n') ; // non ISO: see comments.
-
+fragment WHITESPACECHAR: [ \t\f\r\n]; // non ISO: see comments.
