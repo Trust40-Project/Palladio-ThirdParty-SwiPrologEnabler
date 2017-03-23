@@ -186,7 +186,7 @@ COMMENT   : COMMENTCHARS -> skip;
     // skip() means that COMMENT can be placed anywhere.
     // I think that's not conform the standard?
    
-fragment COMMENTCHARS:  '%' ~[\r\n]* '\r'? '\n' // 6.4.1 (single line comment)
+fragment COMMENTCHARS:  '%' ~[\r\n]* // 6.4.1 (single line comment)
         | '/*' .*? '*/'  // 6.4.1 (bracketed comment)
         ;
 
