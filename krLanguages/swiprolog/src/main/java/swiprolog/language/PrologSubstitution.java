@@ -95,6 +95,15 @@ public class PrologSubstitution extends TreeMap<Var, Term> implements Substituti
 	}
 
 	@Override
+	public Term put(Var var, Term term) {
+		if (var instanceof PrologVar && !((PrologVar) var).isAnonymous()) {
+			return super.put(var, term);
+		} else {
+			return null;
+		}
+	}
+
+	@Override
 	public void addBinding(Var var, Term term) {
 		if (containsKey(var)) {
 			throw new RuntimeException(
