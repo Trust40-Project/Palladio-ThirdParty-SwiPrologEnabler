@@ -52,24 +52,23 @@ public class PrologSubstitution implements Substitution {
 	/**
 	 * Create empty JPL substitution.
 	 */
-	private SortedMap<String, jpl.Term> jplSubstitution = new TreeMap<>();
+	private SortedMap<String, jpl.Term> jplSubstitution = new TreeMap<String, jpl.Term>() {
+		private static final long serialVersionUID = 2720402569508083187L;
+
+		@Override
+		public jpl.Term put(String varname, jpl.Term term) {
+			if (varname != null && !varname.isEmpty() && !varname.equals("_")) {
+				return super.put(varname, term);
+			} else {
+				return null;
+			}
+		}
+	};
 
 	/**
 	 * Creates an empty {@link Substitution}.
 	 */
 	public PrologSubstitution() {
-	}
-
-	/**
-	 * Creates a substitution from a single variable and term.
-	 *
-	 * @param var
-	 *            Variable that is bound.
-	 * @param term
-	 *            Term that is bound to variable.
-	 */
-	public PrologSubstitution(jpl.Variable var, jpl.Term term) {
-		this.jplSubstitution.put(var.name(), term);
 	}
 
 	/**
@@ -79,7 +78,9 @@ public class PrologSubstitution implements Substitution {
 	 *            JPL substitution.
 	 */
 	private PrologSubstitution(SortedMap<String, jpl.Term> solution) {
-		this.jplSubstitution = solution;
+		for (String var : solution.keySet()) {
+			this.jplSubstitution.put(var, solution.get(var));
+		}
 	}
 
 	public static PrologSubstitution getSubstitutionOrNull(SortedMap<String, jpl.Term> solution) {
