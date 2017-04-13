@@ -15,8 +15,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
-import jpl.JPL;
-import jpl.Query;
+import org.jpl7.JPL;
+import org.jpl7.Query;
 
 /**
  * call init() once to install the libraries and prepare SWI for use.
@@ -73,7 +73,7 @@ public final class SwiInstaller {
 		JPL.setDTMMode(false);
 		// Let JPL know which SWI_HOME_DIR we're using; this negates the need
 		// for a SWI_HOME_DIR environment var
-		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals" });
+		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals", "--nodebug", "--traditional" });
 
 		/**
 		 * Work around issue #3794: pre-load SWI libraries because
@@ -126,10 +126,13 @@ public final class SwiInstaller {
 			load("foreign.dll");
 			break;
 		case win64:
-			load("pthreadVC2.dll");
-			load("swipl.dll");
+			load("libwinpthread-1.dll");
+			load("libgcc_s_seh-1.dll");
+			load("libdwarf.dll");
+			load("libgmp-10.dll");
+			load("libswipl.dll");
 			load("jpl.dll");
-			load("foreign.dll");
+			// load("foreign.dll");
 			break;
 		}
 	}

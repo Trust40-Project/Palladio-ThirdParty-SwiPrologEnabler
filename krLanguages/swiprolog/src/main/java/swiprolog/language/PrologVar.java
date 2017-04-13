@@ -20,7 +20,7 @@ package swiprolog.language;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import jpl.Variable;
+import org.jpl7.Variable;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 
@@ -36,15 +36,15 @@ public class PrologVar extends PrologTerm implements Var {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologVar(jpl.Variable var, SourceInfo info) {
+	public PrologVar(org.jpl7.Variable var, SourceInfo info) {
 		super(var, info);
 	}
 
 	/**
 	 * Returns JPL variable.
 	 */
-	public jpl.Variable getVariable() {
-		return (jpl.Variable) getTerm();
+	public org.jpl7.Variable getVariable() {
+		return (org.jpl7.Variable) getTerm();
 	}
 
 	@Override

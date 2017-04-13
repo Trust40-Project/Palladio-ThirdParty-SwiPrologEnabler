@@ -6,20 +6,20 @@ import krTools.exceptions.KRQueryFailedException;
 import swiprolog.language.JPLUtils;
 
 /**
- * A wrapper for {@link jpl.PrologException}s.
+ * A wrapper for {@link org.jpl7.PrologException}s.
  *
  * reasons for having this:
  * <ul>
  * <li>a {@link KRInterface} can only throw {@link KRException}s
- * <li>We need to do pretty printing, {@link jpl.PrologException} toString is
- * unreadable for most humans
+ * <li>We need to do pretty printing, {@link org.jpl7.PrologException} toString
+ * is unreadable for most humans
  * </ul>
  *
  * <p>
  * The error contents were determined with reverse engineering. We most likely
  * have not covered all possible cases. We try to give more general errors in
- * unknown cases. But including the original {@link jpl.PrologException} still
- * is necessary.
+ * unknown cases. But including the original {@link org.jpl7.PrologException}
+ * still is necessary.
  *
  */
 public class PrologError extends KRQueryFailedException {
@@ -29,7 +29,7 @@ public class PrologError extends KRQueryFailedException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Known {@link jpl.PrologException}s
+	 * Known {@link org.jpl7.PrologException}s
 	 */
 	enum ErrorType {
 		/**
@@ -113,13 +113,13 @@ public class PrologError extends KRQueryFailedException {
 	 * Creates prolog error from given error term.
 	 *
 	 * @param err
-	 *            must be a {@link jpl.PrologException} (not null) containing a
-	 *            compound term which in turn containing the error details term.
-	 *            The name of error details should be one of the known
-	 *            {@link ErrorType}s. Unknown error types can not be handled
-	 *            properly
+	 *            must be a {@link org.jpl7.PrologException} (not null)
+	 *            containing a compound term which in turn containing the error
+	 *            details term. The name of error details should be one of the
+	 *            known {@link ErrorType}s. Unknown error types can not be
+	 *            handled properly
 	 */
-	public PrologError(jpl.PrologException exc) {
+	public PrologError(org.jpl7.PrologException exc) {
 		// we can't know message before processing exc.. as workaround we
 		// override #getMessage()
 		super("", exc);
@@ -141,8 +141,8 @@ public class PrologError extends KRQueryFailedException {
 	 * @return message, or null if we fail to create such a message.
 	 */
 	private String extractDetailMessage() {
-		jpl.PrologException cause = (jpl.PrologException) getCause();
-		jpl.Term term = cause.term();
+		org.jpl7.PrologException cause = (org.jpl7.PrologException) getCause();
+		org.jpl7.Term term = cause.term();
 		// we are expecting error(specific error, context), so something
 		// like this:
 		// error(existence_error(procedure,
@@ -150,14 +150,11 @@ public class PrologError extends KRQueryFailedException {
 		// on(e,f) , on(f,table) , maintain', /(target, 2))),
 		// context(:(system, /(',', 2)), _36))
 		// we will try to translate the contained specific error.
-		if (!(term instanceof jpl.Compound)) {
+		if (term.name().equals("error") && term.arity() != 0) {
+			return makeDetailMessage(term.arg(1));
+		} else {
 			return null;
 		}
-		jpl.Compound errterm = (jpl.Compound) term;
-		if ((!errterm.name().equals("error")) || errterm.arity() == 0 || !(errterm.arg(1) instanceof jpl.Compound)) {
-			return null;
-		}
-		return makeDetailMessage((jpl.Compound) errterm.arg(1));
 
 	}
 
@@ -166,7 +163,7 @@ public class PrologError extends KRQueryFailedException {
 	 *            a Compound term like existence_error(..,..).
 	 * @return human readable error message, or null if unknown term.
 	 */
-	private String makeDetailMessage(jpl.Compound error) {
+	private String makeDetailMessage(org.jpl7.Term error) {
 		ErrorType type;
 		try {
 			type = ErrorType.valueOf(error.name().toUpperCase());
@@ -192,16 +189,12 @@ public class PrologError extends KRQueryFailedException {
 			}
 			switch (subtype) {
 			case PROCEDURE:
-				jpl.Term t = error.arg(2);
-				if (!(t instanceof jpl.Compound)) {
-					return defaultmessage;
-				}
-				jpl.Compound explanation = (jpl.Compound) t;
-				if (explanation.arity() != 2) {
+				org.jpl7.Term t = error.arg(2);
+				if (t.arity() != 2) {
 					return defaultmessage;
 				}
 
-				return "the term " + JPLUtils.toString(explanation.arg(2)) + " is undefined";
+				return "the term " + JPLUtils.toString(t.arg(2)) + " is undefined";
 			case SOURCE_SINK:
 				return "the file " + JPLUtils.toString(error.arg(2)) + " is unaccesable";
 			default:

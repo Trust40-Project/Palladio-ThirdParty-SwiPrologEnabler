@@ -830,6 +830,9 @@ public final class PrologOperators {
 	 * @return {@code true} if label is predication.
 	 */
 	public static boolean is_L_atom(String name) {
+		if (name == null || name.isEmpty()) {
+			return false;
+		}
 		// See ISO section 6.1.2b and 6.4.2 "Names"
 		if (name.equals("[]")) {
 			return true;
@@ -843,9 +846,7 @@ public final class PrologOperators {
 
 		// graphic token char
 		if (name.matches("[\\\\\\#\\$\\&\\*\\+\\-\\.\\/\\:\\<\\=\\>\\?\\@\\^\\~]*")) {
-			{
-				return true;
-			}
+			return true;
 		}
 
 		// single quoted char.. is hard, quick and dirty fix.

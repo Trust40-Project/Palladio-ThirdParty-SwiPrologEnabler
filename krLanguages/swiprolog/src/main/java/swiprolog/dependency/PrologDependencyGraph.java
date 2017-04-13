@@ -36,7 +36,7 @@ import swiprolog.parser.PrologOperators;
  * A dependency graph for the SWI Prolog language.
  */
 public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
-	private static final jpl.Term ANON_VAR = new jpl.Variable("_");
+	private static final org.jpl7.Term ANON_VAR = new org.jpl7.Variable("_");
 
 	/**
 	 * {@inheritDoc} <br>
@@ -49,7 +49,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 */
 	@Override
 	public void add(DatabaseFormula formula, boolean defined, boolean queried) throws KRException {
-		jpl.Term term = ((PrologDBFormula) formula).getTerm();
+		org.jpl7.Term term = ((PrologDBFormula) formula).getTerm();
 		String signature = term.name() + "/" + term.arity();
 
 		/**
@@ -84,7 +84,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 */
 	@Override
 	public void add(Query query) throws KRException {
-		jpl.Term term = ((PrologQuery) query).getTerm();
+		org.jpl7.Term term = ((PrologQuery) query).getTerm();
 		if (term.name().equals(":-") && term.arity() == 2) {
 			throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 		} else {
@@ -103,13 +103,13 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 * @return The list of nodes associated with the term (either created or
 	 *         already existing nodes).
 	 */
-	private List<Node<PrologTerm>> addTerm(jpl.Term prologTerm, SourceInfo source, boolean defined, boolean queried) {
+	private List<Node<PrologTerm>> addTerm(org.jpl7.Term prologTerm, SourceInfo source, boolean defined, boolean queried) {
 		List<Node<PrologTerm>> nodes = new LinkedList<>();
 
 		// Unpack the term if needed (if so, we're handling a query).
-		List<jpl.Term> terms = unpack(prologTerm);
+		List<org.jpl7.Term> terms = unpack(prologTerm);
 
-		for (jpl.Term term : terms) {
+		for (org.jpl7.Term term : terms) {
 			String signature = term.name() + "/" + term.arity();
 			// Ignore built-in operators of Prolog as well as reserved GOAL
 			// operators.
@@ -146,9 +146,9 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 * @return The resulting terms without any built-in or reserved operators.
 	 *         May be the empty list.
 	 */
-	private List<jpl.Term> unpack(jpl.Term term) {
+	private List<org.jpl7.Term> unpack(org.jpl7.Term term) {
 		String signature = term.name() + "/" + term.arity();
-		List<jpl.Term> terms = new LinkedList<>();
+		List<org.jpl7.Term> terms = new LinkedList<>();
 
 		// If we need to unpack the operators below, we're dealing with a query.
 		if (signature.equals("not/1")) {
@@ -160,11 +160,11 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			 * term.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			jpl.Term stubfunc = new jpl.Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR });
+			org.jpl7.Term stubfunc = new org.jpl7.Compound(term.arg(1).name(), new org.jpl7.Term[] { ANON_VAR });
 			terms.add(stubfunc);
 		} else if (signature.equals(";/2") || signature.equals(",/2") || signature.equals("forall/2")) {
 			// Unpack the conjunction, disjunction and forall /2-operators.
-			for (jpl.Term argument : term.args()) {
+			for (org.jpl7.Term argument : term.args()) {
 				terms.addAll(unpack(argument));
 			}
 			// findall, setof aggregate and aggregate_all /3-operators only
@@ -183,7 +183,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			 * correct term. We will be using 3 anonymous variables.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			jpl.Term stubfunc = new jpl.Compound(term.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			org.jpl7.Term stubfunc = new org.jpl7.Compound(term.arg(1).name(), new org.jpl7.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			terms.add(stubfunc);
 		} else {
 			terms.add(term);

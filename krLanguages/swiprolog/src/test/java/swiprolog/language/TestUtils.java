@@ -23,9 +23,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import jpl.Float;
-import jpl.PrologException;
-import jpl.Util;
+import org.jpl7.Float;
+import org.jpl7.PrologException;
+import org.jpl7.Util;
 import swiprolog.SwiInstaller;
 import swiprolog.database.PrologDatabase;
 
@@ -36,14 +36,14 @@ public class TestUtils {
 
 	@Test
 	public void testJPLAtom() throws Exception {
-		jpl.Atom constant = new jpl.Atom("Aap");
-		jpl.Term term = JPLUtils.createCompound("var", constant);
+		org.jpl7.Atom constant = new org.jpl7.Atom("Aap");
+		org.jpl7.Term term = JPLUtils.createCompound("var", constant);
 		assertTrue(PrologDatabase.rawquery(term).isEmpty());
 	}
 
 	@Test
 	public void testJPLFloat() throws Exception {
-		Float constant = new jpl.Float(-1.2);
+		Float constant = new org.jpl7.Float(-1.2);
 		// bit weird but let's check anyway...
 		assertEquals("-1.2/0", JPLUtils.getSignature(constant));
 	}

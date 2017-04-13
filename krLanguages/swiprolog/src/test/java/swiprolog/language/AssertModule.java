@@ -19,11 +19,12 @@ package swiprolog.language;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Hashtable;
+import java.util.Map;
 
+import org.jpl7.Query;
+import org.jpl7.Term;
 import org.junit.Test;
 
-import jpl.Query;
 import swiprolog.SwiInstaller;
 
 /**
@@ -37,27 +38,26 @@ public class AssertModule {
 		SwiInstaller.init();
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void assertIntoModule() {
-		Query insert = new jpl.Query("assert(:('owner:main:sippingbeer', sippingbeer))");
+		Query insert = new Query("assert(:('owner:main:sippingbeer', sippingbeer))");
 		insert.allSolutions();
 
-		Query check = new jpl.Query("'owner:main:sippingbeer':sippingbeer");
-		Hashtable[] result = check.allSolutions();
+		Query check = new Query("'owner:main:sippingbeer':sippingbeer");
+		Map<String, Term>[] result = check.allSolutions();
 		assertEquals(1, result.length);
 
-		Query predicatesq = new jpl.Query(
-				" 'owner:main:sippingbeer':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
-		Hashtable[] preds = predicatesq.allSolutions();
+		Query predicatesq = new Query(
+				"'owner:main:sippingbeer':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
+		Map<String, Term>[] preds = predicatesq.allSolutions();
 		assertEquals(0, preds.length);
 		// This should have returned 1 as demonstrated below with the
 		// workaround.
 		// This demonstrates that JPL is FAILING our query.
 
-		Query predicatesq1 = new jpl.Query(
+		Query predicatesq1 = new Query(
 				"true, 'owner:main:sippingbeer':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
-		Hashtable[] preds1 = predicatesq1.allSolutions();
+		Map<String, Term>[] preds1 = predicatesq1.allSolutions();
 		assertEquals(1, preds1.length);
 	}
 

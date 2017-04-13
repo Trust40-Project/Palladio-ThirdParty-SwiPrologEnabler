@@ -57,13 +57,13 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologUpdate(jpl.Term term, SourceInfo info) {
+	public PrologUpdate(org.jpl7.Term term, SourceInfo info) {
 		super(term, info);
 
-		List<jpl.Term> conjuncts = JPLUtils.getOperands(",", term);
+		List<org.jpl7.Term> conjuncts = JPLUtils.getOperands(",", term);
 		// Sort positive and negative literals, assuming that each conjunct
 		// is a database formula (which should have been checked by the parser).
-		for (jpl.Term conjunct : conjuncts) {
+		for (org.jpl7.Term conjunct : conjuncts) {
 			if (JPLUtils.getSignature(conjunct).equals("not/1")) {
 				this.negativeLiterals.add(new PrologDBFormula(conjunct.arg(1), info));
 			} else if (!JPLUtils.getSignature(conjunct).equals("true/0")) {
@@ -97,8 +97,8 @@ public class PrologUpdate extends PrologExpression implements Update {
 	 */
 	@Override
 	public PrologUpdate applySubst(Substitution s) {
-		SortedMap<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
-		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
+		SortedMap<String, org.jpl7.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+		org.jpl7.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 
 		PrologUpdate update = new PrologUpdate(term, getSourceInfo());
 		update.positiveLiterals = new ArrayList<>(this.positiveLiterals.size());

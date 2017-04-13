@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-import jpl.Variable;
+import org.jpl7.Variable;
 import krTools.exceptions.KRInitFailedException;
 import swiprolog.SwiPrologInterface;
 
@@ -35,7 +35,7 @@ public class TestPrologTerms {
 
 	@Test
 	public void testToString() {
-		jpl.Term term = new jpl.Atom("Aap");
+		org.jpl7.Term term = new org.jpl7.Atom("Aap");
 		assertEquals("'Aap'", term.toString());
 	}
 

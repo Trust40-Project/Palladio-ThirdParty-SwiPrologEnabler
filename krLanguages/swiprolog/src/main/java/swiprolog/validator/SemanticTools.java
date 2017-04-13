@@ -68,9 +68,9 @@ public class SemanticTools {
 	 *             </p>
 	 * @returns original conjunct (if term is good update)
 	 */
-	private static jpl.Term basicUpdateCheck(PrologTerm conjunct) throws ParserException {
-		List<jpl.Term> terms = JPLUtils.getOperands(",", conjunct.getTerm());
-		for (jpl.Term term : terms) {
+	private static org.jpl7.Term basicUpdateCheck(PrologTerm conjunct) throws ParserException {
+		List<org.jpl7.Term> terms = JPLUtils.getOperands(",", conjunct.getTerm());
+		for (org.jpl7.Term term : terms) {
 			if (JPLUtils.getSignature(term).equals("not/1")) {
 				DBFormula(new PrologTerm(term.arg(1), conjunct.getSourceInfo()));
 			} else {
@@ -120,14 +120,14 @@ public class SemanticTools {
 	 *             If Prolog term is not a valid clause.
 	 */
 	public static DatabaseFormula DBFormula(PrologTerm term) throws ParserException {
-		jpl.Term head, body;
+		org.jpl7.Term head, body;
 
 		if (term.getSignature().equals(":-/2")) {
 			head = term.getTerm().arg(1);
 			body = term.getTerm().arg(2);
 		} else {
 			head = term.getTerm();
-			body = new jpl.Atom("true");
+			body = new org.jpl7.Atom("true");
 		}
 
 		if (head.isVariable()) {
@@ -140,11 +140,11 @@ public class SemanticTools {
 
 		String signature = JPLUtils.getSignature(head);
 		if (signature.equals(":-/1")) {
-			jpl.Term directive = term.getTerm().arg(1);
+			org.jpl7.Term directive = term.getTerm().arg(1);
 			signature = JPLUtils.getSignature(directive);
 			if (JPLUtils.getSignature(directive).equals("dynamic/1")) {
-				List<jpl.Term> dynamicPreds = JPLUtils.getOperands(",", directive.arg(1));
-				for (jpl.Term headTerm : dynamicPreds) {
+				List<org.jpl7.Term> dynamicPreds = JPLUtils.getOperands(",", directive.arg(1));
+				for (org.jpl7.Term headTerm : dynamicPreds) {
 					signature = headTerm.name() + "/" + headTerm.arity();
 					if (signature.equals("//2")) {
 						// the term is already a signature itself
@@ -182,7 +182,7 @@ public class SemanticTools {
 	 * @throws ParserException
 	 *             If t is not a well formed Prolog goal.
 	 */
-	public static jpl.Term toGoal(jpl.Term t, SourceInfo source) throws ParserException {
+	public static org.jpl7.Term toGoal(org.jpl7.Term t, SourceInfo source) throws ParserException {
 		// 7.6.2.a use article 7.8.3
 		if (t.isVariable()) {
 			throw new ParserException(ParserErrorMessages.VARIABLES_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
@@ -248,7 +248,7 @@ public class SemanticTools {
 	 * @return signatures of defined terms.
 	 * @throws ParserException
 	 */
-	public static List<String> getDefinedSignatures(jpl.Term term, SourceInfo info) throws ParserException {
+	public static List<String> getDefinedSignatures(org.jpl7.Term term, SourceInfo info) throws ParserException {
 		List<String> signatures = new LinkedList<>();
 		if (term.isAtom()) {
 			signatures.add(JPLUtils.getSignature(term));
@@ -282,14 +282,14 @@ public class SemanticTools {
 	 * @return declared but undefined signatures
 	 * @throws ParserException
 	 */
-	public static List<String> getDeclaredSignatures(jpl.Term term, SourceInfo info) throws ParserException {
+	public static List<String> getDeclaredSignatures(org.jpl7.Term term, SourceInfo info) throws ParserException {
 		List<String> signatures = new LinkedList<>();
 		if (term.isCompound() && term.name().equals(":-") && term.arity() == 1) {
-			jpl.Term directive = term.arg(1);
+			org.jpl7.Term directive = term.arg(1);
 			if (!directive.name().equals("dynamic") || directive.arity() != 1) {
 				throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
 			}
-			for (jpl.Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {
+			for (org.jpl7.Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {
 				if (!JPLUtils.isPredicateIndicator(signatureterm)) {
 					throw new ParserException("term " + signatureterm + " is not a predicate indicator", info);
 				}

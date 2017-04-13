@@ -25,9 +25,9 @@ import java.util.TreeMap;
 
 import org.junit.Test;
 
-import jpl.Compound;
-import jpl.Term;
-import jpl.Variable;
+import org.jpl7.Compound;
+import org.jpl7.Term;
+import org.jpl7.Variable;
 import swiprolog.SwiInstaller;
 
 public class TestPrologSubstitution {
@@ -50,7 +50,7 @@ public class TestPrologSubstitution {
 		Term[] args = new Term[2];
 		args[0] = new Variable("X");
 		args[1] = new Variable("Y");
-		Term term = new jpl.Compound("aap", args);
+		Term term = new org.jpl7.Compound("aap", args);
 
 		Term result = JPLUtils.applySubst(solution, term);
 		assertTrue(result instanceof Compound);
@@ -65,23 +65,23 @@ public class TestPrologSubstitution {
 		PrologSubstitution substitution1 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertTrue(substitution1.getJPLSolution().isEmpty());
 
-		jpl.Variable var = new jpl.Variable("X");
-		jpl.Term term = new jpl.Atom("a");
+		org.jpl7.Variable var = new org.jpl7.Variable("X");
+		org.jpl7.Term term = new org.jpl7.Atom("a");
 		solution.put(var.name(), term);
 		PrologSubstitution substitution2 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals(1, substitution2.getJPLSolution().size());
 		assertEquals(term, substitution2.getJPLSolution().get(var.name()));
 
-		jpl.Variable var1 = new jpl.Variable("Y");
-		jpl.Term term1 = new jpl.Atom("b");
+		org.jpl7.Variable var1 = new org.jpl7.Variable("Y");
+		org.jpl7.Term term1 = new org.jpl7.Atom("b");
 		solution.put(var1.name(), term1);
 		PrologSubstitution substitution3 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals(2, substitution3.getJPLSolution().size());
 		assertEquals(term, substitution3.getJPLSolution().get(var.name()));
 		assertEquals(term1, substitution3.getJPLSolution().get(var1.name()));
 
-		jpl.Variable var2 = new jpl.Variable("Z");
-		jpl.Variable var3 = new jpl.Variable("V");
+		org.jpl7.Variable var2 = new org.jpl7.Variable("Z");
+		org.jpl7.Variable var3 = new org.jpl7.Variable("V");
 		solution.put(var2.name(), var3);
 		PrologSubstitution substitution4 = PrologSubstitution.getSubstitutionOrNull(solution);
 		assertEquals(3, substitution4.getJPLSolution().size());

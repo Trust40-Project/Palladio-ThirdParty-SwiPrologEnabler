@@ -23,7 +23,7 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
-import jpl.Term;
+import org.jpl7.Term;
 import swiprolog.language.PrologTerm;
 import swiprolog.language.PrologVar;
 import swiprolog.parser.Parser4;
@@ -52,44 +52,44 @@ public class TermTest {
 	@Test
 	public void testValidateFloat() throws Exception {
 		PrologTerm term = validator("100.4").term();
-		assertEquals(term, new PrologTerm(new jpl.Float(100.4), null));
+		assertEquals(term, new PrologTerm(new org.jpl7.Float(100.4), null));
 	}
 
 	@Test
 	public void testValidateAtom() throws Exception {
 		PrologTerm term = validator("aap").term();
-		assertEquals(term, new PrologTerm(new jpl.Atom("aap"), null));
+		assertEquals(term, new PrologTerm(new org.jpl7.Atom("aap"), null));
 	}
 
 	@Test
 	public void testValidate1arg() throws Exception {
 		PrologTerm term = validator("aap(1)").term();
-		assertEquals(term, new PrologTerm(new jpl.Compound("aap", new Term[] { new jpl.Integer(1) }), null));
+		assertEquals(term, new PrologTerm(new org.jpl7.Compound("aap", new Term[] { new org.jpl7.Integer(1) }), null));
 	}
 
 	@Test
 	public void testValidate2arg() throws Exception {
 		PrologTerm term = validator("aap(1,2)").term();
 		assertEquals(term,
-				new PrologTerm(new jpl.Compound("aap", new Term[] { new jpl.Integer(1), new jpl.Integer(2) }), null));
+				new PrologTerm(new org.jpl7.Compound("aap", new Term[] { new org.jpl7.Integer(1), new org.jpl7.Integer(2) }), null));
 	}
 
 	@Test
 	public void testInteger() throws Exception {
 		PrologTerm term = validator("33").term();
-		assertEquals(term, new PrologTerm(new jpl.Integer(33), null));
+		assertEquals(term, new PrologTerm(new org.jpl7.Integer(33), null));
 	}
 
 	@Test
 	public void testVariable() throws Exception {
 		PrologTerm term = validator("X").term();
-		assertEquals(term, new PrologVar(new jpl.Variable("X"), null));
+		assertEquals(term, new PrologVar(new org.jpl7.Variable("X"), null));
 	}
 
 	@Test
 	public void testVariable2() throws Exception {
 		PrologTerm term = validator("_123").term();
-		assertEquals(term, new PrologVar(new jpl.Variable("_123"), null));
+		assertEquals(term, new PrologVar(new org.jpl7.Variable("_123"), null));
 	}
 
 }

@@ -9,8 +9,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import jpl.Atom;
-import jpl.Term;
+import org.jpl7.Atom;
+import org.jpl7.Term;
 import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
@@ -44,9 +44,9 @@ public class TestUpdate {
 	private Database beliefbase;
 	private Database knowledgebase;
 
-	private final Atom aap = new jpl.Atom("aap");
-	private final Atom beer = new jpl.Atom("beer");
-	private final Atom kat = new jpl.Atom("kat");
+	private final Atom aap = new org.jpl7.Atom("aap");
+	private final Atom beer = new org.jpl7.Atom("beer");
+	private final Atom kat = new org.jpl7.Atom("kat");
 
 	@Before
 	public void setUp() throws Exception {
@@ -67,7 +67,7 @@ public class TestUpdate {
 
 	@Test
 	public void testInitialQuery1() throws Exception {
-		PrologQuery query = new PrologQuery(new jpl.Atom("true"), null);
+		PrologQuery query = new PrologQuery(new org.jpl7.Atom("true"), null);
 		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
@@ -93,7 +93,7 @@ public class TestUpdate {
 	@Test
 	public void testUpdate() throws Exception {
 		Update update = new PrologUpdate(
-				new jpl.Compound(",", new Term[] { new jpl.Compound("not", new Term[] { this.aap }), this.beer }),
+				new org.jpl7.Compound(",", new Term[] { new org.jpl7.Compound("not", new Term[] { this.aap }), this.beer }),
 				null);
 		this.beliefbase.insert(update);
 

@@ -170,11 +170,11 @@ public class Validator4 {
 		if (t == null) {
 			return new ArrayList<>(0);
 		} else {
-			List<jpl.Term> original = JPLUtils.getOperands(",", t.getTerm());
+			List<org.jpl7.Term> original = JPLUtils.getOperands(",", t.getTerm());
 			List<Term> terms = new ArrayList<>(original.size());
-			for (jpl.Term term : original) {
-				if (term instanceof jpl.Variable) {
-					terms.add(new PrologVar((jpl.Variable) term, t.getSourceInfo()));
+			for (org.jpl7.Term term : original) {
+				if (term instanceof org.jpl7.Variable) {
+					terms.add(new PrologVar((org.jpl7.Variable) term, t.getSourceInfo()));
 				} else {
 					terms.add(new PrologTerm(term, t.getSourceInfo()));
 				}

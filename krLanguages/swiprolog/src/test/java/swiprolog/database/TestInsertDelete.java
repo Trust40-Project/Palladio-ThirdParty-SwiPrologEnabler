@@ -6,10 +6,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import jpl.Atom;
-import jpl.Compound;
-import jpl.Term;
-import jpl.Util;
+import org.jpl7.Atom;
+import org.jpl7.Compound;
+import org.jpl7.Term;
+import org.jpl7.Util;
 import krTools.KRInterface;
 import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
@@ -37,10 +37,10 @@ public class TestInsertDelete {
 	private Database beliefbase;
 	private Database knowledgebase;
 
-	private final Atom p1 = new jpl.Atom("p");
-	private final Atom p2 = new jpl.Atom("p");
-	private final Compound dynamicp = new jpl.Compound("dynamic",
-			new jpl.Term[] { this.p1 });
+	private final Atom p1 = new org.jpl7.Atom("p");
+	private final Atom p2 = new org.jpl7.Atom("p");
+	private final Compound dynamicp = new org.jpl7.Compound("dynamic",
+			new org.jpl7.Term[] { this.p1 });
 
 	@Before
 	public void setUp() throws Exception {

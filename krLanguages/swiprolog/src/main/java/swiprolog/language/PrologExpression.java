@@ -31,7 +31,7 @@ public abstract class PrologExpression implements Expression {
 	/**
 	 * A JPL term representing a Prolog expression.
 	 */
-	private final jpl.Term term;
+	private final org.jpl7.Term term;
 	/**
 	 * Information about the source used to construct this expression.
 	 */
@@ -42,7 +42,7 @@ public abstract class PrologExpression implements Expression {
 	 *
 	 * @term A JPL term.
 	 */
-	public PrologExpression(jpl.Term term, SourceInfo info) {
+	public PrologExpression(org.jpl7.Term term, SourceInfo info) {
 		this.term = term;
 		this.info = info;
 	}
@@ -50,9 +50,9 @@ public abstract class PrologExpression implements Expression {
 	/**
 	 * Returns the JPL term.
 	 *
-	 * @return A {@link jpl.Term}.
+	 * @return A {@link org.jpl7.Term}.
 	 */
-	public jpl.Term getTerm() {
+	public org.jpl7.Term getTerm() {
 		return this.term;
 	}
 
@@ -83,10 +83,10 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public Set<Var> getFreeVar() {
-		List<jpl.Variable> jplvars = new ArrayList<>(JPLUtils.getFreeVar(getTerm()));
+		List<org.jpl7.Variable> jplvars = new ArrayList<>(JPLUtils.getFreeVar(getTerm()));
 		Set<Var> variables = new LinkedHashSet<>(jplvars.size());
-		// Build VariableTerm from jpl.Variable.
-		for (jpl.Variable var : jplvars) {
+		// Build VariableTerm from org.jpl7.Variable.
+		for (org.jpl7.Variable var : jplvars) {
 			variables.add(new PrologVar(var, getSourceInfo()));
 		}
 		return variables;
@@ -112,7 +112,7 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public Substitution mgu(Expression expression) {
-		jpl.Term otherterm = ((PrologExpression) expression).getTerm();
+		org.jpl7.Term otherterm = ((PrologExpression) expression).getTerm();
 		return PrologSubstitution.getSubstitutionOrNull(JPLUtils.mgu(getTerm(), otherterm));
 	}
 

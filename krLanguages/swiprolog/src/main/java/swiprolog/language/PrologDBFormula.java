@@ -48,13 +48,13 @@ public class PrologDBFormula extends PrologExpression implements DatabaseFormula
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologDBFormula(jpl.Term term, SourceInfo info) {
+	public PrologDBFormula(org.jpl7.Term term, SourceInfo info) {
 		super(term, info);
 	}
 
 	@Override
 	public PrologDBFormula applySubst(Substitution substitution) {
-		SortedMap<String, jpl.Term> jplSubstitution = (substitution == null) ? null
+		SortedMap<String, org.jpl7.Term> jplSubstitution = (substitution == null) ? null
 				: ((PrologSubstitution) substitution).getJPLSolution();
 		return new PrologDBFormula(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
 	}

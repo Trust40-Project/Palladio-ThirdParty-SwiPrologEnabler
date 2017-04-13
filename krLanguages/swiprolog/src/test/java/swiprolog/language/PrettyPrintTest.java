@@ -22,8 +22,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.Collection;
 
-import jpl.Term;
-import jpl.Util;
+import org.jpl7.Term;
+import org.jpl7.Util;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

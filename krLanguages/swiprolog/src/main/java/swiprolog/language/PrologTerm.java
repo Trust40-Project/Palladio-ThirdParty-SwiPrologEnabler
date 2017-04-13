@@ -35,7 +35,7 @@ public class PrologTerm extends PrologExpression implements Term {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologTerm(jpl.Term term, SourceInfo info) {
+	public PrologTerm(org.jpl7.Term term, SourceInfo info) {
 		super(term, info);
 	}
 
@@ -48,8 +48,8 @@ public class PrologTerm extends PrologExpression implements Term {
 
 	@Override
 	public PrologTerm applySubst(Substitution s) {
-		SortedMap<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
-		jpl.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
+		SortedMap<String, org.jpl7.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+		org.jpl7.Term term = JPLUtils.applySubst(jplSubstitution, getTerm());
 		return new PrologTerm(term, getSourceInfo());
 	}
 }

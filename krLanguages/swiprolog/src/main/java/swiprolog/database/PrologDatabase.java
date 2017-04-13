@@ -18,8 +18,8 @@
 package swiprolog.database;
 
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -43,7 +43,7 @@ public class PrologDatabase implements Database {
 	 * Name of this database; used to name a SWI-Prolog module that implements
 	 * the database.
 	 */
-	private final jpl.Atom name;
+	private final org.jpl7.Atom name;
 	/**
 	 * The KRI that is managing this database.
 	 */
@@ -65,7 +65,7 @@ public class PrologDatabase implements Database {
 	 */
 	public PrologDatabase(String name, Collection<DatabaseFormula> content, SwiPrologInterface owner)
 			throws KRDatabaseException {
-		this.name = new jpl.Atom(name);
+		this.name = new org.jpl7.Atom(name);
 		this.owner = owner;
 		this.theory = new Theory(content);
 		try {
@@ -73,7 +73,7 @@ public class PrologDatabase implements Database {
 			// FIXME: this is an expensive operation that is now run for
 			// knowledge bases as well, and might be run for bases in a mental
 			// model that will never be used anyway too.
-			rawquery(JPLUtils.createCompound(":", getJPLName(), new jpl.Atom("true")));
+			rawquery(JPLUtils.createCompound(":", getJPLName(), new org.jpl7.Atom("true")));
 			if (content != null) {
 				for (DatabaseFormula dbf : content) {
 					insert(((PrologDBFormula) dbf).getTerm());
@@ -92,7 +92,7 @@ public class PrologDatabase implements Database {
 	/**
 	 * @return atom with name of this database
 	 */
-	public jpl.Atom getJPLName() {
+	public org.jpl7.Atom getJPLName() {
 		return this.name;
 	}
 
@@ -125,12 +125,12 @@ public class PrologDatabase implements Database {
 	@Override
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
 		Set<Substitution> substSet = new LinkedHashSet<>();
-		jpl.Term query = ((PrologQuery) pQuery).getTerm();
-		jpl.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
+		org.jpl7.Term query = ((PrologQuery) pQuery).getTerm();
+		org.jpl7.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
 		// We need to create conjunctive query with "true" as first conjunct and
 		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		substSet.addAll(rawquery(JPLUtils.createCompound(",", new jpl.Atom("true"), db_query)));
+		substSet.addAll(rawquery(JPLUtils.createCompound(",", new org.jpl7.Atom("true"), db_query)));
 		return substSet;
 	}
 
@@ -208,14 +208,14 @@ public class PrologDatabase implements Database {
 	 *            The database the term should be inserted into.
 	 * @throws KRDatabaseException
 	 */
-	private void insert(jpl.Term formula) throws KRDatabaseException {
+	private void insert(org.jpl7.Term formula) throws KRDatabaseException {
 		try {
 			if (formula.name().equals(":-") && formula.arity() == 1) { // directive
-				jpl.Term query = JPLUtils.createCompound(":", getJPLName(), formula.arg(1));
-				jpl.Term queryt = JPLUtils.createCompound(",", new jpl.Atom("true"), query);
+				org.jpl7.Term query = JPLUtils.createCompound(":", getJPLName(), formula.arg(1));
+				org.jpl7.Term queryt = JPLUtils.createCompound(",", new org.jpl7.Atom("true"), query);
 				rawquery(queryt);
 			} else { // clause
-				jpl.Term dbformula = JPLUtils.createCompound(":", getJPLName(), formula);
+				org.jpl7.Term dbformula = JPLUtils.createCompound(":", getJPLName(), formula);
 				rawquery(JPLUtils.createCompound("assert", dbformula));
 			}
 		} catch (KRQueryFailedException e) {
@@ -270,8 +270,8 @@ public class PrologDatabase implements Database {
 	 *            The database the term should be deleted from.
 	 * @throws KRDatabaseException
 	 */
-	private void delete(jpl.Term formula) throws KRDatabaseException {
-		jpl.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
+	private void delete(org.jpl7.Term formula) throws KRDatabaseException {
+		org.jpl7.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
 		try {
 			rawquery(JPLUtils.createCompound("retractall", db_formula));
 		} catch (KRQueryFailedException e) {
@@ -296,16 +296,15 @@ public class PrologDatabase implements Database {
 	 *         not return any bindings of variables.
 	 * @throws KRQueryFailedException
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static Set<PrologSubstitution> rawquery(jpl.Term query) throws KRQueryFailedException {
+	public static Set<PrologSubstitution> rawquery(org.jpl7.Term query) throws KRQueryFailedException {
 		// Create JPL query.
-		jpl.Query jplQuery = new jpl.Query(query);
+		org.jpl7.Query jplQuery = new org.jpl7.Query(query);
 
 		// Get all solutions.
-		Hashtable[] solutions;
+		Map<String, org.jpl7.Term>[] solutions;
 		try {
 			solutions = jplQuery.allSolutions();
-		} catch (jpl.PrologException e) {
+		} catch (org.jpl7.PrologException e) {
 			throw new PrologError(e);
 		} catch (Throwable e) {
 			// catch all other (runtime) exceptions and wrap into checked
@@ -315,7 +314,7 @@ public class PrologDatabase implements Database {
 
 		// Convert to PrologSubstitution.
 		Set<PrologSubstitution> substitutions = new LinkedHashSet<>(solutions.length);
-		for (Hashtable<String, jpl.Term> solution : solutions) {
+		for (Map<String, org.jpl7.Term> solution : solutions) {
 			substitutions.add(PrologSubstitution.getSubstitutionOrNull(new TreeMap<>(solution)));
 		}
 
@@ -349,23 +348,23 @@ public class PrologDatabase implements Database {
 		// + "retractall(" + this.name + ":Head)"
 		// + ").";
 		// Construct jpl term for above.
-		jpl.Variable predicate = new jpl.Variable("Predicate");
-		jpl.Variable head = new jpl.Variable("Head");
-		jpl.Term db_head = JPLUtils.createCompound(":", this.name, head);
-		jpl.Term current = JPLUtils.createCompound("current_predicate", predicate, head);
-		jpl.Term db_current = JPLUtils.createCompound(":", this.name, current);
-		jpl.Term built_in = JPLUtils.createCompound("predicate_property", db_head, new jpl.Atom("built_in"));
-		jpl.Term foreign = JPLUtils.createCompound("predicate_property", db_head, new jpl.Atom("foreign"));
-		jpl.Term imported_from = JPLUtils.createCompound("imported_from", new jpl.Variable("_"));
-		jpl.Term imported = JPLUtils.createCompound("predicate_property", db_head, imported_from);
-		jpl.Term not_built_in = JPLUtils.createCompound("not", built_in);
-		jpl.Term not_foreign = JPLUtils.createCompound("not", foreign);
-		jpl.Term not_imported = JPLUtils.createCompound("not", imported);
-		jpl.Term retract = JPLUtils.createCompound("retractall", db_head);
-		jpl.Term conj45 = JPLUtils.createCompound(",", not_imported, retract);
-		jpl.Term conj345 = JPLUtils.createCompound(",", not_foreign, conj45);
-		jpl.Term conj2345 = JPLUtils.createCompound(",", not_built_in, conj345);
-		jpl.Term query = JPLUtils.createCompound(",", db_current, conj2345);
+		org.jpl7.Variable predicate = new org.jpl7.Variable("Predicate");
+		org.jpl7.Variable head = new org.jpl7.Variable("Head");
+		org.jpl7.Term db_head = JPLUtils.createCompound(":", this.name, head);
+		org.jpl7.Term current = JPLUtils.createCompound("current_predicate", predicate, head);
+		org.jpl7.Term db_current = JPLUtils.createCompound(":", this.name, current);
+		org.jpl7.Term built_in = JPLUtils.createCompound("predicate_property", db_head, new org.jpl7.Atom("built_in"));
+		org.jpl7.Term foreign = JPLUtils.createCompound("predicate_property", db_head, new org.jpl7.Atom("foreign"));
+		org.jpl7.Term imported_from = JPLUtils.createCompound("imported_from", new org.jpl7.Variable("_"));
+		org.jpl7.Term imported = JPLUtils.createCompound("predicate_property", db_head, imported_from);
+		org.jpl7.Term not_built_in = JPLUtils.createCompound("not", built_in);
+		org.jpl7.Term not_foreign = JPLUtils.createCompound("not", foreign);
+		org.jpl7.Term not_imported = JPLUtils.createCompound("not", imported);
+		org.jpl7.Term retract = JPLUtils.createCompound("retractall", db_head);
+		org.jpl7.Term conj45 = JPLUtils.createCompound(",", not_imported, retract);
+		org.jpl7.Term conj345 = JPLUtils.createCompound(",", not_foreign, conj45);
+		org.jpl7.Term conj2345 = JPLUtils.createCompound(",", not_built_in, conj345);
+		org.jpl7.Term query = JPLUtils.createCompound(",", db_current, conj2345);
 
 		try {
 			rawquery(query);

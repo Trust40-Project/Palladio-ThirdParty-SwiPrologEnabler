@@ -43,13 +43,13 @@ public class PrologQuery extends PrologExpression implements Query {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologQuery(jpl.Term term, SourceInfo info) {
+	public PrologQuery(org.jpl7.Term term, SourceInfo info) {
 		super(term, info);
 	}
 
 	@Override
 	public Query applySubst(Substitution s) {
-		SortedMap<String, jpl.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
+		SortedMap<String, org.jpl7.Term> jplSubstitution = (s == null) ? null : ((PrologSubstitution) s).getJPLSolution();
 		return new PrologQuery(JPLUtils.applySubst(jplSubstitution, getTerm()), getSourceInfo());
 	}
 

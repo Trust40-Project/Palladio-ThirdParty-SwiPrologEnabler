@@ -33,7 +33,7 @@ import swiprolog.parser.PrologOperators;
  * Analyzer to identify unused and undefined predicates.
  */
 public class Analyzer {
-	private static final jpl.Term ANON_VAR = new jpl.Variable("_");
+	private static final org.jpl7.Term ANON_VAR = new org.jpl7.Variable("_");
 	/**
 	 * Map of definitions.
 	 */
@@ -96,8 +96,8 @@ public class Analyzer {
 	 */
 	private void addDefinition(DatabaseFormula formula) {
 		PrologDBFormula plFormula = (PrologDBFormula) formula;
-		jpl.Term term = plFormula.getTerm();
-		jpl.Term headTerm = term;
+		org.jpl7.Term term = plFormula.getTerm();
+		org.jpl7.Term headTerm = term;
 		// The :- function needs special attention.
 		if (term.name().equals(":-") && term.arity() == 1) {
 			// Directive: the first argument is a query.
@@ -144,7 +144,7 @@ public class Analyzer {
 		addQuery(((PrologDBFormula) formula).getTerm(), formula.getSourceInfo());
 	}
 
-	private void addQuery(jpl.Term plTerm, SourceInfo info) {
+	private void addQuery(org.jpl7.Term plTerm, SourceInfo info) {
 		// check if the term needs to be unpacked
 		String termSig = plTerm.name() + "/" + plTerm.arity();
 		// there is only one /1 operator we need to unpack: not/1
@@ -165,11 +165,11 @@ public class Analyzer {
 			addQuery(plTerm.arg(3), info);
 		} else if (termSig.equals("predsort/3")) {
 			// first argument is name that will be called as name/3
-			jpl.Term stubfunc = new jpl.Compound(plTerm.arg(1).name(), new jpl.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			org.jpl7.Term stubfunc = new org.jpl7.Compound(plTerm.arg(1).name(), new org.jpl7.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			addQuery(stubfunc, info);
 		} else if (termSig.equals("dynamic/1")) {
 			// recognize predicate declaration(s).
-			for (jpl.Term dynamicPred : JPLUtils.getOperands(",", plTerm.arg(1))) {
+			for (org.jpl7.Term dynamicPred : JPLUtils.getOperands(",", plTerm.arg(1))) {
 				addDefinition(new PrologDBFormula(dynamicPred, info));
 			}
 		} else if (!PrologOperators.prologBuiltin(termSig)) {
