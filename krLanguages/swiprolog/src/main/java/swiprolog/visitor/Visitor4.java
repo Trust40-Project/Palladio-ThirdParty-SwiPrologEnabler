@@ -68,7 +68,7 @@ public class Visitor4 {
 	 * @return all errors from both visitor and parser
 	 */
 	public SortedSet<ParserException> getErrors() {
-		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
+		SortedSet<ParserException> allErrors = new TreeSet<>();
 		allErrors.addAll(this.visitor.getVisitorErrors());
 		allErrors.addAll(this.parser.getErrors());
 		return allErrors;

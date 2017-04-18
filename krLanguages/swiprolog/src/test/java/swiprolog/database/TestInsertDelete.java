@@ -6,6 +6,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import jpl.Atom;
 import jpl.Compound;
 import jpl.Term;
@@ -17,11 +21,6 @@ import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Substitution;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
@@ -39,16 +38,13 @@ public class TestInsertDelete {
 
 	private final Atom p1 = new jpl.Atom("p");
 	private final Atom p2 = new jpl.Atom("p");
-	private final Compound dynamicp = new jpl.Compound("dynamic",
-			new jpl.Term[] { this.p1 });
+	private final Compound dynamicp = new jpl.Compound("dynamic", new jpl.Term[] { this.p1 });
 
 	@Before
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
-		this.knowledgebase = this.language.getDatabase("knowledge",
-				new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase = this.language.getDatabase("beliefs",
-				new LinkedHashSet<DatabaseFormula>());
+		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 		this.beliefbase.query(new PrologQuery(this.dynamicp, null));
 	}
 
@@ -87,8 +83,7 @@ public class TestInsertDelete {
 	 * @throws KRQueryFailedException
 	 */
 	@Test
-	public void testInsertDuplicate() throws KRDatabaseException,
-			KRQueryFailedException {
+	public void testInsertDuplicate() throws KRDatabaseException, KRQueryFailedException {
 		assertTrue(QueryP().isEmpty());
 
 		this.beliefbase.insert(new PrologDBFormula(this.p1, null));
@@ -104,16 +99,14 @@ public class TestInsertDelete {
 	 * @throws KRQueryFailedException
 	 */
 	@Test
-	public void testDeleteAfterDuplicate() throws KRDatabaseException,
-			KRQueryFailedException {
+	public void testDeleteAfterDuplicate() throws KRDatabaseException, KRQueryFailedException {
 		testInsertDuplicate();
 		this.beliefbase.delete(new PrologDBFormula(this.p1, null));
 		assertTrue(QueryP().isEmpty());
 	}
 
 	@Test
-	public void testDatabaseErase() throws KRDatabaseException,
-			KRQueryFailedException {
+	public void testDatabaseErase() throws KRDatabaseException, KRQueryFailedException {
 		String stringterm = "requests([request('INTERACTION', 2, '.'(answer(0, 'OK'), [])),request('INTERACTION', 3, '.'(answer(0, 'OK'), []))])";
 		Term t = Util.textToTerm(stringterm);
 		this.beliefbase.insert(new PrologDBFormula(t, null));

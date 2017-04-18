@@ -190,7 +190,7 @@ public class Validator4 {
 	 * @return all errors that occurred
 	 */
 	public SortedSet<ParserException> getErrors() {
-		SortedSet<ParserException> allErrors = new TreeSet<ParserException>();
+		SortedSet<ParserException> allErrors = new TreeSet<>();
 		allErrors.addAll(this.visitor.getErrors());
 		allErrors.addAll(this.errors);
 		return allErrors;

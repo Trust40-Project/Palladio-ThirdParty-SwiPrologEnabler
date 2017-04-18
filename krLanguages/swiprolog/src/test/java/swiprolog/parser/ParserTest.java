@@ -66,7 +66,7 @@ public class ParserTest {
 
 	@Test
 	public void test() throws IOException, ParserException {
-		Reader r = new StringReader(input + ".");
+		Reader r = new StringReader(this.input + ".");
 		KRInterfaceParser4 parser = new KRInterfaceParser4(r, null);
 		List<DatabaseFormula> terms = parser.parseDBFs();
 		if (!parser.getErrors().isEmpty()) {
@@ -88,6 +88,6 @@ public class ParserTest {
 		 * tricks: it inserts whitespaces where they are not in the original
 		 * term, and removes them where they are in the original term.
 		 */
-		assertEquals(input.replaceAll(" ", ""), result.replaceAll(" ", ""));
+		assertEquals(this.input.replaceAll(" ", ""), result.replaceAll(" ", ""));
 	}
 }
