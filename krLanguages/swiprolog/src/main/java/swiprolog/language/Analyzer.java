@@ -99,17 +99,18 @@ public class Analyzer {
 		jpl.Term term = plFormula.getTerm();
 		jpl.Term headTerm = term;
 		// The :- function needs special attention.
-		if (term.name().equals(":-") && term.arity() == 1) {
+		String sig = JPLUtils.getSignature(term);
+		if (sig.equals(":-/1")) {
 			// Directive: the first argument is a query.
 			addQuery(new PrologQuery(term.arg(1), formula.getSourceInfo()));
-		} else if (term.name().equals(":-") && term.arity() == 2) {
+		} else if (sig.equals(":-/2")) {
 			// The first argument is the only defined term.
 			headTerm = term.arg(1);
 			// The other argument is a conjunction of queried terms.
 			addQuery(new PrologQuery(term.arg(2), formula.getSourceInfo()));
 		}
 
-		String headSig = headTerm.name() + "/" + headTerm.arity();
+		String headSig = JPLUtils.getSignature(headTerm);
 		if (headSig.equals("//2")) {
 			// the term is already a signature itself
 			headSig = headTerm.arg(1) + "/" + headTerm.arg(2);
@@ -146,7 +147,7 @@ public class Analyzer {
 
 	private void addQuery(jpl.Term plTerm, SourceInfo info) {
 		// check if the term needs to be unpacked
-		String termSig = plTerm.name() + "/" + plTerm.arity();
+		String termSig = JPLUtils.getSignature(plTerm);
 		// there is only one /1 operator we need to unpack: not/1
 		if (termSig.equals("not/1")) {
 			addQuery(plTerm.arg(1), info);

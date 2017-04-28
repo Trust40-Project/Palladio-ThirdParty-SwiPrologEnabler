@@ -27,6 +27,7 @@ import krTools.exceptions.KRException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.parser.SourceInfo;
+import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
@@ -50,7 +51,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	@Override
 	public void add(DatabaseFormula formula, boolean defined, boolean queried) throws KRException {
 		jpl.Term term = ((PrologDBFormula) formula).getTerm();
-		String signature = term.name() + "/" + term.arity();
+		String signature = JPLUtils.getSignature(term);
 
 		/**
 		 * The :- function needs to be treated differently from other terms; the
@@ -85,7 +86,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	@Override
 	public void add(Query query) throws KRException {
 		jpl.Term term = ((PrologQuery) query).getTerm();
-		if (term.name().equals(":-") && term.arity() == 2) {
+		if (JPLUtils.getSignature(term).equals(":-/2")) {
 			throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 		} else {
 			addTerm(term, query.getSourceInfo(), false, true);
@@ -110,7 +111,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 		List<jpl.Term> terms = unpack(prologTerm);
 
 		for (jpl.Term term : terms) {
-			String signature = term.name() + "/" + term.arity();
+			String signature = JPLUtils.getSignature(term);
 			// Ignore built-in operators of Prolog as well as reserved GOAL
 			// operators.
 			if (!reserved(signature)) {
@@ -147,7 +148,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	 *         May be the empty list.
 	 */
 	private List<jpl.Term> unpack(jpl.Term term) {
-		String signature = term.name() + "/" + term.arity();
+		String signature = JPLUtils.getSignature(term);
 		List<jpl.Term> terms = new LinkedList<>();
 
 		// If we need to unpack the operators below, we're dealing with a query.

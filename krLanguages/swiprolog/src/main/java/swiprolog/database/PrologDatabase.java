@@ -210,7 +210,7 @@ public class PrologDatabase implements Database {
 	 */
 	private void insert(jpl.Term formula) throws KRDatabaseException {
 		try {
-			if (formula.name().equals(":-") && formula.arity() == 1) { // directive
+			if (JPLUtils.getSignature(formula).equals(":-/1")) { // directive
 				jpl.Term query = JPLUtils.createCompound(":", getJPLName(), formula.arg(1));
 				jpl.Term queryt = JPLUtils.createCompound(",", new jpl.Atom("true"), query);
 				rawquery(queryt);

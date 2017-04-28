@@ -142,10 +142,10 @@ public class SemanticTools {
 		if (signature.equals(":-/1")) {
 			jpl.Term directive = term.getTerm().arg(1);
 			signature = JPLUtils.getSignature(directive);
-			if (JPLUtils.getSignature(directive).equals("dynamic/1")) {
+			if (signature.equals("dynamic/1")) {
 				List<jpl.Term> dynamicPreds = JPLUtils.getOperands(",", directive.arg(1));
 				for (jpl.Term headTerm : dynamicPreds) {
-					signature = headTerm.name() + "/" + headTerm.arity();
+					signature = JPLUtils.getSignature(headTerm);
 					if (signature.equals("//2")) {
 						// the term is already a signature itself
 						signature = headTerm.arg(1) + "/" + headTerm.arg(2);
@@ -284,9 +284,9 @@ public class SemanticTools {
 	 */
 	public static List<String> getDeclaredSignatures(jpl.Term term, SourceInfo info) throws ParserException {
 		List<String> signatures = new LinkedList<>();
-		if (term.isCompound() && term.name().equals(":-") && term.arity() == 1) {
+		if (JPLUtils.getSignature(term).equals(":-/1")) {
 			jpl.Term directive = term.arg(1);
-			if (!directive.name().equals("dynamic") || directive.arity() != 1) {
+			if (!JPLUtils.getSignature(directive).equals("dynamic/1")) {
 				throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
 			}
 			for (jpl.Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {
