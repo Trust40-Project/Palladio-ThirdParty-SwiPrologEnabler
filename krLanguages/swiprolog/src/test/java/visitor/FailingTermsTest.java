@@ -70,15 +70,13 @@ public class FailingTermsTest {
 	// :- is term1200 and paramlist holds term1000
 	public void testTerm1200InList() throws Exception {
 		checkFailsAsTerm1000("[asserta(bar(X) :- X), clause(bar(X), B)), [[B , call(X)]]]",
-				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
-						ParserErrorMessages.TERM900.toReadableString()));
+				ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'", "')'"));
 	}
 
 	@Test
 	// :- is term1200 and paramlist holds term1000
 	public void testTerm1200InListB() throws Exception {
-		checkFailsAsTerm1000("assert(a:-b,c)", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'",
-				ParserErrorMessages.TERM0.toReadableString()));
+		checkFailsAsTerm1000("assert(a:-b,c)", ParserErrorMessages.FOUND_BUT_NEED.toReadableString("':-'", "')'"));
 	}
 
 	@Test
