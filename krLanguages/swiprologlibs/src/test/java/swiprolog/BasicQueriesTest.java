@@ -90,7 +90,7 @@ public class BasicQueriesTest {
 		System.out.println("query " + query + "->" + result1[0]);
 	}
 
-	// @SuppressWarnings("rawtypes")
+	@SuppressWarnings("rawtypes")
 	// @Test FIXME: fails on Linux
 	public void testRandom() {
 		Variable x = new jpl.Variable("X");

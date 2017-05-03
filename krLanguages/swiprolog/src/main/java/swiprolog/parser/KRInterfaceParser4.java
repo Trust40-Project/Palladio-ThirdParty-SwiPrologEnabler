@@ -99,6 +99,6 @@ public class KRInterfaceParser4 implements Parser {
 
 	@Override
 	public List<SourceInfo> getWarnings() {
-		return new ArrayList<SourceInfo>(0); // TODO
+		return new ArrayList<>(0); // TODO
 	}
 }

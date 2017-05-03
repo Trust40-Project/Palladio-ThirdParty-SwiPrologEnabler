@@ -65,14 +65,14 @@ public class MultiThreadTest {
 		String module = "robot_" + n;
 		String formula = "test :- member(3,[1,2,3,4,5])";
 		insert(module, formula);
-		Map<String, Object> res = query(module, "test");
+		query(module, "test");
 
 		insert(module, "fibo(0,0)");
 		insert(module, "fibo(1,0)");
 		insert(module, "fibo(X,Y):-X>1, X1 is X-1, X2 is X-2, fibo(X1,Y1), fibo(X2,Y2), Y is Y1 + Y2");
 		query(module, "listing");
 
-		res = query(module, "fibo(22,Y)");
+		query(module, "fibo(22,Y)");
 	}
 
 	private void insert(String module, String formula) {
