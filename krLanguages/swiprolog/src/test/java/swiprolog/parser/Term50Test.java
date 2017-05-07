@@ -19,7 +19,8 @@ package swiprolog.parser;
 
 import static org.junit.Assert.assertEquals;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -35,7 +36,7 @@ public class Term50Test {
 	 * @return The ANTLR parser for the file.
 	 */
 	private Prolog4Parser getParser(String text) throws Exception {
-		ANTLRInputStream input = new ANTLRInputStream(text);
+		CharStream input = CharStreams.fromString(text);
 		Prolog4Lexer lexer = new Prolog4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		Prolog4Parser parser = new Prolog4Parser(tokens);

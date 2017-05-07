@@ -7,8 +7,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
@@ -47,7 +48,7 @@ public class Parser4 implements ANTLRErrorListener {
 	private final Prolog4Parser parser;
 	private final SortedSet<ParserException> errors = new TreeSet<>();
 	private final SourceInfo sourceInfo;
-	private final ANTLRInputStream stream;
+	private final CharStream stream;
 	private final Lexer lexer;
 	private final CommonTokenStream tokens;
 
@@ -70,8 +71,8 @@ public class Parser4 implements ANTLRErrorListener {
 		} else {
 			this.sourceInfo = info;
 		}
-		this.stream = new ANTLRInputStream(reader);
-		this.stream.name = (this.sourceInfo.getSource() == null) ? "" : this.sourceInfo.getSource();
+		final String name = (this.sourceInfo.getSource() == null) ? "" : this.sourceInfo.getSource();
+		this.stream = CharStreams.fromReader(reader, name);
 
 		this.lexer = new Prolog4Lexer(this.stream);
 		this.lexer.removeErrorListeners();
@@ -231,7 +232,7 @@ public class Parser4 implements ANTLRErrorListener {
 
 	public void switchToFullLL() {
 		// First rewind the token stream
-		this.tokens.reset();
+		this.tokens.seek(0);
 		// Use full (custom) error reporting now
 		this.parser.setErrorHandler(new ErrorStrategy4());
 		this.parser.addErrorListener(this);
