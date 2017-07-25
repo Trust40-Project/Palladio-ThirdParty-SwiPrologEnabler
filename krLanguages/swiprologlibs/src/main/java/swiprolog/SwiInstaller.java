@@ -39,20 +39,19 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * initialize SWI prolog for use. Unzips dlls and connects them to the
-	 * system. This static function needs to be called once, to get SWI hooked
-	 * up to the java system.
+	 * initialize SWI prolog for use. Unzips dlls and connects them to the system.
+	 * This static function needs to be called once, to get SWI hooked up to the
+	 * java system.
 	 *
-	 * This call will unzip required system dynamic link libraries to a temp
-	 * folder, pre-load them, and set the paths such that SWI can find its
-	 * files.
+	 * This call will unzip required system dynamic link libraries to a temp folder,
+	 * pre-load them, and set the paths such that SWI can find its files.
 	 *
 	 * The temp folder will be removed automatically if the JVM exits normally.
 	 *
 	 * @throws IllegalStateException
-	 *             , NoSuchFieldException, IllegalAccessException,
-	 *             SecurityException if initialization failed. These are runtime
-	 *             exceptions and therefore not declared.
+	 *             , NoSuchFieldException, IllegalAccessException, SecurityException
+	 *             if initialization failed. These are runtime exceptions and
+	 *             therefore not declared.
 	 */
 	public static void init(boolean force) {
 		if (initialized && !force) {
@@ -76,10 +75,10 @@ public final class SwiInstaller {
 		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals", "--nodebug", "--traditional" });
 
 		/**
-		 * Work around issue #3794: pre-load SWI libraries because
-		 * multi-threaded SWI calls may cause library loading errors. Following
-		 * the dependency graphml , you can see that the aggregate library
-		 * imports all libraries that are important for practical use.
+		 * Work around issue #3794: pre-load SWI libraries because multi-threaded SWI
+		 * calls may cause library loading errors. Following the dependency graphml ,
+		 * you can see that the aggregate library imports all libraries that are
+		 * important for practical use.
 		 */
 		new Query("use_module(library(random)).").allSolutions();
 		new Query("set_prolog_flag(debug_on_error,false)," + "catch(use_module(library(aggregate)),_,true),"
@@ -113,17 +112,18 @@ public final class SwiInstaller {
 			load("libforeign.so");
 			break;
 		case mac:
-			load("libncurses.5.4.dylib");
-			load("libreadline.6.1.dylib");
+			load("libncurses.6.dylib");
+			load("libreadline.6.dylib");
 			load("libswipl.dylib");
 			load("libjpl.dylib");
-			load("libforeign.jnilib");
 			break;
 		case win32:
-			load("pthreadVC.dll");
-			load("swipl.dll");
+			load("libwinpthread-1.dll");
+			load("libgcc_s_sjlj-1.dll");
+			load("libdwarf.dll");
+			load("libgmp-10.dll");
+			load("libswipl.dll");
 			load("jpl.dll");
-			load("foreign.dll");
 			break;
 		case win64:
 			load("libwinpthread-1.dll");
@@ -132,7 +132,6 @@ public final class SwiInstaller {
 			load("libgmp-10.dll");
 			load("libswipl.dll");
 			load("jpl.dll");
-			// load("foreign.dll");
 			break;
 		}
 	}
@@ -229,9 +228,9 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * @return a unique number for the current source code, that changes when
-	 *         the GOAL version changes. Actually this number is the
-	 *         modification date of this class.
+	 * @return a unique number for the current source code, that changes when the
+	 *         GOAL version changes. Actually this number is the modification date
+	 *         of this class.
 	 * @throws UnsupportedEncodingException
 	 */
 	private static long getSourceNumber() throws UnsupportedEncodingException {

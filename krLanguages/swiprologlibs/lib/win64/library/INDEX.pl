@@ -498,8 +498,6 @@ index((memory_file_to_string), 3, memory_file, memfile).
 index((memory_file_substring), 5, memory_file, memfile).
 index((memory_file_line_position), 4, memory_file, memfile).
 index((utf8_position_memory_file), 3, memory_file, memfile).
-index((mime_parse), 2, mime, mime).
-index((mime_default_charset), 2, mime, mime).
 index((in_temporary_module), 3, modules, modules).
 index((nb_rb_insert), 3, nb_rbtrees, nb_rbtrees).
 index((nb_rb_get_node), 3, nb_rbtrees, nb_rbtrees).
