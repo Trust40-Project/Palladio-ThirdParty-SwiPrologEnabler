@@ -196,9 +196,9 @@ public class ErrorStrategy4 extends DefaultErrorStrategy {
 	}
 
 	/**
-	 * pretty print a name of a parser rule. We convert often to general
-	 * "an operator" because ANTLR produces too specific errors in many cases,
-	 * which misleads the user. #3511
+	 * pretty print a name of a parser rule. We convert often to general "an
+	 * operator" because ANTLR produces too specific errors in many cases, which
+	 * misleads the user. #3511
 	 *
 	 * @param ruleIndex
 	 * @return

@@ -39,8 +39,8 @@ public class SemanticTools {
 
 	/**
 	 * <p>
-	 * Performs additional checks on top of {@link #basicUpdateCheck}, to check
-	 * that conjunct is good update.
+	 * Performs additional checks on top of {@link #basicUpdateCheck}, to check that
+	 * conjunct is good update.
 	 * </p>
 	 *
 	 * @param {@link
@@ -57,12 +57,12 @@ public class SemanticTools {
 
 	/**
 	 * <p>
-	 * Checks if {@link PrologTerm} may be used as update, i.e. a conjunct of
-	 * either a {@link DatabaseFormula} or not(DatabaseFormula).
+	 * Checks if {@link PrologTerm} may be used as update, i.e. a conjunct of either
+	 * a {@link DatabaseFormula} or not(DatabaseFormula).
 	 *
 	 * @param conjunct
-	 *            is the PrologTerm to be checked which is a zipped conjunct.
-	 *            (see {@link PrologTerm#getConjuncts})
+	 *            is the PrologTerm to be checked which is a zipped conjunct. (see
+	 *            {@link PrologTerm#getConjuncts})
 	 * @throws ParserException
 	 *             if term not acceptable as DatabaseFormula.
 	 *             </p>
@@ -82,31 +82,30 @@ public class SemanticTools {
 
 	/**
 	 * <p>
-	 * Converts given {@Link PrologTerm} into a {@link DatabaseFormula} object
-	 * made of it. Basic idea is that it checks that assert() will work (not
-	 * throw exceptions). This function checks only SINGLE formulas, not
-	 * conjunctions. Use toDBFormulaList for that.
+	 * Converts given {@Link PrologTerm} into a {@link DatabaseFormula} object made
+	 * of it. Basic idea is that it checks that assert() will work (not throw
+	 * exceptions). This function checks only SINGLE formulas, not conjunctions. Use
+	 * toDBFormulaList for that.
 	 * </p>
 	 * <p>
-	 * Check ISO section 8.9.1.3. If term not of form "head:-body" then head is
-	 * to be taken the term itself and body to be "true" We fail if<br>
+	 * Check ISO section 8.9.1.3. If term not of form "head:-body" then head is to
+	 * be taken the term itself and body to be "true" We fail if<br>
 	 * 1. Head is a variable<br>
-	 * 2. head can not be converted to a predication (@see D-is-a-precication in
-	 * ISO p.132- )<br>
+	 * 2. head can not be converted to a predication (@see D-is-a-precication in ISO
+	 * p.132- )<br>
 	 * 3. body can not be converted to a goal<br>
 	 * CHECK 4. "The predicate indicator Pred of Head is not that of a dynamic
-	 * procedure" . What does that mean and should we do something to prevent
-	 * this?
+	 * procedure" . What does that mean and should we do something to prevent this?
 	 * </p>
 	 * <p>
-	 * ISO section 6.2 also deals with this. Basically it defines directive
-	 * terms and clause terms, and combined they allow every term that can be
-	 * part of the database.
+	 * ISO section 6.2 also deals with this. Basically it defines directive terms
+	 * and clause terms, and combined they allow every term that can be part of the
+	 * database.
 	 * </p>
 	 * <p>
 	 * ISO section 7.4 defines the way they are used when loading a database.
-	 * Particularly the operators that are Directives are treated specially. In
-	 * GOAL we do not want to support these and need exclusion. this is done via
+	 * Particularly the operators that are Directives are treated specially. In GOAL
+	 * we do not want to support these and need exclusion. this is done via
 	 * PrologOperators.goalProtected()
 	 * </p>
 	 *
@@ -142,10 +141,10 @@ public class SemanticTools {
 		if (signature.equals(":-/1")) {
 			org.jpl7.Term directive = term.getTerm().arg(1);
 			signature = JPLUtils.getSignature(directive);
-			if (JPLUtils.getSignature(directive).equals("dynamic/1")) {
+			if (signature.equals("dynamic/1")) {
 				List<org.jpl7.Term> dynamicPreds = JPLUtils.getOperands(",", directive.arg(1));
 				for (org.jpl7.Term headTerm : dynamicPreds) {
-					signature = headTerm.name() + "/" + headTerm.arity();
+					signature = JPLUtils.getSignature(headTerm);
 					if (signature.equals("//2")) {
 						// the term is already a signature itself
 						signature = headTerm.arg(1) + "/" + headTerm.arg(2);
@@ -173,9 +172,9 @@ public class SemanticTools {
 	/**
 	 * Checks that term is a well formed Prolog goal.
 	 * <p>
-	 * ISO requires rebuild of the term but in our case we do not allow
-	 * variables and hence a real rebuild is not necessary. Instead, we simply
-	 * return the original term after checking.
+	 * ISO requires rebuild of the term but in our case we do not allow variables
+	 * and hence a real rebuild is not necessary. Instead, we simply return the
+	 * original term after checking.
 	 * </p>
 	 *
 	 * @return the term "rewritten" as a Prolog goal according to ISO.
@@ -217,8 +216,8 @@ public class SemanticTools {
 	/**
 	 * <p>
 	 * Checks that conjunction is a Prolog query and returns {@link PrologQuery}
-	 * object made of it. This means that, if successful, the result can be
-	 * queried to the (SWI) prolog engine.
+	 * object made of it. This means that, if successful, the result can be queried
+	 * to the (SWI) prolog engine.
 	 * </p>
 	 * <p>
 	 * ISO section 7.6.2 on p.27 specifies how to convert a term to a goal.
@@ -237,14 +236,14 @@ public class SemanticTools {
 	}
 
 	/**
-	 * Extract the defined signature(s) from the term. A signature is defined if
-	 * the databaseformula defines a predicate of that signature (as fact or as
+	 * Extract the defined signature(s) from the term. A signature is defined if the
+	 * databaseformula defines a predicate of that signature (as fact or as
 	 * following from inference.
 	 *
 	 * @param term
 	 * @param info
-	 *            the source info of the term. Used when an error message needs
-	 *            to be thrown.
+	 *            the source info of the term. Used when an error message needs to
+	 *            be thrown.
 	 * @return signatures of defined terms.
 	 * @throws ParserException
 	 */
@@ -284,9 +283,9 @@ public class SemanticTools {
 	 */
 	public static List<String> getDeclaredSignatures(org.jpl7.Term term, SourceInfo info) throws ParserException {
 		List<String> signatures = new LinkedList<>();
-		if (term.isCompound() && term.name().equals(":-") && term.arity() == 1) {
+		if (JPLUtils.getSignature(term).equals(":-/1")) {
 			org.jpl7.Term directive = term.arg(1);
-			if (!directive.name().equals("dynamic") || directive.arity() != 1) {
+			if (!JPLUtils.getSignature(directive).equals("dynamic/1")) {
 				throw new ParserException("only 'dynamic/1' directive is supported, found " + directive, info);
 			}
 			for (org.jpl7.Term signatureterm : JPLUtils.getOperands(",", directive.arg(1))) {

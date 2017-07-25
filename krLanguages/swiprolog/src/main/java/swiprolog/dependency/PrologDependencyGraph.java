@@ -27,6 +27,7 @@ import krTools.exceptions.KRException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.parser.SourceInfo;
+import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
@@ -41,20 +42,20 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	/**
 	 * {@inheritDoc} <br>
 	 *
-	 * Assumes the given {@link DatabaseFormula} is a {@link PrologDBFormula},
-	 * i.e. either a simple fact (i.e., a {@link PrologTerm}), or a clause of
-	 * the form p(...):-(...) using the operator :-/2.
+	 * Assumes the given {@link DatabaseFormula} is a {@link PrologDBFormula}, i.e.
+	 * either a simple fact (i.e., a {@link PrologTerm}), or a clause of the form
+	 * p(...):-(...) using the operator :-/2.
 	 *
 	 * @throws GOALUserError
 	 */
 	@Override
 	public void add(DatabaseFormula formula, boolean defined, boolean queried) throws KRException {
 		org.jpl7.Term term = ((PrologDBFormula) formula).getTerm();
-		String signature = term.name() + "/" + term.arity();
+		String signature = JPLUtils.getSignature(term);
 
 		/**
-		 * The :- function needs to be treated differently from other terms; the
-		 * head term is defined, whereas the terms in the body are queried.
+		 * The :- function needs to be treated differently from other terms; the head
+		 * term is defined, whereas the terms in the body are queried.
 		 */
 		if (signature.equals(":-/2")) {
 			if (defined) {
@@ -85,7 +86,7 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	@Override
 	public void add(Query query) throws KRException {
 		org.jpl7.Term term = ((PrologQuery) query).getTerm();
-		if (term.name().equals(":-") && term.arity() == 2) {
+		if (JPLUtils.getSignature(term).equals(":-/2")) {
 			throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 		} else {
 			addTerm(term, query.getSourceInfo(), false, true);
@@ -94,23 +95,23 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 
 	/**
 	 * Creates nodes for terms, if not already present. Note that the ":-/2"
-	 * operator is taken care of by
-	 * {@link #add(DatabaseFormula, boolean, boolean)}.
+	 * operator is taken care of by {@link #add(DatabaseFormula, boolean, boolean)}.
 	 *
 	 * @param prologTerm
 	 * @param defined
 	 * @param queried
-	 * @return The list of nodes associated with the term (either created or
-	 *         already existing nodes).
+	 * @return The list of nodes associated with the term (either created or already
+	 *         existing nodes).
 	 */
-	private List<Node<PrologTerm>> addTerm(org.jpl7.Term prologTerm, SourceInfo source, boolean defined, boolean queried) {
+	private List<Node<PrologTerm>> addTerm(org.jpl7.Term prologTerm, SourceInfo source, boolean defined,
+			boolean queried) {
 		List<Node<PrologTerm>> nodes = new LinkedList<>();
 
 		// Unpack the term if needed (if so, we're handling a query).
 		List<org.jpl7.Term> terms = unpack(prologTerm);
 
 		for (org.jpl7.Term term : terms) {
-			String signature = term.name() + "/" + term.arity();
+			String signature = JPLUtils.getSignature(term);
 			// Ignore built-in operators of Prolog as well as reserved GOAL
 			// operators.
 			if (!reserved(signature)) {
@@ -133,21 +134,20 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	}
 
 	/**
-	 * Unpacks the given {@link PrologTerm} and returns all simple facts that do
-	 * not have any occurrences of built-in Prolog operators or reserved GOAL
-	 * operators.
+	 * Unpacks the given {@link PrologTerm} and returns all simple facts that do not
+	 * have any occurrences of built-in Prolog operators or reserved GOAL operators.
 	 * <p>
-	 * Unpacking is needed if the term contains at top level a build-in
-	 * predicate and that built-in predicate will cause further querying in the
-	 * SWI engine. For example not(pred) will cause invocation of pred.
+	 * Unpacking is needed if the term contains at top level a build-in predicate
+	 * and that built-in predicate will cause further querying in the SWI engine.
+	 * For example not(pred) will cause invocation of pred.
 	 *
 	 * @param term
 	 *            The term that is unpacked.
-	 * @return The resulting terms without any built-in or reserved operators.
-	 *         May be the empty list.
+	 * @return The resulting terms without any built-in or reserved operators. May
+	 *         be the empty list.
 	 */
 	private List<org.jpl7.Term> unpack(org.jpl7.Term term) {
-		String signature = term.name() + "/" + term.arity();
+		String signature = JPLUtils.getSignature(term);
 		List<org.jpl7.Term> terms = new LinkedList<>();
 
 		// If we need to unpack the operators below, we're dealing with a query.
@@ -155,9 +155,8 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			terms.addAll(unpack(term.arg(1)));
 		} else if (signature.equals("include/3")) {
 			/*
-			 * special case. first argument of include/3 is the NAME of the func
-			 * but without the required argument. We have to make up the correct
-			 * term.
+			 * special case. first argument of include/3 is the NAME of the func but without
+			 * the required argument. We have to make up the correct term.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
 			org.jpl7.Term stubfunc = new org.jpl7.Compound(term.arg(1).name(), new org.jpl7.Term[] { ANON_VAR });
@@ -178,12 +177,13 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 			terms.addAll(unpack(term.arg(3)));
 		} else if (signature.equals("predsort/3")) {
 			/*
-			 * special case. first argument of predsort is the NAME of the func
-			 * but without the required 3 arguments. We have to make up the
-			 * correct term. We will be using 3 anonymous variables.
+			 * special case. first argument of predsort is the NAME of the func but without
+			 * the required 3 arguments. We have to make up the correct term. We will be
+			 * using 3 anonymous variables.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
-			org.jpl7.Term stubfunc = new org.jpl7.Compound(term.arg(1).name(), new org.jpl7.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			org.jpl7.Term stubfunc = new org.jpl7.Compound(term.arg(1).name(),
+					new org.jpl7.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			terms.add(stubfunc);
 		} else {
 			terms.add(term);
@@ -192,8 +192,8 @@ public class PrologDependencyGraph extends DependencyGraph<PrologTerm> {
 	}
 
 	/**
-	 * Indicates whether the given signature represents a reserved (Prolog or
-	 * GOAL) operator.
+	 * Indicates whether the given signature represents a reserved (Prolog or GOAL)
+	 * operator.
 	 *
 	 * @param signature
 	 * @return {@code true} if the signature represents a reserved operator.
