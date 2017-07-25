@@ -16,7 +16,6 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import org.jpl7.JPL;
-import org.jpl7.Query;
 
 /**
  * call init() once to install the libraries and prepare SWI for use.
@@ -85,9 +84,10 @@ public final class SwiInstaller {
 		 * you can see that the aggregate library imports all libraries that are
 		 * important for practical use.
 		 */
-		new Query("use_module(library(random)).").allSolutions();
-		new Query("set_prolog_flag(debug_on_error,false)," + "catch(use_module(library(aggregate)),_,true),"
-				+ "catch(use_module(library(listing)),_,true).").allSolutions();
+		// new Query("use_module(library(random)).").allSolutions();
+		// new Query("set_prolog_flag(debug_on_error,false)," +
+		// "catch(use_module(library(aggregate)),_,true),"
+		// + "catch(use_module(library(listing)),_,true).").allSolutions();
 
 		// Finished
 		initialized = true;
