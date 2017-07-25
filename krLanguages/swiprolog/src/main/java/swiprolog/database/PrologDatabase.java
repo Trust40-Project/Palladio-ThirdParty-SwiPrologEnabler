@@ -53,9 +53,9 @@ public class PrologDatabase implements Database {
 	 */
 	private final Theory theory;
 	/**
-	 * Query lock
+	 * Query lock TODO: used in develop but unused here (hopefully this is fixed)
 	 */
-	private static final Object lock = new Object();
+	// private static final Object lock = new Object();
 
 	/**
 	 * @param name
