@@ -105,17 +105,80 @@ public class BasicQueriesTest {
 	}
 
 	@Test
+	public void testFailQuery() {
+
+		Query query = new Query("true, false");
+		Map<String, Term>[] result1 = query.allSolutions();
+		System.out.println("result " + query + "->" + result1.length);
+	}
+
+	@Test
+	public void testModuleQueryFails() {
+
+		Query insert = new Query("assert(mod5:p)");
+		insert.allSolutions();
+
+		// query a listing of mod1
+		Query query = new Query("mod5:(current_predicate(p,Pred))");
+
+		printSolutions(query, query.allSolutions());
+		assertTrue(query.allSolutions().length == 0);
+	}
+
+	@Test
+	public void testWorkaroundWorks() {
+
+		Query insert = new Query("assert(mod6:p)");
+		insert.allSolutions();
+
+		// query a listing of mod1
+		Query query = new Query("true, mod6:(current_predicate(p,Pred))");
+
+		printSolutions(query, query.allSolutions());
+		assertTrue(query.allSolutions().length == 1);
+
+	}
+
+	@Test
 	public void testListingQuery() {
 
-		Query insert = new Query("assert(:(mod1, p))");
+		Query insert = new Query("assert(mod1:p)");
 		insert.allSolutions();
 
 		// query a listing of mod1
 		Query query = new Query(
-				"'mod1':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
+				"true,mod1:(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
 
 		Map<String, Term>[] result1 = query.allSolutions();
 		System.out.println("result " + query + "->" + result1[0]);
+
+	}
+
+	@Test
+	public void testListingQuery3() {
+
+		Query insert = new Query("assert(mod2:p)");
+		insert.allSolutions();
+
+		// query a listing of mod1
+		Query query = new Query(
+				"mod2:(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)) )");
+
+		printSolutions(query, query.allSolutions());
+
+	}
+
+	private void printSolutions(Query query, Map<String, Term>[] results) {
+		System.out.println("Query " + query + "->");
+		if (results.length == 0) {
+			System.out.println("NO SOLUTIONS");
+		} else {
+			for (Map<String, Term> solution : results) {
+				System.out.println(solution);
+			}
+		}
+		System.out.println(".");
+
 	}
 
 }
