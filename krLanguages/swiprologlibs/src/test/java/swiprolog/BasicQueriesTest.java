@@ -11,6 +11,7 @@ import org.jpl7.PrologException;
 import org.jpl7.Query;
 import org.jpl7.Term;
 import org.jpl7.Variable;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -85,16 +86,100 @@ public class BasicQueriesTest {
 		System.out.println("query " + query + "->" + result1[0]);
 	}
 
-	@SuppressWarnings("rawtypes")
 	// @Test FIXME: fails on Linux
 	public void testRandom() {
 		Variable x = new org.jpl7.Variable("X");
 
 		Query query = new Query(new Compound("random", new Term[] { x }));
+		printSolutions(query, query.allSolutions());
+	}
 
-		// Query query = new Query("member(X,[1.1,2.2]");
+	@Test
+	public void testSimpleAssignmentsQuery() {
+
+		Query query = new Query("true, X=Y, X=1");
+		printSolutions(query, query.allSolutions());
+	}
+
+	@Test
+	public void testFailQuery() {
+
+		Query query = new Query("true, false");
+		printSolutions(query, query.allSolutions());
+	}
+
+	@Test
+	public void testModuleQueryFails() {
+
+		Query insert = new Query("assert(mod5:p)");
+		insert.allSolutions();
+
+		// query a listing of mod1
+		Query query = new Query("mod5:(current_predicate(p,Pred))");
+
+		printSolutions(query, query.allSolutions());
+		assertTrue(query.allSolutions().length == 0);
+	}
+
+	@Test
+	public void testWorkaroundWorks() {
+
+		Query insert = new Query("assert(mod6:p)");
+		insert.allSolutions();
+
+		// query a listing of mod1
+		Query query = new Query("true, mod6:(current_predicate(p,Pred))");
+
+		printSolutions(query, query.allSolutions());
+		assertTrue(query.allSolutions().length == 1);
+
+	}
+
+	/**
+	 * Disabled, there is some problem with clause/3 or maybe already with
+	 * strip_module.
+	 */
+	@Ignore
+	@Test
+	public void testListingQuery() {
+
+		Query insert = new Query("assert(mod1:p)");
+		insert.allSolutions();
+
+		// query a listing of mod1
+		Query query = new Query(
+				"true,mod1:(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
+
 		Map<String, Term>[] result1 = query.allSolutions();
-		System.out.println("query " + query + "->" + result1[0]);
+		System.out.println("result " + query + "->" + result1[0]);
+
+	}
+
+	@Test
+	public void testListingQuery3() {
+
+		Query insert = new Query("assert(mod2:p)");
+		insert.allSolutions();
+
+		// query a listing of mod1
+		Query query = new Query(
+				"true, mod2:(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head) )");
+
+		printSolutions(query, query.allSolutions());
+
+	}
+
+	private void printSolutions(Query query, Map<String, Term>[] results) {
+		System.out.println("Query " + query + "->");
+		if (results.length == 0) {
+			System.out.println("NO SOLUTIONS");
+		} else {
+			for (Map<String, Term> solution : results) {
+				System.out.println(solution);
+			}
+		}
+		System.out.println(".");
+
 	}
 
 }

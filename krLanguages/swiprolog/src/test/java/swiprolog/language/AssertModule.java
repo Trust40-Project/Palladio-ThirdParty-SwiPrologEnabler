@@ -56,7 +56,7 @@ public class AssertModule {
 		// This demonstrates that JPL is FAILING our query.
 
 		Query predicatesq1 = new Query(
-				"true, 'owner:main:sippingbeer':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
+				"true, 'owner:main:sippingbeer':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)))");
 		Map<String, Term>[] preds1 = predicatesq1.allSolutions();
 		assertEquals(1, preds1.length);
 	}
