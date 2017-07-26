@@ -52,10 +52,6 @@ public class PrologDatabase implements Database {
 	 * A corresponding theory
 	 */
 	private final Theory theory;
-	/**
-	 * Query lock
-	 */
-	private static final Object lock = new Object();
 
 	/**
 	 * @param name
@@ -307,9 +303,7 @@ public class PrologDatabase implements Database {
 		// Get all solutions.
 		Hashtable[] solutions;
 		try {
-			synchronized (lock) {
-				solutions = jplQuery.allSolutions();
-			}
+			solutions = jplQuery.allSolutions();
 		} catch (jpl.PrologException e) {
 			throw new PrologError(e);
 		} catch (Throwable e) {
