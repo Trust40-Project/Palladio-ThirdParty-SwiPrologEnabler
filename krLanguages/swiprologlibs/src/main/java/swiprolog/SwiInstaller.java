@@ -77,17 +77,7 @@ public final class SwiInstaller {
 		// Let JPL know which SWI_HOME_DIR we're using; this negates the need
 		// for a SWI_HOME_DIR environment var
 		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals", "--nodebug", "--traditional" });
-
-		/**
-		 * Work around issue #3794: pre-load SWI libraries because multi-threaded SWI
-		 * calls may cause library loading errors. Following the dependency graphml ,
-		 * you can see that the aggregate library imports all libraries that are
-		 * important for practical use.
-		 */
-		// new Query("use_module(library(random)).").allSolutions();
-		// new Query("set_prolog_flag(debug_on_error,false)," +
-		// "catch(use_module(library(aggregate)),_,true),"
-		// + "catch(use_module(library(listing)),_,true).").allSolutions();
+		new org.jpl7.Query("set_prolog_flag(debug_on_error,false).").allSolutions();
 
 		// Finished
 		initialized = true;
