@@ -85,7 +85,6 @@ public class BasicQueriesTest {
 		System.out.println("query " + query + "->" + result1[0]);
 	}
 
-	@SuppressWarnings("rawtypes")
 	// @Test FIXME: fails on Linux
 	public void testRandom() {
 		Variable x = new org.jpl7.Variable("X");
@@ -95,6 +94,28 @@ public class BasicQueriesTest {
 		// Query query = new Query("member(X,[1.1,2.2]");
 		Map<String, Term>[] result1 = query.allSolutions();
 		System.out.println("query " + query + "->" + result1[0]);
+	}
+
+	@Test
+	public void testSimpleAssignmentsQuery() {
+
+		Query query = new Query("true, X=Y, X=1");
+		Map<String, Term>[] result1 = query.allSolutions();
+		System.out.println("result " + query + "->" + result1[0]);
+	}
+
+	@Test
+	public void testListingQuery() {
+
+		Query insert = new Query("assert(:(mod1, p))");
+		insert.allSolutions();
+
+		// query a listing of mod1
+		Query query = new Query(
+				"'mod1':(current_predicate(_,Pred), not(predicate_property(Pred, imported_from(_))), not(predicate_property(Pred, built_in)), strip_module(Pred,Module,Head), clause(Head,Body,_))");
+
+		Map<String, Term>[] result1 = query.allSolutions();
+		System.out.println("result " + query + "->" + result1[0]);
 	}
 
 }
