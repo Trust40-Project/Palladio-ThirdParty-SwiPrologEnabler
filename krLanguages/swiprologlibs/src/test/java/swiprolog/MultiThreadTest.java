@@ -44,6 +44,21 @@ public class MultiThreadTest {
 		}
 	}
 
+	@Test
+	public void multiThreadTestInsertDelete() throws InterruptedException {
+		System.out.println("Multi-thread test insert/delete");
+		List<Thread> threads = new ArrayList<>();
+		for (int n = 0; n < NTHREADS; n++) {
+			threads.add(runThreadInsertDelete(n));
+		}
+		while (!threads.isEmpty()) {
+			Thread thread = threads.get(0);
+			// System.out.println("Waiting for " + thread);
+			thread.join();
+			threads.remove(thread);
+		}
+	}
+
 	private Thread runThread(final int n) {
 		Thread thread = new Thread(new Runnable() {
 			@Override
@@ -73,6 +88,34 @@ public class MultiThreadTest {
 		query(module, "listing");
 
 		query(module, "fibo(22,Y)");
+	}
+
+	private Thread runThreadInsertDelete(final int n) {
+		Thread thread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					testInsertDelete(n);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.start();
+		return thread;
+	}
+
+	private void testInsertDelete(int n) throws InterruptedException {
+		long endTime = System.currentTimeMillis() + 15000;
+
+		while (System.currentTimeMillis() < endTime) {
+			double random = Math.random();
+			new Query("assert(r(" + random + "))").allSolutions();
+			if (new Query("r(X)").allSolutions().length < 1) {
+				System.err.println("WARNING. Expected r to hold after insert");
+			}
+			new Query("retract(r(" + random + "))").allSolutions();
+		}
 	}
 
 	private void insert(String module, String formula) {
