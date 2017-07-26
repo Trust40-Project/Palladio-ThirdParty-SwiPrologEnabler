@@ -34,7 +34,7 @@ public class MultiThreadTest {
 		System.out.println("Multi-thread test");
 		List<Thread> threads = new ArrayList<>();
 		for (int n = 0; n < NTHREADS; n++) {
-			threads.add(runThread(n));
+			threads.add(runThreadFibonnaci(n));
 		}
 		while (!threads.isEmpty()) {
 			Thread thread = threads.get(0);
@@ -59,7 +59,7 @@ public class MultiThreadTest {
 		}
 	}
 
-	private Thread runThread(final int n) {
+	private Thread runThreadFibonnaci(final int n) {
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -75,8 +75,6 @@ public class MultiThreadTest {
 	}
 
 	private void testSimpleQueries(int n) throws InterruptedException {
-		new Query("set_prolog_flag(debug_on_error,false)").hasSolution();
-
 		String module = "robot_" + n;
 		String formula = "test :- member(3,[1,2,3,4,5])";
 		insert(module, formula);
