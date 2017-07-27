@@ -18,6 +18,7 @@
 package krTools.exceptions;
 
 import java.io.File;
+import java.io.IOException;
 
 import krTools.parser.SourceInfo;
 
@@ -233,10 +234,11 @@ class FileSourceInfo implements SourceInfo {
 	private String message;
 
 	public FileSourceInfo(String mess, File file) {
-		if (file == null) {
-			throw new NullPointerException("file=null");
+		try {
+			this.source = (file == null) ? null : file.getCanonicalPath();
+		} catch (IOException e) {
+			this.source = null; // TODO
 		}
-		this.source = file.getPath();
 	}
 
 	@Override
@@ -273,5 +275,4 @@ class FileSourceInfo implements SourceInfo {
 	public String getMessage() {
 		return this.message;
 	}
-
 }

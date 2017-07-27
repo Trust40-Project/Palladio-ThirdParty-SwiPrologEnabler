@@ -24,7 +24,8 @@ import jpl.Query;
  * @author W.Pasman 1dec2014
  */
 public final class SwiInstaller {
-	private static SupportedSystem system = SupportedSystem.getSystem();
+	private final static SupportedSystem system = SupportedSystem.getSystem();
+	private static String override = null;
 	private static File SwiPath;
 	private static boolean initialized = false;
 
@@ -32,6 +33,10 @@ public final class SwiInstaller {
 	 * This is a utility class. Just call init().
 	 */
 	private SwiInstaller() {
+	}
+
+	public static void overrideDirectory(String dir) {
+		override = dir;
 	}
 
 	public static void init() {
@@ -182,8 +187,8 @@ public final class SwiInstaller {
 	 */
 	private static File unzipToTmp(String zipfilename, boolean force)
 			throws URISyntaxException, ZipException, IOException {
-		String tmpdir = System.getProperty("java.io.tmpdir");
-		Path path = Paths.get(tmpdir, "swilibs" + getSourceNumber());
+		Path path = (override == null) ? Paths.get(System.getProperty("java.io.tmpdir"), "swilibs" + getSourceNumber())
+				: Paths.get(override);
 		File base = path.toFile();
 		if (base.exists()) {
 			if (force) {
