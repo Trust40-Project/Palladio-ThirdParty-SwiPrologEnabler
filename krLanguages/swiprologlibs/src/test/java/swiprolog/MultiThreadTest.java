@@ -29,12 +29,12 @@ public class MultiThreadTest {
 
 	}
 
-	// @Test
-	public void multiThreadTest() throws InterruptedException {
-		System.out.println("Multi-thread test");
+	@Test
+	public void multiThreadTestFibonnaci() throws InterruptedException {
+		System.out.println("Multi-thread test fibonacci");
 		List<Thread> threads = new ArrayList<>();
 		for (int n = 0; n < NTHREADS; n++) {
-			threads.add(runThread(n));
+			threads.add(runThreadFibonnaci(n));
 		}
 		while (!threads.isEmpty()) {
 			Thread thread = threads.get(0);
@@ -44,7 +44,22 @@ public class MultiThreadTest {
 		}
 	}
 
-	private Thread runThread(final int n) {
+	@Test
+	public void multiThreadTestInsertDelete() throws InterruptedException {
+		System.out.println("Multi-thread test insert/delete");
+		List<Thread> threads = new ArrayList<>();
+		for (int n = 0; n < NTHREADS; n++) {
+			threads.add(runThreadInsertDelete(n));
+		}
+		while (!threads.isEmpty()) {
+			Thread thread = threads.get(0);
+			// System.out.println("Waiting for " + thread);
+			thread.join();
+			threads.remove(thread);
+		}
+	}
+
+	private Thread runThreadFibonnaci(final int n) {
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -60,8 +75,6 @@ public class MultiThreadTest {
 	}
 
 	private void testSimpleQueries(int n) throws InterruptedException {
-		new Query("set_prolog_flag(debug_on_error,false)").hasSolution();
-
 		String module = "robot_" + n;
 		String formula = "test :- member(3,[1,2,3,4,5])";
 		insert(module, formula);
@@ -70,9 +83,37 @@ public class MultiThreadTest {
 		insert(module, "fibo(0,0)");
 		insert(module, "fibo(1,0)");
 		insert(module, "fibo(X,Y):-X>1, X1 is X-1, X2 is X-2, fibo(X1,Y1), fibo(X2,Y2), Y is Y1 + Y2");
-		query(module, "listing");
+		// query(module, "listing");
 
 		query(module, "fibo(22,Y)");
+	}
+
+	private Thread runThreadInsertDelete(final int n) {
+		Thread thread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					testInsertDelete(n);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.start();
+		return thread;
+	}
+
+	private void testInsertDelete(int n) throws InterruptedException {
+		long endTime = System.currentTimeMillis() + 5000;
+
+		while (System.currentTimeMillis() < endTime) {
+			double random = Math.random();
+			new Query("assert(r(" + random + "))").allSolutions();
+			if (new Query("aggregate_all(count,r(_),Amount)").allSolutions().length < 1) {
+				System.err.println("WARNING. Expected r to hold after insert");
+			}
+			new Query("retract(r(" + random + "))").allSolutions();
+		}
 	}
 
 	private void insert(String module, String formula) {
