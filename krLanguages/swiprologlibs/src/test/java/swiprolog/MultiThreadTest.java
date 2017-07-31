@@ -28,12 +28,12 @@ public class MultiThreadTest {
 		testSimpleQueries(9999);
 
 	}
-	
+
 	@Test
 	public void multiThreadTest() throws InterruptedException {
 		System.out.println("Multi-thread test with simple query");
 		List<Thread> threads = new ArrayList<>();
-		for (int n = 0; n < 200; n++) {
+		for (int n = 0; n < 2000; n++) {
 			threads.add(runSimpleThread(n));
 		}
 		while (!threads.isEmpty()) {
@@ -43,19 +43,17 @@ public class MultiThreadTest {
 			threads.remove(thread);
 		}
 	}
-	
+
 	private Thread runSimpleThread(final int n) {
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				new Query("between(1,1000000,I),fail").allSolutions();
+				new Query("between(1,1000,I),fail").allSolutions();
 			}
 		});
 		thread.start();
 		return thread;
 	}
-
-	
 
 	@Test
 	public void multiThreadTestFibonnaci() throws InterruptedException {
