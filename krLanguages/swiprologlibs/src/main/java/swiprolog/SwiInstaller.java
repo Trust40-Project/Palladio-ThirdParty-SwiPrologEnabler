@@ -100,11 +100,8 @@ public final class SwiInstaller {
 		// Dirty system-dependent stuff...
 		switch (system) {
 		case linux:
-			load("libncurses.so.5");
-			load("libreadline.so.6");
-			load("libswipl.so.6.0.2");
+			load("libswipl.so.7.4.2");
 			load("libjpl.so");
-			load("libforeign.so");
 			break;
 		case mac:
 			load("libncurses.6.dylib");
