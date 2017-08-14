@@ -166,4 +166,5 @@ public abstract class PrologExpression implements Expression {
 		}
 		return true;
 	}
+
 }

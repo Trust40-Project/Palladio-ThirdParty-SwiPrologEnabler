@@ -16,11 +16,13 @@
  */
 package swiprolog.validator;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
+import krTools.language.Expression;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
@@ -296,6 +298,29 @@ public class SemanticTools {
 				signatures.add(signatureterm.arg(1) + "/" + signatureterm.arg(2));
 			}
 		}
+		return signatures;
+	}
+
+	/**
+	 * Extract the used signature(s) from the {@link Expression}. A signature is
+	 * used if the expression is or contains a predicate of that signature.
+	 * 'contains' means that the expression is a meta-predicate such as
+	 * ":-","not" or ",", and that one of the arguments of this meta-predicate
+	 * uses the signature (recursive definition).
+	 * <p>
+	 * For example, <code>p/1</code> is defined signature in formulas like
+	 * <code>p(1)</code> or <code>p(X):-q(X)</code>)
+	 *
+	 * (TODO explain the prolog "signature" term in general)
+	 *
+	 * @param expression
+	 *            the {@link DatabaseFormula} to extract the defined signatures
+	 *            from.
+	 * @return signature(s) that are used in the expression
+	 */
+	public static List<String> getUsedSignatures(Expression expr) {
+		List<String> signatures = new ArrayList<>();
+		signatures.add(expr.getSignature());// HACK
 		return signatures;
 	}
 
