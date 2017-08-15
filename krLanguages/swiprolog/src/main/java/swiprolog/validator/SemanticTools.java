@@ -318,9 +318,36 @@ public class SemanticTools {
 	 *            from.
 	 * @return signature(s) that are used in the expression
 	 */
-	public static List<String> getUsedSignatures(Expression expr) {
+	public static List<String> getUsedSignatures(jpl.Term term) {
 		List<String> signatures = new ArrayList<>();
-		signatures.add(expr.getSignature());// HACK
+
+		// these do not support term.name()
+		if (term.isVariable() || term.isFloat() || term.isInteger()) {
+			return signatures;
+		}
+
+		switch (term.name()) {
+		// check for meta predicates
+		case ":-":
+		case ",":
+		case "not":
+		case "aggregate":
+		case "aggregate_all":
+		case "foreach":
+		case "free_variables":
+		case "setof":
+		case "bagof":
+		case "findall":
+		case "findnsols":
+			for (jpl.Term arg : term.args()) {
+				signatures.addAll(getUsedSignatures(arg));
+			}
+			break;
+		default:
+			// it's not a meta predicate and not a variable or number.
+			signatures.add(term.name() + "/" + term.arity());
+		}
+
 		return signatures;
 	}
 
