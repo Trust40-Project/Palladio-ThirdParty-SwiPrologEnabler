@@ -343,10 +343,16 @@ public class SemanticTools {
 		case "bagof":
 		case "findall":
 		case "findnsols":
-		case "dynamic":
 		case "predsort":
 			for (jpl.Term arg : term.args()) {
 				signatures.addAll(getUsedSignatures(arg));
+			}
+			break;
+		case "dynamic":
+			// special case. dynamic contains list of //2 predicates. We want
+			// Strings.
+			for (jpl.Term dyndecl : JPLUtils.getOperands(",", term.arg(1))) {
+				signatures.add(dyndecl.arg(1) + "/" + dyndecl.arg(2));
 			}
 			break;
 		default:
