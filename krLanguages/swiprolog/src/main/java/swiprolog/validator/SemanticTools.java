@@ -26,6 +26,7 @@ import krTools.language.Expression;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
+import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
@@ -312,6 +313,8 @@ public class SemanticTools {
 	 * <code>p(1)</code> or <code>p(X):-q(X)</code>)
 	 *
 	 * (TODO explain the prolog "signature" term in general)
+	 * 
+	 * @see {@link Analyzer#addQuery(DatabaseFormula)
 	 *
 	 * @param expression
 	 *            the {@link DatabaseFormula} to extract the defined signatures
@@ -330,6 +333,7 @@ public class SemanticTools {
 		// check for meta predicates
 		case ":-":
 		case ",":
+		case ";":
 		case "not":
 		case "aggregate":
 		case "aggregate_all":
@@ -339,6 +343,8 @@ public class SemanticTools {
 		case "bagof":
 		case "findall":
 		case "findnsols":
+		case "dynamic":
+		case "predsort":
 			for (jpl.Term arg : term.args()) {
 				signatures.addAll(getUsedSignatures(arg));
 			}
