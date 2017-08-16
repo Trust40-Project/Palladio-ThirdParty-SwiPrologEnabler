@@ -330,7 +330,8 @@ public class SemanticTools {
 		}
 
 		String signature = term.name() + "/" + term.arity();
-		if (!PrologOperators.prologBuiltin(signature)) {
+		// for some reason, ./2 is not a prologBuiltin
+		if (!PrologOperators.prologBuiltin(signature) && !"./2".equals(signature)) {
 			signatures.add(signature);
 		}
 
