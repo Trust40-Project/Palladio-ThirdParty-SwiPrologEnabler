@@ -26,7 +26,6 @@ import krTools.language.Expression;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
-import swiprolog.language.Analyzer;
 import swiprolog.language.JPLUtils;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
@@ -303,18 +302,10 @@ public class SemanticTools {
 	}
 
 	/**
-	 * Extract the used signature(s) from the {@link Expression}. A signature is
-	 * used if the expression is or contains a predicate of that signature.
-	 * 'contains' means that the expression is a meta-predicate such as
-	 * ":-","not" or ",", and that one of the arguments of this meta-predicate
-	 * uses the signature (recursive definition).
-	 * <p>
-	 * For example, <code>p/1</code> is defined signature in formulas like
-	 * <code>p(1)</code> or <code>p(X):-q(X)</code>)
-	 *
-	 * (TODO explain the prolog "signature" term in general)
-	 * 
-	 * @see {@link Analyzer#addQuery(DatabaseFormula)
+	 * Extract the non-system defined used signature(s) from the
+	 * {@link Expression}. A signature is used if the expression is or contains
+	 * a predicate of that signature. 'contains' means that one of the arguments
+	 * of this predicate uses the signature (recursive definition).
 	 *
 	 * @param expression
 	 *            the {@link DatabaseFormula} to extract the defined signatures
@@ -324,40 +315,27 @@ public class SemanticTools {
 	public static List<String> getUsedSignatures(jpl.Term term) {
 		List<String> signatures = new ArrayList<>();
 
-		// these do not support term.name()
 		if (term.isVariable() || term.isFloat() || term.isInteger()) {
+			// We're at the bottom and these are built-in.
 			return signatures;
 		}
 
-		switch (term.name()) {
-		// check for meta predicates
-		case ":-":
-		case ",":
-		case ";":
-		case "not":
-		case "aggregate":
-		case "aggregate_all":
-		case "foreach":
-		case "free_variables":
-		case "setof":
-		case "bagof":
-		case "findall":
-		case "findnsols":
-		case "predsort":
-			for (jpl.Term arg : term.args()) {
-				signatures.addAll(getUsedSignatures(arg));
-			}
-			break;
-		case "dynamic":
-			// special case. dynamic contains list of //2 predicates. We want
-			// Strings.
+		if ("dynamic".equals(term.name())) {
+			// special case. dynamic contains list of //2 predicates that the
+			// user is explictly declaring.
 			for (jpl.Term dyndecl : JPLUtils.getOperands(",", term.arg(1))) {
 				signatures.add(dyndecl.arg(1) + "/" + dyndecl.arg(2));
 			}
-			break;
-		default:
-			// it's not a meta predicate and not a variable or number.
-			signatures.add(term.name() + "/" + term.arity());
+			return signatures;
+		}
+
+		String signature = term.name() + "/" + term.arity();
+		if (!PrologOperators.prologBuiltin(signature)) {
+			signatures.add(signature);
+		}
+
+		for (jpl.Term arg : term.args()) {
+			signatures.addAll(getUsedSignatures(arg));
 		}
 
 		return signatures;
