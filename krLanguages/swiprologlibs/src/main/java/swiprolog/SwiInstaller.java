@@ -112,7 +112,6 @@ public final class SwiInstaller {
 		case win32:
 			load("libwinpthread-1.dll");
 			load("libgcc_s_sjlj-1.dll");
-			load("libdwarf.dll");
 			load("libgmp-10.dll");
 			load("libswipl.dll");
 			load("jpl.dll");
@@ -120,7 +119,6 @@ public final class SwiInstaller {
 		case win64:
 			load("libwinpthread-1.dll");
 			load("libgcc_s_seh-1.dll");
-			load("libdwarf.dll");
 			load("libgmp-10.dll");
 			load("libswipl.dll");
 			load("jpl.dll");
