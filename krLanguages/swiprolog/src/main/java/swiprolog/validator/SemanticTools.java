@@ -16,11 +16,13 @@
  */
 package swiprolog.validator;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
+import krTools.language.Expression;
 import krTools.language.Update;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
@@ -295,6 +297,47 @@ public class SemanticTools {
 				signatures.add(signatureterm.arg(1) + "/" + signatureterm.arg(2));
 			}
 		}
+		return signatures;
+	}
+
+	/**
+	 * Extract the non-system defined used signature(s) from the
+	 * {@link Expression}. A signature is used if the expression is or contains
+	 * a predicate of that signature. 'contains' means that one of the arguments
+	 * of this predicate uses the signature (recursive definition).
+	 *
+	 * @param expression
+	 *            the {@link DatabaseFormula} to extract the defined signatures
+	 *            from.
+	 * @return signature(s) that are used in the expression
+	 */
+	public static List<String> getUsedSignatures(jpl.Term term) {
+		List<String> signatures = new ArrayList<>();
+
+		if (term.isVariable() || term.isFloat() || term.isInteger()) {
+			// We're at the bottom and these are built-in.
+			return signatures;
+		}
+
+		if ("dynamic".equals(term.name())) {
+			// special case. dynamic contains list of //2 predicates that the
+			// user is explictly declaring.
+			for (jpl.Term dyndecl : JPLUtils.getOperands(",", term.arg(1))) {
+				signatures.add(dyndecl.arg(1) + "/" + dyndecl.arg(2));
+			}
+			return signatures;
+		}
+
+		String signature = term.name() + "/" + term.arity();
+		// for some reason, ./2 is not a prologBuiltin
+		if (!PrologOperators.prologBuiltin(signature) && !"./2".equals(signature)) {
+			signatures.add(signature);
+		}
+
+		for (jpl.Term arg : term.args()) {
+			signatures.addAll(getUsedSignatures(arg));
+		}
+
 		return signatures;
 	}
 
