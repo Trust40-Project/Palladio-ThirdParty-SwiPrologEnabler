@@ -301,17 +301,17 @@ public class SemanticTools {
 	}
 
 	/**
-	 * Extract the non-system defined used signature(s) from the
-	 * {@link Expression}. A signature is used if the expression is or contains
-	 * a predicate of that signature. 'contains' means that one of the arguments
-	 * of this predicate uses the signature (recursive definition).
+	 * Extract the non-system defined used signature(s) from the {@link Expression}.
+	 * A signature is used if the expression is or contains a predicate of that
+	 * signature. 'contains' means that one of the arguments of this predicate uses
+	 * the signature (recursive definition).
 	 *
 	 * @param expression
 	 *            the {@link DatabaseFormula} to extract the defined signatures
 	 *            from.
 	 * @return signature(s) that are used in the expression
 	 */
-	public static List<String> getUsedSignatures(jpl.Term term) {
+	public static List<String> getUsedSignatures(org.jpl7.Term term) {
 		List<String> signatures = new ArrayList<>();
 
 		if (term.isVariable() || term.isFloat() || term.isInteger()) {
@@ -322,7 +322,7 @@ public class SemanticTools {
 		if ("dynamic".equals(term.name())) {
 			// special case. dynamic contains list of //2 predicates that the
 			// user is explictly declaring.
-			for (jpl.Term dyndecl : JPLUtils.getOperands(",", term.arg(1))) {
+			for (org.jpl7.Term dyndecl : JPLUtils.getOperands(",", term.arg(1))) {
 				signatures.add(dyndecl.arg(1) + "/" + dyndecl.arg(2));
 			}
 			return signatures;
@@ -334,7 +334,7 @@ public class SemanticTools {
 			signatures.add(signature);
 		}
 
-		for (jpl.Term arg : term.args()) {
+		for (org.jpl7.Term arg : term.args()) {
 			signatures.addAll(getUsedSignatures(arg));
 		}
 
