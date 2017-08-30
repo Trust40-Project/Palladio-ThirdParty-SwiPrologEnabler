@@ -66,9 +66,8 @@ public class PrologDBFormula extends PrologExpression implements DatabaseFormula
 
 	/**
 	 * Converts this database formula into a query, simply using the JPL term of
-	 * this {@link DatabaseFormula}. Does not perform any check whether the JPL
-	 * term can also be used as a query. Use {@link #toQuery()} to perform this
-	 * check.
+	 * this {@link DatabaseFormula}. Does not perform any check whether the JPL term
+	 * can also be used as a query. Use {@link #toQuery()} to perform this check.
 	 *
 	 * @return A {@link Query}.
 	 */

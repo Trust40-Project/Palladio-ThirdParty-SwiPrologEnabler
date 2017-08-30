@@ -17,7 +17,6 @@
 
 package swiprolog.language;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import jpl.Variable;
@@ -65,13 +64,6 @@ public class PrologVar extends PrologTerm implements Var {
 	@Override
 	public boolean isClosed() {
 		return false;
-	}
-
-	@Override
-	public Set<Var> getFreeVar() {
-		LinkedHashSet<Var> set = new LinkedHashSet<>(1);
-		set.add(this);
-		return set;
 	}
 
 	@Override

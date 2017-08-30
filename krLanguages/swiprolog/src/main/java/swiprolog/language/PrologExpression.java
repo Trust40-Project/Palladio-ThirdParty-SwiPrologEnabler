@@ -36,6 +36,10 @@ public abstract class PrologExpression implements Expression {
 	 * Information about the source used to construct this expression.
 	 */
 	private final SourceInfo info;
+	/**
+	 * Cache of free variables in the expression
+	 */
+	private final Set<Var> free;
 
 	/**
 	 * Creates a Prolog expression.
@@ -45,6 +49,16 @@ public abstract class PrologExpression implements Expression {
 	public PrologExpression(jpl.Term term, SourceInfo info) {
 		this.term = term;
 		this.info = info;
+		if (this instanceof PrologVar) {
+			this.free = new LinkedHashSet<>(1);
+			this.free.add((PrologVar) this);
+		} else {
+			List<jpl.Variable> jplvars = new ArrayList<>(JPLUtils.getFreeVar(term));
+			this.free = new LinkedHashSet<>(jplvars.size());
+			for (jpl.Variable var : jplvars) {
+				this.free.add(new PrologVar(var, getSourceInfo()));
+			}
+		}
 	}
 
 	/**
@@ -57,8 +71,8 @@ public abstract class PrologExpression implements Expression {
 	}
 
 	/**
-	 * @return A {@link SourceInfo} object with information about the source
-	 *         used to construct this expression.
+	 * @return A {@link SourceInfo} object with information about the source used to
+	 *         construct this expression.
 	 */
 	@Override
 	public SourceInfo getSourceInfo() {
@@ -83,18 +97,12 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public Set<Var> getFreeVar() {
-		List<jpl.Variable> jplvars = new ArrayList<>(JPLUtils.getFreeVar(getTerm()));
-		Set<Var> variables = new LinkedHashSet<>(jplvars.size());
-		// Build VariableTerm from jpl.Variable.
-		for (jpl.Variable var : jplvars) {
-			variables.add(new PrologVar(var, getSourceInfo()));
-		}
-		return variables;
+		return this.free;
 	}
 
 	/**
-	 * Checks whether this expression is closed, i.e., has no occurrences of
-	 * (free) variables.
+	 * Checks whether this expression is closed, i.e., has no occurrences of (free)
+	 * variables.
 	 *
 	 * @return {@code true} if this expression is closed.
 	 */
@@ -104,8 +112,8 @@ public abstract class PrologExpression implements Expression {
 	}
 
 	/**
-	 * Returns a most general unifier, if it exists, that unifies this and the
-	 * given expression.
+	 * Returns a most general unifier, if it exists, that unifies this and the given
+	 * expression.
 	 *
 	 * @return A unifier for this and the given expression, if it exists;
 	 *         {@code null} otherwise.
