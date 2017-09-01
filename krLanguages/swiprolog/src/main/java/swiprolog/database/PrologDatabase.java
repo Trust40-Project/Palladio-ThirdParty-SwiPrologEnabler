@@ -53,9 +53,9 @@ public class PrologDatabase implements Database {
 	 */
 	private final Theory theory;
 	/**
-	 * Query lock TODO: used in develop but unused here (hopefully this is fixed)
+	 * Query lock (https://github.com/SWI-Prolog/issues/issues/60)
 	 */
-	// private static final Object lock = new Object();
+	private static final Object lock = new Object();
 
 	/**
 	 * @param name
@@ -306,7 +306,9 @@ public class PrologDatabase implements Database {
 		// Get all solutions.
 		Map<String, org.jpl7.Term>[] solutions;
 		try {
-			solutions = jplQuery.allSolutions();
+			synchronized (lock) {
+				solutions = jplQuery.allSolutions();
+			}
 		} catch (org.jpl7.PrologException e) {
 			throw new PrologError(e);
 		} catch (Throwable e) {
