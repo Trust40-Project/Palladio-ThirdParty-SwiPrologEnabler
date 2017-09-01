@@ -29,7 +29,7 @@ public class MultiThreadTest {
 
 	}
 
-	@Test
+	// @Test
 	public void multiThreadTest() throws InterruptedException {
 		System.out.println("Multi-thread test with simple query");
 		List<Thread> threads = new ArrayList<>();
@@ -55,7 +55,7 @@ public class MultiThreadTest {
 		return thread;
 	}
 
-	@Test
+	// @Test
 	public void multiThreadTestFibonnaci() throws InterruptedException {
 		System.out.println("Multi-thread test fibonacci");
 		List<Thread> threads = new ArrayList<>();
@@ -70,7 +70,7 @@ public class MultiThreadTest {
 		}
 	}
 
-	@Test
+	// @Test
 	public void multiThreadTestInsertDelete() throws InterruptedException {
 		System.out.println("Multi-thread test insert/delete");
 		List<Thread> threads = new ArrayList<>();
