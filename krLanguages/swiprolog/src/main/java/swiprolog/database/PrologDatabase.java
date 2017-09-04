@@ -53,6 +53,11 @@ public class PrologDatabase implements Database {
 	 */
 	private final Theory theory;
 	/**
+	 * A cache of write operations. Insert or deletes are queued here until the next
+	 * query, at which point those operations are first all performed.
+	 */
+	private org.jpl7.Term writecache;
+	/**
 	 * Query lock (https://github.com/SWI-Prolog/issues/issues/60)
 	 */
 	private static final Object lock = new Object();
@@ -72,19 +77,15 @@ public class PrologDatabase implements Database {
 		this.name = new org.jpl7.Atom(name);
 		this.owner = owner;
 		this.theory = new Theory(content);
-		try {
-			// Create SWI Prolog module that will act as our database.
-			// FIXME: this is an expensive operation that is now run for
-			// knowledge bases as well, and might be run for bases in a mental
-			// model that will never be used anyway too.
-			rawquery(JPLUtils.createCompound(":", getJPLName(), new org.jpl7.Atom("true")));
-			if (content != null) {
-				for (DatabaseFormula dbf : content) {
-					insert(((PrologDBFormula) dbf).getTerm());
-				}
+		// Create SWI Prolog module that will act as our database.
+		// FIXME: this is an expensive operation that is now run for
+		// knowledge bases as well, and might be run for bases in a mental
+		// model that will never be used anyway too.
+		addToWriteCache(JPLUtils.createCompound(":", getJPLName(), new org.jpl7.Atom("true")));
+		if (content != null) {
+			for (DatabaseFormula dbf : content) {
+				insert(((PrologDBFormula) dbf).getTerm());
 			}
-		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("unable to create a Prolog database module '" + name + "'.", e);
 		}
 	}
 
@@ -134,7 +135,9 @@ public class PrologDatabase implements Database {
 		// We need to create conjunctive query with "true" as first conjunct and
 		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		substSet.addAll(rawquery(JPLUtils.createCompound(",", new org.jpl7.Atom("true"), db_query)));
+		org.jpl7.Term db_query_final = JPLUtils.createCompound(",", new org.jpl7.Atom("true"), db_query);
+		flushWriteCache();
+		substSet.addAll(rawquery(db_query_final));
 		return substSet;
 	}
 
@@ -212,17 +215,13 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	private void insert(org.jpl7.Term formula) throws KRDatabaseException {
-		try {
-			if (JPLUtils.getSignature(formula).equals(":-/1")) { // directive
-				org.jpl7.Term query = JPLUtils.createCompound(":", getJPLName(), formula.arg(1));
-				org.jpl7.Term queryt = JPLUtils.createCompound(",", new org.jpl7.Atom("true"), query);
-				rawquery(queryt);
-			} else { // clause
-				org.jpl7.Term dbformula = JPLUtils.createCompound(":", getJPLName(), formula);
-				rawquery(JPLUtils.createCompound("assert", dbformula));
-			}
-		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("inserting '" + formula + "' failed.", e);
+		if (JPLUtils.getSignature(formula).equals(":-/1")) { // directive
+			org.jpl7.Term query = JPLUtils.createCompound(":", getJPLName(), formula.arg(1));
+			org.jpl7.Term queryt = JPLUtils.createCompound(",", new org.jpl7.Atom("true"), query);
+			addToWriteCache(queryt);
+		} else { // clause
+			org.jpl7.Term dbformula = JPLUtils.createCompound(":", getJPLName(), formula);
+			addToWriteCache(JPLUtils.createCompound("assert", dbformula));
 		}
 	}
 
@@ -275,11 +274,7 @@ public class PrologDatabase implements Database {
 	 */
 	private void delete(org.jpl7.Term formula) throws KRDatabaseException {
 		org.jpl7.Term db_formula = JPLUtils.createCompound(":", getJPLName(), formula);
-		try {
-			rawquery(JPLUtils.createCompound("retractall", db_formula));
-		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("deleting '" + formula + "' failed.", e);
-		}
+		addToWriteCache(JPLUtils.createCompound("retractall", db_formula));
 	}
 
 	/**
@@ -342,6 +337,7 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	protected void eraseContent() throws KRDatabaseException {
+		this.writecache = null;
 		// String deleteone =
 		// "("
 		// + this.name + ":current_predicate(Predicate, Head),"
@@ -374,6 +370,23 @@ public class PrologDatabase implements Database {
 			rawquery(query);
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("erasing the contents of database '" + this.name + "' failed.", e);
+		}
+	}
+
+	// NEW: MERGE ALL ASSERTS AND RETRACTS...
+	private void addToWriteCache(org.jpl7.Term formula) {
+		if (this.writecache == null) {
+			this.writecache = formula;
+		} else {
+			this.writecache = JPLUtils.createCompound(",", this.writecache, formula);
+		}
+	}
+
+	// ... TO EXECUTE THEM ALLTOGETHER AT (BEFORE) THE NEXT QUERY
+	private void flushWriteCache() throws KRQueryFailedException {
+		if (this.writecache != null) {
+			rawquery(this.writecache);
+			this.writecache = null;
 		}
 	}
 
