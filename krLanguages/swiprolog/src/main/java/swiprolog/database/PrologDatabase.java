@@ -57,10 +57,6 @@ public class PrologDatabase implements Database {
 	 * query, at which point those operations are first all performed.
 	 */
 	private org.jpl7.Term writecache;
-	/**
-	 * Query lock (https://github.com/SWI-Prolog/issues/issues/60)
-	 */
-	private static final Object lock = new Object();
 
 	/**
 	 * @param name
@@ -301,9 +297,7 @@ public class PrologDatabase implements Database {
 		// Get all solutions.
 		Map<String, org.jpl7.Term>[] solutions;
 		try {
-			synchronized (lock) {
-				solutions = jplQuery.allSolutions();
-			}
+			solutions = jplQuery.allSolutions();
 		} catch (org.jpl7.PrologException e) {
 			throw new PrologError(e);
 		} catch (Throwable e) {
