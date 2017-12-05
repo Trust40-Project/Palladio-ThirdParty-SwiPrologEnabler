@@ -140,27 +140,18 @@ public final class SwiInstaller {
 	 *
 	 * @param s
 	 *            the path to be added (as string)
-	 * @throws SecurityException
 	 * @throws NoSuchFieldException
+	 * @throws SecurityException
 	 * @throws IllegalAccessException
 	 * @throws IllegalArgumentException
 	 */
 	private static void addFolderToLibraryPath(final String s)
 			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		final Field field = ClassLoader.class.getDeclaredField("usr_paths");
-		field.setAccessible(true);
-		final String[] paths = (String[]) field.get(null);
-		for (final String path : paths) {
-			if (s.equalsIgnoreCase(path)) {
-				return;
-			}
-		}
-		final String[] tmp = new String[paths.length + 1];
-		System.arraycopy(paths, 0, tmp, 0, paths.length);
-		tmp[paths.length] = s;
-		field.set(null, tmp);
 		final String path = s + File.pathSeparator + System.getProperty("java.library.path");
 		System.setProperty("java.library.path", path);
+		final Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+		fieldSysPath.setAccessible(true);
+		fieldSysPath.set(null, null);
 	}
 
 	/**
