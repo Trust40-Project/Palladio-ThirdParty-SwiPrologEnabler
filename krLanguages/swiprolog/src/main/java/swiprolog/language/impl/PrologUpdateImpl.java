@@ -18,6 +18,7 @@
 package swiprolog.language.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -56,8 +57,8 @@ public class PrologUpdateImpl implements PrologUpdate {
 	 * Creates a Prolog {@link Update}.
 	 *
 	 * <p>
-	 * Analyzes the JPL term and separates the positive from the negative
-	 * literals to create add and delete lists.
+	 * Analyzes the JPL term and separates the positive from the negative literals
+	 * to create add and delete lists.
 	 * </p>
 	 *
 	 * @param term
@@ -94,7 +95,7 @@ public class PrologUpdateImpl implements PrologUpdate {
 	 */
 	@Override
 	public List<DatabaseFormula> getAddList() {
-		return this.positiveLiterals;
+		return Collections.unmodifiableList(this.positiveLiterals);
 	}
 
 	/**
@@ -104,7 +105,7 @@ public class PrologUpdateImpl implements PrologUpdate {
 	 */
 	@Override
 	public List<DatabaseFormula> getDeleteList() {
-		return this.negativeLiterals;
+		return Collections.unmodifiableList(this.negativeLiterals);
 	}
 
 	/**

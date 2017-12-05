@@ -17,7 +17,7 @@
 
 package swiprolog.language.impl;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import krTools.language.Substitution;
@@ -34,6 +34,10 @@ public class PrologVarImpl extends jpl.Variable implements PrologVar, Comparable
 	 * Information about the source used to construct this variable.
 	 */
 	private final SourceInfo info;
+	/**
+	 *
+	 */
+	private final Set<Var> freeVar = new LinkedHashSet<>(1);
 
 	/**
 	 * Creates a variable.
@@ -46,6 +50,7 @@ public class PrologVarImpl extends jpl.Variable implements PrologVar, Comparable
 	public PrologVarImpl(String name, SourceInfo info) {
 		super(name);
 		this.info = info;
+		this.freeVar.add(this);
 	}
 
 	/**
@@ -81,9 +86,7 @@ public class PrologVarImpl extends jpl.Variable implements PrologVar, Comparable
 
 	@Override
 	public Set<Var> getFreeVar() {
-		Set<Var> set = new HashSet<>(1);
-		set.add(this);
-		return set;
+		return this.freeVar;
 	}
 
 	@Override

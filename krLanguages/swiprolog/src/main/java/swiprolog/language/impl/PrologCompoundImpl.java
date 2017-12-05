@@ -44,6 +44,10 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	 *
 	 */
 	private List<Term> args;
+	/**
+	 *
+	 */
+	private final Set<Var> freeVar = new LinkedHashSet<>();
 
 	/**
 	 * Creates a compound with 1 or more arguments.
@@ -59,6 +63,9 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 		super(name, jplTypedArray(args));
 		this.info = info;
 		this.args = Arrays.asList(args);
+		for (Term term : this.args) {
+			this.freeVar.addAll(term.getFreeVar());
+		}
 	}
 
 	private static jpl.Term[] jplTypedArray(Term[] args) {
@@ -126,17 +133,13 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	}
 
 	@Override
-	public Set<Var> getFreeVar() {
-		Set<Var> set = new LinkedHashSet<>();
-		for (Term term : this.args) {
-			set.addAll(term.getFreeVar());
-		}
-		return set;
+	public String getSignature() {
+		return this.name + "/" + getArity();
 	}
 
 	@Override
-	public String getSignature() {
-		return this.name + "/" + getArity();
+	public Set<Var> getFreeVar() {
+		return this.freeVar;
 	}
 
 	@Override
@@ -191,8 +194,8 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 			case FY:
 				// if we get here, term is known prefix operator.
 				/*
-				 * "-" is tight binding in which case the extra brackets are not
-				 * needed but :- is not tight binding so there we need brackets.
+				 * "-" is tight binding in which case the extra brackets are not needed but :-
+				 * is not tight binding so there we need brackets.
 				 */
 				if (this.name.equals("-")) {
 					return this.name + maybeBracketed(0);
@@ -221,11 +224,11 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	}
 
 	/**
-	 * ASSUMES the name is not a known operator (eg ';', ':-', etc, see table 5
-	 * in ISO 12311). '.' is not an operator.
+	 * ASSUMES the name is not a known operator (eg ';', ':-', etc, see table 5 in
+	 * ISO 12311). '.' is not an operator.
 	 *
-	 * @return name, properly single-quoted if necessary. (known operators
-	 *         should not be quoted).
+	 * @return name, properly single-quoted if necessary. (known operators should
+	 *         not be quoted).
 	 */
 	private String getQuotedName() {
 		// simple names starting with lower case char are not quoted
@@ -239,11 +242,10 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	}
 
 	/**
-	 * Support function for toString that checks if context requires brackets
-	 * around term. Converts argument to string and possibly places brackets
-	 * around it, if the term has a principal functor whose priority is so high
-	 * that the term could not be re-input correctly. Use for operators. see ISO
-	 * p.45 part h 2.
+	 * Support function for toString that checks if context requires brackets around
+	 * term. Converts argument to string and possibly places brackets around it, if
+	 * the term has a principal functor whose priority is so high that the term
+	 * could not be re-input correctly. Use for operators. see ISO p.45 part h 2.
 	 *
 	 * @param argument
 	 * @todo Is there a smarter way to do the bracketing? I guess so but then we
@@ -257,11 +259,10 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 			return "(" + arg + ")";
 		} else if (argprio == ourprio) {
 			/*
-			 * X arguments need brackets for same prio. Y arguments do not need
-			 * brackets for same prio. Eg, assume we have an xfy operator here.
-			 * The y side can have equal priority by default, and that side can
-			 * be printed without brackets. but if the x side has same prio
-			 * that's only possible if there were brackets.
+			 * X arguments need brackets for same prio. Y arguments do not need brackets for
+			 * same prio. Eg, assume we have an xfy operator here. The y side can have equal
+			 * priority by default, and that side can be printed without brackets. but if
+			 * the x side has same prio that's only possible if there were brackets.
 			 */
 			switch (getFixity()) {
 			case FX:
@@ -285,18 +286,18 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 			}
 		}
 		/*
-		 * if we get here, the argument does not need bracketing, either because
-		 * it has lower prio or because it has equal prio and the operator
-		 * allows that without brackets.
+		 * if we get here, the argument does not need bracketing, either because it has
+		 * lower prio or because it has equal prio and the operator allows that without
+		 * brackets.
 		 */
 		return arg.toString();
 	}
 
 	/**
-	 * Support function for toString that checks if context requires brackets
-	 * around term. Checks if argument[argument] needs bracketing for printing.
-	 * Arguments inside a predicate are priority 1000. All arguments higher than
-	 * that must have been bracketed.
+	 * Support function for toString that checks if context requires brackets around
+	 * term. Checks if argument[argument] needs bracketing for printing. Arguments
+	 * inside a predicate are priority 1000. All arguments higher than that must
+	 * have been bracketed.
 	 *
 	 * @param argument
 	 * @return bracketed term if required, and without brackets if not needed.
