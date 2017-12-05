@@ -28,13 +28,17 @@ import krTools.language.Update;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.PrologCompound;
+import swiprolog.language.PrologExpression;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologUpdate;
 import swiprolog.language.impl.PrologAtomImpl;
 import swiprolog.language.impl.PrologCompoundImpl;
 import swiprolog.language.impl.PrologDBFormulaImpl;
+import swiprolog.language.impl.PrologFloatImpl;
+import swiprolog.language.impl.PrologIntImpl;
 import swiprolog.language.impl.PrologQueryImpl;
 import swiprolog.language.impl.PrologUpdateImpl;
+import swiprolog.language.impl.PrologVarImpl;
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -304,15 +308,24 @@ public class SemanticTools {
 	 *            from.
 	 * @return signature(s) that are used in the expression
 	 */
-	public static List<String> getUsedSignatures(jpl.Term term) {
-		List<String> signatures = new ArrayList<>();
-
-		if (term.isVariable() || term.isFloat() || term.isInteger()) {
+	public static List<String> getUsedSignatures(PrologExpression term) {
+		if (term instanceof PrologVarImpl || term instanceof PrologFloatImpl || term instanceof PrologIntImpl) {
 			// We're at the bottom and these are built-in.
-			return signatures;
+			return new ArrayList<>(0);
+		}
+		List<String> signatures = new LinkedList<>();
+		PrologCompound compound;
+		if (term instanceof PrologDBFormulaImpl) {
+			compound = ((PrologDBFormulaImpl) term).getCompound();
+		} else if (term instanceof PrologQueryImpl) {
+			compound = ((PrologQueryImpl) term).getCompound();
+		} else if (term instanceof PrologUpdateImpl) {
+			compound = ((PrologUpdateImpl) term).getCompound();
+		} else {
+			compound = (PrologCompoundImpl) term;
 		}
 
-		if ("dynamic".equals(term.name())) {
+		if ("dynamic".equals(compound.getName())) {
 			// special case. dynamic contains list of //2 predicates that the
 			// user is explictly declaring.
 			PrologCompound dyamic = (PrologCompound) ((PrologCompound) term).getArg(0);
@@ -323,14 +336,14 @@ public class SemanticTools {
 			return signatures;
 		}
 
-		String signature = term.name() + "/" + term.arity();
+		String signature = compound.getSignature();
 		// for some reason, ./2 is not a prologBuiltin
 		if (!PrologOperators.prologBuiltin(signature) && !"./2".equals(signature)) {
 			signatures.add(signature);
 		}
 
-		for (jpl.Term arg : term.args()) {
-			signatures.addAll(getUsedSignatures(arg));
+		for (int i = 0; i < compound.getArity(); ++i) {
+			signatures.addAll(getUsedSignatures((PrologExpression) compound.getArg(i)));
 		}
 
 		return signatures;

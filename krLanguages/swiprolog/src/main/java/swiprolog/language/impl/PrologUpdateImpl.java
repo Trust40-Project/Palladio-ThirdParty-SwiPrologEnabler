@@ -83,6 +83,10 @@ public class PrologUpdateImpl implements PrologUpdate {
 		}
 	}
 
+	public PrologCompound getCompound() {
+		return this.compound;
+	}
+
 	@Override
 	public SourceInfo getSourceInfo() {
 		return this.compound.getSourceInfo();
