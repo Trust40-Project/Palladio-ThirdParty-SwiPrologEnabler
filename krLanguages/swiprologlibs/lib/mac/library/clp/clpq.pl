@@ -38,8 +38,7 @@
 */
 
 :- module(clpq,
-	[
-	    {}/1,
+	  [ {}/1,
 	    maximize/1,
 	    minimize/1,
 	    inf/2, inf/4, sup/2, sup/4,
@@ -49,7 +48,7 @@
 	    entailed/1,
 	    clp_type/2,
 	    dump/3%, projecting_assert/1
-	]).
+	  ]).
 :- license(gpl_swipl, 'CLP(Q)').
 :- expects_dialect(swi).
 
@@ -64,28 +63,22 @@
 %
 user:portray_message(warning,import(_,_,clpq,private)).
 
-:- load_files(
-	[
-	    'clpq/bb_q',
-	    'clpq/bv_q',
-	    'clpq/fourmotz_q',
-	    'clpq/ineq_q',
-	    'clpq/itf_q',
-	    'clpq/nf_q',
-	    'clpq/store_q',
-	    'clpqr/class',
-	    'clpqr/dump',
-	    'clpqr/geler',
-	    'clpqr/itf',
-	    'clpqr/ordering',
-	    'clpqr/project',
-	    'clpqr/redund',
-	    library(ugraphs)
-	],
-	[
-	    if(not_loaded),
-	    silent(true)
-	]).
+:- use_module([ clpq/bb_q,
+		clpq/bv_q,
+		clpq/fourmotz_q,
+		clpq/ineq_q,
+		clpq/itf_q,
+		clpq/nf_q,
+		clpq/store_q,
+		clpqr/class,
+		clpqr/dump,
+		clpqr/geler,
+		clpqr/itf,
+		clpqr/ordering,
+		clpqr/project,
+		clpqr/redund,
+		library(ugraphs)
+	      ]).
 
 		 /*******************************
 		 *	 TOPLEVEL PRINTING	*
@@ -94,14 +87,9 @@ user:portray_message(warning,import(_,_,clpq,private)).
 :- multifile
 	prolog:message/3.
 
-% prolog:message(query(YesNo)) --> !,
-%	['~@'-[chr:print_all_stores]],
-%         '$messages':prolog_message(query(YesNo)).
-
 prolog:message(query(YesNo,Bindings)) --> !,
 	{dump_toplevel_bindings(Bindings,Constraints)},
-	{dump_format(Constraints,Format)},
-	Format,
+	dump_format(Constraints),
         '$messages':prolog_message(query(YesNo,Bindings)).
 
 dump_toplevel_bindings(Bindings,Constraints) :-
@@ -124,9 +112,10 @@ dump_vars_names([Name=Term|Rest],Seen,Vars,Names) :-
 	),
 	dump_vars_names(Rest,NSeen,RVars,RNames).
 
-dump_format([],[]).
-dump_format([X|Xs],['{~w}'-[X],nl|Rest]) :-
-	dump_format(Xs,Rest).
+dump_format([]) --> [].
+dump_format([X|Xs]) -->
+	['{~w}'-[X], nl],
+	dump_format(Xs).
 
 memberchk_eq(X,[Y|Ys]) :-
 	(   X == Y

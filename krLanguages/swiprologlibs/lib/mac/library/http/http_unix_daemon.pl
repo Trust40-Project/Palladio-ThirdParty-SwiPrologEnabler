@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2013-2016, University of Amsterdam
+    Copyright (c)  2013-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -51,6 +51,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_host)).
 :- use_module(library(main)).
+:- use_module(library(readutil)).
 
 :- if(exists_source(library(http/http_ssl_plugin))).
 :- use_module(library(ssl)).
@@ -62,6 +63,8 @@
     http_certificate_hook/3,                % +CertFile, +KeyFile, -Password
     http:sni_options/2.                     % +HostName, +SSLOptions
 
+:- initialization(http_daemon, main).
+
 /** <module> Run SWI-Prolog HTTP server as a Unix system daemon
 
 This module provides the logic that  is   needed  to integrate a process
@@ -69,8 +72,8 @@ into the Unix service (daemon) architecture. It deals with the following
 aspects,  all  of  which  may  be   used/ignored  and  configured  using
 commandline options:
 
-  - Select the port of the server
-  - Run the startup of the process as root to perform priviledged
+  - Select the port(s) to be used by the server
+  - Run the startup of the process as root to perform privileged
     tasks and the server itself as unpriviledged user, for example
     to open ports below 1000.
   - Fork and detach from the controlling terminal
@@ -83,15 +86,28 @@ components:
 
   1. The application code, including http handlers (see http_handler/3).
   2. This library
-  3. Use an initialization directive to start http_daemon/0
 
-In the code below, =|load|= loads the remainder of the webserver code.
+In the code below, =|?- [load].|= loads   the remainder of the webserver
+code.  This is often a sequence of use_module/1 directives.
 
   ==
   :- use_module(library(http/http_unix_daemon)).
-  :- initialization http_daemon.
 
   :- [load].
+  ==
+
+The   program   entry   point   is     http_daemon/0,   declared   using
+initialization/2. This main be overruled using   a new declaration after
+loading  this  library.  The  new  entry    point  will  typically  call
+http_daemon/1 to start the server in a preconfigured way.
+
+  ==
+  :- use_module(library(http/http_unix_daemon)).
+  :- initialization(run, main).
+
+  run :-
+      ...
+      http_daemon(Options).
   ==
 
 Now,  the  server  may  be  started    using   the  command  below.  See
@@ -130,7 +146,6 @@ events:
   - http(post_server_start)
   Run _after_ starting the HTTP server.
 
-@tbd    Provide options for client certificates with SSL.
 @tbd    Cleanup issues wrt. loading and initialization of xpce.
 @see    The file <swi-home>/doc/packages/examples/http/linux-init-script
         provides a /etc/init.d script for controlling a server as a normal
@@ -244,7 +259,10 @@ events:
 %
 %     $ --cipherlist=Ciphers :
 %     One or more cipher strings separated by colons. See the OpenSSL
-%     documentation for more information. Default is `DEFAULT`.
+%     documentation for more information. Starting with SWI-Prolog
+%     7.5.11, the default value is always a set of ciphers that was
+%     considered secure enough to prevent all critical attacks at the
+%     time of the SWI-Prolog release.
 %
 %     $ --interactive[=Bool] :
 %     If =true= (default =false=) implies =|--no-fork|= and presents
@@ -445,13 +463,14 @@ make_address(Spec, _, _, _, _) :-
 merge_https_options(Options, [SSL|Options]) :-
     (   option(certfile(CertFile), Options),
         option(keyfile(KeyFile), Options)
-    ->  read_file_to_string(CertFile, Certificate, []),
+    ->  prepare_https_certificate(CertFile, KeyFile, Passwd0),
+        read_file_to_string(CertFile, Certificate, []),
         read_file_to_string(KeyFile, Key, []),
-        Pairs = [Certificate-Key],
-        prepare_https_certificate(CertFile, KeyFile, Passwd0)
+        Pairs = [Certificate-Key]
     ;   Pairs = []
     ),
-    option(cipherlist(CipherList), Options, 'DEFAULT'),
+    ssl_secure_ciphers(SecureCiphers),
+    option(cipherlist(CipherList), Options, SecureCiphers),
     (   string(Passwd0)
     ->  Passwd = Passwd0
     ;   options_password(Options, Passwd)
@@ -557,8 +576,9 @@ disable_development_system :-
 
 %!  enable_development_system
 %
-%   Enable some development stuff.  Currently reenables xpce if this
-%   was loaded, but not initialised.
+%   Re-enable the development environment. Currently  re-enables xpce if
+%   this was loaded, but not  initialised   and  causes  the interactive
+%   toplevel to be re-enabled.
 
 enable_development_system :-
     assertz(interactive),
@@ -567,8 +587,8 @@ enable_development_system :-
     (   current_prolog_flag(xpce_version, _)
     ->  call(pce_dispatch([]))
     ;   true
-    ).
-
+    ),
+    set_prolog_flag(toplevel_goal, prolog).
 
 %!  setup_syslog(+Options) is det.
 %

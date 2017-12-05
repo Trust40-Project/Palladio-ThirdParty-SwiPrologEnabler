@@ -72,6 +72,7 @@ This module defines reusable code to colourise Prolog source.
     message//1,                     % +ColourClass
     term_colours/2,                 % +SourceTerm, -ColourSpec
     goal_colours/2,                 % +Goal, -ColourSpec
+    goal_colours/3,                 % +Goal, +Class, -ColourSpec
     directive_colours/2,            % +Goal, -ColourSpec
     goal_classification/2,          % +Goal, -Class
     vararg_goal_classification/3.   % +Name, +Arity, -Class
@@ -935,9 +936,14 @@ colourise_goal(Goal, _Origin, TB, Pos) :-
     !,
     colourise_term_arg(Goal, TB, Pos).
 colourise_goal(Goal, Origin, TB, Pos) :-
-    nonvar(Goal),
-    goal_colours(Goal, ClassSpec-ArgSpecs),   % specified
-    !,
+    strip_module(Goal, _, PGoal),
+    nonvar(PGoal),
+    (   goal_classification(TB, Goal, Origin, ClassInferred),
+        goal_colours(Goal, ClassInferred, ClassSpec-ArgSpecs)
+    ->  true
+    ;   goal_colours(Goal, ClassSpec-ArgSpecs)
+    ),
+    !,                                          % specified
     functor_position(Pos, FPos, ArgPos),
     (   ClassSpec == classify
     ->  goal_classification(TB, Goal, Origin, Class)
@@ -956,9 +962,15 @@ colourise_goal(Module:Goal, _Origin, TB, QGoalPos) :-
     ->  FP = FF-FT
     ;   FP = PG
     ),
-    colour_item(goal_term(extern(Module), Goal), TB, QGoalPos),
-    colour_item(goal(extern(Module), Goal), TB, FP),
-    colourise_goal_args(Goal, Module, TB, PG).
+    (   callable(Goal)
+    ->  qualified_goal_classification(Module:Goal, TB, Class),
+        colour_item(goal_term(Class, Goal), TB, QGoalPos),
+        colour_item(goal(Class, Goal), TB, FP),
+        colourise_goal_args(Goal, Module, TB, PG)
+    ;   var(Goal)
+    ->  colourise_term_arg(Goal, TB, PG)
+    ;   colour_item(type_error(callable), TB, PG)
+    ).
 colourise_goal(Op, _Origin, TB, Pos) :-
     nonvar(Op),
     Op = op(_,_,_),
@@ -1003,12 +1015,17 @@ colourization_module(TB, Module) :-
     ).
 
 colourise_goal_args(Goal, M, TB, term_position(_,_,_,_,ArgPos)) :-
-    meta_args(Goal, TB, MetaArgs),
     !,
-    colourise_meta_args(1, Goal, M, MetaArgs, TB, ArgPos).
-colourise_goal_args(Goal, M, TB, term_position(_,_,_,_,ArgPos)) :-
+    (   meta_args(Goal, TB, MetaArgs)
+    ->  colourise_meta_args(1, Goal, M, MetaArgs, TB, ArgPos)
+    ;   colourise_goal_args(1, Goal, M, TB, ArgPos)
+    ).
+colourise_goal_args(Goal, M, TB, brace_term_position(_,_,ArgPos)) :-
     !,
-    colourise_goal_args(1, Goal, M, TB, ArgPos).
+    (   meta_args(Goal, TB, MetaArgs)
+    ->  colourise_meta_args(1, Goal, M, MetaArgs, TB, [ArgPos])
+    ;   colourise_goal_args(1, Goal, M, TB, [ArgPos])
+    ).
 colourise_goal_args(_, _, _, _).                % no arguments
 
 colourise_goal_args(_, _, _, _, []) :- !.
@@ -1785,12 +1802,13 @@ body_compiled(\+_).
 %   Classify Goal appearing in TB and called from a clause with head
 %   Origin.  For directives, Origin is [].
 
-goal_classification(_, Goal, _, meta) :-
-    var(Goal),
-    !.
-goal_classification(_, Goal, _, not_callable) :-
-    \+ callable(Goal),
-    !.
+goal_classification(_, QGoal, _, Class) :-
+    strip_module(QGoal, _, Goal),
+    (   var(Goal)
+    ->  !, Class = meta
+    ;   \+ callable(Goal)
+    ->  !, Class = not_callable
+    ).
 goal_classification(_, Goal, Origin, recursion) :-
     callable(Origin),
     generalise_term(Goal, Origin),
@@ -1822,7 +1840,8 @@ goal_classification(Goal, built_in) :-
 goal_classification(Goal, autoload(From)) :-    % SWI-Prolog
     predicate_property(Goal, autoload(From)).
 goal_classification(Goal, global) :-            % SWI-Prolog
-    current_predicate(_, user:Goal),
+    strip_module(Goal, _, PGoal),
+    current_predicate(_, user:PGoal),
     !.
 goal_classification(Goal, Class) :-
     compound(Goal),
@@ -1840,6 +1859,28 @@ vararg_goal_classification(send_super, Arity, expanded) :- % XPCE (TBD)
 vararg_goal_classification(get_super, Arity, expanded) :-  % XPCE (TBD)
     Arity >= 3.
 
+%!  qualified_goal_classification(:Goal, +TB, -Class)
+%
+%   Classify an explicitly qualified goal.
+
+qualified_goal_classification(Goal, TB, Class) :-
+    goal_classification(TB, Goal, [], Class),
+    Class \== undefined,
+    !.
+qualified_goal_classification(Module:Goal, _, extern(Module, How)) :-
+    predicate_property(Module:Goal, visible),
+    !,
+    (   (   predicate_property(Module:Goal, public)
+        ;   predicate_property(Module:Goal, exported)
+        )
+    ->  How = (public)
+    ;   How = (private)
+    ).
+qualified_goal_classification(Module:_, _, extern(Module, unknown)).
+
+%!  classify_head(+TB, +Head, -Class)
+%
+%   Classify a clause head
 
 classify_head(TB, Goal, exported) :-
     colour_state_source_id(TB, SourceId),
@@ -2033,6 +2074,8 @@ def_style(goal(dynamic(_),_),      [colour(magenta)]).
 def_style(goal(multifile(_),_),    [colour(navy_blue)]).
 def_style(goal(expanded,_),        [colour(blue), underline(true)]).
 def_style(goal(extern(_),_),       [colour(blue), underline(true)]).
+def_style(goal(extern(_,private),_), [colour(red)]).
+def_style(goal(extern(_,public),_), [colour(blue)]).
 def_style(goal(recursion,_),       [underline(true)]).
 def_style(goal(meta,_),            [colour(red4)]).
 def_style(goal(foreign(_),_),      [colour(darkturquoise)]).
@@ -2087,6 +2130,8 @@ def_style(flag_name(_),            [colour(blue)]).
 def_style(no_flag_name(_),         [colour(red)]).
 def_style(unused_import,           [colour(blue), background(pink)]).
 def_style(undefined_import,        [colour(red)]).
+
+def_style(constraint(_),           [colour(darkcyan)]).
 
 def_style(keyword(_),              [colour(blue)]).
 def_style(identifier,              [bold(true)]).
@@ -2542,19 +2587,31 @@ syntax_message(module(Module)) -->
 
 goal_message(meta, _) -->
     [ 'Meta call' ].
-goal_message(recursion, _) -->
-    [ 'Recursive call' ].
 goal_message(not_callable, _) -->
     [ 'Goal is not callable (type error)' ].
-goal_message(undefined, _) -->
-    [ 'Call to undefined predicate' ].
 goal_message(expanded, _) -->
     [ 'Expanded goal' ].
-goal_message(global, _) -->
-    [ 'Auto-imported from module user' ].
 goal_message(Class, Goal) -->
     { predicate_name(Goal, PI) },
-    [ 'Call to ~w predicate ~q'-[Class,PI] ].
+    [ 'Call to ~q'-PI ],
+    goal_class(Class).
+
+goal_class(recursion) -->
+    [ ' (recursive call)' ].
+goal_class(undefined) -->
+    [ ' (undefined)' ].
+goal_class(global) -->
+    [ ' (Auto-imported from module user)' ].
+goal_class(imported(From)) -->
+    [ ' (imported from ~q)'-[From] ].
+goal_class(extern(_, private)) -->
+    [ ' (WARNING: private predicate)' ].
+goal_class(extern(_, public)) -->
+    [ ' (public predicate)' ].
+goal_class(extern(_)) -->
+    [ ' (cross-module call)' ].
+goal_class(Class) -->
+    [ ' (~p)'-[Class] ].
 
 xpce_class_message(Type, Class) -->
     [ 'XPCE ~w class ~q'-[Type, Class] ].

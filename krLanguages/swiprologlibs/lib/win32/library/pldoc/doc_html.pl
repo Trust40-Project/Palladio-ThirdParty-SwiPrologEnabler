@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -89,6 +89,7 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/term_html)).
 :- use_module(library(http/jquery)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
@@ -100,6 +101,7 @@
 :- use_module(doc_wiki).
 :- use_module(doc_search).
 :- use_module(doc_index).
+:- use_module(doc_util).
 :- include(hooks).
 
 /** <module> PlDoc HTML backend
@@ -1441,7 +1443,9 @@ anchored_pred_head(Head, Done0, Done, Options) -->
     ->  { Done = Done0 },
         pred_head(Head)
     ;   html([ span(style('float:right'),
-                    \pred_edit_or_source_button(Head, Options)),
+                    [ \pred_edit_or_source_button(Head, Options),
+                      &(nbsp)
+                    ]),
                a(name=Name, \pred_head(Head))
              ]),
         { Done = [PI|Done0] }
@@ -1717,9 +1721,16 @@ pred_det(Det) -->
 %   @tbd    Properly merge with pred_head//1
 
 term(_, Atom, []) -->
-    { atomic(Atom) },
+    { atomic(Atom),
+      !,
+      format(string(S), '~W', [Atom,[quoted(true)]])
+    },
+    html(span(class=functor, S)).
+term(_, Key:Type, [TypeName=Type]) -->
+    { atomic(Key)
+    },
     !,
-    html(span(class=functor, Atom)).
+    html([span(class='pl-key', Key), :, span(class('pl-var'), TypeName)]).
 term(_, Term, Bindings) -->
     { is_mode(Term is det),         % HACK. Bit too strict?
       bind_vars(Bindings)
@@ -1727,8 +1738,10 @@ term(_, Term, Bindings) -->
     !,
     pred_head(Term).
 term(_, Term, Bindings) -->
-    { bind_vars(Term, Bindings) },
-    argtype(Term).
+    term(Term,
+         [ variable_names(Bindings),
+           quoued(true)
+         ]).
 
 
                  /*******************************
@@ -1913,7 +1926,8 @@ pred_source_href(Name/Arity, Module, HREF) :-
     (   catch(relative_file(Module:Head, File), _, fail)
     ->  uri_data(path, Components, File),
         uri_components(HREF, Components)
-    ;   in_file(Module:Head, File),
+    ;   in_file(Module:Head, File0),
+        insert_alias(File0, File),
         http_location_by_id(pldoc_doc, DocHandler),
         atom_concat(DocHandler, File, Path),
         uri_data(path, Components, Path),
@@ -2101,7 +2115,7 @@ pi_type(_:PI) -->
 pi_type(_/_) -->
     html(['Predicate ']).
 pi_type(_//_) -->
-    html(['Grammer rule ']).
+    html(['Grammar rule ']).
 
 
 
@@ -2352,6 +2366,7 @@ image_attribute(width(_)).
 image_attribute(height(_)).
 image_attribute(border(_)).
 image_attribute(class(_)).
+image_attribute(style(_)).
 
 
 %!  html_tokens_for_predicates(+PI, +Options)// is semidet.
@@ -2388,7 +2403,8 @@ html_tokens_for_predicates(Spec, Options) -->
     man_page(Spec,
              [ links(false),                % no header
                navtree(false),              % no navigation tree
-               footer(false)                % no footer
+               footer(false),               % no footer
+               synopsis(false)              % no synopsis
              | Options
              ]).
 

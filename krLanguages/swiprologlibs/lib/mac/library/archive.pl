@@ -280,6 +280,9 @@ header_property(permissions(_)).
 %
 %     * remove_prefix(+Prefix)
 %     Strip Prefix from all entries before extracting
+%     * exclude(+ListOfPatterns)
+%     Ignore members that match one of the given patterns.
+%     Patterns are handed to wildcard_match/2.
 %
 %   @error  existence_error(directory, Dir) if Dir does not exist
 %           or is not a directory.
@@ -300,7 +303,8 @@ archive_extract(Archive, Dir, Options) :-
 extract(Archive, Dir, Options) :-
     archive_next_header(Archive, Path),
     !,
-    (   archive_header_property(Archive, filetype(file))
+    (   archive_header_property(Archive, filetype(file)),
+        \+ excluded(Path, Options)
     ->  archive_header_property(Archive, permissions(Perm)),
         (   option(remove_prefix(Remove), Options)
         ->  (   atom_concat(Remove, ExtractPath, Path)
@@ -325,13 +329,22 @@ extract(Archive, Dir, Options) :-
     extract(Archive, Dir, Options).
 extract(_, _, _).
 
+excluded(Path, Options) :-
+    option(exclude(Patterns), Options),
+    split_string(Path, "/", "/", Parts),
+    member(Segment, Parts),
+    Segment \== "",
+    member(Pattern, Patterns),
+    wildcard_match(Pattern, Segment).
+
+
 %!  set_permissions(+Perm:integer, +Target:atom)
 %
 %   Restore the permissions.  Currently only restores the executable
 %   permission.
 
 set_permissions(Perm, Target) :-
-    Perm /\ 0o700 =\= 0,
+    Perm /\ 0o100 =\= 0,
     !,
     '$mark_executable'(Target).
 set_permissions(_, _).
@@ -380,9 +393,9 @@ contents(_, []).
 %       - name(Atom)
 %       Name of the entry.
 %
-%   Note that this predicate can  handle   a  non-archive files as a
-%   pseudo archive holding a single   stream by using archive_open/3
-%   with the options `[format(all), format(raw)]`.
+%   Non-archive files are handled as pseudo-archives that hold a
+%   single stream.  This is implemented by using archive_open/3 with
+%   the options `[format(all),format(raw)]`.
 
 archive_data_stream(Archive, DataStream, Options) :-
     option(meta_data(MetaData), Options, _),

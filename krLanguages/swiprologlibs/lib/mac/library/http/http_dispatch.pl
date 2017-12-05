@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2015, University of Amsterdam
+    Copyright (c)  2007-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -113,6 +113,9 @@ write_index(Request) :-
 %           Use =|Transfer-encoding: chunked|= if the client
 %           allows for it.
 %
+%           * condition(:Goal)
+%           If present, the handler is ignored if Goal does not succeed.
+%
 %           * content_type(+Term)
 %           Specifies the content-type of the reply.  This value is
 %           currently not used by this library.  It enhances the
@@ -193,8 +196,7 @@ write_index(Request) :-
     http_switch_protocol(2, +).
 
 http_handler(Path, Pred, Options) :-
-    strip_module(Pred, M, P),
-    compile_handler(Path, M:P, Options, Clause),
+    compile_handler(Path, Pred, Options, Clause),
     next_generation,
     assert(Clause).
 
@@ -266,11 +268,6 @@ current_generation(0).
 %   presence of one or multiple prefix declarations. We can also use
 %   this to detect conflicts.
 
-compile_handler(prefix(Path), Pred, Options,
-                http_dispatch:handler(Path, Pred, true, Options)) :-
-    !,
-    check_path(Path, Path1),
-    print_message(warning, http_dispatch(prefix(Path1))).
 compile_handler(Path, Pred, Options0,
                 http_dispatch:handler(Path1, Pred, IsPrefix, Options)) :-
     check_path(Path, Path1),
@@ -279,7 +276,13 @@ compile_handler(Path, Pred, Options0,
     ;   IsPrefix = false,
         Options1 = Options0
     ),
-    combine_methods(Options1, Options).
+    Pred = M:_,
+    maplist(qualify_option(M), Options1, Options2),
+    combine_methods(Options2, Options).
+
+qualify_option(M, condition(Pred), condition(M:Pred)) :-
+    Pred \= _:_, !.
+qualify_option(_, Option, Option).
 
 %!  combine_methods(+OptionsIn, -Options) is det.
 %
@@ -646,7 +649,8 @@ authentication([_|Options], Request, Fields) :-
 
 find_handler(Path, Action, Options) :-
     path_tree(Tree),
-    (   find_handler(Tree, Path, Action, Options)
+    (   find_handler(Tree, Path, Action, Options),
+        eval_condition(Options)
     ->  true
     ;   \+ sub_atom(Path, _, _, 0, /),
         atom_concat(Path, /, Dir),
@@ -675,6 +679,12 @@ path_info(0, _, Options,
 path_info(After, Path, Options,
           [path_info(PathInfo),prefix(true)|Options]) :-
     sub_atom(Path, _, After, 0, PathInfo).
+
+eval_condition(Options) :-
+    (   memberchk(condition(Cond), Options)
+    ->  catch(Cond, E, (print_message(warning, E), fail))
+    ;   true
+    ).
 
 
 %!  supports_method(+Request, +Options) is det.
@@ -1028,7 +1038,11 @@ path_tree_nocache(Tree) :-
 
 prefix_handler(Prefix, Action, Options) :-
     handler(Spec, Action, true, Options),
-    http_absolute_location(Spec, Prefix, []).
+    Error = error(existence_error(http_alias,_),_),
+    catch(http_absolute_location(Spec, Prefix, []), Error,
+          (   print_message(warning, Error),
+              fail
+          )).
 
 %!  prefix_tree(PrefixList, +Tree0, -Tree)
 %
@@ -1129,9 +1143,6 @@ add_path_tree(Path, Action, Options, DefOptions, [H|T0], [H|T]) :-
 
 prolog:message(http_dispatch(ambiguous_id(ID, _List, Selected))) -->
     [ 'HTTP dispatch: ambiguous handler ID ~q (selected ~q)'-[ID, Selected]
-    ].
-prolog:message(http_dispatch(prefix(_Path))) -->
-    [ 'HTTP dispatch: prefix(Path) is replaced by the option prefix'-[]
     ].
 
 

@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -77,6 +77,7 @@
                      [ for(atom),
                        links(boolean),
                        navtree(boolean),
+                       synopsis(boolean),
                        footer(boolean),
                        no_manual(oneof([fail,error])),
                        search_in(oneof([all, app, man])),
@@ -226,7 +227,10 @@ index_on_begin(dt, Attributes, Parser) :-
     ->  true
     ),
     nb_getval(pldoc_man_index, DD0),
-    nb_setval(pldoc_man_index, [dd(PI, File, Offset)|DD0]).
+    (   memberchk(dd(PI, File, _), DD0)
+    ->  true
+    ;   nb_setval(pldoc_man_index, [dd(PI, File, Offset)|DD0])
+    ).
 index_on_begin(dd, _, Parser) :-
     !,
     nb_getval(pldoc_man_index, DDList0), DDList0 \== [],
@@ -836,6 +840,9 @@ object_spec(Atom, PI) :-
 %           If Action = =fail=, fail instead of displaying a
 %           not-found message.
 %
+%           * synopsis(Bool)
+%           If `false`, omit the synopsis line
+%
 %           * links(Bool)
 %           If =true= (default), include links to the parent object;
 %           if =false=, just emit the manual material.
@@ -1017,31 +1024,34 @@ man_matches(Matches, Object, Options) -->
 man_matches_nt([Match], Object, Options) -->
     { option(footer(true), Options, true) },
     !,
-    man_match(Match, Object),
+    man_match(Match, Object, Options),
     object_page_footer(Object, []).
-man_matches_nt(Matches, Object, _) -->
-    man_matches_list(Matches, Object).
+man_matches_nt(Matches, Object, Options) -->
+    man_matches_list(Matches, Object, Options).
 
-man_matches_list([], _) --> [].
-man_matches_list([H|T], Obj) --> man_match(H, Obj), man_matches_list(T, Obj).
+man_matches_list([], _, _) --> [].
+man_matches_list([H|T], Obj, Options) -->
+    man_match(H, Obj, Options),
+    man_matches_list(T, Obj, Options).
 
-%!  man_match(+Term, +Object)//
+%!  man_match(+Term, +Object, +Options)// is det.
 %
 %   If  possible,  insert  the  synopsis  into   the  title  of  the
 %   description.
 
-man_match(packages, packages) -->
+man_match(packages, packages, _) -->
     !,
     html({|html||
               <p>
               Packages are relatively independent add-on libraries that
               may not be available in all installations.
              |}).
-man_match(root, root) -->
+man_match(root, root, _) -->
     !,
     man_overview([]).
-man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj) -->
-    { man_qualified_object(Obj, Parent, QObj, Section),
+man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj, Options) -->
+    { \+ option(synopsis(false), Options),
+      man_qualified_object(Obj, Parent, QObj, Section),
       !,
       C = [ span(style('float:right;margin-left:5px;'),
                  \object_source_button(QObj, [link_source(true)]))
@@ -1052,7 +1062,7 @@ man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj) -->
                element(dt,A,C)
              | DD
              ], Path).
-man_match((_Parent+Path)-(Obj+DOM), Obj) -->
+man_match((_Parent+Path)-(Obj+DOM), Obj, _) -->
     dom_list(DOM, Path).
 
 

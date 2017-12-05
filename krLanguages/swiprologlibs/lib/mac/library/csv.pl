@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2009-2016, VU University Amsterdam
+    Copyright (c)  2009-2017, VU University Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,13 @@
 :- module(csv,
           [ csv//1,                     % +Rows
             csv//2,                     % +Rows, +Options
+
             csv_read_file/2,            % +File, -Data
             csv_read_file/3,            % +File, -Data, +Options
             csv_read_file_row/3,        % +File, -Row, +Options
+            csv_read_row/3,		% +Stream, -Row, +CompiledOptions
+            csv_options/2,		% -Compiled, +Options
+
             csv_write_file/2,           % +File, +Data
             csv_write_file/3,           % +File, +Data, +Options
             csv_write_stream/3          % +Stream, +Data, +Options
@@ -66,6 +70,7 @@ have the same name and arity.
                        strip(boolean),
                        ignore_quotes(boolean),
                        convert(boolean),
+                       case(oneof([down,preserve,up])),
                        functor(atom),
                        arity(-nonneg),          % actually ?nonneg
                        match_arity(boolean)
@@ -92,6 +97,7 @@ have the same name and arity.
                 strip:boolean=false,
                 ignore_quotes:boolean=false,
                 convert:boolean=true,
+                case:oneof([down,preserve,up])=preserve,
                 functor:atom=row,
                 arity:integer,
                 match_arity:boolean=true).
@@ -164,6 +170,10 @@ ext_separator(tsv, 0'\t).
 %       * convert(+Boolean)
 %       If =true= (default), use name/2 on the field data.  This
 %       translates the field into a number if possible.
+%
+%       * case(+Action)
+%       If =down=, downcase atomic values.  If =up=, upcase them
+%       and if =preserve= (default), do not change the case.
 %
 %       * functor(+Atom)
 %       Functor to use for creating row terms.  Default is =row=.
@@ -290,22 +300,47 @@ string_codes(List) -->
 field_codes([], Sep), [Sep] --> [Sep], !.
 field_codes([], _), "\n" --> "\r\n", !.
 field_codes([], _), "\n" --> "\n", !.
+field_codes([], _), "\n" --> "\r", !.
 field_codes([H|T], Sep) --> [H], !, field_codes(T, Sep).
 field_codes([], _) --> [].              % unterminated last record
 
+%!  make_value(+Codes, -Value, +Options) is det.
+%
+%   Convert a list of character codes to the actual value, depending
+%   on Options.
+
 make_value(Codes, Value, Options) :-
-    csv_options_convert(Options, true),
+    csv_options_convert(Options, Convert),
+    csv_options_case(Options, Case),
+    make_value(Convert, Case, Codes, Value).
+
+make_value(true, preserve, Codes, Value) :-
     !,
     name(Value, Codes).
-make_value(Codes, Value, _) :-
+make_value(true, Case, Codes, Value) :-
+    !,
+    (   number_string(Value, Codes)
+    ->  true
+    ;   make_value(false, Case, Codes, Value)
+    ).
+make_value(false, preserve, Codes, Value) :-
+    !,
     atom_codes(Value, Codes).
+make_value(false, down, Codes, Value) :-
+    !,
+    string_codes(String, Codes),
+    downcase_atom(String, Value).
+make_value(false, up, Codes, Value) :-
+    string_codes(String, Codes),
+    upcase_atom(String, Value).
 
 separator(Options) -->
     { csv_options_separator(Options, Sep) },
     [Sep].
 
-end_of_record --> "\n".
-end_of_record --> "\r\n".
+end_of_record --> "\n".			% Unix files
+end_of_record --> "\r\n".               % DOS files
+end_of_record --> "\r".                 % MacOS files
 end_of_record --> eof.                  % unterminated last record
 
 
@@ -339,31 +374,65 @@ csv_read_file_row(File, Row, Options) :-
         csv_read_stream_row(Stream, Row, Line, RecordOptions),
         close(Stream)).
 
-csv_read_stream_row(Stream, _Row, _Line, _Options) :-
-    at_end_of_stream(Stream),
-    !,
-    fail.
 csv_read_stream_row(Stream, Row, Line, Options) :-
     between(1, infinite, Line),
-    read_row(Stream, Row, Options),
-    (   at_end_of_stream(Stream)            % make reading the last row
-    ->  !                                   % deterministic.
-    ;   true
+    (   csv_read_row(Stream, Row0, Options),
+        Row0 \== end_of_file
+    ->  Row = Row0
+    ;   !,
+        fail
     ).
 
-read_row(Stream, Row, Options) :-
-    read_lines_to_codes(Stream, Codes),
-    phrase(row(Row0, Options), Codes),
+
+%!  csv_read_row(+Stream, -Row, +CompiledOptions) is det.
+%
+%   Read the next CSV record from Stream  and unify the result with Row.
+%   CompiledOptions is created from  options   defined  for csv//2 using
+%   csv_options/2. Row is unified with   `end_of_file` upon reaching the
+%   end of the input.
+
+csv_read_row(Stream, Row, _Record) :-
+    at_end_of_stream(Stream),
+    !,
+    Row = end_of_file.
+csv_read_row(Stream, Row, Record) :-
+    read_lines_to_codes(Stream, Codes, Record, even),
+    phrase(row(Row0, Record), Codes),
     !,
     Row = Row0.
 
-read_lines_to_codes(Stream, Codes) :-
-    read_line_to_codes(Stream, Codes, Tail),
-    (   Tail == []
-    ->  true
-    ;   Tail = []
-    ;   read_lines_to_codes(Stream, Tail)
+read_lines_to_codes(Stream, Codes, Options, QuoteQuantity) :-
+    read_line_to_codes(Stream, Codes0),
+    Codes0 \== end_of_file,
+    (   (   csv_options_ignore_quotes(Options, true)
+        ;   check_quotes(Codes0, QuoteQuantity, even)
+        )
+    ->  Codes = Codes0
+    ;   append(Codes0, [0'\n|Tail], Codes),
+        read_lines_to_codes(Stream, Tail, Options, odd)
     ).
+
+check_quotes([], QuoteQuantity, QuoteQuantity) :-
+    !.
+check_quotes([0'"|T], odd, Result) :-
+    !,
+    check_quotes(T, even, Result).
+check_quotes([0'"|T], even, Result) :-
+    !,
+    check_quotes(T, odd, Result).
+check_quotes([_|T], QuoteQuantity, Result) :-
+    check_quotes(T, QuoteQuantity, Result).
+
+
+%!  csv_options(-Compiled, +Options) is det.
+%
+%   Compiled is the  compiled  representation   of  the  CSV  processing
+%   options as they may be passed into   csv//2,  etc. This predicate is
+%   used in combination with csv_read_row/3 to avoid repeated processing
+%   of the options.
+
+csv_options(Compiled, Options) :-
+    make_csv_options(Options, Compiled, _Ignored).
 
 
                 /*******************************

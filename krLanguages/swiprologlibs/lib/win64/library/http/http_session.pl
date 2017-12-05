@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker, Matt Lilley
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2016, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -60,6 +60,7 @@
 :- use_module(library(socket)).
 :- use_module(library(broadcast)).
 :- use_module(library(lists)).
+:- use_module(library(time)).
 
 :- predicate_options(http_open_session/2, 2, [renew(boolean)]).
 
@@ -70,7 +71,7 @@ management is enabled simply by  loading   this  module.  Details can be
 modified  using  http_set_session_options/1.  By  default,  this  module
 creates a session whenever a request  is   processes  that is inside the
 hierarchy  defined  for   session   handling    (see   path   option  in
-http_set_session_options/1. Automatic creation  of  a   session  can  be
+http_set_session_options/1).  Automatic creation  of  a session  can  be
 stopped    using    the    option    create(noauto).    The    predicate
 http_open_session/2 must be used to  create   a  session  if =noauto= is
 enabled. Sessions can be closed using http_close_session/1.
@@ -111,6 +112,7 @@ session_setting(path(/)).
 session_setting(enabled(true)).
 session_setting(create(auto)).
 session_setting(proxy_enabled(false)).
+session_setting(gc(passive)).
 
 session_option(timeout, integer).
 session_option(cookie, atom).
@@ -119,6 +121,7 @@ session_option(create, oneof([auto,noauto])).
 session_option(route, atom).
 session_option(enabled, boolean).
 session_option(proxy_enabled, boolean).
+session_option(gc, oneof([active,passive])).
 
 %!  http_set_session_options(+Options) is det.
 %
@@ -158,6 +161,12 @@ session_option(proxy_enabled, boolean).
 %           management associates the _originating_ IP address of
 %           the client to the session rather than the _proxy_ IP
 %           address. Default is false.
+%
+%           * gc(+When)
+%           When is one of `active`, which starts a thread that
+%           performs session cleanup at close to the moment of the
+%           timeout or `passive`, which runs session GC when a new
+%           session is created.
 
 http_set_session_options([]).
 http_set_session_options([H|T]) :-
@@ -172,8 +181,15 @@ http_set_session_option(Option) :-
     ;   domain_error(http_session_option, Option)
     ),
     functor(Free, Name, Arity),
-    retractall(session_setting(Free)),
-    assert(session_setting(Option)).
+    (   clause(session_setting(Free), _, Ref)
+    ->  (   Free \== Value
+        ->  asserta(session_setting(Option)),
+            erase(Ref),
+            updated_session_setting(Name, Free, Value)
+        ;   true
+        )
+    ;   asserta(session_setting(Option))
+    ).
 
 %!  http_session_option(?Option) is nondet.
 %
@@ -196,6 +212,11 @@ session_setting(SessionId, Setting) :-
     arg(1, Setting, Value).
 session_setting(_, Setting) :-
     session_setting(Setting).
+
+updated_session_setting(gc, _, passive) :-
+    stop_session_gc_thread, !.
+updated_session_setting(_, _, _).               % broadcast?
+
 
 %!  http_set_session(Setting) is det.
 %!  http_set_session(SessionId, Setting) is det.
@@ -422,24 +443,33 @@ valid_session_id(SessionID, Peer) :-
         fail
     ;   true
     ),
-    set_last_used(SessionID, Now).
+    set_last_used(SessionID, Now, Timeout).
 
 get_last_used(SessionID, Last) :-
     atom(SessionID),
     !,
-    with_mutex(http_session, last_used(SessionID, Last)).
+    once(last_used(SessionID, Last)).
 get_last_used(SessionID, Last) :-
-    with_mutex(http_session,
-               findall(SessionID-Last,
-                       last_used(SessionID, Last),
-                       Pairs)),
-    member(SessionID-Last, Pairs).
+    last_used(SessionID, Last).
 
-set_last_used(SessionID, Now) :-
-    with_mutex(http_session,
-              (   retractall(last_used(SessionID, _)),
-                  assert(last_used(SessionID, Now)))).
+%!  set_last_used(+SessionID, +Now, +TimeOut)
+%
+%   Set the last-used notion for SessionID  from the current time stamp.
+%   The time is rounded down  to  10   second  intervals  to  avoid many
+%   updates and simplify the scheduling of session GC.
 
+set_last_used(SessionID, Now, TimeOut) :-
+    LastUsed is floor(Now/10)*10,
+    (   clause(last_used(SessionID, CurrentLast), _, Ref)
+    ->  (   CurrentLast == LastUsed
+        ->  true
+        ;   asserta(last_used(SessionID, LastUsed)),
+            erase(Ref),
+            schedule_gc(LastUsed, TimeOut)
+        )
+    ;   asserta(last_used(SessionID, LastUsed)),
+        schedule_gc(LastUsed, TimeOut)
+    ).
 
 
                  /*******************************
@@ -597,23 +627,27 @@ in_header_state :-
 
 
 %!  http_gc_sessions is det.
+%!  http_gc_sessions(+TimeOut) is det.
 %
 %   Delete dead sessions. Currently runs session GC if a new session
-%   is opened and the last session GC was more than a minute ago.
+%   is opened and the last session GC was more than a TimeOut ago.
 
 :- dynamic
     last_gc/1.
 
 http_gc_sessions :-
-    (   with_mutex(http_session_gc, need_sesion_gc)
+    start_session_gc_thread,
+    http_gc_sessions(60).
+http_gc_sessions(TimeOut) :-
+    (   with_mutex(http_session_gc, need_sesion_gc(TimeOut))
     ->  do_http_gc_sessions
     ;   true
     ).
 
-need_sesion_gc :-
+need_sesion_gc(TimeOut) :-
     get_time(Now),
     (   last_gc(LastGC),
-        Now-LastGC < 60
+        Now-LastGC < TimeOut
     ->  true
     ;   retractall(last_gc(_)),
         asserta(last_gc(Now)),
@@ -621,16 +655,77 @@ need_sesion_gc :-
     ).
 
 do_http_gc_sessions :-
+    debug(http_session(gc), 'Running HTTP session GC', []),
     get_time(Now),
     (   last_used(SessionID, Last),
-          session_setting(SessionID, timeout(Timeout)),
-          Timeout > 0,
-          Idle is Now - Last,
-          Idle > Timeout,
-            http_close_session(SessionID),
+        session_setting(SessionID, timeout(Timeout)),
+        Timeout > 0,
+        Idle is Now - Last,
+        Idle > Timeout,
+        http_close_session(SessionID, false),
         fail
     ;   true
     ).
+
+%!  start_session_gc_thread is det.
+%!  stop_session_gc_thread is det.
+%
+%   Create/stop a thread that listens for timeout-at timing and wakes up
+%   to run http_gc_sessions/1 shortly after a   session  is scheduled to
+%   timeout.
+
+:- dynamic
+    session_gc_queue/1.
+
+start_session_gc_thread :-
+    session_gc_queue(_),
+    !.
+start_session_gc_thread :-
+    session_setting(gc(active)),
+    !,
+    catch(thread_create(session_gc_loop, _,
+                        [ alias('__http_session_gc'),
+                          at_exit(retractall(session_gc_queue(_)))
+                        ]),
+          error(permission_error(create, thread, _),_),
+          true).
+start_session_gc_thread.
+
+stop_session_gc_thread :-
+    retract(session_gc_queue(Id)),
+    !,
+    thread_send_message(Id, done),
+    thread_join(Id, _).
+stop_session_gc_thread.
+
+session_gc_loop :-
+    thread_self(GcQueue),
+    asserta(session_gc_queue(GcQueue)),
+    repeat,
+    thread_get_message(Message),
+    (   Message == done
+    ->  !
+    ;   schedule(Message),
+        fail
+    ).
+
+schedule(at(Time)) :-
+    current_alarm(At, _, _, _),
+    Time == At,
+    !.
+schedule(at(Time)) :-
+    debug(http_session(gc), 'Schedule GC at ~p', [Time]),
+    alarm_at(Time, http_gc_sessions(10), _,
+             [ remove(true)
+             ]).
+
+schedule_gc(LastUsed, TimeOut) :-
+    nonvar(TimeOut),                            % var(TimeOut) means none
+    session_gc_queue(Queue),
+    !,
+    At is LastUsed+TimeOut+5,                   % give some slack
+    thread_send_message(Queue, at(At)).
+schedule_gc(_, _).
 
 
                  /*******************************

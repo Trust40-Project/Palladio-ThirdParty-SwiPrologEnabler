@@ -103,11 +103,14 @@ http_wrapper(Goal, In, Out, Close, Options) :-
         extend_request(Options, [], _) % return request
     ;   var(ReqError)
     ->  extend_request(Options, Request0, Request1),
-        memberchk(method(Method), Request1),
-        memberchk(path(Location), Request1),
         cgi_open(Out, CGI, cgi_hook, [request(Request1)]),
         cgi_property(CGI, id(Id)),
-        debug(http(request), '[~D] ~w ~w ...', [Id, Method, Location]),
+        (   debugging(http(request))
+        ->  memberchk(method(Method), Request1),
+            memberchk(path(Location), Request1),
+            debug(http(request), "[~D] ~w ~w ...", [Id,Method,Location])
+        ;   true
+        ),
         handler_with_output_to(Goal, Id, Request1, CGI, Error),
         cgi_close(CGI, Request1, State0, Error, Close)
     ;   Id = 0,
@@ -454,19 +457,25 @@ http_current_request(Request) :-
 %   initiating peer.  Currently supports:
 %
 %     - =Fastly-client-ip=
-%     - =X-forwarded-for=
 %     - =X-real-ip=
+%     - =X-forwarded-for=
 %     - Direct connections
+%
+%   @bug The =X-forwarded-for=  header  is   problematic.  According  to
+%   [Wikipedia](https://en.wikipedia.org/wiki/X-Forwarded-For),      the
+%   original   client   is   the    _first_,     while    according   to
+%   [AWS](http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html)
+%   it is the _last_.
 
 http_peer(Request, Peer) :-
     memberchk(fastly_client_ip(Peer), Request), !.
+http_peer(Request, Peer) :-
+    memberchk(x_real_ip(Peer), Request), !.
 http_peer(Request, IP) :-
     memberchk(x_forwarded_for(IP0), Request),
     !,
     atomic_list_concat(Parts, ', ', IP0),
     last(Parts, IP).
-http_peer(Request, Peer) :-
-    memberchk(x_real_ip(Peer), Request), !.
 http_peer(Request, IP) :-
     memberchk(peer(Peer), Request),
     !,

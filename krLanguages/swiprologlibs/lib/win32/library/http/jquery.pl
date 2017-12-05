@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2015, VU University Amsterdam
+    Copyright (c)  2017, VU University Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,12 @@
 
 :- module(jquery, []).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/http_server_files)).
+:- use_module(library(http/http_server_files), []).
 :- use_module(library(settings)).
 :- use_module(library(broadcast)).
 
-:- setting(version, atom, '1.11.3.min',
-           'Version of jquery served by the html resource "jquery"').
+:- setting(version, atom, 'jquery-1.11.3.min.js',
+           'File name for jquery.js, served as HTML resource "jquery"').
 
 /** <module> Provide JQuery
 
@@ -69,14 +69,38 @@ provided. Alternatively, you  can  define   the  html  resource `jquery`
 before loading this file.
 */
 
+jquery_dir('web/js').
+
+global_jquery :-
+    jquery_dir(JQuery),
+    is_absolute_file_name(JQuery).
+
+:- if(global_jquery).
+:- multifile user:file_search_path/2.
+user:file_search_path(js, Dir) :-
+    jquery_dir(Dir).
+:- endif.
+
 register_jquery :-
-    setting(version, Version),
-    atomic_list_concat(['jquery-', Version, '.js'], JQuery),
+    setting(version, JQuery0),
+    backward_compatibility_hack(JQuery0, JQuery),
     html_resource(jquery,
                   [ virtual(true),
                     requires([ js(JQuery)
                              ])
                   ]).
+
+% Older versions of this library used only the jQuery version as setting
+% value. As Debian provides central jQuery   files  and uses a different
+% naming convention, we now use the complete file name. The first clause
+% recognises the old setting.
+
+backward_compatibility_hack(Version, File) :-
+    sub_atom(Version, 0, 1, _, C0),
+    char_type(C0, digit),
+    !,
+    atomic_list_concat(['jquery-', Version, '.js'], File).
+backward_compatibility_hack(File, File).
 
 :- if(\+html_current_resource(jquery)).
 :- initialization register_jquery.

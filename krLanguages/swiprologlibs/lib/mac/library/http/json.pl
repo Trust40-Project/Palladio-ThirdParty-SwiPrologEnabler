@@ -240,9 +240,6 @@ type_term(chars,  Result, chars(Result)).
 %           =chars= would produce ambiguous output and is therefore
 %           not supported.
 %
-%   If json_read/3 encounters end-of-file before any real data it
-%   binds Term to the term @(end_of_file).
-%
 %   @see    json_read_dict/3 to read a JSON term using the version 7
 %           extended data types.
 
@@ -263,8 +260,7 @@ json_value(Stream, Term, Next, Options) :-
     get_code(Stream, C0),
     ws(C0, Stream, C1),
     (   C1 == -1
-    ->  Term = @(end_of_file),
-        Next = -1
+    ->  syntax_error(unexpected_end_of_file, Stream)
     ;   json_term(C1, Stream, Term, Next, Options)
     ).
 
@@ -457,9 +453,10 @@ syntax_error(Message, Stream) :-
     throw(error(syntax_error(json(Message)), Context)).
 
 stream_error_context(Stream, stream(Stream, Line, LinePos, CharNo)) :-
-    character_count(Stream, CharNo),
-    line_position(Stream, LinePos),
-    line_count(Stream, Line).
+    stream_pair(Stream, Read, _),
+    character_count(Read, CharNo),
+    line_position(Read, LinePos),
+    line_count(Read, Line).
 
 
                  /*******************************
@@ -720,7 +717,8 @@ step_indent(State0, State) :-
     set_indent_of_json_write_state(NewIndent, State0, State).
 
 space_if_not_at_left_margin(Stream, State) :-
-    line_position(Stream, LinePos),
+    stream_pair(Stream, _, Write),
+    line_position(Write, LinePos),
     (   LinePos == 0
     ;   json_write_state_indent(State, LinePos)
     ),
@@ -926,7 +924,9 @@ is_json_pair(Options, Name=Value) :-
 %     * false(+FalseTerm)
 %     Default the atom `false`
 %     * value_string_as(+Type)
-%     Type defaults to `string`, producing a packed string object.
+%     Prolog type used for strings used as value.  Default
+%     is =string=.  The alternative is =atom=, producing a
+%     packed string object.
 
 json_read_dict(Stream, Dict) :-
     json_read_dict(Stream, Dict, []).

@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2014-2015, VU University Amsterdam
+    Copyright (c)  2014-2017, VU University Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,8 @@
             pengine_portray_clause/1,   % +Term
 
             pengine_read/1,             % -Term
+            pengine_read_line_to_string/2, % +Stream, -LineAsString
+            pengine_read_line_to_codes/2, % +Stream, -LineAsCodes
 
             pengine_io_predicate/1,     % ?Head
             pengine_bind_io_to_html/1,  % +Module
@@ -60,6 +62,7 @@
 :- use_module(library(pengines)).
 :- use_module(library(option)).
 :- use_module(library(debug)).
+:- use_module(library(error)).
 :- use_module(library(apply)).
 :- use_module(library(settings)).
 :- use_module(library(listing)).
@@ -121,6 +124,8 @@ for using this module with the following code:
 %   Emit Term as <span class=writeln>Term<br></span>.
 
 pengine_writeln(Term) :-
+    pengine_output,
+    !,
     pengine_module(Module),
     send_html(span(class(writeln),
                    [ \term(Term,
@@ -128,20 +133,30 @@ pengine_writeln(Term) :-
                            ]),
                      br([])
                    ])).
+pengine_writeln(Term) :-
+    writeln(Term).
 
 %!  pengine_nl
 %
 %   Emit a <br/> to the pengine.
 
 pengine_nl :-
+    pengine_output,
+    !,
     send_html(br([])).
+pengine_nl :-
+    nl.
 
 %!  pengine_flush_output
 %
 %   No-op.  Pengines do not use output buffering (maybe they should
 %   though).
 
-pengine_flush_output.
+pengine_flush_output :-
+    pengine_output,
+    !.
+pengine_flush_output :-
+    flush_output.
 
 %!  pengine_write_term(+Term, +Options)
 %
@@ -152,9 +167,13 @@ pengine_flush_output.
 %       Specifies the class of the element.  Default is =write=.
 
 pengine_write_term(Term, Options) :-
+    pengine_output,
+    !,
     option(class(Class), Options, write),
     pengine_module(Module),
     send_html(span(class(Class), \term(Term,[module(Module)|Options]))).
+pengine_write_term(Term, Options) :-
+    write_term(Term, Options).
 
 %!  pengine_write(+Term) is det.
 %!  pengine_writeq(+Term) is det.
@@ -174,8 +193,12 @@ pengine_print(Term) :-
     current_prolog_flag(print_write_options, Options),
     pengine_write_term(Term, Options).
 pengine_write_canonical(Term) :-
+    pengine_output,
+    !,
     with_output_to(string(String), write_canonical(Term)),
     send_html(span(class([write, cononical]), String)).
+pengine_write_canonical(Term) :-
+    write_canonical(Term).
 
 %!  pengine_format(+Format) is det.
 %!  pengine_format(+Format, +Args) is det.
@@ -188,9 +211,13 @@ pengine_write_canonical(Term) :-
 pengine_format(Format) :-
     pengine_format(Format, []).
 pengine_format(Format, Args) :-
+    pengine_output,
+    !,
     format(string(String), Format, Args),
     split_string(String, "\n", "", Lines),
     send_html(\lines(Lines, format)).
+pengine_format(Format, Args) :-
+    format(Format, Args).
 
 
                  /*******************************
@@ -213,9 +240,13 @@ pengine_listing(Spec) :-
     send_html(pre(class(listing), Pre)).
 
 pengine_portray_clause(Term) :-
+    pengine_output,
+    !,
     with_output_to(string(String), portray_clause(Term)),
     split_string(String, "", "\n", [Pre]),
     send_html(pre(class(listing), Pre)).
+pengine_portray_clause(Term) :-
+    portray_clause(Term).
 
 
                  /*******************************
@@ -242,17 +273,26 @@ user:message_hook(Term, Kind, Lines) :-
     ),
     pengine_output(message(Term, Kind, HTMlString, Src)).
 
-message_lines([]) --> [].
+message_lines([]) -->
+    !.
 message_lines([nl|T]) -->
     !,
     html('\n'),                     % we are in a <pre> environment
     message_lines(T).
 message_lines([flush]) -->
-    [].
-message_lines([H|T]) -->
+    !.
+message_lines([ansi(Attributes, Fmt, Args)|T]) -->
     !,
+    { foldl(style, Attributes, Fmt-Args, HTML) },
+    html(HTML),
+    message_lines(T).
+message_lines([H|T]) -->
     html(H),
     message_lines(T).
+
+style(bold, Content, b(Content)).
+style(fg(Color), Content, span(style('color:'+Color), Content)).
+style(_, Content, Content).
 
 
                  /*******************************
@@ -260,8 +300,30 @@ message_lines([H|T]) -->
                  *******************************/
 
 pengine_read(Term) :-
+    pengine_input,
+    !,
     prompt(Prompt, Prompt),
     pengine_input(Prompt, Term).
+pengine_read(Term) :-
+    read(Term).
+
+pengine_read_line_to_string(From, String) :-
+    pengine_input,
+    !,
+    must_be(oneof([current_input,user_input]), From),
+    (   prompt(Prompt, Prompt),
+        Prompt \== ''
+    ->  true
+    ;   Prompt = 'line> '
+    ),
+    pengine_input(_{type: console, prompt:Prompt}, StringNL),
+    string_concat(String, "\n", StringNL).
+pengine_read_line_to_string(From, String) :-
+    read_line_to_string(From, String).
+
+pengine_read_line_to_codes(From, Codes) :-
+    pengine_read_line_to_string(From, String),
+    string_codes(String, Codes).
 
 
                  /*******************************
@@ -330,7 +392,7 @@ pengine_module(user).
 %           Array of strings representing HTML-ified residual goals.
 
 :- multifile
-    pengines:event_to_json/4.
+    pengines:event_to_json/3.
 
 %!  pengines:event_to_json(+PrologEvent, -JSONEvent, +Format, +VarNames)
 %
@@ -347,17 +409,17 @@ pengine_module(user).
 %       If the message is related to a source location, indicate the
 %       file and line and, if available, the character location.
 
-pengines:event_to_json(success(ID, Answers0, Time, More), JSON,
-                       'json-s', VarNames) :-
+pengines:event_to_json(success(ID, Answers0, Projection, Time, More), JSON,
+                       'json-s') :-
     !,
     JSON0 = json{event:success, id:ID, time:Time, data:Answers, more:More},
     maplist(answer_to_json_strings(ID), Answers0, Answers),
-    add_projection(VarNames, JSON0, JSON).
-pengines:event_to_json(output(ID, Term), JSON, 'json-s', _) :-
+    add_projection(Projection, JSON0, JSON).
+pengines:event_to_json(output(ID, Term), JSON, 'json-s') :-
     !,
     map_output(ID, Term, JSON).
 
-add_projection(-, JSON, JSON) :- !.
+add_projection([], JSON, JSON) :- !.
 add_projection(VarNames, JSON0, JSON0.put(projection, VarNames)).
 
 
@@ -390,13 +452,13 @@ term_string_value(Pengine, N-V, N-A) :-
 %   '$residuals'(List).  Such  a  variable  is    removed  from  the
 %   projection and added to residual goals.
 
-pengines:event_to_json(success(ID, Answers0, Time, More),
-                       JSON, 'json-html', VarNames) :-
+pengines:event_to_json(success(ID, Answers0, Projection, Time, More),
+                       JSON, 'json-html') :-
     !,
     JSON0 = json{event:success, id:ID, time:Time, data:Answers, more:More},
     maplist(map_answer(ID), Answers0, ResVars, Answers),
-    add_projection(VarNames, ResVars, JSON0, JSON).
-pengines:event_to_json(output(ID, Term), JSON, 'json-html', _) :-
+    add_projection(Projection, ResVars, JSON0, JSON).
+pengines:event_to_json(output(ID, Term), JSON, 'json-html') :-
     !,
     map_output(ID, Term, JSON).
 
@@ -549,6 +611,7 @@ sandbox:safe_primitive(pengines_io:pengine_listing(_)).
 sandbox:safe_primitive(pengines_io:pengine_nl).
 sandbox:safe_primitive(pengines_io:pengine_print(_)).
 sandbox:safe_primitive(pengines_io:pengine_write(_)).
+sandbox:safe_primitive(pengines_io:pengine_read(_)).
 sandbox:safe_primitive(pengines_io:pengine_write_canonical(_)).
 sandbox:safe_primitive(pengines_io:pengine_write_term(_,_)).
 sandbox:safe_primitive(pengines_io:pengine_writeln(_)).
@@ -577,6 +640,8 @@ pengine_io_predicate(flush_output).
 pengine_io_predicate(format(_)).
 pengine_io_predicate(format(_,_)).
 pengine_io_predicate(read(_)).
+pengine_io_predicate(read_line_to_string(_,_)).
+pengine_io_predicate(read_line_to_codes(_,_)).
 pengine_io_predicate(write_term(_,_)).
 pengine_io_predicate(write(_)).
 pengine_io_predicate(writeq(_)).
@@ -604,11 +669,13 @@ pengine_io_goal_expansion(_, _).
                  *      REBIND PENGINE I/O      *
                  *******************************/
 
-:- if(current_predicate(open_prolog_stream/4)).
 :- public
     stream_write/2,
     stream_read/2,
     stream_close/1.
+
+:- thread_local
+    pengine_io/2.
 
 stream_write(_Stream, Out) :-
     send_html(pre(class(console), Out)).
@@ -635,16 +702,28 @@ pengine_bind_user_streams :-
     set_stream(Err, alias(user_error)),
     set_stream(In,  alias(current_input)),
     set_stream(Out, alias(current_output)),
-    thread_at_exit(close_io(In, Out)).
+    assertz(pengine_io(In, Out)),
+    thread_at_exit(close_io).
 
-close_io(In, Out) :-
+close_io :-
+    retract(pengine_io(In, Out)),
+    !,
     close(In, [force(true)]),
     close(Out, [force(true)]).
-:- else.
+close_io.
 
-pengine_bind_user_streams.
+%!  pengine_output is semidet.
+%!  pengine_input is semidet.
+%
+%   True when output (input) is redirected to a pengine.
 
-:- endif.
+pengine_output :-
+    current_output(Out),
+    pengine_io(_, Out).
+
+pengine_input :-
+    current_input(In),
+    pengine_io(In, _).
 
 
 %!  pengine_bind_io_to_html(+Module)

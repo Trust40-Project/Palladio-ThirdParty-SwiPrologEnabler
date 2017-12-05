@@ -244,9 +244,11 @@ create_server(Goal, Address, Options) :-
     scheme(Scheme, Options),
     address_port(Address, Port),
     make_addr_atom(Scheme, Port, Alias),
-    thread_create(accept_server(Goal, Options), _,
+    thread_self(Initiator),
+    thread_create(accept_server(Goal, Initiator, Options), _,
                   [ alias(Alias)
                   ]),
+    thread_get_message(server_started),
     assert(current_server(Port, Goal, Alias, Queue, Scheme, StartTime)).
 
 scheme(Scheme, Options) :-
@@ -356,18 +358,19 @@ http_current_worker(Port, ThreadID) :-
     queue_worker(Queue, ThreadID).
 
 
-%!  accept_server(:Goal, +Options)
+%!  accept_server(:Goal, +Initiator, +Options)
 %
 %   The goal of a small server-thread accepting new requests and
 %   posting them to the queue of workers.
 
-accept_server(Goal, Options) :-
-    catch(accept_server2(Goal, Options), http_stop, true),
+accept_server(Goal, Initiator, Options) :-
+    catch(accept_server2(Goal, Initiator, Options), http_stop, true),
     thread_self(Thread),
     retract(current_server(_Port, _, Thread, _Queue, _Scheme, _StartTime)),
     close_server_socket(Options).
 
-accept_server2(Goal, Options) :-
+accept_server2(Goal, Initiator, Options) :-
+    thread_send_message(Initiator, server_started),
     repeat,
       (   catch(accept_server3(Goal, Options), E, true)
       ->  (   var(E)
@@ -569,7 +572,8 @@ http_worker(Options) :-
           thread_detach(Self),
           (   Sender == idle
           ->  true
-          ;   thread_send_message(Sender, quitted(Self))
+          ;   retract(queue_worker(Queue, Self)),
+              thread_send_message(Sender, quitted(Self))
           )
       ;   open_client(Message, Queue, Goal, In, Out,
                       Options, ClientOptions),
@@ -665,8 +669,9 @@ check_keep_alive_connection(In, TMO, Peer, In, Out) :-
 
 done_worker :-
     thread_self(Self),
-    thread_property(Self, status(Status)),
     retract(queue_worker(Queue, Self)),
+    thread_property(Self, status(Status)),
+    !,
     (   catch(recreate_worker(Status, Queue), _, fail)
     ->  thread_detach(Self),
         print_message(informational,
@@ -675,6 +680,12 @@ done_worker :-
         print_message(Level,
                       httpd_stopped_worker(Self, Status))
     ).
+done_worker :-                                  % received quit(Sender)
+    thread_self(Self),
+    thread_property(Self, status(Status)),
+    done_status_message_level(Status, Level),
+    print_message(Level,
+                  httpd_stopped_worker(Self, Status)).
 
 done_status_message_level(true, silent) :- !.
 done_status_message_level(exception('$aborted'), silent) :- !.
@@ -688,7 +699,7 @@ done_status_message_level(_, informational).
 %   we run out of workers. If  we  are   aborted  due  to a halt/0 call,
 %   thread_create/3 will raise a permission error.
 %
-%   The first option deals with the possibility that we cannot write the
+%   The first clause deals with the possibility  that we cannot write to
 %   `user_error`. This is possible when Prolog   is started as a service
 %   using some service managers. Would be  nice   if  we  could write an
 %   error, but where?

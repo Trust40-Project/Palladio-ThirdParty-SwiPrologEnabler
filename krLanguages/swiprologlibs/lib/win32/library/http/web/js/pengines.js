@@ -481,8 +481,6 @@ function unregisterPengine(pengine) {
   var index = Pengine.alive.indexOf(pengine);
   if ( index > -1 )
     Pengine.alive.splice(index, 1);
-  else
-    console.log("Could not unregister", Pengine.alive, pengine);
 
   pengine.died = true;
 }
@@ -664,6 +662,6 @@ Pengine.destroy_all = function(async) {
   }
 };
 
-window.onunload = function() {
+$(window).on("beforeunload", function() {
   Pengine.destroy_all();
-};
+});

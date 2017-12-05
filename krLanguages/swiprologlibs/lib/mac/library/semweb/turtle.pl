@@ -254,7 +254,8 @@ process_turtle(_Parser, Stream, _OnObject, _Graph, _Options) :-
     at_end_of_stream(Stream),
     !.
 process_turtle(Parser, Stream, OnObject, Graph, Options) :-
-    line_count(Stream, LineNo),
+    stream_pair(Stream, In, _),
+    line_count(In, LineNo),
     turtle_parse(Parser, Triples,
                  [ parse(statement)
                  | Options
@@ -367,7 +368,7 @@ name_uri(Name, BaseURI) :-
 %     Use Turtle's long string syntax. Embeded newlines and
 %     single or double quotes are are emitted verbatim.
 %     * false
-%     Use Turtle's shotr string syntax.
+%     Use Turtle's short string syntax.
 %     * Var
 %     If WriteLong is unbound, this predicate uses long syntax
 %     if newlines appear in the string and short otherwise.  WriteLong

@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2009-2014, University of Amsterdam
+    Copyright (c)  2009-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -362,7 +362,7 @@ tw_trig_graphs([H|T], Stream, State0, State) :-
     set_graph_of_tw_state(H, State0, State1),
     nl(Stream),
     tw_resource(H, State1, Stream),
-    format(Stream, ' = {~n', []),
+    format(Stream, ' {~n', []),
     tw_graph(State1, Stream),
     format(Stream, '~N}~n', []),
     set_bnode_id_of_tw_state(0, State1, State2),
@@ -469,7 +469,8 @@ graph_prefixes(State0, Graph, Prefixes) :-
     rdf_graph_prefixes(Graph, Prefixes,
                        [ filter(turtle_prefix(OnlyKnown)),
                          expand(Expand),
-                         min_count(2)
+                         min_count(2),
+                         get_prefix(turtle:iri_turtle_prefix)
                        ]).
 
 prefix_map(State, Prefixes, PrefixMap) :-
@@ -596,7 +597,7 @@ propose_abbrev(_, Len, URI, Abbrev) :-
     atomic_list_concat(Use, -, Abbrev).
 
 abbrev_part(X) :-
-    turtle:turtle_pn_local(X),
+    xml_name(X),
     \+ well_known_ns(X, _),
     \+ well_known_extension(X).
 
@@ -1341,7 +1342,8 @@ tw_resource(Resource, State, Out) :-
     ;   Name == ''
     ),
     !,
-    format(Out, '~w:~w', [Prefix, Name]).
+    format(Out, '~w:', [Prefix]),
+    turtle:turtle_write_pn_local(Out, Name).
 tw_resource(Resource, State, Out) :-
     tw_relative_uri(Resource, State, Out).
 
@@ -1523,12 +1525,15 @@ prolog:message(rdf(saved(File, Time, SavedSubjects, SavedTriples,
     rdf_output(File),
     [ ' (~3f sec)'-[Time] ].
 
-rdf_output(Stream) -->
-    { is_stream(Stream),
+rdf_output(StreamSpec) -->
+    { (   StreamSpec = stream(Stream)
+      ->  true
+      ;   Stream = StreamSpec
+      ),
+      is_stream(Stream),
       stream_property(Stream, file_name(File))
     },
     !,
     [ '~p'-[File] ].
 rdf_output(File) -->
     [ '~p'-[File] ].
-

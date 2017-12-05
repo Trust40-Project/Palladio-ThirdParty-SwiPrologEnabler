@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2002-2016, University of Amsterdam
+    Copyright (c)  2002-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -80,8 +80,8 @@
 
 :- multifile
     http:status_page/3,             % +Status, +Context, -HTML
-    http:post_data_hook/3.          % +Data, +Out, +HdrExtra
-
+    http:post_data_hook/3,          % +Data, +Out, +HdrExtra
+    http:mime_type_encoding/2.       % +MimeType, -Encoding
 
 % see http_update_transfer/4.
 
@@ -122,8 +122,11 @@ http_read_request(In, Request) :-
             ;   true
             )
         )
-    ;   message_to_string(E, Msg),
-        debug(http(request), 'Exception reading 1st line: ~s', [Msg]),
+    ;   (   debugging(http(request))
+        ->  message_to_string(E, Msg),
+            debug(http(request), "Exception reading 1st line: ~s", [Msg])
+        ;   true
+        ),
         Request = end_of_file
     ).
 
@@ -673,16 +676,32 @@ http_update_encoding(Header, Encoding, Header) :-
         ;   sub_atom(Type, _, _, _, 'utf-8')
         )
     ->  Encoding = utf8
+    ;   http:mime_type_encoding(Type, Encoding)
+    ->  true
     ;   mime_type_encoding(Type, Encoding)
     ).
 http_update_encoding(Header, octet, Header).
 
 %!  mime_type_encoding(+MimeType, -Encoding) is semidet.
 %
-%   Encoding is the (default) character encoding for MimeType.
+%   Encoding is the (default) character encoding for MimeType. Hooked by
+%   http:mime_type_encoding/2.
 
-mime_type_encoding('application/json', utf8).
-mime_type_encoding('application/jsonrequest', utf8).
+mime_type_encoding('application/json',         utf8).
+mime_type_encoding('application/jsonrequest',  utf8).
+mime_type_encoding('application/x-prolog',     utf8).
+mime_type_encoding('application/n-quads',      utf8).
+mime_type_encoding('application/n-triples',    utf8).
+mime_type_encoding('application/sparql-query', utf8).
+mime_type_encoding('application/trig',         utf8).
+
+%!  http:mime_type_encoding(+MimeType, -Encoding) is semidet.
+%
+%   Encoding is the (default) character encoding   for MimeType. This is
+%   used for setting the encoding for HTTP  replies after the user calls
+%   format('Content-type: <MIME type>~n'). This hook   is  called before
+%   mime_type_encoding/2. This default  defines  `utf8`   for  JSON  and
+%   Turtle derived =|application/|= MIME types.
 
 
 %!  http_update_connection(+CGIHeader, +Request, -Connection, -Header)

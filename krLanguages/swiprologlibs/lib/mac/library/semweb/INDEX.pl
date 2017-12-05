@@ -40,6 +40,7 @@ index((rdf_canonical_literal), 2, rdf11, rdf11).
 index((rdf_lexical_form), 2, rdf11, rdf11).
 index((rdf_default_graph), 1, rdf11, rdf11).
 index((rdf_default_graph), 2, rdf11, rdf11).
+index((rdf_estimate_complexity), 4, rdf11, rdf11).
 index((rdf_assert_list), 2, rdf11, rdf11).
 index((rdf_assert_list), 3, rdf11, rdf11).
 index((rdf_last), 2, rdf11, rdf11).
@@ -50,6 +51,7 @@ index((rdf_member), 2, rdf11, rdf11).
 index((rdf_nextto), 2, rdf11, rdf11).
 index((rdf_nextto), 3, rdf11, rdf11).
 index((rdf_nth0), 3, rdf11, rdf11).
+index((rdf_nth1), 3, rdf11, rdf11).
 index((rdf_retract_list), 1, rdf11, rdf11).
 index((rdf_alt), 3, rdf11_containers, rdf11_containers).
 index((rdf_assert_alt), 3, rdf11_containers, rdf11_containers).

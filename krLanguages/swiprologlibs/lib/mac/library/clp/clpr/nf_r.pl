@@ -77,6 +77,7 @@
 	    add_linear_11/3,
 	    normalize_scalar/2
 	]).
+:- use_module('../clpqr/highlight', []).
 
 goal_expansion(geler(X,Y),geler(clpr,X,Y)).
 
@@ -1185,3 +1186,13 @@ integerp(X) :-
 integerp(X,I) :-
 	floor(X)=:=X,
 	I is integer(X).
+
+		 /*******************************
+		 *	       SANDBOX		*
+		 *******************************/
+:- multifile
+	sandbox:safe_primitive/1.
+
+sandbox:safe_primitive(nf_r:{_}).
+sandbox:safe_primitive(nf_r:entailed(_)).
+

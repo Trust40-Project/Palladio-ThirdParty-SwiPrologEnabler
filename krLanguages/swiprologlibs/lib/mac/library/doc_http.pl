@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -34,7 +34,8 @@
 */
 
 :- module(pldoc_http,
-          [ doc_server/1,               % ?Port
+          [ doc_enable/1,               % +Boolean
+            doc_server/1,               % ?Port
             doc_server/2,               % ?Port, +Options
             doc_browser/0,
             doc_browser/1               % +What
@@ -76,14 +77,28 @@ _after_ library(pldoc) has been loaded.
 */
 
 :- dynamic
-    doc_server_port/1.
+    doc_server_port/1,
+    doc_enabled/0.
 
-http:location(pldoc, root(.), []).
+http:location(pldoc, root(pldoc), []).
 http:location(pldoc_man, pldoc(refman), []).
 http:location(pldoc_pkg, pldoc(package), []).
 http:location(pldoc_resource, Path, []) :-
     http_location_by_id(pldoc_resource, Path).
 
+%!  doc_enable(+Boolean)
+%
+%   Actually activate the PlDoc server. Merely   loading the server does
+%   not do so to avoid incidental loading   in a user HTTP server making
+%   the documentation available.
+
+doc_enable(true) :-
+    (   doc_enabled
+    ->  true
+    ;   assertz(doc_enabled)
+    ).
+doc_enable(false) :-
+    retractall(doc_enabled).
 
 %!  doc_server(?Port) is det.
 %!  doc_server(?Port, +Options) is det.
@@ -113,8 +128,7 @@ http:location(pldoc_resource, Path, []) :-
 %   ==
 %   doc_server(Port) :-
 %           doc_server(Port,
-%                      [ workers(1),
-%                        allow(localhost)
+%                      [ allow(localhost)
 %                      ]).
 %   ==
 %
@@ -127,17 +141,18 @@ doc_server(Port) :-
                ]).
 
 doc_server(Port, _) :-
+    doc_enable(true),
     catch(doc_current_server(Port), _, fail),
     !.
 doc_server(Port, Options) :-
+    doc_enable(true),
     prepare_editor,
     host_access_options(Options, ServerOptions),
     merge_options(ServerOptions,
                   [ port(Port)
                   ], HTTPOptions),
     http_server(http_dispatch, HTTPOptions),
-    assertz(doc_server_port(Port)),
-    print_message(informational, pldoc(server_started(Port))).
+    assertz(doc_server_port(Port)).
 
 %!  doc_current_server(-Port) is det.
 %
@@ -203,7 +218,7 @@ browser_url(Spec, URL) :-
     ->  format(string(S), '~q/~w', [Name, Arity])
     ;   format(string(S), '~q:~q/~w', [M, Name, Arity])
     ),
-    http_link_to_id(doc_object, [object=S], URL).
+    http_link_to_id(pldoc_object, [object=S], URL).
 
 %!  prepare_editor
 %
@@ -222,7 +237,10 @@ prepare_editor.
                  *******************************/
 
 :- http_handler(pldoc(.),          pldoc_root,
-                [prefix, authentication(pldoc(read))]).
+                [ prefix,
+                  authentication(pldoc(read)),
+                  condition(doc_enabled)
+                ]).
 :- http_handler(pldoc('index.html'), pldoc_index,   []).
 :- http_handler(pldoc(file),       pldoc_file,     []).
 :- http_handler(pldoc(place),      go_place,       []).
@@ -770,17 +788,3 @@ param(format_comments,
         default(true),
         description('If true, use PlDoc for rendering structured comments')
       ]).
-
-
-                 /*******************************
-                 *           MESSAGES           *
-                 *******************************/
-
-:- multifile
-    prolog:message/3.
-
-prolog:message(pldoc(server_started(Port))) -->
-    { http_location_by_id(pldoc_root, Root) },
-    [ 'Started Prolog Documentation server at port ~w'-[Port], nl,
-      'You may access the server at http://localhost:~w~w'-[Port, Root]
-    ].

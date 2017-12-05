@@ -105,7 +105,7 @@ read_rdfa(Input, Triples, Options) :-
         open_input(Input, In, NewOptions, Close, Options),
         read_dom(In, DOM, Options),
         close_input(Close)),
-    merge_options(NewOptions, Options, RDFaOptions),
+    merge_options(Options, NewOptions, RDFaOptions),
     xml_rdfa(DOM, Triples, RDFaOptions).
 
 open_input(Input, In, NewOptions, Close, Options) :-
@@ -168,6 +168,7 @@ to_uri(URI0, URI) :-
 to_uri2(URI0, Base) :-
     uri_components(URI0, Components),
     uri_data(scheme, Components, Scheme),
+    ground(Scheme),
     http_scheme(Scheme),
     !,
     uri_data(fragment, Components, _, Components2),

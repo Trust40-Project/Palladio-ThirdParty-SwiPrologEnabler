@@ -74,8 +74,9 @@
 	    add_linear_11/3,
 	    normalize_scalar/2
 	]).
+:- use_module('../clpqr/highlight', []).
 
-goal_expansion(geler(X,Y),geler(clpq,X,Y)).
+:- meta_predicate wait_linear(?, ?, 0).
 
 % -------------------------------------------------------------------------
 
@@ -208,7 +209,7 @@ submit_eq_b(v(_,[X^P])) :-
 	!,
 	X = 0.
 % case b2: non-linear is invertible: NL(X) = 0 => X - inv(NL)(0) = 0
-submit_eq_b(v(_,[NL^1])) :-	
+submit_eq_b(v(_,[NL^1])) :-
 	nonvar(NL),
 	nl_invertible(NL,X,0,Inv),
 	!,
@@ -216,9 +217,9 @@ submit_eq_b(v(_,[NL^1])) :-
 	nf_add(X,S,New),
 	submit_eq(New).
 % case b4: A is non-linear and not invertible => submit equality to geler
-submit_eq_b(Term) :-	
+submit_eq_b(Term) :-
 	term_variables(Term,Vs),
-	geler(Vs,nf_q:resubmit_eq([Term])).
+	geler(clpq,Vs,resubmit_eq([Term])).
 
 % submit_eq_c(A,B,Rest)
 %
@@ -245,7 +246,7 @@ submit_eq_c(A,B,Rest) :-	% c2
 submit_eq_c(A,B,Rest) :-
 	Norm = [A,B|Rest],
 	term_variables(Norm,Vs),
-	geler(Vs,nf_q:resubmit_eq(Norm)).
+	geler(clpq,Vs,resubmit_eq(Norm)).
 
 % submit_eq_c1(Rest,B,K)
 %
@@ -292,7 +293,7 @@ submit_eq_c1(Rest,B,I) :-
 submit_eq_c1(Rest,B,I) :-
 	Norm = [v(I,[]),B|Rest],
 	term_variables(Norm,Vs),
-	geler(Vs,nf_q:resubmit_eq(Norm)).
+	geler(clpq,Vs,resubmit_eq(Norm)).
 
 % -----------------------------------------------------------------------
 
@@ -333,7 +334,7 @@ submit_lt_b([X^1],K) :-
 % non-linear => geler
 submit_lt_b(P,K) :-
 	term_variables(P,Vs),
-	geler(Vs,nf_q:resubmit_lt([v(K,P)])).
+	geler(clpq,Vs,resubmit_lt([v(K,P)])).
 
 % submit_lt_c(Bs,A,B)
 %
@@ -352,7 +353,7 @@ submit_lt_c(Rest,A,B) :-
 	(   linear(Norm)
 	->  'solve_<'(Norm)
 	;   term_variables(Norm,Vs),
-	    geler(Vs,nf_q:resubmit_lt(Norm))
+	    geler(clpq,Vs,resubmit_lt(Norm))
 	).
 
 % submit_le(Nf)
@@ -384,7 +385,7 @@ submit_le_b([],I) :-
 	I =< 0.
 % cX^1 =< 0: if c < 0 then X >= 0, else X =< 0
 submit_le_b([X^1],K) :-
-  	var(X),
+	var(X),
 	!,
 	(   K > 0
 	->  ineq_one_n_p_0(X)	% X is non-strictly negative
@@ -393,7 +394,7 @@ submit_le_b([X^1],K) :-
 %  cX^P =< 0 => geler
 submit_le_b(P,K) :-
 	term_variables(P,Vs),
-	geler(Vs,nf_q:resubmit_le([v(K,P)])).
+	geler(clpq,Vs,resubmit_le([v(K,P)])).
 
 % submit_le_c(Bs,A,B)
 %
@@ -412,7 +413,7 @@ submit_le_c(Rest,A,B) :-
 	(   linear(Norm)
 	->  'solve_=<'(Norm)
 	;   term_variables(Norm,Vs),
-	    geler(Vs,nf_q:resubmit_le(Norm))
+	    geler(clpq,Vs,resubmit_le(Norm))
 	).
 
 % submit_ne(Nf)
@@ -426,7 +427,7 @@ submit_ne(Norm1) :-
 	;   linear(Norm1)
 	->  'solve_=\\='(Norm1)
 	;   term_variables(Norm1,Vs),
-	    geler(Vs,nf_q:resubmit_ne(Norm1))
+	    geler(clpq,Vs,resubmit_ne(Norm1))
 	).
 
 % linear(A)
@@ -451,16 +452,15 @@ linear_ps([V^1]) :- var(V).	% excludes sin(_), ...
 % Goal delays until Term gets linear.
 % At this time, Var will be bound to the normalform of Term.
 %
-:- meta_predicate wait_linear( ?, ?, :).
-%
+
 wait_linear(Term,Var,Goal) :-
 	nf(Term,Nf),
 	(   linear(Nf)
 	->  Var = Nf,
 	    call(Goal)
 	;   term_variables(Nf,Vars),
-	    geler(Vars,nf_q:wait_linear_retry(Nf,Var,Goal))
- 	).
+	    geler(clpq,Vars,wait_linear_retry(Nf,Var,Goal))
+	).
 %
 % geler clients
 %
@@ -482,8 +482,8 @@ wait_linear_retry(Nf0,Var,Goal) :-
 	->  Var = Nf,
 	    call(Goal)
 	;   term_variables(Nf,Vars),
-	    geler(Vars,nf_q:wait_linear_retry(Nf,Var,Goal))
- 	).
+	    geler(clpq,Vars,wait_linear_retry(Nf,Var,Goal))
+	).
 % -----------------------------------------------------------------------
 
 % nl_invertible(F,X,Y,Res)
@@ -700,7 +700,7 @@ nf_mul_log(1,[A|As],As,Lb,B,R) :-
 	nf_mul_factor_log(Lb,B,[],A,R).
 nf_mul_log(2,[A1,A2|As],As,Lb,B,R) :-
 	!,
- 	nf_mul_factor_log(Lb,B,[],A1,A1b),
+	nf_mul_factor_log(Lb,B,[],A1,A1b),
 	nf_mul_factor_log(Lb,B,[],A2,A2b),
 	nf_add(A1b,A2b,R).
 nf_mul_log(N,A0,A2,Lb,B,R) :-
@@ -851,12 +851,12 @@ nf_power(N,Sum,Norm) :-
 	compare(Rel,N,0),
 	(   Rel = (<)
 	->  Pn is -N,
-      	    % nf_power_pos(Pn,Sum,Inorm),
+	    % nf_power_pos(Pn,Sum,Inorm),
 	    binom(Sum,Pn,Inorm),
 	    nf_div(Inorm,[v(1,[])],Norm)
 	;   Rel = (>)
 	->  % nf_power_pos(N,Sum,Norm)
-      	    binom(Sum,N,Norm)
+	    binom(Sum,N,Norm)
 	;   Rel = (=)
 	->  % 0^0 is indeterminate but we say 1
 	    Norm = [v(1,[])]
@@ -1043,9 +1043,9 @@ fn2t(v(K,P),Term,Op) :-
 	->  Kf is -K,
 	    Term = Kf*Pt,
 	    Op = -
- 	;   Term = K*Pt,
+	;   Term = K*Pt,
 	    Op = +
-  	),
+	),
 	p2term(P,Pt).
 
 % transforms the P part in v(_,P) into a readable term
@@ -1072,7 +1072,7 @@ pe2term(X,Term) :-
 	Term = X.
 pe2term(X,Term) :-
 	nonvar(X),
-	X =.. [F|Args],  	
+	X =.. [F|Args],
 	pe2term_args(Args,Argst),
 	Term =.. [F|Argst].
 
@@ -1080,7 +1080,7 @@ pe2term_args([],[]).
 pe2term_args([A|As],[T|Ts]) :-
 	nf2term(A,T),
 	pe2term_args(As,Ts).
-	
+
 % transg(Goal,[OutList|OutListTail],OutListTail)
 %
 % puts the equalities and inequalities that are implied by the elements in Goal
@@ -1117,3 +1117,12 @@ transg(wait_linear_retry(Nf,Res,Goal)) -->
 	    nf2term(Nf,Term)
 	},
 	[clpq:{Term=Res},Goal].
+
+		 /*******************************
+		 *	       SANDBOX		*
+		 *******************************/
+:- multifile
+	sandbox:safe_primitive/1.
+
+sandbox:safe_primitive(nf_q:{_}).
+sandbox:safe_primitive(nf_q:entailed(_)).

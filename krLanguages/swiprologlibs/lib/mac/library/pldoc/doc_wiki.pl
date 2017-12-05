@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -52,6 +52,7 @@
 :- use_module(library(option)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
+:- use_module(library(dcg/basics)).
 
 
 /** <module> PlDoc wiki parser
@@ -757,6 +758,12 @@ structure_term(h4(Att, Args), h4(Att), [Args]) :- !.
 structure_term(hr(Att), hr(Att), []) :- !.
 structure_term(p(Args), p, [Args]) :- !.
 structure_term(Term, Functor, Args) :-
+    structure_term_any(Term, Functor, Args).
+
+structure_term(Term) :-
+    structure_term_any(Term, _Functor, _Args).
+
+structure_term_any(Term, Functor, Args) :-
     functor(Term, Functor, 1),
     structure_tag(Functor),
     !,
@@ -773,6 +780,7 @@ structure_tag(tr).
 structure_tag(td).
 structure_tag(blockquote).
 structure_tag(center).
+
 
 %!  verbatim_term(?Term) is det
 %
@@ -846,7 +854,7 @@ wiki_faces_int([Before,EmphTerm|T], ArgNames, Options) -->
 wiki_faces_int([H|T], ArgNames, Options) -->
     wiki_face_simple(H, ArgNames, Options),
     !,
-    wiki_faces(T, ArgNames, Options).
+    wiki_faces_int(T, ArgNames, Options).
 
 next_level(Options0, Options) -->
     {   succ(NewDepth, Options0.depth)
@@ -880,13 +888,13 @@ wiki_face(var(Arg), ArgNames, _) -->
     },
     !.
 wiki_face(b(Bold), ArgNames, Options) -->
-    [*,'|'], next_level(Options, NOptions),
-    wiki_faces_int(Bold, ArgNames, NOptions), ['|',*],
-    !.
+    [*,'|'], string(Tokens), ['|',*],
+    !,
+    { phrase(wiki_faces(Bold, ArgNames, Options), Tokens) }.
 wiki_face(i(Italic), ArgNames, Options) -->
-    ['_','|'], next_level(Options, NOptions),
-    wiki_faces_int(Italic, ArgNames, NOptions), ['|','_'],
-    !.
+    ['_','|'], string(Tokens), ['|','_'],
+    !,
+    { phrase(wiki_faces(Italic, ArgNames, Options), Tokens) }.
 wiki_face(code(Code), _, _) -->
     [=], eq_code_words(Words), [=],
     !,
@@ -908,6 +916,10 @@ wiki_face(Face, _, _) -->
       term_face(Text, Term, Vars, Face)
     },
     !.
+wiki_face(br([]), _, _) -->
+    [<,w(br),>,'\n'], !.
+wiki_face(br([]), _, _) -->
+    [<,w(br),/,>,'\n'], !.
         % Below this, we only do links.
 wiki_face(_, _, Options) -->
     { Options.get(link) == false,
@@ -1090,6 +1102,7 @@ emphasis_before(Before) -->
     [Before],
     { emphasis_start_sep(Before) }.
 
+emphasis_start_sep('\n').
 emphasis_start_sep(' ').
 emphasis_start_sep('<').
 emphasis_start_sep('{').
@@ -1112,12 +1125,13 @@ emphasis_end(Which), [After] -->
     emphasis(Which),
     [ After ],
     !,
-    { After \= w(_) }.
+    { emphasis_close_sep(After) -> true }.
 emphasis_end(Which) -->
     emphasis(Which).
 
 % these characters should not be before a closing * or _.
 
+emphasis_after_sep('\n').
 emphasis_after_sep(' ').
 emphasis_after_sep('(').
 emphasis_after_sep('[').
@@ -1126,6 +1140,20 @@ emphasis_after_sep('=').
 emphasis_after_sep('+').
 emphasis_after_sep('\\').
 emphasis_after_sep('@').
+
+emphasis_close_sep('\n').                       % white
+emphasis_close_sep(' ').                        % white
+emphasis_close_sep(',').                        % sentence punctuation
+emphasis_close_sep('.').
+emphasis_close_sep('!').
+emphasis_close_sep('?').
+emphasis_close_sep(':').
+emphasis_close_sep(';').
+emphasis_close_sep(']').                        % [**label**](link)
+emphasis_close_sep(')').                        % ... _italic_)
+emphasis_close_sep('}').                        % ... _italic_}
+emphasis_close_sep(Token) :-
+    structure_term(Token).
 
 
 %!  arg_list(-Atoms) is nondet.
@@ -1788,7 +1816,7 @@ sentence([C,End], []) -->
     { \+ code_type(C, period),
       code_type(End, period)                % ., !, ?
     },
-    white,
+    space_or_eos,
     !.
 sentence([0' |T0], T) -->
     space,
@@ -1801,9 +1829,11 @@ sentence([H|T0], T) -->
 sentence([0' |T], T) -->                % '
     eos.
 
-white -->
-    space.
-white -->
+space_or_eos -->
+    [C],
+    !,
+    {code_type(C, space)}.
+space_or_eos -->
     eos.
 
 %!  skip_empty_lines(+LinesIn, -LinesOut) is det.
@@ -1997,12 +2027,6 @@ strip_leading_par(L, L).
                  /*******************************
                  *           DCG BASICS         *
                  *******************************/
-
-%!  eos// is det
-%
-%   Peek at end of input
-
-eos([], []).
 
 %!  ws// is det
 %

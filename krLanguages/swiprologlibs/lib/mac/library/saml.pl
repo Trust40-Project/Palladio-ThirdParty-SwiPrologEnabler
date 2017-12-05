@@ -195,11 +195,7 @@ idp_certificate(IDPSSODescriptor, CertificateUse, Certificate):-
     memberchk(element('http://www.w3.org/2000/09/xmldsig#':'KeyInfo', _, KeyInfo), KeyDescriptor),
     memberchk(element('http://www.w3.org/2000/09/xmldsig#':'X509Data', _, X509Data), KeyInfo),
     memberchk(element('http://www.w3.org/2000/09/xmldsig#':'X509Certificate', _, [X509CertificateData]), X509Data),
-    normalize_space(string(TrimmedCertificate), X509CertificateData),
-    format(string(CompleteCertificate), '-----BEGIN CERTIFICATE-----\n~s\n-----END CERTIFICATE-----', [TrimmedCertificate]),
-    setup_call_cleanup(open_string(CompleteCertificate, StringStream),
-                       load_certificate(StringStream, Certificate),
-                       close(StringStream)).
+    load_certificate_from_base64_string(X509CertificateData, Certificate).
 
 
 process_saml_binding(SingleSignOnServiceAttributes, _, 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect', Location):-
@@ -216,7 +212,7 @@ process_saml_binding(SingleSignOnServiceAttributes, _, 'urn:oasis:names:tc:SAML:
 
 form_authn_request(Request, ID, Destination, Date, ServiceProvider, ExtraElements, XML):-
     saml_acs_path(ServiceProvider, Path),
-    select(path(_), Request, Request1),
+    subtract(Request, [path(_), search(_)], Request1),
     parse_url(ACSURL, [path(Path)|Request1]),
     SAMLP = 'urn:oasis:names:tc:SAML:2.0:protocol',
     SAML = 'urn:oasis:names:tc:SAML:2.0:assertion',
@@ -317,6 +313,7 @@ saml_acs_handler(ServiceProvider, Options, Request):-
     ;  true
     ),
     process_saml_response(XML, ServiceProvider, Callback, OriginalURI, Options),
+    debug(saml, 'Redirecting successfully authenticated user to ~w~n', [OriginalURI]),
     http_redirect(moved_temporary, OriginalURI, Request).
 
 
@@ -558,8 +555,16 @@ saml_metadata(ServiceProvider, _Options, Request):-
 
     parse_url(RequestURL, Request),
     http_absolute_location('./auth', ACSLocation, [relative_to(RequestURL)]),
-    string_concat("-----BEGIN CERTIFICATE-----\n", X509CertificateWithoutHeader, X509Certificate),
-    string_concat(PresentableCertificate, "-----END CERTIFICATE-----\n", X509CertificateWithoutHeader),
+
+    % Extract the part of the certificate between the BEGIN and END delimiters
+    ( sub_string(X509Certificate, CertMarkerStart, CertMarkerLength, _, "-----BEGIN CERTIFICATE-----\n"),
+      sub_string(X509Certificate, CertEnd, _, _, "\n-----END CERTIFICATE-----"),
+      CertStart is CertMarkerStart + CertMarkerLength,
+      CertEnd > CertStart->
+        CertLength is CertEnd - CertStart,
+        sub_string(X509Certificate, CertStart, CertLength, _, PresentableCertificate)
+    ; existence_error(certificate_data, X509Certificate)
+    ),
     format(current_output, 'Content-type: text/xml~n~n', []),
     XML = [element(MD:'EntitiesDescriptor', [], [EntityDescriptor])],
     EntityDescriptor = element(MD:'EntityDescriptor', [entityID=ServiceProvider], [SPSSODescriptor]),

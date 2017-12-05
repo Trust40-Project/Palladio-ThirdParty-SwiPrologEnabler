@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2003-2016, University of Amsterdam
+    Copyright (c)  2003-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -545,14 +545,15 @@ global(Prefix, Local, Global, Module) :-
 
 %!  rdf_global_term(+TermIn, :GlobalTerm) is det.
 %
-%   Does  rdf_global_id/2  on  all  terms  NS:Local  by  recursively
-%   analysing the term. Note that the  predicate is a meta-predicate
-%   on the output argument. This  is   necessary  to  get the module
-%   context while the first argument may be of the form (:)/2.
+%   Performs rdf_global_id/2 on predixed IRIs and rdf_global_object/2 on
+%   RDF literals, by recursively  analysing  the   term.  Note  that the
+%   predicate is a meta-predicate  on  the   output  argument.  This  is
+%   necessary to get the module context while  the first argument may be
+%   of the form (:)/2.
 %
-%   Terms of the form Prefix:Local that   appear in TermIn for which
-%   Prefix is not defined are   not replaced. Unlike rdf_global_id/2
-%   and rdf_global_object/2, no error is raised.
+%   Terms of the form `Prefix:Local`  that   appear  in TermIn for which
+%   `Prefix` is not defined are not replaced. Unlike rdf_global_id/2 and
+%   rdf_global_object/2, no error is raised.
 
 rdf_global_term(TermIn, Module:TermOut) :-
     rdf_global_term(TermIn, TermOut, Module).
@@ -1392,8 +1393,9 @@ consider_gc(_CPU) :-
 %     rdf_reachable/5.
 %
 %     * lookup(rdf(S,P,O,G), Count)
-%     Number of queries for this particular instantiation pattern.
-%     Each of S,P,O,G is either + or -.
+%     Number of queries that have been performed for this particular
+%     instantiation pattern.  Each of S,P,O,G is either + or -.
+%     Fails in case the number of performed queries is zero.
 %
 %     * hash_quality(rdf(S,P,O,G), Buckets, Quality, PendingResize)
 %     Statistics on the index for this pattern.  Indices are created
@@ -2200,8 +2202,8 @@ source_url(File, Protocol, SourceURL) :-
 source_file(Spec, file(SExt), SourceURL) :-
     findall(Ext, valid_extension(Ext), Exts),
     absolute_file_name(Spec, File, [access(read), extensions([''|Exts])]),
-    storage_extension(Plain, SExt, File),
-    uri_file_name(SourceURL, Plain).
+    storage_extension(_Plain, SExt, File),
+    uri_file_name(SourceURL, File).
 
 to_url(URL, URL) :-
     uri_is_global(URL),
@@ -2264,8 +2266,8 @@ open_input_if_modified(stream(In), SourceURL, _, In, true,
 open_input_if_modified(file(SExt), SourceURL, HaveModified, Stream, Cleanup,
                        Modified, Format, _) :-
     !,
-    uri_file_name(SourceURL, File0),
-    file_name_extension(File0, SExt, File),
+    uri_file_name(SourceURL, File),
+    (   SExt == '' -> Plain = File; file_name_extension(Plain, SExt, File)),
     time_file(File, LastModified),
     (   nonvar(HaveModified),
         HaveModified >= LastModified
@@ -2274,7 +2276,7 @@ open_input_if_modified(file(SExt), SourceURL, HaveModified, Stream, Cleanup,
     ;   storage_open(SExt, File, Stream, Cleanup),
         Modified = last_modified(LastModified),
         (   var(Format)
-        ->  guess_format(File0, Format)
+        ->  guess_format(Plain, Format)
         ;   true
         )
     ).
@@ -2928,6 +2930,10 @@ header_namespaces(Options, List) :-
 %       Only include prefixes that appear at least N times.  Default
 %       is 1. Declared prefixes are always returned if found at
 %       least one time.
+%
+%       * get_prefix(:GetPrefix)
+%       Predicate to extract the candidate prefix from an IRI.  Default
+%       is iri_xml_namespace/2.
 
 
 :- thread_local
@@ -2945,7 +2951,8 @@ rdf_graph_prefixes(Graph, List, M:QOptions) :-
     option(filter(Filter), Options, true),
     option(expand(Expand), Options, rdf_db),
     option(min_count(MinCount), Options, 1),
-    call_cleanup(prefixes(Expand, Graph, Prefixes, Filter, MinCount),
+    option(get_prefix(GetPrefix), Options, iri_xml_namespace),
+    call_cleanup(prefixes(Expand, Graph, Prefixes, Filter, MinCount, GetPrefix),
                  retractall(graph_prefix(_,_,_))),
     sort(Prefixes, List).
 rdf_graph_prefixes(Graph, List, M:Filter) :-
@@ -2953,21 +2960,22 @@ rdf_graph_prefixes(Graph, List, M:Filter) :-
 
 is_meta(filter).
 is_meta(expand).
+is_meta(get_prefix).
 
 
-prefixes(Expand, Graph, Prefixes, Filter, MinCount) :-
+prefixes(Expand, Graph, Prefixes, Filter, MinCount, GetPrefix) :-
     (   call(Expand, S, P, O, Graph),
-        add_ns(subject, Filter, S, MinCount, s(S)),
-        add_ns(predicate, Filter, P, MinCount, sp(S,P)),
-        add_ns_obj(Filter, O, MinCount, spo(S,P,O)),
+        add_ns(subject, GetPrefix, Filter, S, MinCount, s(S)),
+        add_ns(predicate, GetPrefix, Filter, P, MinCount, sp(S,P)),
+        add_ns_obj(GetPrefix, Filter, O, MinCount, spo(S,P,O)),
         fail
     ;   true
     ),
     findall(Prefix, graph_prefix(Prefix, MinCount, _), Prefixes).
 
-add_ns(Where, Filter, S, MinCount, Context) :-
+add_ns(Where, GetPrefix, Filter, S, MinCount, Context) :-
     \+ rdf_is_bnode(S),
-    iri_xml_namespace(S, Full),
+    call(GetPrefix, S, Full),
     Full \== '',
     !,
     (   graph_prefix(Full, MinCount, _)
@@ -2978,7 +2986,7 @@ add_ns(Where, Filter, S, MinCount, Context) :-
     ->  add_ns(Full, Context)
     ;   true
     ).
-add_ns(_, _, _, _, _).
+add_ns(_, _, _, _, _, _).
 
 add_ns(Full, Context) :-
     graph_prefix(Full, _, Contexts),
@@ -2997,15 +3005,15 @@ add_ns(Full, Context) :-
     asserta(graph_prefix(Full, 1, [Context])).
 
 
-add_ns_obj(Filter, O, MinCount, Context) :-
+add_ns_obj(GetPrefix, Filter, O, MinCount, Context) :-
     atom(O),
     !,
-    add_ns(object, Filter, O, MinCount, Context).
-add_ns_obj(Filter, literal(type(Type, _)), MinCount, _) :-
+    add_ns(object, GetPrefix, Filter, O, MinCount, Context).
+add_ns_obj(GetPrefix, Filter, literal(type(Type, _)), MinCount, _) :-
     atom(Type),
     !,
-    add_ns(type, Filter, Type, MinCount, t(Type)).
-add_ns_obj(_, _, _, _).
+    add_ns(type, GetPrefix, Filter, Type, MinCount, t(Type)).
+add_ns_obj(_, _, _, _, _).
 
 
 %!  used_namespace_entities(-List, ?Graph) is det.
@@ -3815,15 +3823,18 @@ rdf_url_namespace(URL, Prefix) :-
 
 %!  rdf_atom_md5(+Text, +Times, -MD5) is det.
 %
-%   Computes the MD5 hash from Text,  which   is  an atom, string or
-%   list of character codes. Times is an integer >= 1. When > 0, the
-%   MD5 algorithm is repeated Times  times   on  the generated hash.
-%   This can be used for  password   encryption  algorithms  to make
-%   generate-and-test loops slow.
+%   Computes the MD5 hash from Text, which is an atom, string or list of
+%   character codes. Times is  an  integer  >=   1.  When  >  0, the MD5
+%   algorithm is repeated Times times on the generated hash. This can be
+%   used for password encryption algorithms   to  make generate-and-test
+%   loops slow.
 %
-%   @deprecated. New code should  use   the  library(crypt)  library
-%   provided  by  the  clib  package  for  password  encryption  and
-%   library(md5) to compute MD5 hashes.
+%   @deprecated Obviously, password hash  primitives   do  not belong in
+%   this library. The  library(crypto)  from   the  \const{ssl}  package
+%   provides extensive support for  hashes.   The  \const{clib}  package
+%   provides library(crypt) to  access  the   OS  (Unix)  password  hash
+%   implementation as well as  lightweight   implementations  of several
+%   popular hashes.
 
 
                  /*******************************

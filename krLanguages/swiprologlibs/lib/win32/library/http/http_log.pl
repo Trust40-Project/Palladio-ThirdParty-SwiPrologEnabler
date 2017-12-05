@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2008-2016, University of Amsterdam
+    Copyright (c)  2008-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -60,7 +60,7 @@ loading this file and ensure the setting   http:logfile is not the empty
 atom. The default  file  for  writing   the  log  is  =|httpd.log|=. See
 library(settings) for details.
 
-The  level  of  logging  can  modified  using  the  multifile  predicate
+The  level of  logging  can be modified  using  the  multifile predicate
 http_log:nolog/1 to hide HTTP  request  fields   from  the  logfile  and
 http_log:password_field/1   to   hide   passwords   from   HTTP   search
 specifications (e.g. =|/topsecret?password=secret|=).
@@ -101,14 +101,17 @@ http_message(request_finished(Id, Code, Status, CPU, Bytes)) :-
 
 %!  http_log_stream(-Stream) is semidet.
 %
-%   True when Stream is a stream to  the opened HTTP log file. Opens
-%   the log file in =append= mode if the   file is not yet open. The
-%   log file is determined  from   the  setting =|http:logfile|=. If
-%   this setting is set  to  the   empty  atom  (''), this predicate
-%   fails.
+%   True when Stream is a stream to the  opened HTTP log file. Opens the
+%   log file in =append= mode if the file  is not yet open. The log file
+%   is determined from the setting =|http:logfile|=.  If this setting is
+%   set to the empty atom (''), this predicate fails.
 %
-%   If  a  file  error  is  encountered,   this  is  reported  using
+%   If  a  file  error  is   encountered,    this   is   reported  using
 %   print_message/2, after which this predicate silently fails.
+%
+%   Before opening the log  file,   the  message  http_log_open(Term) is
+%   broadcasted.  This  message  allows  for   creating  the  directory,
+%   renaming, deleting or truncating an existing log file.
 
 http_log_stream(Stream) :-
     log_stream(Stream, _Opened),
@@ -121,22 +124,30 @@ http_log_stream([]) :-
     assert(log_stream([], Now)).
 http_log_stream(Stream) :-
     setting(http:logfile, Term),
+    broadcast(http_log_open(Term)),
     catch(absolute_file_name(Term, File,
                              [ access(append)
-                             ]), E, open_error(E)),
-    with_mutex(http_log,
-               (   catch(open(File, append, Stream,
-                              [ close_on_abort(false),
-                                encoding(utf8),
-                                buffer(line)
-                              ]), E, open_error(E)),
-                   get_time(Time),
-                   format(Stream,
-                          'server(started, ~0f).~n',
-                          [ Time ]),
-                   assert(log_stream(Stream, Time)),
-                   at_halt(close_log(stopped))
-               )).
+                             ]),
+          E, open_error(E)),
+    with_mutex(http_log, open_log(File, Stream0)),
+    Stream = Stream0.
+
+open_log(_File, Stream) :-
+    log_stream(Stream, _Opened),
+    !,
+    Stream \== [].
+open_log(File, Stream) :-
+    catch(open(File, append, Stream,
+               [ close_on_abort(false),
+                 encoding(utf8),
+                 buffer(line)
+               ]), E, open_error(E)),
+    get_time(Time),
+    format(Stream,
+           'server(started, ~0f).~n',
+           [ Time ]),
+    assert(log_stream(Stream, Time)),
+    at_halt(close_log(stopped)).
 
 open_error(E) :-
     print_message(error, E),
@@ -598,12 +609,12 @@ compile_weekday(N, N) :-
     integer(N),
     !,
     must_be(between(1,7), N).
-compile_weekday(Name, N) :-
-    downcase_atom(Name, Lwr),
-    (   day(N, Name),
-        sub_atom(Name, 0, _, _, Lwr)
+compile_weekday(Day, N) :-
+    downcase_atom(Day, Lwr),
+    (   sub_atom(Lwr, 0, 3, _, Abbr),
+        day(N, Abbr)
     ->  !
-    ;   domain_error(day, Name)
+    ;   domain_error(day, Day)
     ).
 
 %!  http_consider_logrotate

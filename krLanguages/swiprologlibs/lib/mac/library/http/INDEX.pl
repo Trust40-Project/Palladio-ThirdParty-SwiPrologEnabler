@@ -182,6 +182,7 @@ index((json_to_prolog), 2, json_convert, json_convert).
 index((json_object), 1, json_convert, json_convert).
 index((mime_pack), 3, mime_pack, mimepack).
 index((file_mime_type), 2, mimetype, mimetype).
+index((term), 4, term_html, term_html).
 index((http_current_server), 2, thread_httpd, thread_httpd).
 index((http_server_property), 2, thread_httpd, thread_httpd).
 index((http_server), 2, thread_httpd, thread_httpd).
