@@ -8,7 +8,7 @@ pipelines:
             script:
               - openssl aes-256-cbc -pass pass:$GPG_PWD -in bitbucket-pipelines.gpg.enc -out bitbucket-pipelines.gpg -d -md md5
               - gpg --import bitbucket-pipelines.gpg
-              - mvn -V -B -U -s bitbucket-pipelines.xml deploy
+              - mvn -V -B -s bitbucket-pipelines.xml deploy
     develop:
         - step:
             caches:
