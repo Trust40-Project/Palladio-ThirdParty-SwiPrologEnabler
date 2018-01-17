@@ -853,7 +853,6 @@ properties are:
 
 pengine_property(Id, Prop) :-
     nonvar(Id), nonvar(Prop),
-    current_module(Id),
     pengine_property2(Id, Prop),
     !.
 pengine_property(Id, Prop) :-
@@ -1205,7 +1204,10 @@ solve(Chunk, Template, Goal, ID) :-
     State = count(Chunk),
     statistics(cputime, Epoch),
     Time = time(Epoch),
-    (   call_cleanup(catch(findnsols_no_empty(State, Template, Goal, Result),
+    nb_current('$variable_names', Bindings),
+    (   call_cleanup(catch(findnsols_no_empty(State, Template,
+                                              set_projection(Goal, Bindings),
+                                              Result),
                            Error, true),
                      Det = true),
         arg(1, Time, T0),
@@ -1234,6 +1236,16 @@ solve(Chunk, Template, Goal, ID) :-
         destroy_or_continue(failure(ID, CPUTime))
     ).
 solve(_, _, _, _).                      % leave a choice point
+
+%!  set_projection(:Goal, +Bindings)
+%
+%   findnsols/4 copies its goal  and   template  to  avoid instantiation
+%   thereof when it stops after finding   N solutions. Using this helper
+%   we can a renamed version of Bindings that we can set.
+
+set_projection(Goal, Bindings) :-
+    b_setval('$variable_names', Bindings),
+    call(Goal).
 
 projection(Projection) :-
     nb_current('$variable_names', Bindings),
@@ -2630,7 +2642,8 @@ event_term_to_json_data(error(ID, ErrorTerm), Error, _Style) :-
     add_error_details(ErrorTerm, Error0, Error),
     message_to_string(ErrorTerm, Message).
 event_term_to_json_data(failure(ID, Time),
-                        json{event:failure, id:ID, time:Time}, _).
+                        json{event:failure, id:ID, time:Time}, _) :-
+    !.
 event_term_to_json_data(EventTerm, json{event:F, id:ID}, _) :-
     functor(EventTerm, F, 1),
     !,

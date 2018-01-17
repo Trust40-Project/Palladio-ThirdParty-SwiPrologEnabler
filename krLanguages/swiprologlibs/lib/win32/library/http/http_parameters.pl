@@ -120,7 +120,7 @@ http_parameters(Request, Params) :-
 http_parameters(Request, Params, Options) :-
     must_be(list, Params),
     meta_options(is_meta, Options, QOptions),
-    option(attribute_declarations(DeclGoal), QOptions, -),
+    option(attribute_declarations(DeclGoal), QOptions, no_decl_goal),
     http_parms(Request, Params, DeclGoal, Form),
     (   memberchk(form_data(RForm), QOptions)
     ->  RForm = Form
@@ -179,6 +179,8 @@ wipe_posted_data :-
 %!  fill_parameters(+ParamDecls, +FormData, +DeclGoal)
 %
 %   Fill values from the parameter list
+
+:- meta_predicate fill_parameters(+, +, 2).
 
 fill_parameters([], _, _).
 fill_parameters([H|T], FormData, DeclGoal) :-
@@ -249,9 +251,11 @@ fill_param_list([_|Form], Name, VT, Options) :-
 %     ==
 
 http_convert_parameters(Data, ParamDecls) :-
-    fill_parameters(ParamDecls, Data, -).
+    fill_parameters(ParamDecls, Data, no_decl_goal).
 http_convert_parameters(Data, ParamDecls, DeclGoal) :-
     fill_parameters(ParamDecls, Data, DeclGoal).
+
+no_decl_goal(_,_) :- fail.
 
 %!  http_convert_parameter(+Options, +FieldName, +ValueIn, -ValueOut) is det.
 %

@@ -1,1 +1,1 @@
-mvn install:install-file -Dfile=jpl.jar -DgroupId=jpl -DartifactId=jpl -Dversion=7.6.3 -Dpackaging=maven-plugin
+mvn install:install-file -Dfile=jpl.jar -DgroupId=jpl -DartifactId=jpl -Dversion=7.6.4 -Dpackaging=maven-plugin

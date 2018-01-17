@@ -1,3 +1,5 @@
+:- encoding(utf8).
+
 /*  Part of SWI-Prolog
 
     Author:        Markus Triska
@@ -544,7 +546,8 @@ Rows = [[9, 8, 7, 6, 5, 4, 3, 2|...], ... , [...|...]].
 ==
 
 In this concrete case, the constraint solver is strong enough to find
-the unique solution without any search.
+the unique solution without any search. For the general case, see
+[search](<#clpfd-search>).
 
 
 ## Residual goals				{#clpfd-residual-goals}
@@ -604,10 +607,9 @@ own labeling strategies.
 Using CLP(FD) constraints to solve combinatorial tasks typically
 consists of two phases:
 
-    1. First, all relevant constraints are stated.
-    2. Second, if the domain of each involved variable is _finite_,
-       then _enumeration predicates_ can be used to search for
-       concrete solutions.
+    1. **Modeling**. In this phase, all relevant constraints are stated.
+    2. **Search**. In this phase, _enumeration predicates_ are used
+       to search for concrete solutions.
 
 It is good practice to keep the modeling part, via a dedicated
 predicate called the *core relation*, separate from the actual
