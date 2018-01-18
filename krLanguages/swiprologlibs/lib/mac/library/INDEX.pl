@@ -332,6 +332,7 @@ index((el_read_history), 2, editline, editline).
 index((type_error), 2, error, error).
 index((domain_error), 2, error, error).
 index((existence_error), 2, error, error).
+index((existence_error), 3, error, error).
 index((permission_error), 3, error, error).
 index((instantiation_error), 1, error, error).
 index((uninstantiation_error), 1, error, error).
