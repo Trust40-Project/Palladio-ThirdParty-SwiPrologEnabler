@@ -123,9 +123,9 @@ debugging(Topic, Bool) :-
 %   redirects debug information on this topic to the given output.
 
 debug(Topic) :-
-    debug(Topic, true).
+    with_mutex(prolog_debug, debug(Topic, true)).
 nodebug(Topic) :-
-    debug(Topic, false).
+    with_mutex(prolog_debug, debug(Topic, false)).
 
 debug(Spec, Val) :-
     debug_target(Spec, Topic, Out),
@@ -401,12 +401,23 @@ prolog:message(debug_no_topic(Topic)) -->
 
 show_thread_context -->
     { debug_context(thread),
-      thread_self(Me) ,
-      Me \== main
+      thread_self(Me),
+      report_as(Me, Name)
     },
-    [ '[Thread ~w] '-[Me] ].
+    [ '[Thread ~w] '-[Name] ].
 show_thread_context -->
     [].
+
+report_as(main, _) :-
+    !,
+    fail.
+report_as(Alias, Alias) :-
+    atom(Alias),
+    !.
+report_as(Handle, Id) :-
+    catch(thread_property(Handle, id(Id)), _, fail),
+    !.
+report_as(Thread, Thread).
 
 show_time_context -->
     { debug_context(time(Format)),

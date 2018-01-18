@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  1985-2015, University of Amsterdam
+    Copyright (c)  1985-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -75,11 +75,14 @@
             prolog_stack_property/2,
             absolute_file_name/2,
             require/1,
-            call_with_depth_limit/3,    % :Goal, +Limit, -Result
-            call_with_inference_limit/3,% :Goal, +Limit, -Result
-            numbervars/3,               % +Term, +Start, -End
-            term_string/3,              % ?Term, ?String, +Options
-            nb_setval/2                 % +Var, +Value
+            call_with_depth_limit/3,            % :Goal, +Limit, -Result
+            call_with_inference_limit/3,        % :Goal, +Limit, -Result
+            numbervars/3,                       % +Term, +Start, -End
+            term_string/3,                      % ?Term, ?String, +Options
+            nb_setval/2,                        % +Var, +Value
+            thread_create/2,                    % :Goal, -Id
+            thread_join/1,                      % +Id
+            set_prolog_gc_thread/1		% +Status
           ]).
 
                 /********************************
@@ -473,7 +476,8 @@ source_file(File) :-
 source_file(M:Head, File) :-
     nonvar(M), nonvar(Head),
     !,
-    (   predicate_property(M:Head, multifile)
+    (   '$c_current_predicate'(_, M:Head),
+        predicate_property(M:Head, multifile)
     ->  multi_source_files(M:Head, Files),
         '$member'(File, Files)
     ;   '$source_file'(M:Head, File)
@@ -588,8 +592,7 @@ prolog_load_context(source, F) :-       % SICStus compatibility
     '$input_context'(Context),
     '$top_file'(Context, F0, F).
 prolog_load_context(stream, S) :-
-    source_location(F, _),
-    (   system:'$load_input'(F, S0)
+    (   system:'$load_input'(_, S0)
     ->  S = S0
     ).
 prolog_load_context(directory, D) :-
@@ -801,7 +804,7 @@ property_predicate(autoload(File), _:Head) :-
         (   '$find_library'(_, Name, Arity, _, File)
         ->  true
         )
-    ;   '$find_library'(_, Name, Arity, _, File),
+    ;   '$in_library'(Name, Arity, File),
         functor(Head, Name, Arity)
     ).
 property_predicate(implementation_module(IM), M:Head) :-
@@ -893,6 +896,8 @@ define_or_generate(Pred) :-
     '$get_predicate_attribute'(Pred, number_of_clauses, N).
 '$predicate_property'(number_of_rules(N), Pred) :-
     '$get_predicate_attribute'(Pred, number_of_rules, N).
+'$predicate_property'(last_modified_generation(Gen), Pred) :-
+    '$get_predicate_attribute'(Pred, last_modified_generation, Gen).
 '$predicate_property'(indexed(Indices), Pred) :-
     '$get_predicate_attribute'(Pred, indexed, Indices).
 '$predicate_property'(noprofile, Pred) :-
@@ -1080,6 +1085,7 @@ module_property(exports(_)).
 module_property(exported_operators(_)).
 module_property(program_size(_)).
 module_property(program_space(_)).
+module_property(last_modified_generation(_)).
 
 %!  module(+Module) is det.
 %
@@ -1116,7 +1122,8 @@ working_directory(Old, New) :-
 %   True if Trie is the handle of an existing trie.
 
 current_trie(Trie) :-
-    current_blob(Trie, trie).
+    current_blob(Trie, trie),
+    is_trie(Trie).
 
 %!  trie_property(?Trie, ?Property)
 %
@@ -1311,6 +1318,8 @@ stack_name(trail).
 stack_property(limit).
 stack_property(spare).
 stack_property(min_free).
+stack_property(low).
+stack_property(factor).
 
 
                  /*******************************
@@ -1360,3 +1369,76 @@ term_string(Term, String, Options) :-
 nb_setval(Name, Value) :-
     duplicate_term(Value, Copy),
     nb_linkval(Name, Copy).
+
+
+		 /*******************************
+		 *            THREADS		*
+		 *******************************/
+
+:- meta_predicate
+    thread_create(0, -).
+
+%!  thread_create(:Goal, -Id)
+%
+%   Shorthand for thread_create(Goal, Id, []).
+
+thread_create(Goal, Id) :-
+    thread_create(Goal, Id, []).
+
+%!  thread_join(+Id)
+%
+%   Join a thread and raise an error of the thread did not succeed.
+%
+%   @error  thread_error(Status),  where  Status  is    the   result  of
+%   thread_join/2.
+
+thread_join(Id) :-
+    thread_join(Id, Status),
+    (   Status == true
+    ->  true
+    ;   throw(error(thread_error(Status), _))
+    ).
+
+%!  set_prolog_gc_thread(+Status)
+%
+%   Control the GC thread.  Status is one of
+%
+%     - false
+%     Disable the separate GC thread, running atom and clause
+%     garbage collection in the triggering thread.
+%     - true
+%     Enable the separate GC thread.  All implicit atom and clause
+%     garbage collection is executed by the thread `gc`.
+%     - stop
+%     Stop the `gc` thread it it is running.  The thread is recreated
+%     on the next implicit atom or clause garbage collection.  Used
+%     by fork/1 to avoid forking a multi-threaded application.
+
+set_prolog_gc_thread(Status) :-
+    var(Status),
+    !,
+    '$instantiation_error'(Status).
+:- if(current_prolog_flag(threads,true)).
+set_prolog_gc_thread(false) :-
+    !,
+    set_prolog_flag(gc_thread, false),
+    (   '$gc_stop'
+    ->  thread_join(gc)
+    ;   true
+    ).
+set_prolog_gc_thread(true) :-
+    !,
+    set_prolog_flag(gc_thread, true).
+set_prolog_gc_thread(stop) :-
+    !,
+    (   '$gc_stop'
+    ->  thread_join(gc)
+    ;   true
+    ).
+:- else.
+set_prolog_gc_thread(false) :- !.
+set_prolog_gc_thread(true) :- !.
+set_prolog_gc_thread(stop) :- !.
+:- endif.
+set_prolog_gc_thread(Status) :-
+    '$domain_error'(gc_thread, Status).

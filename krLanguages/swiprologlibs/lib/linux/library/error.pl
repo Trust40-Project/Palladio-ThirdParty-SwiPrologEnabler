@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2016, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -37,6 +37,7 @@
           [ type_error/2,               % +Type, +Term
             domain_error/2,             % +Domain, +Term
             existence_error/2,          % +Type, +Term
+            existence_error/3,          % +Type, +Term, +Set
             permission_error/3,         % +Action, +Type, +Term
             instantiation_error/1,      % +Term
             uninstantiation_error/1,    % +Term
@@ -110,6 +111,17 @@ domain_error(Type, Term) :-
 
 existence_error(Type, Term) :-
     throw(error(existence_error(Type, Term), _)).
+
+%!  existence_error(+Type, +Term, +Set).
+%
+%   Term is of the correct type  and   correct  domain,  but there is no
+%   existing (external) resource that  is  represented   by  it  in  the
+%   provided set.
+%
+%   @compat This error is not in ISO.
+
+existence_error(Type, Term, Set) :-
+    throw(error(existence_error(Type, Term, Set), _)).
 
 %!  permission_error(+Action, +Type, +Term).
 %
@@ -193,23 +205,30 @@ resource_error(Culprit) :-
 %   of the same name. Below  is  a   brief  definition  of the other
 %   types.
 %
-%   | boolean | one of =true= or =false= |
-%   | char | Atom of length 1 |
-%   | code | Representation Unicode code point |
-%   | chars | Proper list of 1-character atoms |
-%   | codes | Proper list of Unicode character codes |
-%   | text | One of =atom=, =string=, =chars= or =codes= |
-%   | between(IntL,IntU) | Integer [IntL..IntU] |
+%   | acyclic | Acyclic term (tree); see acyclic_term/1 |
+%   | any | |
 %   | between(FloatL,FloatU) | Number [FloatL..FloatU] |
-%   | nonneg | Integer >= 0 |
-%   | positive_integer | Integer > 0 |
+%   | between(IntL,IntU) | Integer [IntL..IntU] |
+%   | boolean | One of =true= or =false= |
+%   | char | Atom of length 1 |
+%   | chars | Proper list of 1-character atoms |
+%   | code | Representation Unicode code point |
+%   | codes | Proper list of Unicode character codes |
+%   | constant | Same as `atomic` |
+%   | cyclic | Cyclic term (rational tree); see cyclic_term/1 |
+%   | dict | A dictionary term; see is_dict/1 |
+%   | encoding | Valid name for a character encoding; see current_encoding/1 |
+%   | list | A (non-open) list; see is_list/1 |
 %   | negative_integer | Integer < 0 |
+%   | nonneg | Integer >= 0 |
 %   | oneof(L) | Ground term that is member of L |
-%   | encoding | Valid name for a character encoding |
-%   | cyclic | Cyclic term (rational tree) |
-%   | acyclic | Acyclic term (tree) |
+%   | positive_integer | Integer > 0 |
+%   | proper_list | Same as list |
 %   | list(Type) | Proper list with elements of Type |
-%   | list_or_partial_list | A list or an open list (ending in a variable |
+%   | list_or_partial_list | A list or an open list (ending in a variable); see is_list_or_partial_list/1 |
+%   | stream | A stream name or valid stream handle; see is_stream/1 |
+%   | symbol | Same as `atom` |
+%   | text | One of =atom=, =string=, =chars= or =codes= |
 %
 %   Note: The Windows version can only represent Unicode code points
 %   up to 2^16-1. Higher values cause a representation error on most
@@ -401,4 +420,27 @@ current_encoding(wchar_t).
 %   the body term Body succeeds.
 
 current_type(Type, Var, Body) :-
-    clause(has_type(Type, Var), Body).
+    clause(has_type(Type, Var), Body0),
+    qualify(Body0, Body).
+
+qualify(Var, VarQ) :-
+    var(Var),
+    !,
+    VarQ = Var.
+qualify((A0,B0), (A,B)) :-
+    qualify(A0, A),
+    qualify(B0, B).
+qualify(G0, G) :-
+    predicate_property(system:G0, built_in),
+    !,
+    G = G0.
+qualify(G, error:G).
+
+
+		 /*******************************
+		 *           SANDBOX		*
+		 *******************************/
+
+:- multifile sandbox:safe_primitive/1.
+
+sandbox:safe_primitive(error:current_type(_,_,_)).
