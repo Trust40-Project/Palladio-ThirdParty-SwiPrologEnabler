@@ -98,7 +98,7 @@ public final class SwiInstaller {
 		// Dirty system-dependent stuff...
 		switch (system) {
 		case linux:
-			load("libswipl.so.7.4.2");
+			load("libswipl.so.7.6.4");
 			load("libjpl.so");
 			break;
 		case mac:
