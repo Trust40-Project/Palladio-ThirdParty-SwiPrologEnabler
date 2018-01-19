@@ -53,6 +53,9 @@ public class JPLUtils {
 			return Float.toString(term.floatValue()) + "/0";
 		} else if (term.isVariable()) { // does not support arity() method
 			return term.name() + "/0";
+		} else if (term.isCompound() && term.name().equals("/") && term.arity() == 2) {
+			// term is a signature itself
+			return term.arg(1) + "/" + term.arg(2);
 		} else {
 			return term.name() + "/" + term.arity();
 		}

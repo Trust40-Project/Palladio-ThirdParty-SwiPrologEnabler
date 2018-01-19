@@ -147,10 +147,6 @@ public class SemanticTools {
 				List<org.jpl7.Term> dynamicPreds = JPLUtils.getOperands(",", directive.arg(1));
 				for (org.jpl7.Term headTerm : dynamicPreds) {
 					signature = JPLUtils.getSignature(headTerm);
-					if (signature.equals("//2")) {
-						// the term is already a signature itself
-						signature = headTerm.arg(1) + "/" + headTerm.arg(2);
-					}
 					if (PrologOperators.prologBuiltin(signature)) {
 						throw new ParserException(
 								ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(signature),

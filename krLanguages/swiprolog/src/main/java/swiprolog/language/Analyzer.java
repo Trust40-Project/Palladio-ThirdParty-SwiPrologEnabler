@@ -111,10 +111,6 @@ public class Analyzer {
 		}
 
 		String headSig = JPLUtils.getSignature(headTerm);
-		if (headSig.equals("//2")) {
-			// the term is already a signature itself
-			headSig = headTerm.arg(1) + "/" + headTerm.arg(2);
-		}
 		// Ignore built-in operators.
 		if (!PrologOperators.prologBuiltin(headSig)) {
 			// Add a new definition node
@@ -166,7 +162,8 @@ public class Analyzer {
 			addQuery(plTerm.arg(3), info);
 		} else if (termSig.equals("predsort/3")) {
 			// first argument is name that will be called as name/3
-			org.jpl7.Term stubfunc = new org.jpl7.Compound(plTerm.arg(1).name(), new org.jpl7.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
+			org.jpl7.Term stubfunc = new org.jpl7.Compound(plTerm.arg(1).name(),
+					new org.jpl7.Term[] { ANON_VAR, ANON_VAR, ANON_VAR });
 			addQuery(stubfunc, info);
 		} else if (termSig.equals("dynamic/1")) {
 			// recognize predicate declaration(s).
