@@ -345,7 +345,7 @@ public final class PrologOperators {
 		OP_PRIOS.put("read_term_from_atom/3", 0);
 		// read_history and prompts not included (no user input possible)
 
-		// SWI 4.21: Analysing and Constructing Terms (NEW in 7.6.4)
+		// SWI 4.21: Analysing and Constructing Terms (new in SWI7.6.4)
 		OP_PRIOS.put("functor/3", 0);
 		OP_PRIOS.put("arg/3", 0);
 		OP_PRIOS.put("compound_name_arity/3", 0);
@@ -527,7 +527,7 @@ public final class PrologOperators {
 		// SWI 4.42 - manual memory management not supported
 		// SWI 4.43 - Windows DDE interface not supported
 
-		// SWI 4.44: Miscellaneous (NEW in 7.6.4)
+		// SWI 4.44: Miscellaneous (new in SWI7.6.4)
 		OP_PRIOS.put("dwim_match/2", 0);
 		OP_PRIOS.put("dwim_match/3", 0);
 		OP_PRIOS.put("wildcard_match/2", 0);
