@@ -197,10 +197,7 @@ public class SemanticTools {
 		}
 		// 7.6.2.b
 		String sig = JPLUtils.getSignature(t);
-		if (PrologOperators.goalProtected(t.name())) {
-			throw new ParserException(
-					ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(JPLUtils.toString(t)), source);
-		} else if (sig.equals(":-/2")) {
+		if (sig.equals(":-/2")) {
 			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(JPLUtils.toString(t)),
 					source);
 		} else if (sig.equals(":-/1")) {

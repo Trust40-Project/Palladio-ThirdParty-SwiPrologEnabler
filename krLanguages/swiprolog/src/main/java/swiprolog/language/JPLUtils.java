@@ -34,13 +34,13 @@ public class JPLUtils {
 	/**
 	 * Returns the signature of the JPL term.
 	 * <p>
-	 * A signature is of the form "<op>/<#arg>" where <op> is the main operator
-	 * of the term and <#arg> the number of arguments that the operator expects.
-	 * For example, the signature of the 'member(X, L)' predicate is "member/2".
+	 * A signature is of the form "<op>/<#arg>" where <op> is the main operator of
+	 * the term and <#arg> the number of arguments that the operator expects. For
+	 * example, the signature of the 'member(X, L)' predicate is "member/2".
 	 * </p>
 	 * <p>
-	 * The signatures of integers and floats are defined here as "<value>/0" and
-	 * the signature of a variable "X" is defined as "X/0".
+	 * The signatures of integers and floats are defined here as "<value>/0" and the
+	 * signature of a variable "X" is defined as "X/0".
 	 * </p>
 	 *
 	 * @return The signature of the term.
@@ -61,8 +61,8 @@ public class JPLUtils {
 	/**
 	 *
 	 *
-	 * @return The F-ixity of the term: returns NOT_OPERATOR for non-operator
-	 *         terms. See ISO 12311, table 5.
+	 * @return The F-ixity of the term: returns NOT_OPERATOR for non-operator terms.
+	 *         See ISO 12311, table 5.
 	 * @see PrologOperators.Fixity for a list of f-ixities.
 	 */
 	public static PrologOperators.Fixity getFixity(org.jpl7.Term term) {
@@ -74,8 +74,8 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Returns the priority of the main operator of the term. See ISO 12311,
-	 * table 5.
+	 * Returns the priority of the main operator of the term. See ISO 12311, table
+	 * 5.
 	 *
 	 * @return The priority of the term's operator. Default is 0.
 	 */
@@ -110,8 +110,8 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Creates a new term, cloning the given term and substituting variables
-	 * where applicable. JPL does not provide this.
+	 * Creates a new term, cloning the given term and substituting variables where
+	 * applicable. JPL does not provide this.
 	 * <p>
 	 * Variables that are not in the substi list will be left untouched.
 	 * <p>
@@ -119,12 +119,12 @@ public class JPLUtils {
 	 * else.
 	 *
 	 * @param solution
-	 *            is a map String,{@link org.jpl7.Term} pairs. String is the
-	 *            name of the var to be substitued with Term. indicating that
-	 *            all occurences of variable have to be replaced with a term.
+	 *            is a map String,{@link org.jpl7.Term} pairs. String is the name of
+	 *            the var to be substitued with Term. indicating that all occurences
+	 *            of variable have to be replaced with a term.
 	 * @param term
-	 *            is the term on which to apply the substi. The term t will be
-	 *            left untouched
+	 *            is the term on which to apply the substi. The term t will be left
+	 *            untouched
 	 * @return a copy of t but with all occurences of variables substituted as
 	 *         indicated in the substi map.
 	 */
@@ -154,12 +154,12 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Checks whether term can be used as query, i.e., that term is a well
-	 * formed Prolog goal.
+	 * Checks whether term can be used as query, i.e., that term is a well formed
+	 * Prolog goal.
 	 * <p>
-	 * ISO requires rebuild of the term but in our case we do not allow
-	 * variables and hence a real rebuild is not necessary. Instead, we simply
-	 * return the original term after checking.
+	 * ISO requires rebuild of the term but in our case we do not allow variables
+	 * and hence a real rebuild is not necessary. Instead, we simply return the
+	 * original term after checking.
 	 * </p>
 	 *
 	 * @return {@code true} if term is a Prolog goal according to ISO.
@@ -172,10 +172,6 @@ public class JPLUtils {
 		}
 		// 7.6.2.b
 		String sig = JPLUtils.getSignature(t);
-		if (PrologOperators.goalProtected(t.name())) {
-			// The use of operator in a goal is not supported.
-			return false;
-		}
 		if (sig.equals(":-/2")) {
 			return false;
 		}
@@ -200,10 +196,9 @@ public class JPLUtils {
 			return false;
 		} else {
 			/*
-			 * Arguments must be a D-is-an-arglist see ISO p.132 but all
-			 * arguments must already be PrologTerm and no further checks are
-			 * needed. TODO handle special D-is-a-predication cases. E.g., dewey
-			 * numbers, and other special cases.
+			 * Arguments must be a D-is-an-arglist see ISO p.132 but all arguments must
+			 * already be PrologTerm and no further checks are needed. TODO handle special
+			 * D-is-a-predication cases. E.g., dewey numbers, and other special cases.
 			 */
 			return PrologOperators.is_L_atom(term.name());
 		}
@@ -212,8 +207,8 @@ public class JPLUtils {
 	/**
 	 * @param t
 	 *            term to check
-	 * @return true iff the term is a predicate indicator as with ISO 3.90: a
-	 *         term of form '/'(Atom, Integer).
+	 * @return true iff the term is a predicate indicator as with ISO 3.90: a term
+	 *         of form '/'(Atom, Integer).
 	 */
 	public static boolean isPredicateIndicator(org.jpl7.Term t) {
 		return t.isCompound() && t.name().equals("/") && t.arity() == 2 && t.arg(1).isAtom() && t.arg(2).isInteger();
@@ -284,14 +279,14 @@ public class JPLUtils {
 	 * operator.
 	 * <p>
 	 * Can be used, for example, to get the conjuncts of a conjunction or the
-	 * elements of a list. Note that the <i>second</i> conjunct or element in a
-	 * list concatenation can be a conjunct or list itself again.
+	 * elements of a list. Note that the <i>second</i> conjunct or element in a list
+	 * concatenation can be a conjunct or list itself again.
 	 * </p>
 	 * <p>
-	 * A list (term) of the form '.'(a,'.'(b,'.'(c, []))), for example, returns
-	 * the elements a, b, c, <i>and</i> the empty list []. A conjunction of the
-	 * form ','(e0,','(e1,','(e2...((...,en)))...) returns the list of conjuncts
-	 * e0, e1, e2, etc.
+	 * A list (term) of the form '.'(a,'.'(b,'.'(c, []))), for example, returns the
+	 * elements a, b, c, <i>and</i> the empty list []. A conjunction of the form
+	 * ','(e0,','(e1,','(e2...((...,en)))...) returns the list of conjuncts e0, e1,
+	 * e2, etc.
 	 * </p>
 	 *
 	 * @param operator
@@ -312,8 +307,8 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Returns a (possibly empty) Prolog list with the given terms as elements
-	 * of the list.
+	 * Returns a (possibly empty) Prolog list with the given terms as elements of
+	 * the list.
 	 *
 	 * @param terms
 	 *            The elements to be included in the list.
@@ -416,8 +411,8 @@ public class JPLUtils {
 	 *            A JPL term.
 	 * @param term2
 	 *            A JPL term.
-	 * @return {@code true} if both terms are equal, i.e., they represent the
-	 *         same term.
+	 * @return {@code true} if both terms are equal, i.e., they represent the same
+	 *         term.
 	 */
 	// TODO: needs careful review and checking...
 	public static boolean equals(org.jpl7.Term term1, org.jpl7.Term term2) {
@@ -502,9 +497,8 @@ public class JPLUtils {
 			case FY:
 				// if we get here, term is known prefix operator.
 				/*
-				 * "-" is tight binding in which case the extra brackets are not
-				 * needed but the :- is not tight binding so there we need
-				 * brackets.
+				 * "-" is tight binding in which case the extra brackets are not needed but the
+				 * :- is not tight binding so there we need brackets.
 				 */
 				// SWI bug workaround. Mantis 280
 				if (term.name().equals("-")) {
@@ -538,11 +532,11 @@ public class JPLUtils {
 
 	/**
 	 * @param name
-	 *            the atom name for printing. ASSUMES the given name is not a
-	 *            known operator (eg ';', ':-', etc, see table 5 in ISO 12311).
-	 *            '.' is not an operator.
-	 * @return name, properly single-quoted if necessary. (known operators
-	 *         should not be quoted).
+	 *            the atom name for printing. ASSUMES the given name is not a known
+	 *            operator (eg ';', ':-', etc, see table 5 in ISO 12311). '.' is not
+	 *            an operator.
+	 * @return name, properly single-quoted if necessary. (known operators should
+	 *         not be quoted).
 	 */
 	private static String quotedName(String name) {
 		// simple names starting with lower case char are not quoted
@@ -555,15 +549,14 @@ public class JPLUtils {
 	}
 
 	/**
-	 * TODO is there a smarter way to do the bracketing? I guess so but then we
-	 * need to determine actual priorities of subtrees.
+	 * TODO is there a smarter way to do the bracketing? I guess so but then we need
+	 * to determine actual priorities of subtrees.
 	 */
 	/**
-	 * Support function for toString that checks if context requires brackets
-	 * around term. Converts argument to string and possibly places brackets
-	 * around it, if the term has a principal functor whose priority is so high
-	 * that the term could not be re-input correctly. Use for operators. see ISO
-	 * p.45 part h 2.
+	 * Support function for toString that checks if context requires brackets around
+	 * term. Converts argument to string and possibly places brackets around it, if
+	 * the term has a principal functor whose priority is so high that the term
+	 * could not be re-input correctly. Use for operators. see ISO p.45 part h 2.
 	 *
 	 * @param term
 	 *            the Term which MUST be known operator.
@@ -581,11 +574,10 @@ public class JPLUtils {
 		}
 		if (argprio == ourprio) {
 			/*
-			 * X arguments need brackets for same prio. Y arguments do not need
-			 * brackets for same prio. Eg, assume we have an xfy operator here.
-			 * The y side can have equal priority by default, and that side can
-			 * be printed without brackets. but if the x side has same prio
-			 * that's only possible if there were brackets.
+			 * X arguments need brackets for same prio. Y arguments do not need brackets for
+			 * same prio. Eg, assume we have an xfy operator here. The y side can have equal
+			 * priority by default, and that side can be printed without brackets. but if
+			 * the x side has same prio that's only possible if there were brackets.
 			 */
 			switch (JPLUtils.getFixity(term)) {
 			case FX:
@@ -609,18 +601,18 @@ public class JPLUtils {
 			}
 		}
 		/*
-		 * if we get here, the argument does not need bracketing, either because
-		 * it has lower prio or because it has equal prio and the operator
-		 * allows that without brackets.
+		 * if we get here, the argument does not need bracketing, either because it has
+		 * lower prio or because it has equal prio and the operator allows that without
+		 * brackets.
 		 */
 		return argexpression.toString();
 	}
 
 	/**
-	 * Support function for toString that checks if context requires brackets
-	 * around term. Checks if argument[argument] needs bracketing for printing.
-	 * Arguments inside a predicate are priority 1000. All arguments higher than
-	 * that must have been bracketed.
+	 * Support function for toString that checks if context requires brackets around
+	 * term. Checks if argument[argument] needs bracketing for printing. Arguments
+	 * inside a predicate are priority 1000. All arguments higher than that must
+	 * have been bracketed.
 	 *
 	 * @param term
 	 *            the {@link org.jpl7.Term} to convert
@@ -673,8 +665,8 @@ public class JPLUtils {
 	/**
 	 * Create most general unifier (mgu) of two terms. The returned most general
 	 * unifier is a substitution which, if applied to both terms, will make the
-	 * terms equal. This algorithm currently will first try to set variables in
-	 * x. So it has a bias towards filling in the x variables over filling in y
+	 * terms equal. This algorithm currently will first try to set variables in x.
+	 * So it has a bias towards filling in the x variables over filling in y
 	 * variables. <br>
 	 * The map that is returned contains String as key objects, because
 	 * org.jpl7.Variable can not be used for key (as it does not implement
@@ -691,15 +683,14 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Textbook implementation of Unify algorithm. AI : A modern Approach,
-	 * Russel, Norvig, Third Edition unifies two terms and returns set of
-	 * substitutions that make the terms unify. The variables in the two terms
-	 * are assumed to be in the same namespace. <br>
-	 * This textbook implementation has a bias towards assigning variables in
-	 * the left hand term. <br>
-	 * The returned map contains String as key objects, because
-	 * org.jpl7.Variable can not be used for key (as it does not implement
-	 * hashCode).
+	 * Textbook implementation of Unify algorithm. AI : A modern Approach, Russel,
+	 * Norvig, Third Edition unifies two terms and returns set of substitutions that
+	 * make the terms unify. The variables in the two terms are assumed to be in the
+	 * same namespace. <br>
+	 * This textbook implementation has a bias towards assigning variables in the
+	 * left hand term. <br>
+	 * The returned map contains String as key objects, because org.jpl7.Variable
+	 * can not be used for key (as it does not implement hashCode).
 	 *
 	 * @param x
 	 *            the first term.
@@ -731,8 +722,8 @@ public class JPLUtils {
 	}
 
 	/**
-	 * Unify 2 {@link org.jpl7.Compound}s. Implements the bit vague element in
-	 * the textbook UNIFY(x.ARGS, y.ARGS, UNIFY(x.OP, y.OP,s)).
+	 * Unify 2 {@link org.jpl7.Compound}s. Implements the bit vague element in the
+	 * textbook UNIFY(x.ARGS, y.ARGS, UNIFY(x.OP, y.OP,s)).
 	 *
 	 * @param x
 	 *            the first {@link org.jpl7.Compound}
@@ -759,16 +750,16 @@ public class JPLUtils {
 	/**
 	 * Textbook implementation of Unify-Var algorithm. AI : A modern Approach,
 	 * Russel, Norvig, Third Edition. unifies two terms and returns set of
-	 * substitutions that make the terms unify. The variables in the two terms
-	 * are assumed to be in the same namespace.
+	 * substitutions that make the terms unify. The variables in the two terms are
+	 * assumed to be in the same namespace.
 	 *
 	 * @param var
 	 *            the {@link org.jpl7.Variable}.
 	 * @param y
 	 *            the {@link org.jpl7.Term}.
 	 * @param s
-	 *            the substitutions used so far. Must not be null. This set can
-	 *            be modified by this function.
+	 *            the substitutions used so far. Must not be null. This set can be
+	 *            modified by this function.
 	 *
 	 * @return set of variable substitutions, or null if the terms do not unify.
 	 */
