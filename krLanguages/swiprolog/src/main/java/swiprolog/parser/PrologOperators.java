@@ -724,7 +724,7 @@ public final class PrologOperators {
 			return false;
 		}
 		// See ISO section 6.1.2b and 6.4.2 "Names"
-		if (name.equals("[]")) {
+		if (name.equals("[]") || name.equals("[|]")) {
 			return true;
 		}
 		if (name.equals("{}")) {

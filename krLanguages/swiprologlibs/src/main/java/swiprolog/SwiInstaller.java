@@ -74,7 +74,7 @@ public final class SwiInstaller {
 		JPL.setDTMMode(false);
 		// Let JPL know which SWI_HOME_DIR we're using; this negates the need
 		// for a SWI_HOME_DIR environment var
-		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals", "--nodebug", "--traditional" });
+		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals", "--nodebug" });
 		new org.jpl7.Query("set_prolog_flag(debug_on_error,false).").allSolutions();
 
 		// Finished

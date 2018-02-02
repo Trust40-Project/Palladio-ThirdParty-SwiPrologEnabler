@@ -76,8 +76,8 @@ public class BasicQueriesTest {
 	@Test
 	public void testMember() {
 		Variable x = new org.jpl7.Variable("X");
-		Term list = new Compound(".", new Term[] { new org.jpl7.Float(1.1),
-				new Compound(".", new Term[] { new org.jpl7.Float(2.2), new Atom("[]") }) });
+		Term list = new Compound("[|]", new Term[] { new org.jpl7.Float(1.1),
+				new Compound("[|]", new Term[] { new org.jpl7.Float(2.2), new Atom("[]") }) });
 
 		Query query = new Query(new org.jpl7.Compound("member", new org.jpl7.Term[] { x, list }));
 

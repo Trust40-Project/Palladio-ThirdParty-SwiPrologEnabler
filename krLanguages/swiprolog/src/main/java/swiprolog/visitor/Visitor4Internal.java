@@ -155,8 +155,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	/**
-	 * Unquote a quoted string. The enclosing quotes determine how quotes inside
-	 * the string are handled.
+	 * Unquote a quoted string. The enclosing quotes determine how quotes inside the
+	 * string are handled.
 	 */
 	private String unquote(String quotedstring) {
 		char quote = quotedstring.charAt(0);
@@ -167,8 +167,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	/**
-	 * Double quotes in quoted string indicate just that quote one time. eg,
-	 * """" means '"'.
+	 * Double quotes in quoted string indicate just that quote one time. eg, """"
+	 * means '"'.
 	 */
 	private String replaceQuotes(String string, char quote) {
 		return string.replaceAll("" + quote + quote, "" + quote);
@@ -265,7 +265,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 	@Override
 	public PrologTerm visitItems(ItemsContext ctx) {
-		// 6.3.5 ; we use the prolog "." functor to build items list.
+		// 6.3.5 ; we use the prolog "[|]" functor to build items list.
 		PrologTerm head = visitExpression(ctx.expression());
 
 		PrologTerm tail = null;
@@ -279,10 +279,10 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 
 		if (tail == null) {
 			org.jpl7.Term[] args1 = { head.getTerm(), new org.jpl7.Atom("[]") };
-			return compound(".", args1, ctx);
+			return compound("[|]", args1, ctx);
 		} else {
 			org.jpl7.Term[] args2 = { head.getTerm(), tail.getTerm() };
-			return compound(".", args2, ctx);
+			return compound("[|]", args2, ctx);
 		}
 	}
 
@@ -300,8 +300,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	 *            number to parse
 	 * @param info
 	 *            the {@link SourceInfo}
-	 * @return the parsed term. If failure, this returns a term '1' and reports
-	 *         the error in the {@link #errors} list.
+	 * @return the parsed term. If failure, this returns a term '1' and reports the
+	 *         error in the {@link #errors} list.
 	 */
 	private PrologTerm parseNumber(String num, SourceInfo info) {
 		if (num.matches("[0-9]+") || num.matches("0[box].*")) {
@@ -442,8 +442,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	@Override
 	public PrologTerm visitTerm400(Term400Context ctx) {
 		/*
-		 * term200 ( ('*' | '/' | '//' | 'rem' | 'mod' | 'rdiv' | '<<' | '>>')
-		 * term200 )*
+		 * term200 ( ('*' | '/' | '//' | 'rem' | 'mod' | 'rdiv' | '<<' | '>>') term200
+		 * )*
 		 */
 		PrologTerm term = visitTerm200(ctx.term200());
 		for (Term400bContext t : ctx.term400b()) {
@@ -481,9 +481,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	@Override
 	public PrologTerm visitTerm700(Term700Context ctx) {
 		/**
-		 * term500 ( ( '=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | '@>' | '@>='
-		 * | '=@='| '=..' | 'is' | '=:=' | '=\\=' | '<' | '=<' | '>' | '>=')
-		 * term500 )?
+		 * term500 ( ( '=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | '@>' | '@>=' |
+		 * '=@='| '=..' | 'is' | '=:=' | '=\\=' | '<' | '=<' | '>' | '>=') term500 )?
 		 */
 		PrologTerm lhs = visitTerm500(ctx.term500(0));
 		if (ctx.term500().size() == 1) {

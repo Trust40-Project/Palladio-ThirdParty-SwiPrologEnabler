@@ -491,7 +491,7 @@ public class JPLUtils {
 			/**
 			 * Special treatment of (non-empty) lists.
 			 */
-			if (term.name().equals(".") && term.arity() == 2) {
+			if (term.name().equals("[|]") && term.arity() == 2) {
 				return "[" + toString(term.arg(1)) + tailToString(term.arg(2)) + "]";
 			}
 
@@ -654,7 +654,7 @@ public class JPLUtils {
 		// check that we are still in a list and continue.
 		if (term.isCompound()) {
 			org.jpl7.Term[] args = term.args();
-			if (!(term.name().equals(".")) || args.length != 2) {
+			if (!(term.name().equals("[|]")) || args.length != 2) {
 				return "|" + toString(term); // no good list.
 			}
 			return "," + toString(args[0]) + tailToString(args[1]);
