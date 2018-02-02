@@ -24,6 +24,7 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jpl7.JPL;
 
 import krTools.exceptions.ParserException;
 import krTools.parser.SourceInfo;
@@ -259,7 +260,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		if (ctx.items() != null) {
 			return visitItems(ctx.items());
 		} else {
-			return atom("[]", ctx);
+			return new PrologTerm(JPL.LIST_NIL, getSourceInfo(ctx));
 		}
 	}
 
@@ -278,11 +279,11 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		}
 
 		if (tail == null) {
-			org.jpl7.Term[] args1 = { head.getTerm(), new org.jpl7.Atom("[]") };
-			return compound("[|]", args1, ctx);
+			org.jpl7.Term[] args1 = { head.getTerm(), JPL.LIST_NIL };
+			return compound(JPL.LIST_PAIR, args1, ctx);
 		} else {
 			org.jpl7.Term[] args2 = { head.getTerm(), tail.getTerm() };
-			return compound("[|]", args2, ctx);
+			return compound(JPL.LIST_PAIR, args2, ctx);
 		}
 	}
 

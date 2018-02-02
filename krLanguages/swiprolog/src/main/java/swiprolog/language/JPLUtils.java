@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.jpl7.JPL;
+
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -320,9 +322,9 @@ public class JPLUtils {
 	public static org.jpl7.Term termsToList(List<org.jpl7.Term> terms) {
 		// Start with element in list, since innermost term of Prolog list is
 		// the last term.
-		org.jpl7.Term list = new org.jpl7.Atom("[]");
+		org.jpl7.Term list = JPL.LIST_NIL;
 		for (int i = terms.size() - 1; i >= 0; i--) {
-			list = new org.jpl7.Compound(".", new org.jpl7.Term[] { terms.get(i), list });
+			list = new org.jpl7.Compound(JPL.LIST_PAIR, new org.jpl7.Term[] { terms.get(i), list });
 		}
 		return list;
 	}
@@ -491,7 +493,7 @@ public class JPLUtils {
 			/**
 			 * Special treatment of (non-empty) lists.
 			 */
-			if (term.name().equals("[|]") && term.arity() == 2) {
+			if (term.name().equals(JPL.LIST_PAIR) && term.arity() == 2) {
 				return "[" + toString(term.arg(1)) + tailToString(term.arg(2)) + "]";
 			}
 
@@ -647,17 +649,18 @@ public class JPLUtils {
 	private static String tailToString(org.jpl7.Term term) {
 		// Did we reach end of the list?
 		// TODO: empty list
-		if (term.isAtom() && term.name().equals("[]")) {
+		if (term.equals(JPL.LIST_NIL)) {
 			return "";
 		}
 
 		// check that we are still in a list and continue.
 		if (term.isCompound()) {
 			org.jpl7.Term[] args = term.args();
-			if (!(term.name().equals("[|]")) || args.length != 2) {
+			if (term.name().equals(JPL.LIST_PAIR) && args.length == 2) {
+				return "," + toString(args[0]) + tailToString(args[1]);
+			} else {
 				return "|" + toString(term); // no good list.
 			}
-			return "," + toString(args[0]) + tailToString(args[1]);
 		}
 
 		// If we arrive here the remainder is either a var or not a good list.
