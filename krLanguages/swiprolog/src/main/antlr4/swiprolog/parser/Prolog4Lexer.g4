@@ -165,7 +165,8 @@ fragment DIGIT
   ;
   
 STRING  // Compare 6.4.2 (quoted char); in contrast with 6.5.4 new line chars are allowed in strings
-  : '\'' (CHAR | '\'\'' | '"' | '`' )* '\'' // single quoted string
+  // single quoted atoms deviate from standard. Also because swi now prints \' instead of '' 
+  : '\'' (~('\'' | '\\') | '\\\\' | '\'\'' | '\\\''   )* '\'' // single quoted string
   | '"' (CHAR | '""' | '\'' | '`' )* '"'    // double quoted string
   | '`' (CHAR | '``' | '\'' | '"' )* '`'    // back quoted string
   ; 
