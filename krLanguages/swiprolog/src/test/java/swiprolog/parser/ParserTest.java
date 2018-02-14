@@ -51,7 +51,12 @@ public class ParserTest {
 				{ "p" }, { "'.'" },
 				// We apparently can't parse terms like "'bla.'" ,
 				// "p('.'(1,2,3))"
-				{ "p('a\'bc ')" }, { "p('Příliš žluťoučký kůň úpěl ďábelské ódy')" }, { "p(' a '' b c ')" } }
+
+				// JPL7 bug: single quotes are not escaped properly, we loose
+				// the \
+				{ "p('a\'bc ')" },
+
+				{ "p('Příliš žluťoučký kůň úpěl ďábelské ódy')" } }
 
 		);
 
