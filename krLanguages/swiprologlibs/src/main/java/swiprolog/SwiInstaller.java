@@ -104,6 +104,7 @@ public final class SwiInstaller {
 		case mac:
 			load("libncurses.6.dylib");
 			load("libreadline.6.dylib");
+			load("libgmp.10.dylib");
 			load("libswipl.dylib");
 			load("libjpl.dylib");
 			break;
