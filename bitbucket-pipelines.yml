@@ -3,17 +3,23 @@ pipelines:
   branches:
     master:
         - step:
+            caches:
+              - maven
             script:
               - openssl aes-256-cbc -pass pass:$GPG_PWD -in bitbucket-pipelines.gpg.enc -out bitbucket-pipelines.gpg -d -md md5
               - gpg --import bitbucket-pipelines.gpg
               - mvn -V -B -s bitbucket-pipelines.xml deploy
     develop:
         - step:
+            caches:
+              - maven
             script:
               - openssl aes-256-cbc -pass pass:$GPG_PWD -in bitbucket-pipelines.gpg.enc -out bitbucket-pipelines.gpg -d -md md5
               - gpg --import bitbucket-pipelines.gpg
-              - mvn -V -B -s bitbucket-pipelines.xml deploy
+              - mvn -V -B -U -s bitbucket-pipelines.xml deploy
   default:
     - step:
+        caches:
+          - maven
         script:
-          - mvn -V -B install -Dgpg.skip
+          - mvn -V -B -U install -Dgpg.skip

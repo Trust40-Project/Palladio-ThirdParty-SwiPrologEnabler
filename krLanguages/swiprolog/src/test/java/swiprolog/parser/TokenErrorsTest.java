@@ -74,6 +74,9 @@ public class TokenErrorsTest {
 	public void testTwoNames() throws Exception {
 		failsParseAsProlog("kata kata.", ParserErrorMessages.TOKEN_BAD.toReadableString("an atom 'kata'",
 				ParserErrorMessages.TERM200.toReadableString()));
+
+		// [ParserException: found an atom 'kata' but we need an (other)
+		// operator here line 1, position 7]
 	}
 
 	@Test

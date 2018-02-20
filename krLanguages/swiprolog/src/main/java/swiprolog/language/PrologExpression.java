@@ -35,8 +35,8 @@ public interface PrologExpression extends Expression {
 	}
 
 	/**
-	 * @return The F-ixity of the term: returns NOT_OPERATOR for non-operator
-	 *         terms. See ISO 12311, table 5.
+	 * @return The F-ixity of the term: returns NOT_OPERATOR for non-operator terms.
+	 *         See ISO 12311, table 5.
 	 * @see PrologOperators.Fixity for a list of f-ixities.
 	 */
 	public default PrologOperators.Fixity getFixity() {
@@ -45,8 +45,8 @@ public interface PrologExpression extends Expression {
 	}
 
 	/**
-	 * Returns the priority of the main operator of the term. See ISO 12311,
-	 * table 5.
+	 * Returns the priority of the main operator of the term. See ISO 12311, table
+	 * 5.
 	 *
 	 * @return The priority of the term's operator. Default is 0.
 	 */

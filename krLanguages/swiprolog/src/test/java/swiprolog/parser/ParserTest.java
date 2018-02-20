@@ -47,10 +47,12 @@ public class ParserTest {
 				{ "head :- a , b , c" }, { "[p]" }, { "[a,b,c]" }, { "bet(-1,1,X)" }, { "[[a,b,c],[d,e,f]]" },
 				// WE CAN NOT PARSE THIS { "[1,2|4]" },
 				{ "head :- X is 1- -1" }, { "head :- X*(-1 , 2)" }, { "head :- X is 1+ -(1+2)" }, { "[p(1,2),3]" },
-				{ "p" }, { "'.'" }
+				{ "p" }, { "'.'" },
 				// We apparently can't parse terms like "'bla.'" ,
 				// "p('.'(1,2,3))"
-		});
+				// JPL7 bug: single quotes are not escaped properly
+				// { "p('a\'bc ')" },
+				{ "p('Příliš žluťoučký kůň úpěl ďábelské ódy')" } });
 	}
 
 	private String input;
@@ -80,9 +82,9 @@ public class ParserTest {
 
 		// Term list = Util.textToTerm(input);
 		/*
-		 * With some terms like "between(-1,1,X), JPLUtils is playing some weird
-		 * tricks: it inserts whitespaces where they are not in the original
-		 * term, and removes them where they are in the original term.
+		 * With some terms like "between(-1,1,X), JPLUtils is playing some weird tricks:
+		 * it inserts whitespaces where they are not in the original term, and removes
+		 * them where they are in the original term.
 		 */
 		assertEquals(this.input.replaceAll(" ", ""), result.replaceAll(" ", ""));
 	}

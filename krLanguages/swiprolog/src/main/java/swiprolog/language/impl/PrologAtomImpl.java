@@ -33,7 +33,7 @@ import swiprolog.parser.PrologOperators;
 /**
  * A Prolog variable.
  */
-public class PrologAtomImpl extends jpl.Atom implements PrologCompound {
+public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 	/**
 	 * Information about the source used to construct this atom.
 	 */
@@ -89,7 +89,7 @@ public class PrologAtomImpl extends jpl.Atom implements PrologCompound {
 
 	@Override
 	public boolean isQuery() {
-		return !PrologOperators.goalProtected(getName());
+		return true; // FIXME
 	}
 
 	@Override

@@ -93,8 +93,8 @@ public class TestUpdate2 {
 	// }
 
 	/**
-	 * Delete all databases. Just a smoke test, as we can't do anything with
-	 * deleted databases.
+	 * Delete all databases. Just a smoke test, as we can't do anything with deleted
+	 * databases.
 	 */
 	@Test
 	public void testDeleteAll() throws Exception {
@@ -105,8 +105,8 @@ public class TestUpdate2 {
 	}
 
 	/**
-	 * Create new Kb and Bb for SAME AGENT NAME, and check that the new BB has
-	 * the new Kb content.
+	 * Create new Kb and Bb for SAME AGENT NAME, and check that the new BB has the
+	 * new Kb content.
 	 */
 	@Test
 	public void testRecreateKbAndBb() throws Exception {

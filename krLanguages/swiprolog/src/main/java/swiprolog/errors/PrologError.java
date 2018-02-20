@@ -3,22 +3,25 @@ package swiprolog.errors;
 import krTools.KRInterface;
 import krTools.exceptions.KRException;
 import krTools.exceptions.KRQueryFailedException;
+import krTools.language.Term;
+import swiprolog.database.PrologDatabase;
+import swiprolog.language.PrologCompound;
 
 /**
- * A wrapper for {@link jpl.PrologException}s.
+ * A wrapper for {@link org.jpl7.PrologException}s.
  *
  * reasons for having this:
  * <ul>
  * <li>a {@link KRInterface} can only throw {@link KRException}s
- * <li>We need to do pretty printing, {@link jpl.PrologException} toString is
- * unreadable for most humans
+ * <li>We need to do pretty printing, {@link org.jpl7.PrologException} toString
+ * is unreadable for most humans
  * </ul>
  *
  * <p>
  * The error contents were determined with reverse engineering. We most likely
  * have not covered all possible cases. We try to give more general errors in
- * unknown cases. But including the original {@link jpl.PrologException} still
- * is necessary.
+ * unknown cases. But including the original {@link org.jpl7.PrologException}
+ * still is necessary.
  *
  */
 public class PrologError extends KRQueryFailedException {
@@ -28,34 +31,33 @@ public class PrologError extends KRQueryFailedException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Known {@link jpl.PrologException}s
+	 * Known {@link org.jpl7.PrologException}s
 	 */
 	enum ErrorType {
 		/**
-		 * type_error(+Type, +Term) Tell the user that Term is not of the
-		 * expected Type
+		 * type_error(+Type, +Term) Tell the user that Term is not of the expected Type
 		 */
 		TYPE_ERROR(2),
 		/**
-		 * domain_error(+Type, +Term). The argument is of the proper type, but
-		 * has a value that is outside the supported values
+		 * domain_error(+Type, +Term). The argument is of the proper type, but has a
+		 * value that is outside the supported values
 		 */
 		DOMAIN_ERROR(2),
 		/**
-		 * existence_error(+Type, +Term). Term is of the correct type and
-		 * correct domain, but there is no existing (external) resource that is
-		 * represented by it.
+		 * existence_error(+Type, +Term). Term is of the correct type and correct
+		 * domain, but there is no existing (external) resource that is represented by
+		 * it.
 		 */
 		EXISTENCE_ERROR(2),
 		/**
-		 * permission_error(+Action, +Type, +Term): It is not allowed to perform
-		 * Action on the object Term that is of the given Type.
+		 * permission_error(+Action, +Type, +Term): It is not allowed to perform Action
+		 * on the object Term that is of the given Type.
 		 */
 		PERMISSION_ERROR(3),
 		/**
-		 * instantiation_error(+Term). An argument is under-instantiated. I.e.
-		 * it is not acceptable as it is, but if some variables are bound to
-		 * appropriate values it would be acceptable.
+		 * instantiation_error(+Term). An argument is under-instantiated. I.e. it is not
+		 * acceptable as it is, but if some variables are bound to appropriate values it
+		 * would be acceptable.
 		 */
 		INSTANTIATION_ERROR(1),
 		/**
@@ -64,8 +66,8 @@ public class PrologError extends KRQueryFailedException {
 
 		UNINSTANTIATION_ERROR(1),
 		/**
-		 * representation_error(+Reason). A representation error indicates a
-		 * limitation of the implementation.
+		 * representation_error(+Reason). A representation error indicates a limitation
+		 * of the implementation.
 		 */
 		REPRESENTATION_ERROR(1),
 
@@ -75,8 +77,8 @@ public class PrologError extends KRQueryFailedException {
 		SYNTAX_ERROR(1),
 
 		/**
-		 * evaliation_error(Cause): some math evaluation failed. Not documented
-		 * by SWI so reverse engineered.
+		 * evaliation_error(Cause): some math evaluation failed. Not documented by SWI
+		 * so reverse engineered.
 		 */
 		EVALUATION_ERROR(1);
 
@@ -92,9 +94,9 @@ public class PrologError extends KRQueryFailedException {
 	};
 
 	/**
-	 * Subtype, often passed as first argument of the error. This indicates to
-	 * which type of object the error is referring. This also influences the
-	 * format and type of the other arguments of the error.
+	 * Subtype, often passed as first argument of the error. This indicates to which
+	 * type of object the error is referring. This also influences the format and
+	 * type of the other arguments of the error.
 	 *
 	 */
 	enum ErrorSubType {
@@ -112,13 +114,13 @@ public class PrologError extends KRQueryFailedException {
 	 * Creates prolog error from given error term.
 	 *
 	 * @param err
-	 *            must be a {@link jpl.PrologException} (not null) containing a
-	 *            compound term which in turn containing the error details term.
-	 *            The name of error details should be one of the known
+	 *            must be a {@link org.jpl7.PrologException} (not null) containing a
+	 *            compound term which in turn containing the error details term. The
+	 *            name of error details should be one of the known
 	 *            {@link ErrorType}s. Unknown error types can not be handled
 	 *            properly
 	 */
-	public PrologError(jpl.PrologException exc) {
+	public PrologError(org.jpl7.PrologException exc) {
 		// we can't know message before processing exc.. as workaround we
 		// override #getMessage()
 		super("", exc);
@@ -140,8 +142,9 @@ public class PrologError extends KRQueryFailedException {
 	 * @return message, or null if we fail to create such a message.
 	 */
 	private String extractDetailMessage() {
-		jpl.PrologException cause = (jpl.PrologException) getCause();
-		jpl.Term term = cause.term();
+		org.jpl7.PrologException cause = (org.jpl7.PrologException) getCause();
+		Term term = PrologDatabase.fromJpl(cause.term());
+		PrologCompound compound = (term instanceof PrologCompound) ? (PrologCompound) term : null;
 		// we are expecting error(specific error, context), so something
 		// like this:
 		// error(existence_error(procedure,
@@ -149,14 +152,11 @@ public class PrologError extends KRQueryFailedException {
 		// on(e,f) , on(f,table) , maintain', /(target, 2))),
 		// context(:(system, /(',', 2)), _36))
 		// we will try to translate the contained specific error.
-		if (!(term instanceof jpl.Compound)) {
+		if (compound != null && compound.getName().equals("error") && compound.getArity() > 0) {
+			return makeDetailMessage((PrologCompound) compound.getArg(0));
+		} else {
 			return null;
 		}
-		jpl.Compound errterm = (jpl.Compound) term;
-		if ((!errterm.name().equals("error")) || errterm.arity() == 0 || !(errterm.arg(1) instanceof jpl.Compound)) {
-			return null;
-		}
-		return makeDetailMessage((jpl.Compound) errterm.arg(1));
 
 	}
 
@@ -165,17 +165,17 @@ public class PrologError extends KRQueryFailedException {
 	 *            a Compound term like existence_error(..,..).
 	 * @return human readable error message, or null if unknown term.
 	 */
-	private String makeDetailMessage(jpl.Compound error) {
+	private String makeDetailMessage(PrologCompound error) {
 		ErrorType type;
 		try {
-			type = ErrorType.valueOf(error.name().toUpperCase());
+			type = ErrorType.valueOf(error.getName().toUpperCase());
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
 
 		String defaultmessage = "because of a general " + type.toString().toLowerCase();
 
-		if (error.arity() != type.getArity()) {
+		if (error.getArity() != type.getArity()) {
 			// sometimes SWI gives wrong error objects to us with no details.
 			// Still trying to be helpful somehow...
 			return defaultmessage;
@@ -185,45 +185,40 @@ public class PrologError extends KRQueryFailedException {
 		case EXISTENCE_ERROR:
 			ErrorSubType subtype;
 			try {
-				subtype = ErrorSubType.valueOf(error.arg(1).name().toUpperCase());
+				subtype = ErrorSubType.valueOf(((PrologCompound) error.getArg(0)).getName().toUpperCase());
 			} catch (IllegalArgumentException e) {
 				return defaultmessage;
 			}
 			switch (subtype) {
 			case PROCEDURE:
-				jpl.Term t = error.arg(2);
-				if (!(t instanceof jpl.Compound)) {
+				PrologCompound t = (PrologCompound) error.getArg(1);
+				if (t.getArity() == 2) {
+					return "the term " + t + " is undefined";
+				} else {
 					return defaultmessage;
 				}
-				jpl.Compound explanation = (jpl.Compound) t;
-				if (explanation.arity() != 2) {
-					return defaultmessage;
-				}
-
-				return "the term " + explanation.arg(2) + " is undefined";
 			case SOURCE_SINK:
-				return "the file " + error.arg(2) + " is unaccesable";
+				return "the file " + error.getArg(1) + " is unaccesable";
 			default:
 				return defaultmessage;
 			}
-
 		case INSTANTIATION_ERROR:
-			return "the term " + error.arg(1) + " is under-instantiated";
+			return "the term " + error.getArg(0) + " is under-instantiated";
 		case DOMAIN_ERROR:
-			return "The term " + error.arg(2) + " has a value that is outside the supported values";
+			return "The term " + error.getArg(1) + " has a value that is outside the supported values";
 		case UNINSTANTIATION_ERROR:
-			return "the term " + error.arg(1) + " is over-instantiated";
+			return "the term " + error.getArg(0) + " is over-instantiated";
 		case PERMISSION_ERROR:
-			return "it is not allowed to perform " + error.arg(1) + " on the object " + error.arg(2)
-					+ " that is of type " + error.arg(3);
+			return "it is not allowed to perform " + error.getArg(0) + " on the object " + error.getArg(1)
+					+ " that is of type " + error.getArg(2);
 		case TYPE_ERROR:
-			return "the term " + error.arg(2) + " is not of the expected " + error.arg(1) + " type";
+			return "the term " + error.getArg(1) + " is not of the expected " + error.getArg(0) + " type";
 		case REPRESENTATION_ERROR:
-			return "implementation limits exceeded:" + error.arg(1);
+			return "implementation limits exceeded:" + error.getArg(0);
 		case SYNTAX_ERROR:
-			return "text has invalid syntax:" + error.arg(1);
+			return "text has invalid syntax:" + error.getArg(0);
 		case EVALUATION_ERROR:
-			return "computation failed:" + error.arg(1);
+			return "computation failed:" + error.getArg(0);
 		default:
 			return defaultmessage;
 		}

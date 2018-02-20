@@ -24,18 +24,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.jpl7.JPL;
+
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
 import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologTerm;
-import swiprolog.parser.PrologOperators;
 
 /**
  * A Prolog variable.
  */
-public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
+public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompound {
 	/**
 	 * Information about the source used to construct this compound.
 	 */
@@ -68,10 +69,10 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 		}
 	}
 
-	private static jpl.Term[] jplTypedArray(Term[] args) {
-		jpl.Term[] jpl = new jpl.Term[args.length];
+	private static org.jpl7.Term[] jplTypedArray(Term[] args) {
+		org.jpl7.Term[] jpl = new org.jpl7.Term[args.length];
 		for (int i = 0; i < args.length; ++i) {
-			jpl[i] = (jpl.Term) args[i];
+			jpl[i] = (org.jpl7.Term) args[i];
 			if (jpl[i] == null) {
 				throw new IllegalArgumentException("Null term passed into compound");
 			}
@@ -112,16 +113,12 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 
 	@Override
 	public boolean isPredicateIndicator() {
-		return getSignature().equals("//2") && (getArg(0) instanceof PrologAtomImpl)
+		return this.name.equals("/") && (getArity() == 2) && (getArg(0) instanceof PrologAtomImpl)
 				&& (getArg(1) instanceof PrologIntImpl);
 	}
 
 	@Override
 	public boolean isQuery() {
-		if (PrologOperators.goalProtected(getName())) {
-			// The use of operator in a goal is not supported.
-			return false;
-		}
 		String sig = getSignature();
 		if (sig.equals(":-/2")) {
 			return false;
@@ -134,7 +131,12 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 
 	@Override
 	public String getSignature() {
-		return this.name + "/" + getArity();
+		String sig = this.name + "/" + getArity();
+		if (sig.equals("//2")) {
+			return ((PrologAtomImpl) getArg(0)).getName() + "/" + ((PrologIntImpl) getArg(1)).intValue();
+		} else {
+			return sig;
+		}
 	}
 
 	@Override
@@ -186,8 +188,10 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	@Override
 	public String toString() {
 		// Special treatment of (non-empty) lists.
-		if (getSignature().equals("./2")) {
+		if (this.name.equals(JPL.LIST_PAIR)) {
 			return "[" + getArg(0) + tailToString(getArg(1)) + "]";
+		} else if (this.name.equals("/") && (getArity() == 2)) {
+			return getSignature();
 		} else {
 			switch (getFixity()) {
 			case FX:
@@ -323,12 +327,12 @@ public class PrologCompoundImpl extends jpl.Compound implements PrologCompound {
 	private static String tailToString(Term arg) {
 		// Did we reach end of the list?
 		// TODO: empty list
-		if (arg instanceof PrologAtomImpl && ((PrologAtomImpl) arg).getName().equals("[]")) {
+		if (arg instanceof PrologAtomImpl && ((PrologAtomImpl) arg).getName().equals(JPL.LIST_NIL.name())) {
 			return "";
 		} else if (arg instanceof PrologCompound) {
 			// check that we are still in a list and continue.
-			if (arg.getSignature().equals("./2")) {
-				PrologCompound compound = (PrologCompound) arg;
+			PrologCompound compound = (PrologCompound) arg;
+			if (compound.getName().equals(JPL.LIST_PAIR)) {
 				return "," + compound.getArg(0) + tailToString(compound.getArg(1));
 			} else {
 				return "|" + arg; // not a good list.

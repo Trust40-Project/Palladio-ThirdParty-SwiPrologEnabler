@@ -1,30 +1,35 @@
 /*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@cs.vu.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2011, VU University Amsterdam
+    Copyright (c)  2011-2016, VU University Amsterdam
+    All rights reserved.
 
-    This program is free software; you can redistribute it and/or
-    modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 2
-    of the License, or (at your option) any later version.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
 
-    You should have received a copy of the GNU General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in
+       the documentation and/or other materials provided with the
+       distribution.
 
-    As a special exception, if you link this library with other files,
-    compiled with a Free Software compiler, to produce an executable, this
-    library does not by itself cause the resulting executable to be covered
-    by the GNU General Public License. This exception does not however
-    invalidate any other reasons why the executable file might be covered by
-    the GNU General Public License.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+    FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+    COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+    ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 :- module(prolog_system_predicate_options, []).
@@ -37,11 +42,13 @@
 		       alias(atom),
 		       encoding(encoding),
 		       bom(boolean),
+		       create(list(atom)),
 		       eof_action(oneof([eof_code,error,reset])),
 		       buffer(oneof([full,line,false])),
 		       close_on_abort(boolean),
 		       lock(oneof([none,read,shared,write,exclusive])),
-		       wait(boolean)
+		       wait(boolean),
+		       locale(any)		% no type-check yet
 		     ]).
 :- predicate_options(system:write_term/3, 3,
 		     [ attributes(oneof([ignore,dots,write,portray])),
@@ -49,6 +56,8 @@
 		       blobs(oneof([portray])),
 		       character_escapes(boolean),
 		       cycles(boolean),
+		       fullstop(boolean),
+		       nl(boolean),
 		       ignore_ops(boolean),
 		       max_depth(nonneg),
 		       module(atom),
@@ -58,7 +67,8 @@
 		       portray_goal(callable+2), % as in meta_predicate
 		       priority(between(0,1200)),
 		       quoted(boolean),
-		       spacing(oneof([standard,next_argument]))
+		       spacing(oneof([standard,next_argument])),
+		       variable_names(list)
 		     ]).
 :- predicate_options(system:write_term/2, 2,
 		     [ pass_to(system:write_term/3, 3)
@@ -66,6 +76,14 @@
 :- predicate_options(system:write_length/3, 3,
 		     [ max_length(nonneg),
 		       pass_to(system:write_term/3, 3)
+		     ]).
+:- predicate_options(system:read_clause/3, 3,
+		     [ syntax_errors(oneof([error,fail,quiet,dec10])),
+		       process_comment(boolean),
+		       term_position(-any),
+		       variable_names(-list),
+		       subterm_positions(-any),
+		       comments(-list)
 		     ]).
 :- predicate_options(system:read_term/3, 3,
 		     [ backquoted_string(boolean),
@@ -107,10 +125,14 @@
 		       if(oneof([true,changed,not_loaded])),
 		       imports(any),
 		       modified(float),
+		       module(atom),
+                       check_script(boolean),
 		       must_be_module(boolean),
 		       qcompile(oneof([never,auto,large,part])),
 		       redefine_module(oneof([false,true,ask])),
 		       reexport(boolean),
+		       sandboxed(boolean),
+		       scope_settings(boolean),
 		       silent(boolean),
 		       stream(any)
 		     ]).
@@ -122,7 +144,8 @@
 		     ]).
 :- predicate_options(system:create_prolog_flag/3, 3,
 		     [ access(oneof([read_write,read_only])),
-		       type(oneof([boolean,atom,integer,float,term]))
+		       type(oneof([boolean,atom,integer,float,term])),
+		       keep(boolean)
 		     ]).
 :- predicate_options(system:qsave_program/2, 2,
 		     [ local(nonneg),
@@ -142,6 +165,8 @@
 :- predicate_options(system:thread_create/3, 3,
 		     [ alias(atom),
 		       at_exit(callable),
+		       debug(boolean),
+		       inherit_from(any),
 		       detached(boolean),
 		       global(nonneg),
 		       local(nonneg),
@@ -155,8 +180,22 @@
 :- predicate_options(system:mutex_create/2, 2,
 		     [ alias(atom)
 		     ]).
+:- predicate_options(system:thread_send_message/3, 3,
+		     [ timeout(number),
+		       deadline(number)
+		     ]).
 :- predicate_options(system:thread_get_message/3, 3,
 		     [ timeout(number),
 		       deadline(number)
+		     ]).
+:- predicate_options(system:locale_create/3, 3,
+		     [ alias(atom),
+		       decimal_point(atom),
+		       thousands_sep(atom),
+		       grouping(list(any))
+		     ]).
+:- predicate_options(system:term_string/3, 3,
+		     [ pass_to(system:write_term/3, 3),
+		       pass_to(system:read_term/3, 3)
 		     ]).
 

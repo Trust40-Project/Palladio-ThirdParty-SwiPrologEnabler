@@ -138,7 +138,8 @@ public class SemanticTools {
 		 * if (head.isVariable()) { throw new
 		 * ParserException(ParserErrorMessages.HEAD_CANT_BE_VAR.toReadableString
 		 * (term.toString()), term.getSourceInfo()); } else
-		 */ if (!head.isPredication()) {
+		 */
+		if (!head.isPredication()) {
 			throw new ParserException(ParserErrorMessages.HEAD_MUST_BE_CLAUSE.toReadableString(term.toString()),
 					term.getSourceInfo());
 		}
@@ -151,11 +152,6 @@ public class SemanticTools {
 				PrologCompound dynamicPreds = (PrologCompound) directive.getArg(0);
 				for (Term headTerm : dynamicPreds.getOperands(",")) {
 					signature = headTerm.getSignature();
-					if (signature.equals("//2")) {
-						// the term is already a signature itself
-						PrologCompound sigterm = (PrologCompound) headTerm;
-						signature = sigterm.getArg(0) + "/" + sigterm.getArg(1);
-					}
 					if (PrologOperators.prologBuiltin(signature)) {
 						throw new ParserException(
 								ParserErrorMessages.CANNOT_REDEFINE_BUILT_IN.toReadableString(signature),
@@ -191,10 +187,7 @@ public class SemanticTools {
 	public static PrologCompound toGoal(PrologCompound t) throws ParserException {
 		// 7.6.2.b
 		String sig = t.getSignature();
-		if (PrologOperators.goalProtected(t.getName())) {
-			throw new ParserException(ParserErrorMessages.PREDICATE_NOT_SUPPORTED.toReadableString(t.toString()),
-					t.getSourceInfo());
-		} else if (sig.equals(":-/2")) {
+		if (sig.equals(":-/2")) {
 			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t.toString()),
 					t.getSourceInfo());
 		} else if (sig.equals(":-/1")) {
@@ -337,8 +330,7 @@ public class SemanticTools {
 		}
 
 		String signature = compound.getSignature();
-		// for some reason, ./2 is not a prologBuiltin
-		if (!PrologOperators.prologBuiltin(signature) && !"./2".equals(signature)) {
+		if (!PrologOperators.prologBuiltin(signature)) {
 			signatures.add(signature);
 		}
 

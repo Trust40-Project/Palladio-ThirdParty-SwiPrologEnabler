@@ -113,10 +113,6 @@ public class Analyzer {
 		}
 
 		String headSig = headTerm.getSignature();
-		if (headSig.equals("//2")) {
-			// the term is already a signature itself
-			headSig = headTerm.getArg(0) + "/" + headTerm.getArg(1);
-		}
 		// Ignore built-in operators.
 		if (!PrologOperators.prologBuiltin(headSig)) {
 			// Add a new definition node

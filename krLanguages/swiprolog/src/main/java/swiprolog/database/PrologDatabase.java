@@ -18,8 +18,8 @@
 package swiprolog.database;
 
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -60,9 +60,10 @@ public class PrologDatabase implements Database {
 	 */
 	private final Theory theory;
 	/**
-	 * Query lock
+	 * A cache of write operations. Insert or deletes are queued here until the next
+	 * query, at which point those operations are first all performed.
 	 */
-	private static final Object lock = new Object();
+	private PrologCompound writecache;
 
 	/**
 	 * @param name
@@ -79,20 +80,16 @@ public class PrologDatabase implements Database {
 		this.name = new PrologAtomImpl(name, null);
 		this.owner = owner;
 		this.theory = new Theory();
-		try {
-			// Create SWI Prolog module that will act as our database.
-			// FIXME: this is an expensive operation that is now run for
-			// knowledge bases as well, and might be run for bases in a mental
-			// model that will never be used anyway too.
-			PrologCompound init = prefix(new PrologAtomImpl("true", null));
-			rawquery(init);
-			if (content != null) {
-				for (DatabaseFormula dbf : content) {
-					insert(dbf);
-				}
+		// Create SWI Prolog module that will act as our database.
+		// FIXME: this is an expensive operation that is now run for
+		// knowledge bases as well, and might be run for bases in a mental
+		// model that will never be used anyway too.
+		PrologCompound init = prefix(new PrologAtomImpl("true", null));
+		addToWriteCache(init);
+		if (content != null) {
+			for (DatabaseFormula dbf : content) {
+				insert(dbf);
 			}
-		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("unable to create a Prolog database module '" + name + "'.", e);
 		}
 	}
 
@@ -103,6 +100,13 @@ public class PrologDatabase implements Database {
 	@Override
 	public String getName() {
 		return this.name.name();
+	}
+
+	/**
+	 * @return atom with name of this database
+	 */
+	public PrologAtomImpl getJPLName() {
+		return this.name;
 	}
 
 	public Theory getTheory() {
@@ -133,14 +137,17 @@ public class PrologDatabase implements Database {
 	 */
 	@Override
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
+		Set<Substitution> substSet = new LinkedHashSet<>();
 		PrologCompound query = ((PrologQuery) pQuery).getCompound();
 		// We need to create conjunctive query with "true" as first conjunct and
 		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		PrologCompound conjunctive = new PrologCompoundImpl(",",
+		PrologCompound db_query_final = new PrologCompoundImpl(",",
 				new Term[] { new PrologAtomImpl("true", null), prefix(query) }, null);
 		// Perform the query
-		return rawquery(conjunctive);
+		flushWriteCache();
+		substSet.addAll(rawquery(db_query_final));
+		return substSet;
 	}
 
 	/**
@@ -204,11 +211,7 @@ public class PrologDatabase implements Database {
 		} else { // clause
 			query = new PrologCompoundImpl("assert", new Term[] { prefix(formula) }, null);
 		}
-		try {
-			rawquery(query);
-		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("inserting '" + formula + "' failed.", e);
-		}
+		addToWriteCache(query);
 	}
 
 	// ***************** delete methods ****************/
@@ -253,11 +256,7 @@ public class PrologDatabase implements Database {
 	 */
 	private void delete(PrologCompound formula) throws KRDatabaseException {
 		PrologCompound retraction = new PrologCompoundImpl("retractall", new Term[] { prefix(formula) }, null);
-		try {
-			rawquery(retraction);
-		} catch (KRQueryFailedException e) {
-			throw new KRDatabaseException("deleting '" + formula + "' failed.", e);
-		}
+		addToWriteCache(retraction);
 	}
 
 	/**
@@ -277,18 +276,15 @@ public class PrologDatabase implements Database {
 	 *         return any bindings of variables.
 	 * @throws KRQueryFailedException
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Set<Substitution> rawquery(PrologTerm query) throws KRQueryFailedException {
 		// Create JPL query.
-		jpl.Query jplQuery = new jpl.Query((jpl.Term) query);
+		org.jpl7.Query jplQuery = new org.jpl7.Query((PrologCompoundImpl) query);
 
 		// Get all solutions.
-		Hashtable[] solutions;
+		Map<String, org.jpl7.Term>[] solutions;
 		try {
-			synchronized (lock) {
-				solutions = jplQuery.allSolutions();
-			}
-		} catch (jpl.PrologException e) {
+			solutions = jplQuery.allSolutions();
+		} catch (org.jpl7.PrologException e) {
 			throw new PrologError(e);
 		} catch (Throwable e) {
 			// catch all other (runtime) exceptions and wrap into checked
@@ -298,9 +294,9 @@ public class PrologDatabase implements Database {
 
 		// Convert to PrologSubstitution.
 		Set<Substitution> substitutions = new LinkedHashSet<>(solutions.length);
-		for (Hashtable<String, jpl.Term> solution : solutions) {
+		for (Map<String, org.jpl7.Term> solution : solutions) {
 			Substitution subst = new PrologSubstitution();
-			for (Entry<String, jpl.Term> entry : solution.entrySet()) {
+			for (Entry<String, org.jpl7.Term> entry : solution.entrySet()) {
 				Var var = new PrologVarImpl(entry.getKey(), null);
 				Term term = fromJpl(entry.getValue());
 				subst.addBinding(var, term);
@@ -311,25 +307,25 @@ public class PrologDatabase implements Database {
 		return substitutions;
 	}
 
-	private static Term fromJpl(jpl.Term term) {
+	public static Term fromJpl(org.jpl7.Term term) {
 		if (term.isAtom()) {
-			jpl.Atom atom = (jpl.Atom) term;
+			org.jpl7.Atom atom = (org.jpl7.Atom) term;
 			return new PrologAtomImpl(atom.name(), null);
 		} else if (term.isCompound()) {
-			jpl.Compound compound = (jpl.Compound) term;
+			org.jpl7.Compound compound = (org.jpl7.Compound) term;
 			Term[] args = new Term[compound.arity()];
 			for (int i = 1; i <= compound.arity(); ++i) {
 				args[i - 1] = fromJpl(compound.arg(i));
 			}
 			return new PrologCompoundImpl(compound.name(), args, null);
 		} else if (term.isFloat()) {
-			jpl.Float flot = (jpl.Float) term;
+			org.jpl7.Float flot = (org.jpl7.Float) term;
 			return new PrologFloatImpl(flot.doubleValue(), null);
 		} else if (term.isInteger()) {
-			jpl.Integer integer = (jpl.Integer) term;
+			org.jpl7.Integer integer = (org.jpl7.Integer) term;
 			return new PrologIntImpl(integer.longValue(), null);
 		} else if (term.isVariable()) {
-			jpl.Variable var = (jpl.Variable) term;
+			org.jpl7.Variable var = (org.jpl7.Variable) term;
 			return new PrologVarImpl(var.name(), null);
 		} else {
 			return null;
@@ -352,6 +348,7 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	protected void eraseContent() throws KRDatabaseException {
+		this.writecache = null;
 		// String deleteone =
 		// "("
 		// + this.name + ":current_predicate(Predicate, Head),"
@@ -390,6 +387,24 @@ public class PrologDatabase implements Database {
 			rawquery(query);
 		} catch (KRQueryFailedException e) {
 			throw new KRDatabaseException("erasing the contents of database '" + this.name + "' failed.", e);
+		}
+	}
+
+	// NEW: MERGE ALL ASSERTS AND RETRACTS...
+	private void addToWriteCache(PrologCompound formula) {
+		if (this.writecache == null) {
+			this.writecache = formula;
+		} else {
+			this.writecache = new PrologCompoundImpl(",", new Term[] { this.writecache, formula },
+					formula.getSourceInfo());
+		}
+	}
+
+	// ... TO EXECUTE THEM ALLTOGETHER AT (BEFORE) THE NEXT QUERY
+	private void flushWriteCache() throws KRQueryFailedException {
+		if (this.writecache != null) {
+			rawquery(this.writecache);
+			this.writecache = null;
 		}
 	}
 

@@ -15,8 +15,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
-import jpl.JPL;
-import jpl.Query;
+import org.jpl7.JPL;
 
 /**
  * call init() once to install the libraries and prepare SWI for use.
@@ -44,20 +43,17 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * initialize SWI prolog for use. Unzips dlls and connects them to the
-	 * system. This static function needs to be called once, to get SWI hooked
-	 * up to the java system.
+	 * initialize SWI prolog for use. Unzips dlls and connects them to the system.
+	 * This static function needs to be called once, to get SWI hooked up to the
+	 * java system.
 	 *
-	 * This call will unzip required system dynamic link libraries to a temp
-	 * folder, pre-load them, and set the paths such that SWI can find its
-	 * files.
+	 * This call will unzip required system dynamic link libraries to a temp folder,
+	 * pre-load them, and set the paths such that SWI can find its files.
 	 *
 	 * The temp folder will be removed automatically if the JVM exits normally.
 	 *
-	 * @throws IllegalStateException
-	 *             , NoSuchFieldException, IllegalAccessException,
-	 *             SecurityException if initialization failed. These are runtime
-	 *             exceptions and therefore not declared.
+	 * @throws RuntimeException
+	 *             if initialization failed (see nested exception).
 	 */
 	public static void init(boolean force) {
 		if (initialized && !force) {
@@ -69,8 +65,8 @@ public final class SwiInstaller {
 
 		try {
 			addFolderToLibraryPath(SwiPath.getAbsolutePath());
-		} catch (NoSuchFieldException | IllegalAccessException e) {
-			throw new IllegalStateException("Failed to initialize SWI Prolog", e);
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			throw new RuntimeException("failed to install SWI: ", e);
 		}
 
 		// Don't Tell Me Mode needs to be false as it ensures that variables
@@ -78,17 +74,8 @@ public final class SwiInstaller {
 		JPL.setDTMMode(false);
 		// Let JPL know which SWI_HOME_DIR we're using; this negates the need
 		// for a SWI_HOME_DIR environment var
-		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals" });
-
-		/**
-		 * Work around issue #3794: pre-load SWI libraries because
-		 * multi-threaded SWI calls may cause library loading errors. Following
-		 * the dependency graphml , you can see that the aggregate library
-		 * imports all libraries that are important for practical use.
-		 */
-		new Query("use_module(library(random)).").allSolutions();
-		new Query("set_prolog_flag(debug_on_error,false)," + "catch(use_module(library(aggregate)),_,true),"
-				+ "catch(use_module(library(listing)),_,true).").allSolutions();
+		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals", "--nodebug" });
+		new org.jpl7.Query("set_prolog_flag(debug_on_error,false).").allSolutions();
 
 		// Finished
 		initialized = true;
@@ -111,30 +98,31 @@ public final class SwiInstaller {
 		// Dirty system-dependent stuff...
 		switch (system) {
 		case linux:
-			load("libncurses.so.5");
-			load("libreadline.so.6");
-			load("libswipl.so.6.0.2");
+			load("libswipl.so.7.6.4");
 			load("libjpl.so");
-			load("libforeign.so");
 			break;
 		case mac:
-			load("libncurses.5.4.dylib");
-			load("libreadline.6.1.dylib");
+			load("libncurses.6.dylib");
+			load("libreadline.6.dylib");
+			load("libgmp.10.dylib");
 			load("libswipl.dylib");
 			load("libjpl.dylib");
-			load("libforeign.jnilib");
 			break;
 		case win32:
-			load("pthreadVC.dll");
-			load("swipl.dll");
+			load("libwinpthread-1.dll");
+			load("libgcc_s_sjlj-1.dll");
+			load("libdwarf.dll");
+			load("libgmp-10.dll");
+			load("libswipl.dll");
 			load("jpl.dll");
-			load("foreign.dll");
 			break;
 		case win64:
-			load("pthreadVC2.dll");
-			load("swipl.dll");
+			load("libwinpthread-1.dll");
+			load("libgcc_s_seh-1.dll");
+			load("libdwarf.dll");
+			load("libgmp-10.dll");
+			load("libswipl.dll");
 			load("jpl.dll");
-			load("foreign.dll");
 			break;
 		}
 	}
@@ -153,27 +141,18 @@ public final class SwiInstaller {
 	 *
 	 * @param s
 	 *            the path to be added (as string)
-	 * @throws SecurityException
 	 * @throws NoSuchFieldException
+	 * @throws SecurityException
 	 * @throws IllegalAccessException
 	 * @throws IllegalArgumentException
 	 */
 	private static void addFolderToLibraryPath(final String s)
 			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		final Field field = ClassLoader.class.getDeclaredField("usr_paths");
-		field.setAccessible(true);
-		final String[] paths = (String[]) field.get(null);
-		for (final String path : paths) {
-			if (s.equalsIgnoreCase(path)) {
-				return;
-			}
-		}
-		final String[] tmp = new String[paths.length + 1];
-		System.arraycopy(paths, 0, tmp, 0, paths.length);
-		tmp[paths.length] = s;
-		field.set(null, tmp);
 		final String path = s + File.pathSeparator + System.getProperty("java.library.path");
 		System.setProperty("java.library.path", path);
+		final Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+		fieldSysPath.setAccessible(true);
+		fieldSysPath.set(null, null);
 	}
 
 	/**
@@ -231,9 +210,9 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * @return a unique number for the current source code, that changes when
-	 *         the GOAL version changes. Actually this number is the
-	 *         modification date of this class.
+	 * @return a unique number for the current source code, that changes when the
+	 *         GOAL version changes. Actually this number is the modification date
+	 *         of this class.
 	 * @throws UnsupportedEncodingException
 	 */
 	private static long getSourceNumber() throws UnsupportedEncodingException {

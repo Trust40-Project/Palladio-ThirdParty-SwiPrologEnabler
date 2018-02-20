@@ -41,9 +41,9 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 	/**
 	 * {@inheritDoc} <br>
 	 *
-	 * Assumes the given {@link DatabaseFormula} is a {@link PrologDBFormula},
-	 * i.e. either a simple fact, or a clause of the form p(...):-(...) using
-	 * the operator :-/2.
+	 * Assumes the given {@link DatabaseFormula} is a {@link PrologDBFormula}, i.e.
+	 * either a simple fact, or a clause of the form p(...):-(...) using the
+	 * operator :-/2.
 	 *
 	 * @throws GOALUserError
 	 */
@@ -53,8 +53,8 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 		String signature = term.getSignature();
 
 		/**
-		 * The :- function needs to be treated differently from other terms; the
-		 * head term is defined, whereas the terms in the body are queried.
+		 * The :- function needs to be treated differently from other terms; the head
+		 * term is defined, whereas the terms in the body are queried.
 		 */
 		if (signature.equals(":-/2")) {
 			if (defined) {
@@ -95,14 +95,13 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 
 	/**
 	 * Creates nodes for terms, if not already present. Note that the ":-/2"
-	 * operator is taken care of by
-	 * {@link #add(DatabaseFormula, boolean, boolean)}.
+	 * operator is taken care of by {@link #add(DatabaseFormula, boolean, boolean)}.
 	 *
 	 * @param prologTerm
 	 * @param defined
 	 * @param queried
-	 * @return The list of nodes associated with the term (either created or
-	 *         already existing nodes).
+	 * @return The list of nodes associated with the term (either created or already
+	 *         existing nodes).
 	 */
 	private List<Node<Term>> addTerm(Term prologTerm, boolean defined, boolean queried) {
 		List<Node<Term>> nodes = new LinkedList<>();
@@ -130,18 +129,17 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 	}
 
 	/**
-	 * Unpacks the given {@link Term} and returns all simple facts that do not
-	 * have any occurrences of built-in Prolog operators or reserved GOAL
-	 * operators.
+	 * Unpacks the given {@link Term} and returns all simple facts that do not have
+	 * any occurrences of built-in Prolog operators or reserved GOAL operators.
 	 * <p>
-	 * Unpacking is needed if the term contains at top level a build-in
-	 * predicate and that built-in predicate will cause further querying in the
-	 * SWI engine. For example not(pred) will cause invocation of pred.
+	 * Unpacking is needed if the term contains at top level a build-in predicate
+	 * and that built-in predicate will cause further querying in the SWI engine.
+	 * For example not(pred) will cause invocation of pred.
 	 *
 	 * @param term
 	 *            The term that is unpacked.
-	 * @return The resulting terms without any built-in or reserved operators.
-	 *         May be the empty list.
+	 * @return The resulting terms without any built-in or reserved operators. May
+	 *         be the empty list.
 	 */
 	private List<Term> unpack(Term term) {
 		List<Term> terms = new LinkedList<>();
@@ -152,9 +150,8 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 			terms.addAll(unpack(content));
 		} else if (signature.equals("include/3")) {
 			/*
-			 * special case. first argument of include/3 is the NAME of the func
-			 * but without the required argument. We have to make up the correct
-			 * term.
+			 * special case. first argument of include/3 is the NAME of the func but without
+			 * the required argument. We have to make up the correct term.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
 			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
@@ -180,9 +177,9 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 			terms.addAll(unpack(content));
 		} else if (signature.equals("predsort/3")) {
 			/*
-			 * special case. first argument of predsort is the NAME of the func
-			 * but without the required 3 arguments. We have to make up the
-			 * correct term. We will be using 3 anonymous variables.
+			 * special case. first argument of predsort is the NAME of the func but without
+			 * the required 3 arguments. We have to make up the correct term. We will be
+			 * using 3 anonymous variables.
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
 			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
@@ -197,8 +194,8 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 	}
 
 	/**
-	 * Indicates whether the given signature represents a reserved (Prolog or
-	 * GOAL) operator.
+	 * Indicates whether the given signature represents a reserved (Prolog or GOAL)
+	 * operator.
 	 *
 	 * @param signature
 	 * @return {@code true} if the signature represents a reserved operator.

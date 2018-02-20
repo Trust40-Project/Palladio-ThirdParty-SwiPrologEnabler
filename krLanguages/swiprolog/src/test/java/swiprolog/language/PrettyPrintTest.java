@@ -38,9 +38,8 @@ public class PrettyPrintTest {
 				{ "between(-1,1,X)" }, { "[[a,b,c],[d,e,f]]" }, { "[1,2|4]" }, { "[1,2|3]" }, { "'.'" }, { "3.1415" },
 				{ "- p" }, { ":- p" }, { "'.'(1)" },
 				// terms covering maybeBracketed
-				{ "(a:-b),1" }, { " (a:-b):-c" }, { " a+(b - c)" }, { "(a,b), c" }, { "a + b - c" }, { " - - - - 2" }
-
-		});
+				{ "(a:-b),1" }, { " (a:-b):-c" }, { " a+(b - c)" }, { "(a,b), c" }, { "a + b - c" },
+				{ " - - - - 2" } });
 	}
 
 	private final String input;
@@ -53,9 +52,9 @@ public class PrettyPrintTest {
 	public void test() {
 		// Term list = Util.textToTerm(this.input);
 		/*
-		 * With some terms like "between(-1,1,X), JPLUtils is playing some weird
-		 * tricks: it inserts whitespaces where they are not in the original
-		 * term, and removes them where they are in the original term.
+		 * With some terms like "between(-1,1,X), JPLUtils is playing some weird tricks:
+		 * it inserts whitespaces where they are not in the original term, and removes
+		 * them where they are in the original term.
 		 */
 		// assertEquals(this.input.replaceAll(" ", ""),
 		// JPLUtils.toString(list).replaceAll(" ", ""));

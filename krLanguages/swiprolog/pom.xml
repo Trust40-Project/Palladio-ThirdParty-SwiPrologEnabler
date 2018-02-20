@@ -15,7 +15,7 @@
 	<description>An implementation of the KR Interface defined in the KR Tools project for SWI Prolog.</description>
 	
 	<properties>
-		<antlr.version>4.7</antlr.version>
+		<antlr.version>4.7.1</antlr.version>
 	</properties>
 
 	<dependencies>
@@ -34,7 +34,7 @@
 		<dependency>
 			<groupId>jpl</groupId>
 			<artifactId>jpl</artifactId>
-			<version>3.1.4-alpha</version>
+			<version>7.6.4</version> 
 		</dependency>
 
 		<dependency>

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.jpl7.Query;
+import org.jpl7.Term;
 import org.junit.Test;
-
-import jpl.Query;
 
 /**
  * Test if multiple swi engines can be started in parallel
@@ -29,7 +29,33 @@ public class MultiThreadTest {
 
 	}
 
-	@Test
+	// @Test
+	public void multiThreadTest() throws InterruptedException {
+		System.out.println("Multi-thread test with simple query");
+		List<Thread> threads = new ArrayList<>();
+		for (int n = 0; n < 2000; n++) {
+			threads.add(runSimpleThread(n));
+		}
+		while (!threads.isEmpty()) {
+			Thread thread = threads.get(0);
+			// System.out.println("Waiting for " + thread);
+			thread.join();
+			threads.remove(thread);
+		}
+	}
+
+	private Thread runSimpleThread(final int n) {
+		Thread thread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				new Query("between(1,1000,I),fail").allSolutions();
+			}
+		});
+		thread.start();
+		return thread;
+	}
+
+	// @Test
 	public void multiThreadTestFibonnaci() throws InterruptedException {
 		System.out.println("Multi-thread test fibonacci");
 		List<Thread> threads = new ArrayList<>();
@@ -44,7 +70,7 @@ public class MultiThreadTest {
 		}
 	}
 
-	@Test
+	// @Test
 	public void multiThreadTestInsertDelete() throws InterruptedException {
 		System.out.println("Multi-thread test insert/delete");
 		List<Thread> threads = new ArrayList<>();
@@ -122,8 +148,7 @@ public class MultiThreadTest {
 		new Query(f).hasSolution();
 	}
 
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> query(String module, String formula) {
+	private Map<String, Term> query(String module, String formula) {
 		String q = module + ":" + formula;
 		// System.out.println(q);
 		return new Query(q).allSolutions()[0];

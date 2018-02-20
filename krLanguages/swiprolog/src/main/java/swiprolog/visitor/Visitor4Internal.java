@@ -24,6 +24,7 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jpl7.JPL;
 
 import krTools.exceptions.ParserException;
 import krTools.language.Term;
@@ -113,8 +114,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	/**
-	 * Unquote a quoted string. The enclosing quotes determine how quotes inside
-	 * the string are handled.
+	 * Unquote a quoted string. The enclosing quotes determine how quotes inside the
+	 * string are handled.
 	 */
 	private String unquote(String quotedstring) {
 		char quote = quotedstring.charAt(0);
@@ -125,8 +126,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	}
 
 	/**
-	 * Double quotes in quoted string indicate just that quote one time. eg,
-	 * """" means '"'.
+	 * Double quotes in quoted string indicate just that quote one time. eg, """"
+	 * means '"'.
 	 */
 	private String replaceQuotes(String string, char quote) {
 		return string.replaceAll("" + quote + quote, "" + quote);
@@ -216,13 +217,13 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		if (ctx.items() != null) {
 			return visitItems(ctx.items());
 		} else {
-			return new PrologAtomImpl("[]", getSourceInfo(ctx));
+			return new PrologAtomImpl(JPL.LIST_NIL.name(), getSourceInfo(ctx));
 		}
 	}
 
 	@Override
 	public PrologTerm visitItems(ItemsContext ctx) {
-		// 6.3.5 ; we use the prolog "." functor to build items list.
+		// 6.3.5 ; we use the prolog "[|]" functor to build items list.
 		PrologTerm head = visitExpression(ctx.expression());
 
 		PrologTerm tail = null;
@@ -235,10 +236,10 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		}
 
 		if (tail == null) {
-			PrologTerm empty = new PrologAtomImpl("[]", getSourceInfo(ctx));
-			return new PrologCompoundImpl(".", new Term[] { head, empty }, getSourceInfo(ctx));
+			PrologTerm empty = new PrologAtomImpl(JPL.LIST_NIL.name(), getSourceInfo(ctx));
+			return new PrologCompoundImpl(JPL.LIST_PAIR, new Term[] { head, empty }, getSourceInfo(ctx));
 		} else {
-			return new PrologCompoundImpl(".", new Term[] { head, tail }, getSourceInfo(ctx));
+			return new PrologCompoundImpl(JPL.LIST_PAIR, new Term[] { head, tail }, getSourceInfo(ctx));
 		}
 	}
 
@@ -256,8 +257,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	 *            number to parse
 	 * @param info
 	 *            the {@link SourceInfo}
-	 * @return the parsed term. If failure, this returns a term '1' and reports
-	 *         the error in the {@link #errors} list.
+	 * @return the parsed term. If failure, this returns a term '1' and reports the
+	 *         error in the {@link #errors} list.
 	 */
 	private PrologTerm parseNumber(String num, SourceInfo info) {
 		if (num.matches("[0-9]+") || num.matches("0[box].*")) {
@@ -393,8 +394,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	@Override
 	public PrologTerm visitTerm400(Term400Context ctx) {
 		/*
-		 * term200 ( ('*' | '/' | '//' | 'rem' | 'mod' | 'rdiv' | '<<' | '>>')
-		 * term200 )*
+		 * term200 ( ('*' | '/' | '//' | 'rem' | 'mod' | 'rdiv' | '<<' | '>>') term200
+		 * )*
 		 */
 		PrologTerm term = visitTerm200(ctx.term200());
 		for (Term400bContext t : ctx.term400b()) {
@@ -430,9 +431,8 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	@Override
 	public PrologTerm visitTerm700(Term700Context ctx) {
 		/**
-		 * term500 ( ( '=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | '@>' | '@>='
-		 * | '=@='| '=..' | 'is' | '=:=' | '=\\=' | '<' | '=<' | '>' | '>=')
-		 * term500 )?
+		 * term500 ( ( '=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | '@>' | '@>=' |
+		 * '=@='| '=..' | 'is' | '=:=' | '=\\=' | '<' | '=<' | '>' | '>=') term500 )?
 		 */
 		PrologTerm lhs = visitTerm500(ctx.term500(0));
 		if (ctx.term500().size() == 1) {

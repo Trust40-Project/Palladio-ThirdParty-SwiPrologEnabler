@@ -29,7 +29,7 @@ import swiprolog.language.PrologVar;
 /**
  * A Prolog variable.
  */
-public class PrologVarImpl extends jpl.Variable implements PrologVar, Comparable<PrologVar> {
+public class PrologVarImpl extends org.jpl7.Variable implements PrologVar, Comparable<PrologVar> {
 	/**
 	 * Information about the source used to construct this variable.
 	 */

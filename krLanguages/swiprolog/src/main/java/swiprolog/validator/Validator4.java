@@ -77,8 +77,7 @@ public class Validator4 {
 	}
 
 	/**
-	 * Validate a Prolog program. Assumes that the parser has been set up
-	 * properly.
+	 * Validate a Prolog program. Assumes that the parser has been set up properly.
 	 *
 	 * @return List<DatabaseFormula>, or {@code null} if a parser error occurs.
 	 */
