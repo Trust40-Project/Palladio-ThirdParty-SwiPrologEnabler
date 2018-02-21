@@ -53,17 +53,6 @@ public class PrologVarImpl extends org.jpl7.Variable implements PrologVar, Compa
 		this.freeVar.add(this);
 	}
 
-	/**
-	 * Creates a variable with a random unique name (_ + number).
-	 *
-	 * @param info
-	 *            A source info object.
-	 */
-	public PrologVarImpl(SourceInfo info) {
-		super();
-		this.info = info;
-	}
-
 	@Override
 	public SourceInfo getSourceInfo() {
 		return this.info;
