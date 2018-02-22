@@ -30,8 +30,7 @@ import swiprolog.language.PrologQuery;
  */
 
 public class TestInsertDeleteBenchmarks {
-
-	private final static int NINSERTS = 2000;
+	private final static int NINSERTS = 1000;
 
 	// components enabling us to run the tests...
 	private KRInterface language;
@@ -40,8 +39,8 @@ public class TestInsertDeleteBenchmarks {
 
 	private final Atom p = new Atom("p");
 	private final Variable X = new Variable("X");
-	private final Compound pX = new Compound("p", new Term[] { X });
-	private final Compound dynamicpX = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { pX });
+	private final Compound pX = new Compound("p", new Term[] { this.X });
+	private final Compound dynamicpX = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { this.pX });
 
 	private long start, end;
 
@@ -54,21 +53,19 @@ public class TestInsertDeleteBenchmarks {
 	}
 
 	private void start() {
-		start = System.nanoTime();
+		this.start = System.nanoTime();
 	}
 
 	private void end(String name) {
-		if (start == 0) {
+		if (this.start == 0) {
 			throw new IllegalStateException("timer has not been started");
 		}
-		end = System.nanoTime();
-		System.out.println("Test " + name + " took " + (end - start) + "ns");
-
+		this.end = System.nanoTime();
+		System.out.println("Test " + name + " took " + (this.end - this.start) + "ns");
 	}
 
 	@After
 	public void tearDown() throws Exception {
-
 		if (this.beliefbase != null) {
 			this.beliefbase.destroy();
 		}
@@ -119,7 +116,6 @@ public class TestInsertDeleteBenchmarks {
 	 */
 	@Test
 	public void testDeletes() throws KRDatabaseException, KRQueryFailedException {
-
 		doInserts();
 		start();
 		doDeletes();
@@ -150,8 +146,6 @@ public class TestInsertDeleteBenchmarks {
 	 * @return set of solutions for query p.
 	 */
 	private Set<Substitution> QueryP() throws KRQueryFailedException {
-
-		return this.beliefbase.query(new PrologQuery(pX, null));
+		return this.beliefbase.query(new PrologQuery(this.pX, null));
 	}
-
 }
