@@ -40,13 +40,14 @@ public class TestInsertDeleteBenchmarks {
 	private Database knowledgebase;
 
 	private final Atom p = new Atom("p");
+	private final Integer zero = new Integer(0);
 	private final Variable X = new Variable("X");
 	private final Variable Y = new Variable("Y");
 	private final Compound pX = new Compound("p", new Term[] { X });
 	private final Compound pXY = new Compound("p", new Term[] { X, Y });
 	private final Compound dynamicpX = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { pX });
 	private final Compound dynamicpXY = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { pXY });
-	private Atom listing = new Atom("listing");
+	private final Atom listing = new Atom("listing");
 
 	private long start, end;
 
@@ -92,12 +93,19 @@ public class TestInsertDeleteBenchmarks {
 	}
 
 	@Test
-	public void insertBenchmark() throws KRDatabaseException, KRQueryFailedException {
+	public void insertsBenchmark() throws KRDatabaseException, KRQueryFailedException {
 		assertTrue(QueryPX().isEmpty());
 		start();
 		doInserts();
-		end("insertBenchmark");
+		end("insertsBenchmark");
 		assertEquals(NINSERTS, QueryPX().size());
+	}
+
+	@Test
+	public void largeInsertBenchmark() throws KRDatabaseException, KRQueryFailedException {
+		start();
+		this.beliefbase.insert(new PrologDBFormula(largeTerm(16), null));
+		end("largeInsertBenchmark");
 	}
 
 	@Test
@@ -156,6 +164,18 @@ public class TestInsertDeleteBenchmarks {
 			this.beliefbase.insert(new PrologDBFormula(pN, null));
 		}
 
+	}
+
+	/**
+	 * @param N
+	 *            the size
+	 * @return large term 2^N elements
+	 * 
+	 */
+	private Term largeTerm(int N) {
+		if (N == 0)
+			return zero;
+		return new Compound("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) });
 	}
 
 	private void doDeletes() throws KRDatabaseException {
