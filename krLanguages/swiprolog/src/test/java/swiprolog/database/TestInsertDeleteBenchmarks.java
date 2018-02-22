@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.jpl7.Atom;
 import org.jpl7.Compound;
 import org.jpl7.Integer;
 import org.jpl7.Term;
@@ -31,23 +30,21 @@ import swiprolog.language.PrologQuery;
  */
 
 public class TestInsertDeleteBenchmarks {
-
-	private final static int NINSERTS = 2000;
+	private final static int NINSERTS = 1000;
 
 	// components enabling us to run the tests...
 	private KRInterface language;
 	private PrologDatabase beliefbase;
 	private Database knowledgebase;
 
-	private final Atom p = new Atom("p");
 	private final Integer zero = new Integer(0);
 	private final Variable X = new Variable("X");
 	private final Variable Y = new Variable("Y");
-	private final Compound pX = new Compound("p", new Term[] { X });
-	private final Compound pXY = new Compound("p", new Term[] { X, Y });
-	private final Compound dynamicpX = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { pX });
-	private final Compound dynamicpXY = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { pXY });
-	private final Atom listing = new Atom("listing");
+	private final Compound pX = new Compound("p", new Term[] { this.X });
+	private final Compound pXY = new Compound("p", new Term[] { this.X, this.Y });
+	private final Compound dynamicpX = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { this.pX });
+	private final Compound dynamicpXY = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { this.pXY });
+	// private final Atom listing = new Atom("listing");
 
 	private long start, end;
 
@@ -61,21 +58,19 @@ public class TestInsertDeleteBenchmarks {
 	}
 
 	private void start() {
-		start = System.nanoTime();
+		this.start = System.nanoTime();
 	}
 
 	private void end(String name) {
-		if (start == 0) {
+		if (this.start == 0) {
 			throw new IllegalStateException("timer has not been started");
 		}
-		end = System.nanoTime();
-		System.out.println("Test " + name + " took " + (end - start) + "ns");
-
+		this.end = System.nanoTime();
+		System.out.println("Test " + name + " took " + (this.end - this.start) / 1000000 + "ms");
 	}
 
 	@After
 	public void tearDown() throws Exception {
-
 		if (this.beliefbase != null) {
 			this.beliefbase.destroy();
 		}
@@ -149,7 +144,6 @@ public class TestInsertDeleteBenchmarks {
 	 */
 	@Test
 	public void testDeletes() throws KRDatabaseException, KRQueryFailedException {
-
 		doInserts();
 		start();
 		doDeletes();
@@ -163,19 +157,20 @@ public class TestInsertDeleteBenchmarks {
 			Compound pN = new Compound("p", new Term[] { new Integer(n) });
 			this.beliefbase.insert(new PrologDBFormula(pN, null));
 		}
-
 	}
 
 	/**
 	 * @param N
 	 *            the size
 	 * @return large term 2^N elements
-	 * 
+	 *
 	 */
 	private Term largeTerm(int N) {
-		if (N == 0)
-			return zero;
-		return new Compound("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) });
+		if (N == 0) {
+			return this.zero;
+		} else {
+			return new Compound("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) });
+		}
 	}
 
 	private void doDeletes() throws KRDatabaseException {
@@ -183,7 +178,6 @@ public class TestInsertDeleteBenchmarks {
 			Compound pN = new Compound("p", new Term[] { new Integer(n) });
 			this.beliefbase.delete(new PrologDBFormula(pN, null));
 		}
-
 	}
 
 	/**
@@ -191,8 +185,7 @@ public class TestInsertDeleteBenchmarks {
 	 * @return set of solutions for query p(X).
 	 */
 	private Set<Substitution> QueryPX() throws KRQueryFailedException {
-
-		return this.beliefbase.query(new PrologQuery(pX, null));
+		return this.beliefbase.query(new PrologQuery(this.pX, null));
 	}
 
 	/**
@@ -202,26 +195,25 @@ public class TestInsertDeleteBenchmarks {
 	 * @return set of solutions for query p(N,Y).
 	 */
 	private Set<Substitution> QueryPXY(int N) throws KRQueryFailedException {
-		Compound query = new Compound("p", new Term[] { new Integer(N), Y });
-
+		Compound query = new Compound("p", new Term[] { new Integer(N), this.Y });
 		return this.beliefbase.query(new PrologQuery(query, null));
 	}
 
 	/**
-	 * Prints listing to stdout. For quick test if we have the right formulas in
-	 * the database
-	 * 
+	 * Prints listing to stdout. For quick test if we have the right formulas in the
+	 * database
+	 *
 	 * @throws KRQueryFailedException
 	 */
-	private void listing() throws KRQueryFailedException {
-		System.out.println(this.beliefbase.query(new PrologQuery(listing, null)));
-
-	}
+	// private void listing() throws KRQueryFailedException {
+	// System.out.println(this.beliefbase.query(new PrologQuery(this.listing,
+	// null)));
+	// }
 
 	/**
-	 * Upload the large-structure generator into SWI. Returns object that is
-	 * size 2^N.
-	 * 
+	 * Upload the large-structure generator into SWI. Returns object that is size
+	 * 2^N.
+	 *
 	 * @throws KRQueryFailedException
 	 * @throws KRDatabaseException
 	 */
@@ -230,5 +222,4 @@ public class TestInsertDeleteBenchmarks {
 		this.beliefbase.insert(new PrologDBFormula(Util.textToTerm("p(N,s(X,X)):-( N>0, N1 is N-1, p(N1, X))"), null));
 		// listing();
 	}
-
 }
