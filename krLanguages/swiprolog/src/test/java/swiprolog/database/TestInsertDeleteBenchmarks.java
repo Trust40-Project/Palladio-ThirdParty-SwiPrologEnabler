@@ -31,7 +31,7 @@ import swiprolog.language.PrologQuery;
 
 public class TestInsertDeleteBenchmarks {
 
-	private final static int NINSERTS = 1000;
+	private final static int NINSERTS = 2000;
 
 	// components enabling us to run the tests...
 	private KRInterface language;
@@ -51,16 +51,18 @@ public class TestInsertDeleteBenchmarks {
 		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
 		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 		this.beliefbase.query(new PrologQuery(this.dynamicpX, null));
-		start();
 	}
 
 	private void start() {
-		start = System.currentTimeMillis();
+		start = System.nanoTime();
 	}
 
 	private void end(String name) {
-		end = System.currentTimeMillis();
-		System.out.println("Test " + name + " took " + (end - start) + "ms");
+		if (start == 0) {
+			throw new IllegalStateException("timer has not been started");
+		}
+		end = System.nanoTime();
+		System.out.println("Test " + name + " took " + (end - start) + "ns");
 
 	}
 
@@ -75,25 +77,57 @@ public class TestInsertDeleteBenchmarks {
 		}
 	}
 
-	/**
-	 * Query p
-	 *
-	 * @return set of solutions for query p.
-	 */
-	private Set<Substitution> QueryP() throws KRQueryFailedException {
-
-		return this.beliefbase.query(new PrologQuery(pX, null));
-	}
-
 	@Test
-	public void testInsert() throws KRDatabaseException, KRQueryFailedException {
+	public void insertBenchmark() throws KRDatabaseException, KRQueryFailedException {
 		assertTrue(QueryP().isEmpty());
-
+		start();
 		doInserts();
-		end("testInsert");
+		end("insertBenchmark");
 		assertEquals(NINSERTS, QueryP().size());
 	}
 
+	@Test
+	public void queryBenchmark1() throws KRDatabaseException, KRQueryFailedException {
+		doInserts();
+		start();
+		assertEquals(NINSERTS, QueryP().size());
+		end("queryBenchmark1");
+	}
+
+	/**
+	 * You can insert duplicates. But you won't see them as query returns a SET
+	 *
+	 * @throws KRDatabaseException
+	 * @throws KRQueryFailedException
+	 */
+	@Test
+	public void insertDuplicateBenchmark() throws KRDatabaseException, KRQueryFailedException {
+		assertTrue(QueryP().isEmpty());
+		doInserts();
+		start();
+		doInserts();
+		end("insertDuplicateBenchmark");
+
+		assertEquals(NINSERTS, QueryP().size());
+	}
+
+	/**
+	 * Check that delete deletes ALL duplicates.
+	 *
+	 * @throws KRDatabaseException
+	 * @throws KRQueryFailedException
+	 */
+	@Test
+	public void testDeletes() throws KRDatabaseException, KRQueryFailedException {
+
+		doInserts();
+		start();
+		doDeletes();
+		end("delete");
+		assertTrue(QueryP().isEmpty());
+	}
+
+	/****************************** PRIVATE ***********************/
 	private void doInserts() throws KRDatabaseException {
 		for (int n = 0; n < NINSERTS; n++) {
 			Compound pN = new Compound("p", new Term[] { new Integer(n) });
@@ -111,37 +145,13 @@ public class TestInsertDeleteBenchmarks {
 	}
 
 	/**
-	 * You can insert duplicates. But you won't see them as query returns a SET
+	 * Query p
 	 *
-	 * @throws KRDatabaseException
-	 * @throws KRQueryFailedException
+	 * @return set of solutions for query p.
 	 */
-	@Test
-	public void testInsertDuplicate() throws KRDatabaseException, KRQueryFailedException {
-		assertTrue(QueryP().isEmpty());
+	private Set<Substitution> QueryP() throws KRQueryFailedException {
 
-		doInserts();
-		start();
-		doInserts();
-		end("insert duplicates");
-
-		assertEquals(NINSERTS, QueryP().size());
-	}
-
-	/**
-	 * Check that delete deletes ALL duplicates.
-	 *
-	 * @throws KRDatabaseException
-	 * @throws KRQueryFailedException
-	 */
-	@Test
-	public void testDeleteAfterDuplicate() throws KRDatabaseException, KRQueryFailedException {
-
-		doInserts();
-		start();
-		doDeletes();
-		end("delete");
-		assertTrue(QueryP().isEmpty());
+		return this.beliefbase.query(new PrologQuery(pX, null));
 	}
 
 }
