@@ -17,6 +17,8 @@
 
 package swiprolog.language;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -24,6 +26,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import swiprolog.SwiPrologInterface;
+import swiprolog.database.PrologDatabase;
 
 /**
  * Test the pretty printing of terms.
@@ -46,17 +51,17 @@ public class PrettyPrintTest {
 
 	public PrettyPrintTest(String input) {
 		this.input = input;
+		new SwiPrologInterface();
 	}
 
-	@Test // FIXME: don't use textToTerm
+	@Test
 	public void test() {
-		// Term list = Util.textToTerm(this.input);
+		org.jpl7.Term list = org.jpl7.Util.textToTerm(this.input);
 		/*
 		 * With some terms like "between(-1,1,X), JPLUtils is playing some weird tricks:
 		 * it inserts whitespaces where they are not in the original term, and removes
 		 * them where they are in the original term.
 		 */
-		// assertEquals(this.input.replaceAll(" ", ""),
-		// JPLUtils.toString(list).replaceAll(" ", ""));
+		assertEquals(this.input.replaceAll(" ", ""), PrologDatabase.fromJpl(list).toString().replaceAll(" ", ""));
 	}
 }

@@ -6,11 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.jpl7.Compound;
-import org.jpl7.Integer;
-import org.jpl7.Term;
-import org.jpl7.Util;
-import org.jpl7.Variable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,9 +16,15 @@ import krTools.exceptions.KRDatabaseException;
 import krTools.exceptions.KRQueryFailedException;
 import krTools.language.DatabaseFormula;
 import krTools.language.Substitution;
+import krTools.language.Term;
 import swiprolog.SwiPrologInterface;
-import swiprolog.language.PrologDBFormula;
-import swiprolog.language.PrologQuery;
+import swiprolog.language.PrologCompound;
+import swiprolog.language.PrologVar;
+import swiprolog.language.impl.PrologCompoundImpl;
+import swiprolog.language.impl.PrologDBFormulaImpl;
+import swiprolog.language.impl.PrologIntImpl;
+import swiprolog.language.impl.PrologQueryImpl;
+import swiprolog.language.impl.PrologVarImpl;
 
 /**
  * Test speed of inserts and deletes in a database.
@@ -37,13 +38,12 @@ public class TestInsertDeleteBenchmarks {
 	private PrologDatabase beliefbase;
 	private Database knowledgebase;
 
-	private final Integer zero = new Integer(0);
-	private final Variable X = new Variable("X");
-	private final Variable Y = new Variable("Y");
-	private final Compound pX = new Compound("p", new Term[] { this.X });
-	private final Compound pXY = new Compound("p", new Term[] { this.X, this.Y });
-	private final Compound dynamicpX = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { this.pX });
-	private final Compound dynamicpXY = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { this.pXY });
+	private final PrologVar X = new PrologVarImpl("X", null);
+	private final PrologVar Y = new PrologVarImpl("Y", null);
+	private final PrologCompound pX = new PrologCompoundImpl("p", new Term[] { this.X }, null);
+	private final PrologCompound pXY = new PrologCompoundImpl("p", new Term[] { this.X, this.Y }, null);
+	private final PrologCompound dynamicpX = new PrologCompoundImpl("dynamic", new Term[] { this.pX }, null);
+	private final PrologCompound dynamicpXY = new PrologCompoundImpl("dynamic", new Term[] { this.pXY }, null);
 	// private final Atom listing = new Atom("listing");
 
 	private long start, end;
@@ -53,8 +53,8 @@ public class TestInsertDeleteBenchmarks {
 		this.language = new SwiPrologInterface();
 		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
 		this.beliefbase = (PrologDatabase) this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase.query(new PrologQuery(this.dynamicpX, null));
-		this.beliefbase.query(new PrologQuery(this.dynamicpXY, null));
+		this.beliefbase.query(new PrologQueryImpl(this.dynamicpX));
+		this.beliefbase.query(new PrologQueryImpl(this.dynamicpXY));
 	}
 
 	private void start() {
@@ -99,7 +99,7 @@ public class TestInsertDeleteBenchmarks {
 	@Test
 	public void largeInsertBenchmark() throws KRDatabaseException, KRQueryFailedException {
 		start();
-		this.beliefbase.insert(new PrologDBFormula(largeTerm(16), null));
+		this.beliefbase.insert(new PrologDBFormulaImpl(largeTerm(16)));
 		end("largeInsertBenchmark");
 	}
 
@@ -154,8 +154,8 @@ public class TestInsertDeleteBenchmarks {
 	/****************************** PRIVATE ***********************/
 	private void doInserts() throws KRDatabaseException {
 		for (int n = 0; n < NINSERTS; n++) {
-			Compound pN = new Compound("p", new Term[] { new Integer(n) });
-			this.beliefbase.insert(new PrologDBFormula(pN, null));
+			PrologCompound pN = new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(n, null) }, null);
+			this.beliefbase.insert(new PrologDBFormulaImpl(pN));
 		}
 	}
 
@@ -165,18 +165,18 @@ public class TestInsertDeleteBenchmarks {
 	 * @return large term 2^N elements
 	 *
 	 */
-	private Term largeTerm(int N) {
-		if (N == 0) {
-			return this.zero;
+	private PrologCompound largeTerm(int N) {
+		if (N > 0) {
+			return new PrologCompoundImpl("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) }, null);
 		} else {
-			return new Compound("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) });
+			return new PrologCompoundImpl("0", new Term[] {}, null);
 		}
 	}
 
 	private void doDeletes() throws KRDatabaseException {
 		for (int n = 0; n < NINSERTS; n++) {
-			Compound pN = new Compound("p", new Term[] { new Integer(n) });
-			this.beliefbase.delete(new PrologDBFormula(pN, null));
+			PrologCompound pN = new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(n, null) }, null);
+			this.beliefbase.delete(new PrologDBFormulaImpl(pN));
 		}
 	}
 
@@ -185,7 +185,7 @@ public class TestInsertDeleteBenchmarks {
 	 * @return set of solutions for query p(X).
 	 */
 	private Set<Substitution> QueryPX() throws KRQueryFailedException {
-		return this.beliefbase.query(new PrologQuery(this.pX, null));
+		return this.beliefbase.query(new PrologQueryImpl(this.pX));
 	}
 
 	/**
@@ -195,8 +195,8 @@ public class TestInsertDeleteBenchmarks {
 	 * @return set of solutions for query p(N,Y).
 	 */
 	private Set<Substitution> QueryPXY(int N) throws KRQueryFailedException {
-		Compound query = new Compound("p", new Term[] { new Integer(N), this.Y });
-		return this.beliefbase.query(new PrologQuery(query, null));
+		PrologCompound query = new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(N, null), this.Y }, null);
+		return this.beliefbase.query(new PrologQueryImpl(query));
 	}
 
 	/**
@@ -218,8 +218,10 @@ public class TestInsertDeleteBenchmarks {
 	 * @throws KRDatabaseException
 	 */
 	private void uploadGenerator() throws KRQueryFailedException, KRDatabaseException {
-		this.beliefbase.insert(new PrologDBFormula(Util.textToTerm("p(0,0)"), null));
-		this.beliefbase.insert(new PrologDBFormula(Util.textToTerm("p(N,s(X,X)):-( N>0, N1 is N-1, p(N1, X))"), null));
+		org.jpl7.Term term1 = org.jpl7.Util.textToTerm("p(0,0)");
+		org.jpl7.Term term2 = org.jpl7.Util.textToTerm("p(N,s(X,X)):-( N>0, N1 is N-1, p(N1, X))");
+		this.beliefbase.insert(new PrologDBFormulaImpl((PrologCompound) PrologDatabase.fromJpl(term1)));
+		this.beliefbase.insert(new PrologDBFormulaImpl((PrologCompound) PrologDatabase.fromJpl(term2)));
 		// listing();
 	}
 }

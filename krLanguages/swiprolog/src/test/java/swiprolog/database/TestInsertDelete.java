@@ -19,6 +19,7 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologCompound;
+import swiprolog.language.PrologQuery;
 import swiprolog.language.impl.PrologAtomImpl;
 import swiprolog.language.impl.PrologCompoundImpl;
 import swiprolog.language.impl.PrologDBFormulaImpl;
@@ -106,18 +107,15 @@ public class TestInsertDelete {
 
 	@Test
 	public void testDatabaseErase() throws KRDatabaseException, KRQueryFailedException {
-		// FIXME: don't use jpl textToTerm
-		// String stringterm = "requests([request('INTERACTION', 2,
-		// '.'(answer(0, 'OK'), [])),request('INTERACTION', 3, '.'(answer(0,
-		// 'OK'), []))])";
-		// jpl.Term t = jpl.Util.textToTerm(stringterm);
-		// this.beliefbase.insert(new PrologDBFormulaImpl(t));
+		String stringterm = "requests([request('INTERACTION', 2,'.'(answer(0, 'OK'), [])),request('INTERACTION', 3, '.'(answer(0,'OK'), []))])";
+		org.jpl7.Term t = org.jpl7.Util.textToTerm(stringterm);
+		this.beliefbase.insert(new PrologDBFormulaImpl((PrologCompound) PrologDatabase.fromJpl(t)));
 
-		// Term queryterm = jpl.Util.textToTerm("requests(X)");
-		// Query query = new PrologQuery(queryterm, null);
-		// assertEquals(1, this.beliefbase.query(query).size());
+		org.jpl7.Term queryterm = org.jpl7.Util.textToTerm("requests(X)");
+		PrologQuery query = new PrologQueryImpl((PrologCompound) PrologDatabase.fromJpl(queryterm));
+		assertEquals(1, this.beliefbase.query(query).size());
 
 		this.beliefbase.destroy();
-		// assertEquals(0, this.beliefbase.query(query).size());
+		assertEquals(0, this.beliefbase.query(query).size());
 	}
 }
