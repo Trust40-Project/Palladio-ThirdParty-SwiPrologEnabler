@@ -35,7 +35,7 @@ public class TestInsertDeleteBenchmarks {
 
 	// components enabling us to run the tests...
 	private KRInterface language;
-	private PrologDatabase beliefbase;
+	private Database beliefbase;
 	private Database knowledgebase;
 
 	private final PrologVar X = new PrologVarImpl("X", null);
@@ -52,7 +52,7 @@ public class TestInsertDeleteBenchmarks {
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
 		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase = (PrologDatabase) this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 		this.beliefbase.query(new PrologQueryImpl(this.dynamicpX));
 		this.beliefbase.query(new PrologQueryImpl(this.dynamicpXY));
 	}
@@ -169,7 +169,8 @@ public class TestInsertDeleteBenchmarks {
 		if (N > 0) {
 			return new PrologCompoundImpl("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) }, null);
 		} else {
-			return new PrologCompoundImpl("0", new Term[] {}, null);
+			return new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(0, null), new PrologIntImpl(0, null) },
+					null);
 		}
 	}
 
