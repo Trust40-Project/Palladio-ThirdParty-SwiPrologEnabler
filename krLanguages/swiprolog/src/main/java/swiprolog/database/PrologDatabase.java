@@ -137,7 +137,6 @@ public class PrologDatabase implements Database {
 	 */
 	@Override
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
-		Set<Substitution> substSet = new LinkedHashSet<>();
 		PrologCompound query = ((PrologQuery) pQuery).getCompound();
 		// We need to create conjunctive query with "true" as first conjunct and
 		// db_query as second conjunct as JPL query dbname:not(..) does not work
@@ -146,8 +145,7 @@ public class PrologDatabase implements Database {
 				new Term[] { new PrologAtomImpl("true", null), prefix(query) }, null);
 		// Perform the query
 		flushWriteCache();
-		substSet.addAll(rawquery(db_query_final));
-		return substSet;
+		return rawquery(db_query_final);
 	}
 
 	/**

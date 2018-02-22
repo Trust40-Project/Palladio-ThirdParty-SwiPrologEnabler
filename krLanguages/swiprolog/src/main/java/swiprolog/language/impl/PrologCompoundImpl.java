@@ -44,7 +44,7 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 	/**
 	 *
 	 */
-	private List<Term> args;
+	private Term[] args;
 	/**
 	 *
 	 */
@@ -61,23 +61,14 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 	 *            A source info object.
 	 */
 	public PrologCompoundImpl(String name, Term[] args, SourceInfo info) {
-		super(name, jplTypedArray(args));
-		this.info = info;
-		this.args = Arrays.asList(args);
-		for (Term term : this.args) {
-			this.freeVar.addAll(term.getFreeVar());
-		}
-	}
-
-	private static org.jpl7.Term[] jplTypedArray(Term[] args) {
-		org.jpl7.Term[] jpl = new org.jpl7.Term[args.length];
+		super(name, args.length);
+		this.args = args;
 		for (int i = 0; i < args.length; ++i) {
-			jpl[i] = (org.jpl7.Term) args[i];
-			if (jpl[i] == null) {
-				throw new IllegalArgumentException("Null term passed into compound");
-			}
+			Term arg = args[i];
+			setArg(i + 1, (org.jpl7.Term) arg);
+			this.freeVar.addAll(arg.getFreeVar());
 		}
-		return jpl;
+		this.info = info;
 	}
 
 	@Override
@@ -92,12 +83,12 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 
 	@Override
 	public int getArity() {
-		return this.args.size();
+		return this.args.length;
 	}
 
 	@Override
 	public Term getArg(int i) {
-		return this.args.get(i);
+		return this.args[i];
 	}
 
 	@Override
@@ -176,13 +167,13 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
-		result = prime * result + ((this.args == null) ? 0 : this.args.hashCode());
+		result = prime * result + Arrays.hashCode(this.args);
 		return result;
 	}
 
 	@Override
 	public Iterator<Term> iterator() {
-		return this.args.iterator();
+		return Arrays.asList(this.args).iterator();
 	}
 
 	@Override
