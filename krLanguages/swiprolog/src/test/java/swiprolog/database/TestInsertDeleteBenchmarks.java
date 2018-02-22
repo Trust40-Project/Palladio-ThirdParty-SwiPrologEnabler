@@ -10,6 +10,7 @@ import org.jpl7.Atom;
 import org.jpl7.Compound;
 import org.jpl7.Integer;
 import org.jpl7.Term;
+import org.jpl7.Util;
 import org.jpl7.Variable;
 import org.junit.After;
 import org.junit.Before;
@@ -35,13 +36,17 @@ public class TestInsertDeleteBenchmarks {
 
 	// components enabling us to run the tests...
 	private KRInterface language;
-	private Database beliefbase;
+	private PrologDatabase beliefbase;
 	private Database knowledgebase;
 
 	private final Atom p = new Atom("p");
 	private final Variable X = new Variable("X");
+	private final Variable Y = new Variable("Y");
 	private final Compound pX = new Compound("p", new Term[] { X });
+	private final Compound pXY = new Compound("p", new Term[] { X, Y });
 	private final Compound dynamicpX = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { pX });
+	private final Compound dynamicpXY = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { pXY });
+	private Atom listing = new Atom("listing");
 
 	private long start, end;
 
@@ -49,8 +54,9 @@ public class TestInsertDeleteBenchmarks {
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
 		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
+		this.beliefbase = (PrologDatabase) this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 		this.beliefbase.query(new PrologQuery(this.dynamicpX, null));
+		this.beliefbase.query(new PrologQuery(this.dynamicpXY, null));
 	}
 
 	private void start() {
@@ -78,20 +84,36 @@ public class TestInsertDeleteBenchmarks {
 	}
 
 	@Test
+	public void uploadBenchmark() throws KRDatabaseException, KRQueryFailedException {
+		start();
+		uploadGenerator();
+		end("uploadBenchmark");
+		assertEquals(1, QueryPXY(0).size());
+	}
+
+	@Test
 	public void insertBenchmark() throws KRDatabaseException, KRQueryFailedException {
-		assertTrue(QueryP().isEmpty());
+		assertTrue(QueryPX().isEmpty());
 		start();
 		doInserts();
 		end("insertBenchmark");
-		assertEquals(NINSERTS, QueryP().size());
+		assertEquals(NINSERTS, QueryPX().size());
 	}
 
 	@Test
 	public void queryBenchmark1() throws KRDatabaseException, KRQueryFailedException {
 		doInserts();
 		start();
-		assertEquals(NINSERTS, QueryP().size());
+		QueryPX();
 		end("queryBenchmark1");
+	}
+
+	@Test
+	public void queryBenchmark2() throws KRDatabaseException, KRQueryFailedException {
+		uploadGenerator();
+		start();
+		QueryPXY(14);
+		end("queryBenchmark2");
 	}
 
 	/**
@@ -102,13 +124,13 @@ public class TestInsertDeleteBenchmarks {
 	 */
 	@Test
 	public void insertDuplicateBenchmark() throws KRDatabaseException, KRQueryFailedException {
-		assertTrue(QueryP().isEmpty());
+		assertTrue(QueryPX().isEmpty());
 		doInserts();
 		start();
 		doInserts();
 		end("insertDuplicateBenchmark");
 
-		assertEquals(NINSERTS, QueryP().size());
+		assertEquals(NINSERTS, QueryPX().size());
 	}
 
 	/**
@@ -124,7 +146,7 @@ public class TestInsertDeleteBenchmarks {
 		start();
 		doDeletes();
 		end("delete");
-		assertTrue(QueryP().isEmpty());
+		assertTrue(QueryPX().isEmpty());
 	}
 
 	/****************************** PRIVATE ***********************/
@@ -145,13 +167,48 @@ public class TestInsertDeleteBenchmarks {
 	}
 
 	/**
-	 * Query p
 	 *
-	 * @return set of solutions for query p.
+	 * @return set of solutions for query p(X).
 	 */
-	private Set<Substitution> QueryP() throws KRQueryFailedException {
+	private Set<Substitution> QueryPX() throws KRQueryFailedException {
 
 		return this.beliefbase.query(new PrologQuery(pX, null));
+	}
+
+	/**
+	 * @param N
+	 *            the first parameter for N. Determines the size of the returned
+	 *            object.
+	 * @return set of solutions for query p(N,Y).
+	 */
+	private Set<Substitution> QueryPXY(int N) throws KRQueryFailedException {
+		Compound query = new Compound("p", new Term[] { new Integer(N), Y });
+
+		return this.beliefbase.query(new PrologQuery(query, null));
+	}
+
+	/**
+	 * Prints listing to stdout. For quick test if we have the right formulas in
+	 * the database
+	 * 
+	 * @throws KRQueryFailedException
+	 */
+	private void listing() throws KRQueryFailedException {
+		System.out.println(this.beliefbase.query(new PrologQuery(listing, null)));
+
+	}
+
+	/**
+	 * Upload the large-structure generator into SWI. Returns object that is
+	 * size 2^N.
+	 * 
+	 * @throws KRQueryFailedException
+	 * @throws KRDatabaseException
+	 */
+	private void uploadGenerator() throws KRQueryFailedException, KRDatabaseException {
+		this.beliefbase.insert(new PrologDBFormula(Util.textToTerm("p(0,0)"), null));
+		this.beliefbase.insert(new PrologDBFormula(Util.textToTerm("p(N,s(X,X)):-( N>0, N1 is N-1, p(N1, X))"), null));
+		// listing();
 	}
 
 }
