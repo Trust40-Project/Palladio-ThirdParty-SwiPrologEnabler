@@ -103,7 +103,7 @@ public class PrologVarImpl extends org.jpl7.Variable implements PrologVar, Compa
 
 	@Override
 	public int hashCode() {
-		return this.name.hashCode();
+		return (this.name == null) ? 0 : this.name.hashCode();
 	}
 
 	@Override

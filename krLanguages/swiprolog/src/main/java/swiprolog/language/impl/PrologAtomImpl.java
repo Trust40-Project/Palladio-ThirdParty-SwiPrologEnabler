@@ -116,7 +116,7 @@ public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 
 	@Override
 	public int hashCode() {
-		return this.name.hashCode();
+		return (this.name == null) ? 0 : this.name.hashCode();
 	}
 
 	@Override
