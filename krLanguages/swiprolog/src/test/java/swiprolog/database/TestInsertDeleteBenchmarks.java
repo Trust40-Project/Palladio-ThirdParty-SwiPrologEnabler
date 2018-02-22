@@ -34,16 +34,15 @@ public class TestInsertDeleteBenchmarks {
 
 	// components enabling us to run the tests...
 	private KRInterface language;
-	private PrologDatabase beliefbase;
+	private Database beliefbase;
 	private Database knowledgebase;
 
-	private final Integer zero = new Integer(0);
 	private final Variable X = new Variable("X");
 	private final Variable Y = new Variable("Y");
 	private final Compound pX = new Compound("p", new Term[] { this.X });
 	private final Compound pXY = new Compound("p", new Term[] { this.X, this.Y });
-	private final Compound dynamicpX = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { this.pX });
-	private final Compound dynamicpXY = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { this.pXY });
+	private final Compound dynamicpX = new Compound("dynamic", new Term[] { this.pX });
+	private final Compound dynamicpXY = new Compound("dynamic", new Term[] { this.pXY });
 	// private final Atom listing = new Atom("listing");
 
 	private long start, end;
@@ -52,7 +51,7 @@ public class TestInsertDeleteBenchmarks {
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
 		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase = (PrologDatabase) this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
 		this.beliefbase.query(new PrologQuery(this.dynamicpX, null));
 		this.beliefbase.query(new PrologQuery(this.dynamicpXY, null));
 	}
@@ -166,10 +165,10 @@ public class TestInsertDeleteBenchmarks {
 	 *
 	 */
 	private Term largeTerm(int N) {
-		if (N == 0) {
-			return this.zero;
-		} else {
+		if (N > 0) {
 			return new Compound("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) });
+		} else {
+			return new Compound("p", new Term[] { new Integer(0), new Integer(0) });
 		}
 	}
 

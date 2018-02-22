@@ -125,7 +125,6 @@ public class PrologDatabase implements Database {
 	 */
 	@Override
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
-		Set<Substitution> substSet = new LinkedHashSet<>();
 		org.jpl7.Term query = ((PrologQuery) pQuery).getTerm();
 		org.jpl7.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
 		// We need to create conjunctive query with "true" as first conjunct and
@@ -133,8 +132,7 @@ public class PrologDatabase implements Database {
 		// otherwise...
 		org.jpl7.Term db_query_final = JPLUtils.createCompound(",", new org.jpl7.Atom("true"), db_query);
 		flushWriteCache();
-		substSet.addAll(rawquery(db_query_final));
-		return substSet;
+		return rawquery(db_query_final);
 	}
 
 	/**
@@ -290,7 +288,7 @@ public class PrologDatabase implements Database {
 	 *         return any bindings of variables.
 	 * @throws KRQueryFailedException
 	 */
-	public static Set<PrologSubstitution> rawquery(org.jpl7.Term query) throws KRQueryFailedException {
+	public static Set<Substitution> rawquery(org.jpl7.Term query) throws KRQueryFailedException {
 		// Create JPL query.
 		org.jpl7.Query jplQuery = new org.jpl7.Query(query);
 
@@ -307,7 +305,7 @@ public class PrologDatabase implements Database {
 		}
 
 		// Convert to PrologSubstitution.
-		Set<PrologSubstitution> substitutions = new LinkedHashSet<>(solutions.length);
+		Set<Substitution> substitutions = new LinkedHashSet<>(solutions.length);
 		for (Map<String, org.jpl7.Term> solution : solutions) {
 			substitutions.add(PrologSubstitution.getSubstitutionOrNull(new TreeMap<>(solution)));
 		}
