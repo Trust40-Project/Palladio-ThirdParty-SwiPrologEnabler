@@ -64,6 +64,7 @@ public class PrologDatabase implements Database {
 	 * query, at which point those operations are first all performed.
 	 */
 	private PrologCompound writecache;
+	private int cachecount = 0;
 
 	/**
 	 * @param name
@@ -347,6 +348,7 @@ public class PrologDatabase implements Database {
 	 */
 	protected void eraseContent() throws KRDatabaseException {
 		this.writecache = null;
+		this.cachecount = 0;
 		// String deleteone =
 		// "("
 		// + this.name + ":current_predicate(Predicate, Head),"
@@ -389,20 +391,31 @@ public class PrologDatabase implements Database {
 	}
 
 	// NEW: MERGE ALL ASSERTS AND RETRACTS...
-	private void addToWriteCache(PrologCompound formula) {
+	private void addToWriteCache(PrologCompound formula) throws KRDatabaseException {
 		if (this.writecache == null) {
 			this.writecache = formula;
 		} else {
 			this.writecache = new PrologCompoundImpl(",", new Term[] { this.writecache, formula },
 					formula.getSourceInfo());
 		}
+		if (++this.cachecount == Byte.MAX_VALUE) {
+			try { // prevents stackoverflows
+				flushWriteCache();
+			} catch (KRQueryFailedException e) {
+				throw new KRDatabaseException("", e);
+			}
+		}
 	}
 
 	// ... TO EXECUTE THEM ALLTOGETHER AT (BEFORE) THE NEXT QUERY
 	private void flushWriteCache() throws KRQueryFailedException {
 		if (this.writecache != null) {
-			rawquery(this.writecache);
-			this.writecache = null;
+			try {
+				rawquery(this.writecache);
+			} finally {
+				this.writecache = null;
+				this.cachecount = 0;
+			}
 		}
 	}
 
