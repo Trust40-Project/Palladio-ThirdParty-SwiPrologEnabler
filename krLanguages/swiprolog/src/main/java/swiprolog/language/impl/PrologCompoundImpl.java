@@ -38,17 +38,21 @@ import swiprolog.language.PrologTerm;
  */
 public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompound {
 	/**
+	 * The terms arguments (exact same as in jpl7.Compound but with different type)
+	 */
+	private final Term[] args;
+	/**
 	 * Information about the source used to construct this compound.
 	 */
 	private final SourceInfo info;
 	/**
-	 *
-	 */
-	private Term[] args;
-	/**
-	 *
+	 * The free variables in the compound (cached for performance).
 	 */
 	private final Set<Var> freeVar = new LinkedHashSet<>();
+	/**
+	 * Cache the compound's hash for performance.
+	 */
+	private final int hashcode;
 
 	/**
 	 * Creates a compound with 1 or more arguments.
@@ -69,6 +73,7 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 			this.freeVar.addAll(arg.getFreeVar());
 		}
 		this.info = info;
+		this.hashcode = name.hashCode() + Arrays.hashCode(args);
 	}
 
 	@Override
@@ -164,11 +169,7 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
-		result = prime * result + Arrays.hashCode(this.args);
-		return result;
+		return this.hashcode;
 	}
 
 	@Override

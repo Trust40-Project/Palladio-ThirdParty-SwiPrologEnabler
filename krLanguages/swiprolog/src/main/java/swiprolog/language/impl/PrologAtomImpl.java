@@ -38,6 +38,10 @@ public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 	 * Information about the source used to construct this atom.
 	 */
 	private final SourceInfo info;
+	/**
+	 * Cache the atom's hash for performance
+	 */
+	private final int hashcode;
 
 	/**
 	 * Creates an atom (i.e. a compound without arguments).
@@ -50,6 +54,7 @@ public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 	public PrologAtomImpl(String name, SourceInfo info) {
 		super(name);
 		this.info = info;
+		this.hashcode = name.hashCode();
 	}
 
 	@Override
@@ -116,7 +121,7 @@ public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 
 	@Override
 	public int hashCode() {
-		return (this.name == null) ? 0 : this.name.hashCode();
+		return this.hashcode;
 	}
 
 	@Override

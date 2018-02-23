@@ -35,9 +35,13 @@ public class PrologVarImpl extends org.jpl7.Variable implements PrologVar, Compa
 	 */
 	private final SourceInfo info;
 	/**
-	 *
+	 * A set containing only the variable itself (cached for performance).
 	 */
 	private final Set<Var> freeVar = new LinkedHashSet<>(1);
+	/**
+	 * Cache the variable's hash for performance.
+	 */
+	private final int hashcode;
 
 	/**
 	 * Creates a variable.
@@ -50,6 +54,7 @@ public class PrologVarImpl extends org.jpl7.Variable implements PrologVar, Compa
 	public PrologVarImpl(String name, SourceInfo info) {
 		super(name);
 		this.info = info;
+		this.hashcode = name.hashCode();
 		this.freeVar.add(this);
 	}
 
@@ -103,7 +108,7 @@ public class PrologVarImpl extends org.jpl7.Variable implements PrologVar, Compa
 
 	@Override
 	public int hashCode() {
-		return (this.name == null) ? 0 : this.name.hashCode();
+		return this.hashcode;
 	}
 
 	@Override
