@@ -30,7 +30,7 @@ import swiprolog.language.PrologQuery;
  */
 
 public class TestInsertDeleteBenchmarks {
-	private final static int NINSERTS = 1000;
+	private final static int NINSERTS = 100000;
 
 	// components enabling us to run the tests...
 	private KRInterface language;
