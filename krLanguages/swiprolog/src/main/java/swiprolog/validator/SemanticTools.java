@@ -79,11 +79,12 @@ public class SemanticTools {
 	 */
 	private static PrologCompound basicUpdateCheck(PrologCompound conjunct) throws ParserException {
 		for (Term term : conjunct.getOperands(",")) {
-			if (term.getSignature().equals("not/1")) {
-				PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
+			PrologCompound compound = (PrologCompound) term;
+			if ((compound.getArity() == 1) && compound.getName().equals("not")) {
+				PrologCompound content = (PrologCompound) compound.getArg(0);
 				DBFormula(content);
 			} else {
-				DBFormula((PrologCompound) term);
+				DBFormula(compound);
 			}
 		}
 		return conjunct;
@@ -126,7 +127,7 @@ public class SemanticTools {
 	public static DatabaseFormula DBFormula(PrologCompound term) throws ParserException {
 		PrologCompound head, body;
 
-		if (term.getSignature().equals(":-/2")) {
+		if ((term.getArity() == 2) && term.getName().equals(":-")) {
 			head = (PrologCompound) term.getArg(0);
 			body = (PrologCompound) term.getArg(1);
 		} else {
@@ -145,7 +146,7 @@ public class SemanticTools {
 		}
 
 		String signature = head.getSignature();
-		if (signature.equals(":-/1")) {
+		if (head.isDirective()) {
 			PrologCompound directive = (PrologCompound) term.getArg(0);
 			signature = directive.getSignature();
 			if (signature.equals("dynamic/1")) {
@@ -186,14 +187,16 @@ public class SemanticTools {
 	 */
 	public static PrologCompound toGoal(PrologCompound t) throws ParserException {
 		// 7.6.2.b
-		String sig = t.getSignature();
-		if (sig.equals(":-/2")) {
-			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t.toString()),
-					t.getSourceInfo());
-		} else if (sig.equals(":-/1")) {
-			throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t.toString()),
-					t.getSourceInfo());
-		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
+		if (t.getName().equals(":-")) {
+			if (t.getArity() == 1) {
+				throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t.toString()),
+						t.getSourceInfo());
+			} else if (t.getArity() == 2) {
+				throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t.toString()),
+						t.getSourceInfo());
+			}
+		}
+		if ((t.getArity() == 2) && (t.getName().equals(",") || t.getName().equals(";") || t.getName().equals("->"))) {
 			toGoal((PrologCompound) t.getArg(0));
 			toGoal((PrologCompound) t.getArg(1));
 			return t;
@@ -272,9 +275,9 @@ public class SemanticTools {
 	 */
 	public static List<String> getDeclaredSignatures(PrologCompound term, SourceInfo info) throws ParserException {
 		List<String> signatures = new LinkedList<>();
-		if (term.getSignature().equals(":-/1")) {
+		if (term.isDirective()) {
 			PrologCompound directive = (PrologCompound) term.getArg(0);
-			if (!directive.getSignature().equals("dynamic/1")) {
+			if ((directive.getArity() != 1) || !directive.getName().equals("dynamic")) {
 				throw new ParserException("only the 'dynamic/1' directive is supported, found " + directive, info);
 			}
 			PrologCompound content = (PrologCompound) directive.getArg(0);

@@ -204,7 +204,7 @@ public class PrologDatabase implements Database {
 	 */
 	private void insert(PrologCompound formula) throws KRDatabaseException {
 		PrologCompound query = null;
-		if (formula.getSignature().equals(":-/1")) { // directive
+		if (formula.getName().equals(":-") && (formula.getArity() == 1)) { // directive
 			formula = (PrologCompound) formula.getArg(0);
 			query = new PrologCompoundImpl(",", new Term[] { new PrologAtomImpl("true", null), prefix(formula) }, null);
 		} else { // clause

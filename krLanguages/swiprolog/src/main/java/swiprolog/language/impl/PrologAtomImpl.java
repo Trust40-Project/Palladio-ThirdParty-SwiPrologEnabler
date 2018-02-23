@@ -93,6 +93,11 @@ public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 	}
 
 	@Override
+	public boolean isDirective() {
+		return false;
+	}
+
+	@Override
 	public boolean isQuery() {
 		return true; // FIXME
 	}

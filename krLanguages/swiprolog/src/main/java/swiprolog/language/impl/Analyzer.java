@@ -101,15 +101,17 @@ public class Analyzer {
 		PrologCompound term = plFormula.getCompound();
 		PrologCompound headTerm = term;
 		// The :- function needs special attention.
-		if (term.getSignature().equals(":-/1")) {
-			// Directive: the first argument is a query.
-			addQuery(new PrologQueryImpl((PrologCompound) term.getArg(0)));
-		} else if (term.getSignature().equals(":-/2")) {
-			PrologCompound compound = term;
-			// The first argument is the only defined term.
-			headTerm = (PrologCompound) compound.getArg(0);
-			// The other argument is a conjunction of queried terms.
-			addQuery(new PrologQueryImpl((PrologCompound) compound.getArg(1)));
+		if (term.getName().equals(":-")) {
+			if (term.getArity() == 1) {
+				// Directive: the first argument is a query.
+				addQuery(new PrologQueryImpl((PrologCompound) term.getArg(0)));
+			} else if (term.getArity() == 2) {
+				PrologCompound compound = term;
+				// The first argument is the only defined term.
+				headTerm = (PrologCompound) compound.getArg(0);
+				// The other argument is a conjunction of queried terms.
+				addQuery(new PrologQueryImpl((PrologCompound) compound.getArg(1)));
+			}
 		}
 
 		String headSig = headTerm.getSignature();

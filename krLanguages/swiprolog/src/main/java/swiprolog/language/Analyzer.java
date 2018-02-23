@@ -102,15 +102,16 @@ public class Analyzer {
 	private void addDefinition(DatabaseFormula formula) {
 		PrologCompound plFormula = ((PrologDBFormula) formula).getCompound();
 		PrologCompound headTerm = plFormula;
-		String sig = plFormula.getSignature();
-		if (sig.equals(":-/1")) {
-			// Directive: the first argument is a query.
-			addQuery(new PrologQueryImpl(plFormula));
-		} else if (sig.equals(":-/2")) {
-			// The first argument is the only defined term.
-			headTerm = (PrologCompound) plFormula.getArg(0);
-			// The other argument is a conjunction of queried terms.
-			addQuery(new PrologQueryImpl((PrologCompound) plFormula.getArg(1)));
+		if (plFormula.getName().equals(":-")) {
+			if (plFormula.getArity() == 1) {
+				// Directive: the first argument is a query.
+				addQuery(new PrologQueryImpl(plFormula));
+			} else if (plFormula.getArity() == 2) {
+				// The first argument is the only defined term.
+				headTerm = (PrologCompound) plFormula.getArg(0);
+				// The other argument is a conjunction of queried terms.
+				addQuery(new PrologQueryImpl((PrologCompound) plFormula.getArg(1)));
+			}
 		}
 
 		String headSig = headTerm.getSignature();

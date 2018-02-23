@@ -28,13 +28,6 @@ public interface PrologExpression extends Expression {
 	}
 
 	/**
-	 * Returns true iff the signature of the expression is true/0.
-	 */
-	public default boolean isEmpty() {
-		return getSignature().equals("true/0");
-	}
-
-	/**
 	 * @return The F-ixity of the term: returns NOT_OPERATOR for non-operator terms.
 	 *         See ISO 12311, table 5.
 	 * @see PrologOperators.Fixity for a list of f-ixities.

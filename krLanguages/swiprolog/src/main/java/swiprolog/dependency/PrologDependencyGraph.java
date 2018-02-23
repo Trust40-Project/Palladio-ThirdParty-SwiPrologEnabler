@@ -50,13 +50,11 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 	@Override
 	public void add(DatabaseFormula formula, boolean defined, boolean queried) throws KRException {
 		PrologCompound term = ((PrologDBFormula) formula).getCompound();
-		String signature = term.getSignature();
-
 		/**
 		 * The :- function needs to be treated differently from other terms; the head
 		 * term is defined, whereas the terms in the body are queried.
 		 */
-		if (signature.equals(":-/2")) {
+		if (term.isDirective()) {
 			if (defined) {
 				// The first argument is the term that is being defined.
 				Term content1 = term.getArg(0);
@@ -72,6 +70,7 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 				throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 			}
 		} else {
+			String signature = term.getSignature();
 			if (reserved(signature) && defined) {
 				throw new KRDatabaseException("illegal attempt to redefine '" + signature + "'.");
 			} else {
@@ -86,7 +85,7 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 	@Override
 	public void add(Query query) throws KRException {
 		PrologCompound compound = ((PrologQuery) query).getCompound();
-		if (compound.getSignature().equals(":-/2")) {
+		if (compound.isDirective()) {
 			throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 		} else {
 			addTerm(compound, false, true);

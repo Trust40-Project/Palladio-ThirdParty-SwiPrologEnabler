@@ -73,12 +73,12 @@ public class PrologUpdateImpl implements PrologUpdate {
 		// Sort positive and negative literals, assuming that each conjunct
 		// is a database formula (which should have been checked by the parser).
 		for (Term conjunct : compound.getOperands(",")) {
-			String sig = conjunct.getSignature();
-			if (sig.equals("not/1")) {
-				PrologCompound content = (PrologCompound) ((PrologCompound) conjunct).getArg(0);
+			PrologCompound term = (PrologCompound) conjunct;
+			if ((term.getArity() == 1) && term.getName().equals("not")) {
+				PrologCompound content = (PrologCompound) term.getArg(0);
 				this.negativeLiterals.add(new PrologDBFormulaImpl(content));
-			} else if (!sig.equals("true/0")) {
-				this.positiveLiterals.add(new PrologDBFormulaImpl((PrologCompound) conjunct));
+			} else if (!((term.getArity() == 0) && term.getName().equals("true"))) {
+				this.positiveLiterals.add(new PrologDBFormulaImpl(term));
 			}
 		}
 	}

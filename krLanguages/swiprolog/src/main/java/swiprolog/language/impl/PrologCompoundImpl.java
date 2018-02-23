@@ -103,35 +103,44 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 
 	@Override
 	public boolean isPredication() {
-		String sig = getSignature();
-		return !(sig.equals("&/2") || sig.equals(";/2") || sig.equals("->/2"));
+		boolean other = (getArity() == 2) && (this.name.equals("&") || this.name.equals(";") || this.name.equals("->"));
+		return !other;
 	}
 
 	@Override
 	public boolean isPredicateIndicator() {
-		return this.name.equals("/") && (getArity() == 2) && (getArg(0) instanceof PrologAtomImpl)
-				&& (getArg(1) instanceof PrologIntImpl);
+		return (getArity() == 2) && this.name.equals("/");
+	}
+
+	@Override
+	public boolean isDirective() {
+		return (getArity() == 1) && this.name.equals(":-");
 	}
 
 	@Override
 	public boolean isQuery() {
-		String sig = getSignature();
-		if (sig.equals(":-/2")) {
-			return false;
-		} else if (sig.equals(",/2") || sig.equals(";/2") || sig.equals("->/2")) {
-			return ((PrologCompound) getArg(0)).isQuery() && ((PrologCompound) getArg(1)).isQuery();
+		if (getArity() == 2) {
+			switch (this.name) {
+			case ":-":
+				return true;
+			case ",":
+			case ";":
+			case "->":
+				return ((PrologCompound) getArg(0)).isQuery() && ((PrologCompound) getArg(1)).isQuery();
+			default:
+				return false;
+			}
 		} else {
-			return true;
+			return false;
 		}
 	}
 
 	@Override
 	public String getSignature() {
-		String sig = this.name + "/" + getArity();
-		if (sig.equals("//2")) {
+		if (isPredicateIndicator()) {
 			return ((PrologAtomImpl) getArg(0)).getName() + "/" + ((PrologIntImpl) getArg(1)).intValue();
 		} else {
-			return sig;
+			return this.name + "/" + getArity();
 		}
 	}
 
@@ -153,7 +162,7 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 	@Override
 	public List<Term> getOperands(String operator) {
 		List<Term> list = new LinkedList<>();
-		if (getSignature().equals(operator + "/2")) {
+		if (this.name.equals(operator) && (getArity() == 2)) {
 			list.add(getArg(0));
 			Term next = getArg(1);
 			if (next instanceof PrologCompound) {
@@ -179,11 +188,11 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 
 	@Override
 	public String toString() {
-		// Special treatment of (non-empty) lists.
-		if (this.name.equals(JPL.LIST_PAIR)) {
-			return "[" + getArg(0) + tailToString(getArg(1)) + "]";
-		} else if (this.name.equals("/") && (getArity() == 2)) {
+		if (isPredicateIndicator()) {
 			return getSignature();
+		} else if (this.name.equals(JPL.LIST_PAIR)) {
+			// Special treatment of (non-empty) lists.
+			return "[" + getArg(0) + tailToString(getArg(1)) + "]";
 		} else {
 			switch (getFixity()) {
 			case FX:
@@ -324,7 +333,7 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 		} else if (arg instanceof PrologCompound) {
 			// check that we are still in a list and continue.
 			PrologCompound compound = (PrologCompound) arg;
-			if (compound.getName().equals(JPL.LIST_PAIR)) {
+			if ((compound.getArity() == 2) && compound.getName().equals(JPL.LIST_PAIR)) {
 				return "," + compound.getArg(0) + tailToString(compound.getArg(1));
 			} else {
 				return "|" + arg; // not a good list.
