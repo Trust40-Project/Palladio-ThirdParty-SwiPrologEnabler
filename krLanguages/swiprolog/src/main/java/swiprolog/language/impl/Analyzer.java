@@ -104,7 +104,7 @@ public class Analyzer {
 		if (plFormula.getName().equals(":-")) {
 			if (plFormula.getArity() == 1) {
 				// Directive: the first argument is a query.
-				addQuery(new PrologQueryImpl(plFormula));
+				addQuery(new PrologQueryImpl((PrologCompound) plFormula.getArg(0)));
 			} else if (plFormula.getArity() == 2) {
 				// The first argument is the only defined term.
 				headTerm = (PrologCompound) plFormula.getArg(0);
@@ -160,8 +160,8 @@ public class Analyzer {
 		} else if (termSig.equals(";/2") || termSig.equals("|/2") || termSig.equals(",/2") || termSig.equals("->/2")
 				|| termSig.equals("*->/2") || termSig.equals("forall/2") || termSig.equals("foreach/2")) {
 			// unpack the conjunction, disjunction and forall /2-operators
+			addQuery(plTerm.getArg(0), info);
 			addQuery(plTerm.getArg(1), info);
-			addQuery(plTerm.getArg(2), info);
 		} else if (termSig.startsWith("findall/") || termSig.equals("setof/3") || termSig.equals("bagof/3")
 				|| termSig.equals("aggregate/3") || termSig.equals("aggregate_all/3")) {
 			// findall, setof aggregate and aggregate_all /3-operators only
