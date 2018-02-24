@@ -19,7 +19,6 @@
 package swiprolog.parser;
 
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
 
 import org.jpl7.JPL;
@@ -54,11 +53,11 @@ public final class PrologOperators {
 	 */
 	public static final Map<String, Integer> OP_PRIOS;
 
-	public static final Hashtable<String, PrologOperators.Fixity> OPERATOR_SPECS;
+	public static final Map<String, PrologOperators.Fixity> OPERATOR_SPECS;
 
 	static {
 		OP_PRIOS = new HashMap<>();
-		OPERATOR_SPECS = new Hashtable<>();
+		OPERATOR_SPECS = new HashMap<>();
 		OP_PRIOS.put(":/2", 50);
 		OPERATOR_SPECS.put(":/1", Fixity.XFX);
 		OP_PRIOS.put("@/1", 100);
@@ -457,6 +456,7 @@ public final class PrologOperators {
 		OP_PRIOS.put("current_arithmetic_function/1", 0); // new in SWI7.6.4
 
 		// SWI 4.29: Built-in list operations
+		OP_PRIOS.put("[|]/2", 0);
 		OP_PRIOS.put("is_list/1", 0);
 		OP_PRIOS.put("memberchk/2", 0);
 		OP_PRIOS.put("length/2", 0);

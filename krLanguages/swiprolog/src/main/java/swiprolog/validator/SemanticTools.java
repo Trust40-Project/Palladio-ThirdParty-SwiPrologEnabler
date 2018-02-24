@@ -16,9 +16,8 @@
  */
 package swiprolog.validator;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import krTools.exceptions.ParserException;
 import krTools.language.DatabaseFormula;
@@ -238,8 +237,8 @@ public class SemanticTools {
 	 * @return signatures of defined terms.
 	 * @throws ParserException
 	 */
-	public static List<String> getDefinedSignatures(Term term, SourceInfo info) throws ParserException {
-		List<String> signatures = new LinkedList<>();
+	public static Set<String> getDefinedSignatures(Term term, SourceInfo info) throws ParserException {
+		Set<String> signatures = new LinkedHashSet<>();
 		if (term instanceof PrologAtomImpl) {
 			signatures.add(term.getSignature());
 		} else if (term instanceof PrologCompoundImpl) {
@@ -273,8 +272,8 @@ public class SemanticTools {
 	 * @return declared but undefined signatures
 	 * @throws ParserException
 	 */
-	public static List<String> getDeclaredSignatures(PrologCompound term, SourceInfo info) throws ParserException {
-		List<String> signatures = new LinkedList<>();
+	public static Set<String> getDeclaredSignatures(PrologCompound term, SourceInfo info) throws ParserException {
+		Set<String> signatures = new LinkedHashSet<>();
 		if (term.isDirective()) {
 			PrologCompound directive = (PrologCompound) term.getArg(0);
 			if ((directive.getArity() != 1) || !directive.getName().equals("dynamic")) {
@@ -304,12 +303,12 @@ public class SemanticTools {
 	 *            from.
 	 * @return signature(s) that are used in the expression
 	 */
-	public static List<String> getUsedSignatures(PrologExpression term) {
-		if (term instanceof PrologVarImpl || term instanceof PrologFloatImpl || term instanceof PrologIntImpl) {
-			// We're at the bottom and these are built-in.
-			return new ArrayList<>(0);
+	public static Set<String> getUsedSignatures(PrologExpression term) {
+		if (term instanceof PrologVarImpl || term instanceof PrologFloatImpl || term instanceof PrologIntImpl
+				|| term instanceof PrologAtomImpl) {
+			return new LinkedHashSet<>(0);
 		}
-		List<String> signatures = new LinkedList<>();
+		Set<String> signatures = new LinkedHashSet<>();
 		PrologCompound compound;
 		if (term instanceof PrologDBFormulaImpl) {
 			compound = ((PrologDBFormulaImpl) term).getCompound();

@@ -17,8 +17,8 @@
 
 package swiprolog.language.impl;
 
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +27,7 @@ import java.util.Set;
 import krTools.language.DatabaseFormula;
 import krTools.language.Query;
 import krTools.language.Term;
+import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
@@ -36,6 +37,7 @@ import swiprolog.parser.PrologOperators;
  * Analyzer to identify unused and undefined predicates.
  */
 public class Analyzer {
+	private static final Term ANON_VAR = new PrologVarImpl("_", null);
 	/**
 	 * Map of definitions.
 	 */
@@ -52,8 +54,8 @@ public class Analyzer {
 	/**
 	 * Output
 	 */
-	private final Set<String> undefined = new HashSet<>();
-	private final Set<String> unused = new HashSet<>();
+	private final Set<String> undefined = new LinkedHashSet<>();
+	private final Set<String> unused = new LinkedHashSet<>();
 
 	/**
 	 * Creates an analyzer.
@@ -77,7 +79,7 @@ public class Analyzer {
 	}
 
 	public Set<Query> getUndefined() {
-		Set<Query> undefined = new HashSet<>();
+		Set<Query> undefined = new LinkedHashSet<>();
 		for (String undf : this.undefined) {
 			undefined.addAll(this.used.get(undf));
 		}
@@ -85,7 +87,7 @@ public class Analyzer {
 	}
 
 	public Set<DatabaseFormula> getUnused() {
-		Set<DatabaseFormula> unused = new HashSet<>();
+		Set<DatabaseFormula> unused = new LinkedHashSet<>();
 		for (String df : this.unused) {
 			unused.addAll(this.definitions.get(df));
 		}
@@ -97,20 +99,17 @@ public class Analyzer {
 	 * function.
 	 */
 	private void addDefinition(DatabaseFormula formula) {
-		PrologDBFormula plFormula = (PrologDBFormula) formula;
-		PrologCompound term = plFormula.getCompound();
-		PrologCompound headTerm = term;
-		// The :- function needs special attention.
-		if (term.getName().equals(":-")) {
-			if (term.getArity() == 1) {
+		PrologCompound plFormula = ((PrologDBFormula) formula).getCompound();
+		PrologCompound headTerm = plFormula;
+		if (plFormula.getName().equals(":-")) {
+			if (plFormula.getArity() == 1) {
 				// Directive: the first argument is a query.
-				addQuery(new PrologQueryImpl((PrologCompound) term.getArg(0)));
-			} else if (term.getArity() == 2) {
-				PrologCompound compound = term;
+				addQuery(new PrologQueryImpl(plFormula));
+			} else if (plFormula.getArity() == 2) {
 				// The first argument is the only defined term.
-				headTerm = (PrologCompound) compound.getArg(0);
+				headTerm = (PrologCompound) plFormula.getArg(0);
 				// The other argument is a conjunction of queried terms.
-				addQuery(new PrologQueryImpl((PrologCompound) compound.getArg(1)));
+				addQuery(new PrologQueryImpl((PrologCompound) plFormula.getArg(1)));
 			}
 		}
 
@@ -133,7 +132,7 @@ public class Analyzer {
 	 * Add a query (a use of predicates).
 	 */
 	public void addQuery(Query query) {
-		addQuery(((PrologQuery) query).getCompound());
+		addQuery(((PrologQuery) query).getCompound(), query.getSourceInfo());
 	}
 
 	/**
@@ -142,39 +141,46 @@ public class Analyzer {
 	public void addQuery(DatabaseFormula formula) {
 		// we may assume the formula is a single term, so we can just
 		// as well handle the inner term as a general term.
-		addQuery(((PrologDBFormula) formula).getCompound());
+		addQuery(((PrologDBFormula) formula).getCompound(), formula.getSourceInfo());
 	}
 
-	private void addQuery(PrologCompound compound) {
+	private void addQuery(Term term, SourceInfo info) {
 		// check if the term needs to be unpacked
-		String termSig = compound.getSignature();
+		if (!(term instanceof PrologCompound)) {
+			return;
+		}
+		PrologCompound plTerm = (PrologCompound) term;
+		String termSig = plTerm.getSignature();
 		// there is only one /1 operator we need to unpack: not/1
-		if (termSig.equals("not/1")) {
-			addQuery((PrologCompound) compound.getArg(0));
-		} else if (termSig.equals(";/2") || termSig.equals(",/2") || termSig.equals("forall/2")) {
+		if (termSig.equals("not/1") || termSig.equals("+/1") || termSig.equals("include/3")
+				|| termSig.equals("exclude/3") || termSig.startsWith("partition/") || termSig.startsWith("maplist/")
+				|| termSig.equals("convlist/3") || termSig.startsWith("foldl/") || termSig.startsWith("scanl/")
+				|| termSig.equals("free_variables/4")) {
+			addQuery(plTerm.getArg(0), info);
+		} else if (termSig.equals(";/2") || termSig.equals("|/2") || termSig.equals(",/2") || termSig.equals("->/2")
+				|| termSig.equals("*->/2") || termSig.equals("forall/2") || termSig.equals("foreach/2")) {
 			// unpack the conjunction, disjunction and forall /2-operators
-			addQuery((PrologCompound) compound.getArg(0));
-			addQuery((PrologCompound) compound.getArg(1));
-		} else if (termSig.equals("findall/3") || termSig.equals("setof/3") || termSig.equals("aggregate/3")
-				|| termSig.equals("aggregate_all/3")) {
+			addQuery(plTerm.getArg(1), info);
+			addQuery(plTerm.getArg(2), info);
+		} else if (termSig.startsWith("findall/") || termSig.equals("setof/3") || termSig.equals("bagof/3")
+				|| termSig.equals("aggregate/3") || termSig.equals("aggregate_all/3")) {
 			// findall, setof aggregate and aggregate_all /3-operators only
 			// have a query in the second argument.
-			addQuery((PrologCompound) compound.getArg(1));
-		} else if (termSig.equals("aggregate/4") || termSig.equals("aggregate_all/4")) {
+			addQuery(plTerm.getArg(1), info);
+		} else if (termSig.equals("aggregate/4") || termSig.equals("aggregate_all/4")
+				|| termSig.startsWith("findnsols/")) {
 			// aggregate and aggregate_all /4-operators have the query in
 			// the third argument.
-			addQuery((PrologCompound) compound.getArg(2));
+			addQuery(plTerm.getArg(2), info);
 		} else if (termSig.equals("predsort/3")) {
 			// first argument is name that will be called as name/3
-			PrologCompound firstarg = (PrologCompound) compound.getArg(0);
-			Term anon = new PrologVarImpl("_", null);
-			PrologCompound stubfunc = new PrologCompoundImpl(firstarg.getName(), new Term[] { anon, anon, anon },
-					compound.getSourceInfo());
-			addQuery(stubfunc);
+			Term stubfunc = new PrologCompoundImpl(((PrologCompound) plTerm.getArg(0)).getName(),
+					new Term[] { ANON_VAR, ANON_VAR, ANON_VAR }, plTerm.getSourceInfo());
+			addQuery(stubfunc, info);
 		} else if (termSig.equals("dynamic/1")) {
 			// recognize predicate declaration(s).
-			PrologCompound firstarg = (PrologCompound) compound.getArg(0);
-			for (Term dynamicPred : firstarg.getOperands(",")) {
+			PrologCompound compound = (PrologCompound) plTerm.getArg(0);
+			for (Term dynamicPred : compound.getOperands(",")) {
 				addDefinition(new PrologDBFormulaImpl((PrologCompound) dynamicPred));
 			}
 		} else if (!PrologOperators.prologBuiltin(termSig)) {
@@ -187,7 +193,7 @@ public class Analyzer {
 			} else {
 				formulas = new LinkedList<>();
 			}
-			formulas.add(new PrologQueryImpl(compound));
+			formulas.add(new PrologQueryImpl(plTerm));
 			this.used.put(termSig, formulas);
 		}
 	}

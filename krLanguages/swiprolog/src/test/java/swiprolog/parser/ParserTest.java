@@ -44,9 +44,9 @@ public class ParserTest {
 	@Parameters
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] { { "p(a, b)" }, { "p(a, b , c)" }, { "head :- body" },
-				{ "head :- a , b , c" }, { "[p]" }, { "[a,b,c]" }, { "bet(-1,1,X)" }, { "[[a,b,c],[d,e,f]]" },
+				{ "head :- a , b , c" }, { "p([p])" }, { "p([a,b,c])" }, { "bet(-1,1,X)" }, { "p([[a,b,c],[d,e,f]])" },
 				// WE CAN NOT PARSE THIS { "[1,2|4]" },
-				{ "head :- X is 1- -1" }, { "head :- X*(-1 , 2)" }, { "head :- X is 1+ -(1+2)" }, { "[p(1,2),3]" },
+				{ "head :- X is 1- -1" }, { "head :- X*(-1 , 2)" }, { "head :- X is 1+ -(1+2)" }, { "p([p(1,2),3])" },
 				{ "p" }, { "'.'" },
 				// We apparently can't parse terms like "'bla.'" ,
 				// "p('.'(1,2,3))"
