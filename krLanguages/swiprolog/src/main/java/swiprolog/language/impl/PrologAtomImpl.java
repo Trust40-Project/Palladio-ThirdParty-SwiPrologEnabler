@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.jpl7.JPL;
+
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
@@ -52,7 +54,7 @@ public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 	 *            A source info object.
 	 */
 	public PrologAtomImpl(String name, SourceInfo info) {
-		super(name);
+		super(name, name.equals(JPL.LIST_NIL.name()) ? "reserved_symbol" : "text");
 		this.info = info;
 		this.hashcode = name.hashCode();
 	}
