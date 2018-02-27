@@ -108,7 +108,7 @@ public abstract class PrologExpression implements Expression {
 	 */
 	@Override
 	public boolean isClosed() {
-		return JPLUtils.getFreeVar(getTerm()).isEmpty();
+		return this.free.isEmpty();
 	}
 
 	/**

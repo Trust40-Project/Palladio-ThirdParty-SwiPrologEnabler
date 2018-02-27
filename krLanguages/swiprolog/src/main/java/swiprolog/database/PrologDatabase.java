@@ -57,6 +57,7 @@ public class PrologDatabase implements Database {
 	 * query, at which point those operations are first all performed.
 	 */
 	private org.jpl7.Term writecache;
+	private int cachecount = 0;
 
 	/**
 	 * @param name
@@ -125,7 +126,6 @@ public class PrologDatabase implements Database {
 	 */
 	@Override
 	public Set<Substitution> query(Query pQuery) throws KRQueryFailedException {
-		Set<Substitution> substSet = new LinkedHashSet<>();
 		org.jpl7.Term query = ((PrologQuery) pQuery).getTerm();
 		org.jpl7.Term db_query = JPLUtils.createCompound(":", getJPLName(), query);
 		// We need to create conjunctive query with "true" as first conjunct and
@@ -133,8 +133,7 @@ public class PrologDatabase implements Database {
 		// otherwise...
 		org.jpl7.Term db_query_final = JPLUtils.createCompound(",", new org.jpl7.Atom("true"), db_query);
 		flushWriteCache();
-		substSet.addAll(rawquery(db_query_final));
-		return substSet;
+		return rawquery(db_query_final);
 	}
 
 	/**
@@ -290,7 +289,7 @@ public class PrologDatabase implements Database {
 	 *         return any bindings of variables.
 	 * @throws KRQueryFailedException
 	 */
-	public static Set<PrologSubstitution> rawquery(org.jpl7.Term query) throws KRQueryFailedException {
+	public static Set<Substitution> rawquery(org.jpl7.Term query) throws KRQueryFailedException {
 		// Create JPL query.
 		org.jpl7.Query jplQuery = new org.jpl7.Query(query);
 
@@ -307,7 +306,7 @@ public class PrologDatabase implements Database {
 		}
 
 		// Convert to PrologSubstitution.
-		Set<PrologSubstitution> substitutions = new LinkedHashSet<>(solutions.length);
+		Set<Substitution> substitutions = new LinkedHashSet<>(solutions.length);
 		for (Map<String, org.jpl7.Term> solution : solutions) {
 			substitutions.add(PrologSubstitution.getSubstitutionOrNull(new TreeMap<>(solution)));
 		}
@@ -332,6 +331,7 @@ public class PrologDatabase implements Database {
 	 */
 	protected void eraseContent() throws KRDatabaseException {
 		this.writecache = null;
+		this.cachecount = 0;
 		// String deleteone =
 		// "("
 		// + this.name + ":current_predicate(Predicate, Head),"
@@ -368,19 +368,30 @@ public class PrologDatabase implements Database {
 	}
 
 	// NEW: MERGE ALL ASSERTS AND RETRACTS...
-	private void addToWriteCache(org.jpl7.Term formula) {
+	private void addToWriteCache(org.jpl7.Term formula) throws KRDatabaseException {
 		if (this.writecache == null) {
 			this.writecache = formula;
 		} else {
 			this.writecache = JPLUtils.createCompound(",", this.writecache, formula);
+		}
+		if (++this.cachecount == Byte.MAX_VALUE) {
+			try { // prevents stackoverflows
+				flushWriteCache();
+			} catch (KRQueryFailedException e) {
+				throw new KRDatabaseException("", e);
+			}
 		}
 	}
 
 	// ... TO EXECUTE THEM ALLTOGETHER AT (BEFORE) THE NEXT QUERY
 	private void flushWriteCache() throws KRQueryFailedException {
 		if (this.writecache != null) {
-			rawquery(this.writecache);
-			this.writecache = null;
+			try {
+				rawquery(this.writecache);
+			} finally {
+				this.writecache = null;
+				this.cachecount = 0;
+			}
 		}
 	}
 
