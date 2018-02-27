@@ -109,7 +109,8 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 
 	@Override
 	public boolean isPredicateIndicator() {
-		return (getArity() == 2) && this.name.equals("/");
+		return (getArity() == 2) && this.name.equals("/") && (getArg(0) instanceof PrologAtomImpl)
+				&& (getArg(1) instanceof PrologIntImpl);
 	}
 
 	@Override
