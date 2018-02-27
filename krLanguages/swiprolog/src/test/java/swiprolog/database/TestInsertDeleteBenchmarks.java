@@ -3,6 +3,8 @@ package swiprolog.database;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -15,6 +17,9 @@ import org.jpl7.Variable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import krTools.KRInterface;
 import krTools.database.Database;
@@ -30,7 +35,13 @@ import swiprolog.language.PrologQuery;
  * Test speed of inserts and deletes in a database.
  */
 
+@RunWith(Parameterized.class)
 public class TestInsertDeleteBenchmarks {
+
+	@Parameters
+	public static Collection<Object[]> data() {
+		return Arrays.asList(new Object[][] { { true }, { false } });
+	}
 
 	private final static int NINSERTS = 2000;
 
@@ -49,7 +60,21 @@ public class TestInsertDeleteBenchmarks {
 	private final Compound dynamicpXY = new org.jpl7.Compound("dynamic", new org.jpl7.Term[] { pXY });
 	private final Atom listing = new Atom("listing");
 
+	// true iff we need to flush after database inserts, deletes
+	private final boolean flushAfterChanges;
+
+	// term used for querying "false" (giving no solutions), used to trigger
+	// flush
+	private final Atom falseTerm = new Atom("false");
+	private final PrologQuery queryFalse = new PrologQuery(falseTerm, null);
+
+	// start and end time of a benchmark
 	private long start, end;
+
+	public TestInsertDeleteBenchmarks(boolean flush) {
+		this.flushAfterChanges = flush;
+		System.out.println("Benchmarking with flushing " + (flushAfterChanges ? "on" : "off"));
+	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -152,16 +177,30 @@ public class TestInsertDeleteBenchmarks {
 
 		doInserts();
 		start();
-		doDeletes();
+		doDeletes(false);
 		end("delete");
 		assertTrue(QueryPX().isEmpty());
 	}
 
-	/****************************** PRIVATE ***********************/
-	private void doInserts() throws KRDatabaseException {
+	@Test
+	public void testDeletesFlush() throws KRDatabaseException, KRQueryFailedException {
+		doInserts();
+		start();
+		doDeletes(true);
+		end("delete");
+		assertTrue(QueryPX().isEmpty());
+	}
+
+	/******************************
+	 * PRIVATE
+	 * 
+	 * @throws KRQueryFailedException
+	 ***********************/
+	private void doInserts() throws KRDatabaseException, KRQueryFailedException {
 		for (int n = 0; n < NINSERTS; n++) {
 			Compound pN = new Compound("p", new Term[] { new Integer(n) });
 			this.beliefbase.insert(new PrologDBFormula(pN, null));
+			flush();
 		}
 
 	}
@@ -178,12 +217,37 @@ public class TestInsertDeleteBenchmarks {
 		return new Compound("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) });
 	}
 
-	private void doDeletes() throws KRDatabaseException {
+	/**
+	 * delete all NINSERT p(N) predicates.
+	 * 
+	 * @param flush
+	 *            true if we need to do query after each delete to flush caches
+	 * @throws KRDatabaseException
+	 *             if something fails
+	 * @throws KRQueryFailedException
+	 */
+	private void doDeletes(boolean flush) throws KRDatabaseException, KRQueryFailedException {
 		for (int n = 0; n < NINSERTS; n++) {
 			Compound pN = new Compound("p", new Term[] { new Integer(n) });
 			this.beliefbase.delete(new PrologDBFormula(pN, null));
+			flush();
 		}
 
+	}
+
+	/**
+	 * flush the queues by doing a query.
+	 * 
+	 * @param flush
+	 *            true iff flush should be done. If false, returns immediately
+	 *            without flushing.
+	 * @throws KRQueryFailedException
+	 *             if flush fails
+	 */
+	private void flush() throws KRQueryFailedException {
+		if (!flushAfterChanges)
+			return;
+		this.beliefbase.query(queryFalse);
 	}
 
 	/**
@@ -228,6 +292,7 @@ public class TestInsertDeleteBenchmarks {
 	private void uploadGenerator() throws KRQueryFailedException, KRDatabaseException {
 		this.beliefbase.insert(new PrologDBFormula(Util.textToTerm("p(0,0)"), null));
 		this.beliefbase.insert(new PrologDBFormula(Util.textToTerm("p(N,s(X,X)):-( N>0, N1 is N-1, p(N1, X))"), null));
+		flush();
 		// listing();
 	}
 
