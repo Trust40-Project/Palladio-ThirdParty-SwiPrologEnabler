@@ -3,12 +3,17 @@ package swiprolog.database;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import krTools.KRInterface;
 import krTools.database.Database;
@@ -19,7 +24,9 @@ import krTools.language.Substitution;
 import krTools.language.Term;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologCompound;
+import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologVar;
+import swiprolog.language.impl.PrologAtomImpl;
 import swiprolog.language.impl.PrologCompoundImpl;
 import swiprolog.language.impl.PrologDBFormulaImpl;
 import swiprolog.language.impl.PrologIntImpl;
@@ -30,7 +37,14 @@ import swiprolog.language.impl.PrologVarImpl;
  * Test speed of inserts and deletes in a database.
  */
 
+@RunWith(Parameterized.class)
 public class TestInsertDeleteBenchmarks {
+
+	@Parameters
+	public static Collection<Object[]> data() {
+		return Arrays.asList(new Object[][] { { true }, { false } });
+	}
+
 	private final static int NINSERTS = 100000;
 
 	// components enabling us to run the tests...
@@ -46,7 +60,19 @@ public class TestInsertDeleteBenchmarks {
 	private final PrologCompound dynamicpXY = new PrologCompoundImpl("dynamic", new Term[] { this.pXY }, null);
 	// private final Atom listing = new Atom("listing");
 
+	// true iff we need to flush after database inserts, deletes
+	private final boolean flushAfterChanges;
+	// term used for querying "false" (no solutions), used to trigger flush
+	private final PrologCompound falseTerm = new PrologAtomImpl("false", null);
+	private final PrologQuery queryFalse = new PrologQueryImpl(this.falseTerm);
+
+	// start and end time of a benchmark
 	private long start, end;
+
+	public TestInsertDeleteBenchmarks(boolean flush) {
+		this.flushAfterChanges = flush;
+		System.out.println("Benchmarking with flushing " + (this.flushAfterChanges ? "on" : "off"));
+	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -146,16 +172,30 @@ public class TestInsertDeleteBenchmarks {
 	public void testDeletes() throws KRDatabaseException, KRQueryFailedException {
 		doInserts();
 		start();
-		doDeletes();
+		doDeletes(false);
 		end("delete");
 		assertTrue(QueryPX().isEmpty());
 	}
 
-	/****************************** PRIVATE ***********************/
-	private void doInserts() throws KRDatabaseException {
+	@Test
+	public void testDeletesFlush() throws KRDatabaseException, KRQueryFailedException {
+		doInserts();
+		start();
+		doDeletes(true);
+		end("delete");
+		assertTrue(QueryPX().isEmpty());
+	}
+
+	/******************************
+	 * PRIVATE
+	 *
+	 * @throws KRQueryFailedException
+	 ***********************/
+	private void doInserts() throws KRDatabaseException, KRQueryFailedException {
 		for (int n = 0; n < NINSERTS; n++) {
 			PrologCompound pN = new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(n, null) }, null);
 			this.beliefbase.insert(new PrologDBFormulaImpl(pN));
+			flush();
 		}
 	}
 
@@ -174,10 +214,35 @@ public class TestInsertDeleteBenchmarks {
 		}
 	}
 
-	private void doDeletes() throws KRDatabaseException {
+	/**
+	 * delete all NINSERT p(N) predicates.
+	 *
+	 * @param flush
+	 *            true if we need to do query after each delete to flush caches
+	 * @throws KRDatabaseException
+	 *             if something fails
+	 * @throws KRQueryFailedException
+	 */
+	private void doDeletes(boolean flush) throws KRDatabaseException, KRQueryFailedException {
 		for (int n = 0; n < NINSERTS; n++) {
 			PrologCompound pN = new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(n, null) }, null);
 			this.beliefbase.delete(new PrologDBFormulaImpl(pN));
+			flush();
+		}
+	}
+
+	/**
+	 * flush the queues by doing a query.
+	 *
+	 * @param flush
+	 *            true iff flush should be done. If false, returns immediately
+	 *            without flushing.
+	 * @throws KRQueryFailedException
+	 *             if flush fails
+	 */
+	private void flush() throws KRQueryFailedException {
+		if (this.flushAfterChanges) {
+			this.beliefbase.query(this.queryFalse);
 		}
 	}
 
@@ -223,6 +288,7 @@ public class TestInsertDeleteBenchmarks {
 		org.jpl7.Term term2 = org.jpl7.Util.textToTerm("p(N,s(X,X)):-( N>0, N1 is N-1, p(N1, X))");
 		this.beliefbase.insert(new PrologDBFormulaImpl((PrologCompound) PrologDatabase.fromJpl(term1)));
 		this.beliefbase.insert(new PrologDBFormulaImpl((PrologCompound) PrologDatabase.fromJpl(term2)));
+		flush();
 		// listing();
 	}
 }
