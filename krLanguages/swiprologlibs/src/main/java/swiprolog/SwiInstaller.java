@@ -55,7 +55,7 @@ public final class SwiInstaller {
 	 * @throws RuntimeException
 	 *             if initialization failed (see nested exception).
 	 */
-	public static void init(boolean force) {
+	public static synchronized void init(boolean force) {
 		if (initialized && !force) {
 			return;
 		}
@@ -222,7 +222,7 @@ public final class SwiInstaller {
 		return srcfile.lastModified();
 	}
 
-	public static void deleteFolder(File folder) {
+	private static void deleteFolder(File folder) {
 		File[] files = folder.listFiles();
 		if (files != null) {
 			for (File f : files) {
