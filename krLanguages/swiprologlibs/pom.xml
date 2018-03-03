@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.bitbucket.goalhub.krTools</groupId>
 		<artifactId>krLanguages</artifactId>
-		<version>1.3.0-SNAPSHOT</version>
+		<version>1.3.0</version>
 	</parent>
 	
 	<description>Installs SWI Prolog libraries</description>
