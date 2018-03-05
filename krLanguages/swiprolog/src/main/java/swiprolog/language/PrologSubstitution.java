@@ -19,9 +19,10 @@ package swiprolog.language;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import krTools.language.Substitution;
 import krTools.language.Term;
@@ -32,7 +33,7 @@ import krTools.language.Var;
  * said to bind the term to the variable if it maps the variable to the term. A
  * substitution may be empty.
  */
-public class PrologSubstitution extends TreeMap<Var, Term> implements Substitution {
+public class PrologSubstitution extends LinkedHashMap<Var, Term> implements Substitution {
 	private static final long serialVersionUID = 5134215246806477693L;
 
 	/**
@@ -61,7 +62,7 @@ public class PrologSubstitution extends TreeMap<Var, Term> implements Substituti
 	 * @param solutions
 	 *            JPL substitution.
 	 */
-	private PrologSubstitution(SortedMap<Var, Term> solution) {
+	private PrologSubstitution(Map<Var, Term> solution) {
 		super();
 		putAll(solution);
 	}

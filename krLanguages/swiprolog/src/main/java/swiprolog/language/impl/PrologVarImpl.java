@@ -29,7 +29,7 @@ import swiprolog.language.PrologVar;
 /**
  * A Prolog variable.
  */
-public class PrologVarImpl extends org.jpl7.Variable implements PrologVar, Comparable<PrologVar> {
+public class PrologVarImpl extends org.jpl7.Variable implements PrologVar {
 	/**
 	 * Information about the source used to construct this variable.
 	 */
@@ -109,10 +109,5 @@ public class PrologVarImpl extends org.jpl7.Variable implements PrologVar, Compa
 	@Override
 	public int hashCode() {
 		return this.hashcode;
-	}
-
-	@Override
-	public int compareTo(PrologVar o) {
-		return this.name.compareTo(o.getName());
 	}
 }
