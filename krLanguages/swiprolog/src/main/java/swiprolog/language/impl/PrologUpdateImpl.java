@@ -17,7 +17,6 @@
 
 package swiprolog.language.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -92,44 +91,19 @@ public class PrologUpdateImpl implements PrologUpdate {
 		return this.compound.getSourceInfo();
 	}
 
-	/**
-	 * Returns the add list of this update.
-	 *
-	 * @return The positive literals that occur in this update.
-	 */
 	@Override
 	public List<DatabaseFormula> getAddList() {
 		return Collections.unmodifiableList(this.positiveLiterals);
 	}
 
-	/**
-	 * Returns the delete list of this update.
-	 *
-	 * @return The negative literals that occur in this update.
-	 */
 	@Override
 	public List<DatabaseFormula> getDeleteList() {
 		return Collections.unmodifiableList(this.negativeLiterals);
 	}
 
-	/**
-	 * @return Instantiated {@link PrologUpdate} with applied substitution.
-	 */
 	@Override
 	public PrologUpdate applySubst(Substitution s) {
-		PrologCompound term = (PrologCompound) this.compound.applySubst(s);
-		PrologUpdateImpl update = new PrologUpdateImpl(term);
-
-		update.positiveLiterals = new ArrayList<>(this.positiveLiterals.size());
-		for (DatabaseFormula formula : this.positiveLiterals) {
-			update.positiveLiterals.add(formula.applySubst(s));
-		}
-		update.negativeLiterals = new ArrayList<>(this.negativeLiterals.size());
-		for (DatabaseFormula formula : this.negativeLiterals) {
-			update.negativeLiterals.add(formula.applySubst(s));
-		}
-
-		return update;
+		return new PrologUpdateImpl((PrologCompound) this.compound.applySubst(s));
 	}
 
 	@Override
@@ -137,13 +111,6 @@ public class PrologUpdateImpl implements PrologUpdate {
 		return true; // TODO
 	}
 
-	/**
-	 * Converts this update into a query, simply using the JPL term of this
-	 * {@link Update}. Note that a conjunction of literals can also be used as a
-	 * query.
-	 *
-	 * @return A {@link Query}.
-	 */
 	@Override
 	public Query toQuery() {
 		return new PrologQueryImpl(this.compound);
