@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 
 import krTools.language.Substitution;
 import krTools.language.Term;
@@ -65,14 +64,6 @@ public class PrologSubstitution extends LinkedHashMap<Var, Term> implements Subs
 	private PrologSubstitution(Map<Var, Term> solution) {
 		super();
 		putAll(solution);
-	}
-
-	public static PrologSubstitution getSubstitutionOrNull(SortedMap<Var, Term> solution) {
-		if (solution == null) {
-			return null;
-		} else {
-			return new PrologSubstitution(solution);
-		}
 	}
 
 	/**

@@ -69,9 +69,6 @@ public final class SwiInstaller {
 			throw new RuntimeException("failed to install SWI: ", e);
 		}
 
-		// Don't Tell Me Mode needs to be false as it ensures that variables
-		// with initial '_' are treated as regular variables.
-		JPL.setDTMMode(false);
 		// Let JPL know which SWI_HOME_DIR we're using; this negates the need
 		// for a SWI_HOME_DIR environment var
 		JPL.init(new String[] { "pl", "--home=" + SwiPath, "--quiet", "--nosignals", "--nodebug" });
