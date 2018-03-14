@@ -4,6 +4,8 @@ import java.util.MissingFormatArgumentException;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import krTools.language.Term;
+
 public enum ParserErrorMessages {
 	/** ?? */
 	VAR_EXPECTED,
@@ -99,9 +101,7 @@ public enum ParserErrorMessages {
 	/**
 	 * The directive is not supported.
 	 */
-	NOT_SUPPORTED_DIRECTIVE
-
-	;
+	NOT_SUPPORTED_DIRECTIVE;
 
 	private static final ResourceBundle BUNDLE = ResourceBundle.getBundle("swiprolog.errors.ParserErrorMessages");
 
@@ -119,4 +119,7 @@ public enum ParserErrorMessages {
 		}
 	}
 
+	public String toReadableString(Term arg) {
+		return (arg == null) ? toReadableString("nothing") : toReadableString(arg.toString());
+	}
 }

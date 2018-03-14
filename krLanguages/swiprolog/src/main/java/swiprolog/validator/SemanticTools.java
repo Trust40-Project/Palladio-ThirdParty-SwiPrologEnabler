@@ -140,7 +140,7 @@ public class SemanticTools {
 		 * (term.toString()), term.getSourceInfo()); } else
 		 */
 		if (!head.isPredication()) {
-			throw new ParserException(ParserErrorMessages.HEAD_MUST_BE_CLAUSE.toReadableString(term.toString()),
+			throw new ParserException(ParserErrorMessages.HEAD_MUST_BE_CLAUSE.toReadableString(term),
 					term.getSourceInfo());
 		}
 
@@ -188,10 +188,10 @@ public class SemanticTools {
 		// 7.6.2.b
 		if (t.getName().equals(":-")) {
 			if (t.getArity() == 1) {
-				throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t.toString()),
+				throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t),
 						t.getSourceInfo());
 			} else if (t.getArity() == 2) {
-				throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t.toString()),
+				throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t),
 						t.getSourceInfo());
 			}
 		}

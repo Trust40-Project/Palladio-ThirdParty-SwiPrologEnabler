@@ -61,7 +61,7 @@ public class Validator4 {
 	public Update updateOrEmpty() {
 		Term conj = this.visitor.visitPossiblyEmptyConjunct();
 		if (!(conj instanceof PrologCompound)) {
-			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(conj.toString()),
+			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(conj),
 					conj.getSourceInfo()));
 			return null;
 		} else if (conj.toString().equals("true")) { // special case.
@@ -91,8 +91,8 @@ public class Validator4 {
 					this.errors.add(e);
 				}
 			} else {
-				this.errors.add(new ParserException(
-						ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t.toString()), t.getSourceInfo()));
+				this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t),
+						(t == null) ? null : t.getSourceInfo()));
 			}
 		}
 		return dbfs;
@@ -113,8 +113,8 @@ public class Validator4 {
 					this.errors.add(e);
 				}
 			} else {
-				this.errors.add(new ParserException(
-						ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t.toString()), t.getSourceInfo()));
+				this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t),
+						(t == null) ? null : t.getSourceInfo()));
 			}
 		}
 		return goals;
@@ -134,8 +134,8 @@ public class Validator4 {
 				this.errors.add(e);
 			}
 		} else {
-			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(term.toString()),
-					term.getSourceInfo()));
+			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(term),
+					(term == null) ? null : term.getSourceInfo()));
 		}
 		return null;
 	}
@@ -150,8 +150,8 @@ public class Validator4 {
 		if (term instanceof Var) {
 			return (Var) term;
 		} else {
-			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_VAR.toReadableString(term.toString()),
-					term.getSourceInfo()));
+			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_VAR.toReadableString(term),
+					(term == null) ? null : term.getSourceInfo()));
 			return null;
 		}
 	}
