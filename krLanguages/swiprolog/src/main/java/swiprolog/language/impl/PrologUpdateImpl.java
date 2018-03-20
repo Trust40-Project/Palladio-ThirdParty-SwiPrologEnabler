@@ -73,10 +73,10 @@ public class PrologUpdateImpl implements PrologUpdate {
 		// is a database formula (which should have been checked by the parser).
 		for (Term conjunct : compound.getOperands(",")) {
 			PrologCompound term = (PrologCompound) conjunct;
-			if ((term.getArity() == 1) && term.getName().equals("not")) {
+			if ((term.getArity() == 1) && "not".equals(term.getName()) && term.getArg(0) instanceof PrologCompound) {
 				PrologCompound content = (PrologCompound) term.getArg(0);
 				this.negativeLiterals.add(new PrologDBFormulaImpl(content));
-			} else if (!((term.getArity() == 0) && term.getName().equals("true"))) {
+			} else if (!((term.getArity() == 0) && "true".equals(term.getName()))) {
 				this.positiveLiterals.add(new PrologDBFormulaImpl(term));
 			}
 		}

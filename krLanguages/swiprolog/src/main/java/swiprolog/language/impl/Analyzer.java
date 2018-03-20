@@ -102,10 +102,11 @@ public class Analyzer {
 		PrologCompound plFormula = ((PrologDBFormula) formula).getCompound();
 		PrologCompound headTerm = plFormula;
 		if (plFormula.getName().equals(":-")) {
-			if (plFormula.getArity() == 1) {
+			if (plFormula.getArity() == 1 && plFormula.getArg(0) instanceof PrologCompound) {
 				// Directive: the first argument is a query.
 				addQuery(new PrologQueryImpl((PrologCompound) plFormula.getArg(0)));
-			} else if (plFormula.getArity() == 2) {
+			} else if (plFormula.getArity() == 2 && plFormula.getArg(0) instanceof PrologCompound
+					&& plFormula.getArg(1) instanceof PrologCompound) {
 				// The first argument is the only defined term.
 				headTerm = (PrologCompound) plFormula.getArg(0);
 				// The other argument is a conjunction of queried terms.

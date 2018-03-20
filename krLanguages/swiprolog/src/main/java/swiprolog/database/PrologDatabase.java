@@ -204,10 +204,10 @@ public class PrologDatabase implements Database {
 	 */
 	private void insert(PrologCompound formula) throws KRDatabaseException {
 		PrologCompound query = null;
-		if (formula.getName().equals(":-") && (formula.getArity() == 1)) { // directive
+		if (formula.isDirective()) {
 			formula = (PrologCompound) formula.getArg(0);
 			query = new PrologCompoundImpl(",", new Term[] { new PrologAtomImpl("true", null), prefix(formula) }, null);
-		} else { // clause
+		} else {
 			query = new PrologCompoundImpl("assert", new Term[] { prefix(formula) }, null);
 		}
 		addToWriteCache(query);

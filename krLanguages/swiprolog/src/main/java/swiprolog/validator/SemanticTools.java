@@ -76,7 +76,8 @@ public class SemanticTools {
 		for (Term term : conjunct.getOperands(",")) {
 			if (term instanceof PrologCompound) {
 				PrologCompound compound = (PrologCompound) term;
-				if ((compound.getArity() == 1) && compound.getName().equals("not")) {
+				if ((compound.getArity() == 1) && "not".equals(compound.getName())
+						&& compound.getArg(0) instanceof PrologCompound) {
 					PrologCompound content = (PrologCompound) compound.getArg(0);
 					DBFormula(content);
 				} else {
@@ -139,6 +140,7 @@ public class SemanticTools {
 		 * ParserException(ParserErrorMessages.HEAD_CANT_BE_VAR.toReadableString
 		 * (term.toString()), term.getSourceInfo()); } else
 		 */
+
 		if (!head.isPredication()) {
 			throw new ParserException(ParserErrorMessages.HEAD_MUST_BE_CLAUSE.toReadableString(term),
 					term.getSourceInfo());
@@ -324,13 +326,16 @@ public class SemanticTools {
 		}
 
 		Set<String> signatures = new LinkedHashSet<>();
-		if ("dynamic".equals(compound.getName())) {
+		if (compound.getArity() == 1 && "dynamic".equals(compound.getName())
+				&& compound.getArg(0) instanceof PrologCompound) {
 			// special case. dynamic contains list of //2 predicates that the
 			// user is explictly declaring.
-			PrologCompound dyamic = (PrologCompound) ((PrologCompound) term).getArg(0);
+			PrologCompound dyamic = (PrologCompound) (compound).getArg(0);
 			for (Term dyndecl : dyamic.getOperands(",")) {
-				PrologCompound declaration = (PrologCompound) dyndecl;
-				signatures.add(declaration.getArg(0) + "/" + declaration.getArg(1));
+				PrologCompound declaration = (dyndecl instanceof PrologCompound) ? (PrologCompound) dyndecl : null;
+				if (declaration != null && declaration.isPredicateIndicator()) {
+					signatures.add(declaration.getArg(0) + "/" + declaration.getArg(1));
+				}
 			}
 			return signatures;
 		}
