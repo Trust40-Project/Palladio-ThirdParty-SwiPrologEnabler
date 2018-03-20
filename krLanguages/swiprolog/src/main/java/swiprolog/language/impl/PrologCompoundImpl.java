@@ -115,7 +115,7 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 
 	@Override
 	public boolean isDirective() {
-		return (getArity() == 1) && this.name.equals(":-");
+		return (getArity() == 1) && this.name.equals(":-") && (getArg(0) instanceof PrologCompoundImpl);
 	}
 
 	@Override
@@ -127,7 +127,8 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 			case ",":
 			case ";":
 			case "->":
-				return ((PrologCompound) getArg(0)).isQuery() && ((PrologCompound) getArg(1)).isQuery();
+				return (getArg(0) instanceof PrologCompound) && (getArg(1) instanceof PrologCompound)
+						&& ((PrologCompound) getArg(0)).isQuery() && ((PrologCompound) getArg(1)).isQuery();
 			default:
 				return false;
 			}

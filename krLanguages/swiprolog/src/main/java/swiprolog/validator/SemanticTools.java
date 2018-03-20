@@ -33,11 +33,8 @@ import swiprolog.language.PrologUpdate;
 import swiprolog.language.impl.PrologAtomImpl;
 import swiprolog.language.impl.PrologCompoundImpl;
 import swiprolog.language.impl.PrologDBFormulaImpl;
-import swiprolog.language.impl.PrologFloatImpl;
-import swiprolog.language.impl.PrologIntImpl;
 import swiprolog.language.impl.PrologQueryImpl;
 import swiprolog.language.impl.PrologUpdateImpl;
-import swiprolog.language.impl.PrologVarImpl;
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -45,7 +42,6 @@ import swiprolog.parser.PrologOperators;
  * etc.
  */
 public class SemanticTools {
-
 	/**
 	 * <p>
 	 * Performs additional checks on top of {@link #basicUpdateCheck}, to check that
@@ -78,12 +74,16 @@ public class SemanticTools {
 	 */
 	private static PrologCompound basicUpdateCheck(PrologCompound conjunct) throws ParserException {
 		for (Term term : conjunct.getOperands(",")) {
-			PrologCompound compound = (PrologCompound) term;
-			if ((compound.getArity() == 1) && compound.getName().equals("not")) {
-				PrologCompound content = (PrologCompound) compound.getArg(0);
-				DBFormula(content);
+			if (term instanceof PrologCompound) {
+				PrologCompound compound = (PrologCompound) term;
+				if ((compound.getArity() == 1) && compound.getName().equals("not")) {
+					PrologCompound content = (PrologCompound) compound.getArg(0);
+					DBFormula(content);
+				} else {
+					DBFormula(compound);
+				}
 			} else {
-				DBFormula(compound);
+				throw new ParserException("expected compound but found '" + term + "'.", conjunct.getSourceInfo());
 			}
 		}
 		return conjunct;
@@ -125,8 +125,8 @@ public class SemanticTools {
 	 */
 	public static DatabaseFormula DBFormula(PrologCompound term) throws ParserException {
 		PrologCompound head, body;
-
-		if ((term.getArity() == 2) && term.getName().equals(":-")) {
+		if ((term.getArity() == 2) && term.getName().equals(":-") && (term.getArg(0) instanceof PrologCompound)
+				&& (term.getArg(1) instanceof PrologCompound)) {
 			head = (PrologCompound) term.getArg(0);
 			body = (PrologCompound) term.getArg(1);
 		} else {
@@ -148,7 +148,7 @@ public class SemanticTools {
 		if (head.isDirective()) {
 			PrologCompound directive = (PrologCompound) term.getArg(0);
 			signature = directive.getSignature();
-			if (signature.equals("dynamic/1")) {
+			if (signature.equals("dynamic/1") && directive.getArg(0) instanceof PrologCompound) {
 				PrologCompound dynamicPreds = (PrologCompound) directive.getArg(0);
 				for (Term headTerm : dynamicPreds.getOperands(",")) {
 					signature = headTerm.getSignature();
@@ -196,8 +196,12 @@ public class SemanticTools {
 			}
 		}
 		if ((t.getArity() == 2) && (t.getName().equals(",") || t.getName().equals(";") || t.getName().equals("->"))) {
-			toGoal((PrologCompound) t.getArg(0));
-			toGoal((PrologCompound) t.getArg(1));
+			if (t.getArg(0) instanceof PrologCompound) {
+				toGoal((PrologCompound) t.getArg(0));
+			}
+			if (t.getArg(1) instanceof PrologCompound) {
+				toGoal((PrologCompound) t.getArg(1));
+			}
 			return t;
 		} else {
 			// 7.6.2.c
@@ -241,7 +245,7 @@ public class SemanticTools {
 		Set<String> signatures = new LinkedHashSet<>();
 		if (term instanceof PrologAtomImpl) {
 			signatures.add(term.getSignature());
-		} else if (term instanceof PrologCompoundImpl) {
+		} else if (term instanceof PrologCompound) {
 			PrologCompound compound = (PrologCompound) term;
 			if (compound.getName().equals(":-")) {
 				switch (compound.getArity()) {
@@ -276,13 +280,15 @@ public class SemanticTools {
 		Set<String> signatures = new LinkedHashSet<>();
 		if (term.isDirective()) {
 			PrologCompound directive = (PrologCompound) term.getArg(0);
-			if ((directive.getArity() != 1) || !directive.getName().equals("dynamic")) {
+			if ((directive.getArity() != 1) || !directive.getName().equals("dynamic")
+					|| !(directive.getArg(0) instanceof PrologCompound)) {
 				throw new ParserException("only the 'dynamic/1' directive is supported, found " + directive, info);
 			}
 			PrologCompound content = (PrologCompound) directive.getArg(0);
 			for (Term signatureterm : content.getOperands(",")) {
-				PrologCompound signature = (PrologCompound) signatureterm;
-				if (signature.isPredicateIndicator()) {
+				PrologCompound signature = (signatureterm instanceof PrologCompound) ? (PrologCompound) signatureterm
+						: null;
+				if (signature != null && signature.isPredicateIndicator()) {
 					signatures.add(signature.getArg(0) + "/" + signature.getArg(1));
 				} else {
 					throw new ParserException("term '" + signatureterm + "' is not a predicate indicator", info);
@@ -304,11 +310,6 @@ public class SemanticTools {
 	 * @return signature(s) that are used in the expression
 	 */
 	public static Set<String> getUsedSignatures(PrologExpression term) {
-		if (term instanceof PrologVarImpl || term instanceof PrologFloatImpl || term instanceof PrologIntImpl
-				|| term instanceof PrologAtomImpl) {
-			return new LinkedHashSet<>(0);
-		}
-		Set<String> signatures = new LinkedHashSet<>();
 		PrologCompound compound;
 		if (term instanceof PrologDBFormulaImpl) {
 			compound = ((PrologDBFormulaImpl) term).getCompound();
@@ -316,10 +317,13 @@ public class SemanticTools {
 			compound = ((PrologQueryImpl) term).getCompound();
 		} else if (term instanceof PrologUpdateImpl) {
 			compound = ((PrologUpdateImpl) term).getCompound();
-		} else {
+		} else if (term instanceof PrologCompoundImpl) {
 			compound = (PrologCompoundImpl) term;
+		} else {
+			return new LinkedHashSet<>(0);
 		}
 
+		Set<String> signatures = new LinkedHashSet<>();
 		if ("dynamic".equals(compound.getName())) {
 			// special case. dynamic contains list of //2 predicates that the
 			// user is explictly declaring.
@@ -342,5 +346,4 @@ public class SemanticTools {
 
 		return signatures;
 	}
-
 }
