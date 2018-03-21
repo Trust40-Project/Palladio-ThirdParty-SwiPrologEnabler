@@ -186,29 +186,26 @@ public class SemanticTools {
 	 * @throws ParserException
 	 *             If t is not a well formed Prolog goal.
 	 */
-	public static PrologCompound toGoal(PrologCompound t) throws ParserException {
-		// 7.6.2.b
-		if (t.getName().equals(":-")) {
-			if (t.getArity() == 1) {
-				throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t),
-						t.getSourceInfo());
-			} else if (t.getArity() == 2) {
-				throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t),
-						t.getSourceInfo());
+	public static PrologCompound toGoal(Term t) throws ParserException {
+		if (t instanceof PrologCompoundImpl) {
+			PrologCompound c = (PrologCompound) t;
+			if (c.getName().equals(":-")) {
+				if (c.getArity() == 1) {
+					throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t),
+							t.getSourceInfo());
+				} else if (c.getArity() == 2) {
+					throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t),
+							t.getSourceInfo());
+				}
 			}
-		}
-		if ((t.getArity() == 2) && (t.getName().equals(",") || t.getName().equals(";") || t.getName().equals("->"))) {
-			if (t.getArg(0) instanceof PrologCompound) {
-				toGoal((PrologCompound) t.getArg(0));
+			if ((c.getArity() == 2)
+					&& (c.getName().equals(",") || c.getName().equals(";") || c.getName().equals("->"))) {
+				toGoal(c.getArg(0));
+				toGoal(c.getArg(1));
 			}
-			if (t.getArg(1) instanceof PrologCompound) {
-				toGoal((PrologCompound) t.getArg(1));
-			}
-			return t;
+			return c;
 		} else {
-			// 7.6.2.c
-			// no action required.
-			return t;
+			throw new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t), t.getSourceInfo());
 		}
 	}
 
