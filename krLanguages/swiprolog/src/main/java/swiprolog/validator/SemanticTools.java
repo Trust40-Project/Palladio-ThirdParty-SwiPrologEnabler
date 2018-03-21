@@ -187,7 +187,7 @@ public class SemanticTools {
 	 *             If t is not a well formed Prolog goal.
 	 */
 	public static PrologCompound toGoal(Term t) throws ParserException {
-		if (t instanceof PrologCompoundImpl) {
+		if (t instanceof PrologCompound) {
 			PrologCompound c = (PrologCompound) t;
 			if (c.getName().equals(":-")) {
 				if (c.getArity() == 1) {
