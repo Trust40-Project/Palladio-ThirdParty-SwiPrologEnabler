@@ -115,7 +115,7 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 
 	@Override
 	public boolean isDirective() {
-		return (getArity() == 1) && this.name.equals(":-") && (getArg(0) instanceof PrologCompoundImpl);
+		return (getArity() == 1) && this.name.equals(":-") && (getArg(0) instanceof PrologCompound);
 	}
 
 	@Override

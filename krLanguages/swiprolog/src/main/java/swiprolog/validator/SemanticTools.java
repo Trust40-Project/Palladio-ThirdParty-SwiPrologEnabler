@@ -31,7 +31,6 @@ import swiprolog.language.PrologExpression;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologUpdate;
 import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologCompoundImpl;
 import swiprolog.language.impl.PrologDBFormulaImpl;
 import swiprolog.language.impl.PrologQueryImpl;
 import swiprolog.language.impl.PrologUpdateImpl;
@@ -316,8 +315,8 @@ public class SemanticTools {
 			compound = ((PrologQueryImpl) term).getCompound();
 		} else if (term instanceof PrologUpdateImpl) {
 			compound = ((PrologUpdateImpl) term).getCompound();
-		} else if (term instanceof PrologCompoundImpl) {
-			compound = (PrologCompoundImpl) term;
+		} else if (term instanceof PrologCompound) {
+			compound = (PrologCompound) term;
 		} else {
 			return new LinkedHashSet<>(0);
 		}
