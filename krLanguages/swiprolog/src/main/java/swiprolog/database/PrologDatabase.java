@@ -93,6 +93,13 @@ public class PrologDatabase implements Database {
 			for (DatabaseFormula dbf : content) {
 				insert(dbf);
 			}
+			try {
+				// Databases may be re-used by other databases (eg KBs).
+				// flush to ensure dbs are ready to use now
+				flushWriteCache();
+			} catch (KRQueryFailedException e) {
+				throw new KRDatabaseException("Failed to initialize database", e);
+			}
 		}
 		// set static only after all KB has been inserted!
 		this.isStatic = isStatic;
@@ -470,5 +477,13 @@ public class PrologDatabase implements Database {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * 
+	 * @return true iff this database is static i.e. it can not be modified.
+	 */
+	public boolean isStatic() {
+		return isStatic;
 	}
 }

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,14 +87,34 @@ public final class SwiPrologInterface implements KRInterface {
 	@Override
 	public Database getDatabase(String name, Collection<DatabaseFormula> content, boolean isStatic)
 			throws KRDatabaseException {
-		// Create new database of given type, content;
-		// use name as base name for name of database.
-		PrologDatabase database = new PrologDatabase(name, content, this, isStatic);
-		// Add database to list of databases maintained by SWI Prolog and
-		// associated with name.
-		this.databases.put(name, database);
-		// Return new database.
+		PrologDatabase database = null;
+		if (isStatic) {
+			database = getExistingStaticDatabase(new HashSet<DatabaseFormula>(content));
+		}
+		if (database == null) {
+			database = new PrologDatabase(name, content, this, isStatic);
+			// Add database to list of databases maintained by SWI Prolog and
+			// associated with name.
+			this.databases.put(name, database);
+		}
 		return database;
+	}
+
+	/**
+	 * 
+	 * @param content
+	 *            the content you're looking for.
+	 * @return existing static database with this content, or null if no such
+	 *         database exists.
+	 */
+	private PrologDatabase getExistingStaticDatabase(Set<DatabaseFormula> content) {
+		for (PrologDatabase db : databases.values()) {
+			if (!db.isStatic())
+				continue;
+			if (db.getTheory().getFormulas().equals(content))
+				return db;
+		}
+		return null;
 	}
 
 	/**
