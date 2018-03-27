@@ -1,7 +1,11 @@
 package swiprolog.database;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import org.jpl7.Atom;
+import org.jpl7.Compound;
 import org.jpl7.PrologException;
 import org.jpl7.Query;
 import org.jpl7.Term;
@@ -37,14 +41,23 @@ public class BenchmarkImportModule {
 	private String DB = "db";
 	private SwiPrologInterface swi;
 
+	private List<Term> kbterms = new ArrayList<>();
+
+	private long start;
+
 	@Before
 	public void setUp() throws Exception {
 
 		swi = new SwiPrologInterface();
 
 		for (String know : knowledge.split("\\.")) {
+			kbterms.add(org.jpl7.Util.textToTerm(know));
+		}
 
-			query(KB, "assert(" + fixAssert(know) + ")");
+		for (Term know : kbterms) {
+			Compound queryterm = new Compound("assert",
+					new Term[] { new Compound(":", new Term[] { new Atom(KB), know }) });
+			query(new Query(queryterm));
 		}
 
 	}
@@ -62,13 +75,32 @@ public class BenchmarkImportModule {
 
 	@Test
 	public void benchmarkAddImport() {
-		long start = System.nanoTime();
+		start();
 		for (int n = 0; n < 100; n++) {
 			makeBeliefbaseAddImportModule(n);
 		}
+		end("benchmarkAddImport");
+	}
+
+	@Test
+	public void benchmarkInsertImport() {
+		start();
+		for (int n = 0; n < 100; n++) {
+			makeBeliefbaseAddImportModule(n);
+		}
+		end("benchmarkInsertImport");
+	}
+
+	private void start() {
+		start = System.nanoTime();
+
+	}
+
+	private void end(String string) {
 		long end = System.nanoTime();
 
-		System.out.println("benchmarkAddImport took " + (end - start) + "ns.");
+		System.out.println(string + " took " + (end - start) + "ns.");
+
 	}
 
 	private void makeBeliefbaseAddImportModule(int n) {
@@ -78,18 +110,14 @@ public class BenchmarkImportModule {
 	}
 
 	/**
-	 * The RH of the assert must be in brackets because :- is infix of arity 2.
-	 * So p:-q,r must be converted into p:-(q,r).
+	 * Do a query and check the result is OK.
 	 * 
-	 * @param know
-	 *            the assertion to be made
-	 * @return the assertion but with brackets added if the assertion contains
-	 *         :-.
+	 * @param query
+	 *            the string to query
 	 */
-	private String fixAssert(String know) {
-		if (!know.contains(":-"))
-			return know;
-		return know.replaceFirst(":-", ":- (") + ")";
+	private Map<String, Term>[] query(String module, String query) {
+		return query(new Query(module + ":" + query));
+
 	}
 
 	/**
@@ -98,10 +126,11 @@ public class BenchmarkImportModule {
 	 * @param query
 	 *            the string to query
 	 */
-	private Map<String, Term>[] query(String module, String query) {
+	private Map<String, Term>[] query(Query query) {
 		Map<String, Term>[] res;
+
 		try {
-			res = new Query(module + ":" + query).allSolutions();
+			res = query.allSolutions();
 		} catch (PrologException e) {
 			throw new IllegalStateException("knowledge query " + query + " failed: ", e);
 		}
@@ -111,4 +140,5 @@ public class BenchmarkImportModule {
 		return res;
 
 	}
+
 }
