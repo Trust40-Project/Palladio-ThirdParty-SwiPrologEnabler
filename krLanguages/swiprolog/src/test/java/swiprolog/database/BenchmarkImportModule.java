@@ -9,6 +9,7 @@ import org.jpl7.Compound;
 import org.jpl7.PrologException;
 import org.jpl7.Query;
 import org.jpl7.Term;
+import org.jpl7.Util;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +41,7 @@ public class BenchmarkImportModule {
 	private String KB = "kb";
 	private String DB = "db";
 	private SwiPrologInterface swi;
+	private final int NTESTS = 100;
 
 	private List<Term> kbterms = new ArrayList<>();
 
@@ -51,15 +53,9 @@ public class BenchmarkImportModule {
 		swi = new SwiPrologInterface();
 
 		for (String know : knowledge.split("\\.")) {
-			kbterms.add(org.jpl7.Util.textToTerm(know));
+			kbterms.add(Util.textToTerm(know));
 		}
-
-		for (Term know : kbterms) {
-			Compound queryterm = new Compound("assert",
-					new Term[] { new Compound(":", new Term[] { new Atom(KB), know }) });
-			query(new Query(queryterm));
-		}
-
+		insertAllKnowledge(KB);
 	}
 
 	@After
@@ -69,15 +65,14 @@ public class BenchmarkImportModule {
 
 	@Test
 	public void testKB() {
-
 		query(KB, "corner(9)");
 	}
 
 	@Test
 	public void benchmarkAddImport() {
 		start();
-		for (int n = 0; n < 100; n++) {
-			makeBeliefbaseAddImportModule(n);
+		for (int n = 0; n < NTESTS; n++) {
+			makeBeliefbaseAddImportModule("bb" + n);
 		}
 		end("benchmarkAddImport");
 	}
@@ -85,12 +80,13 @@ public class BenchmarkImportModule {
 	@Test
 	public void benchmarkInsertImport() {
 		start();
-		for (int n = 0; n < 100; n++) {
-			makeBeliefbaseAddImportModule(n);
+		for (int n = 0; n < NTESTS; n++) {
+			insertAllKnowledge("bb" + n);
 		}
 		end("benchmarkInsertImport");
 	}
 
+	/*********************** support functions *****************/
 	private void start() {
 		start = System.nanoTime();
 
@@ -98,15 +94,46 @@ public class BenchmarkImportModule {
 
 	private void end(String string) {
 		long end = System.nanoTime();
+		double time = (end - start) / NTESTS; // ns
+		System.out.println(string + " took on average " + time / 1000000 + "ms.");
+	}
 
-		System.out.println(string + " took " + (end - start) + "ns.");
+	/**
+	 * Create new module with name "bb<n>" and "insert" knowledge by using
+	 * "add_import_module".
+	 * 
+	 * @param base
+	 *            the module name to create
+	 */
+	private void makeBeliefbaseAddImportModule(String base) {
+		query(base, "assert(p)"); // create the new module
+		query(base, "add_import_module(" + KB + "," + base + ",start)");
+	}
+
+	/**
+	 * Create new module with name "bb<n>" and "insert" knowledge by inserting
+	 * all knowledge one by one.
+	 * 
+	 * @param n
+	 *            the number of the module
+	 */
+
+	private void insertAllKnowledge(String module) {
+		for (Term knowledge : kbterms) {
+			insert(module, knowledge);
+		}
 
 	}
 
-	private void makeBeliefbaseAddImportModule(int n) {
-		String base = "bb" + n;
-		query(base, "assert(p)"); // create the new module
-		query(base, "add_import_module(" + KB + "," + base + ",start)");
+	/**
+	 * Insert knowledge in database
+	 * 
+	 * @param know
+	 */
+	private void insert(String module, Term know) {
+		Compound queryterm = new Compound("assert",
+				new Term[] { new Compound(":", new Term[] { new Atom(module), know }) });
+		query(new Query(queryterm));
 	}
 
 	/**
