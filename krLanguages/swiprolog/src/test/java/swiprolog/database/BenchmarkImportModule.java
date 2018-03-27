@@ -12,6 +12,7 @@ import org.jpl7.Term;
 import org.jpl7.Util;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import swiprolog.SwiPrologInterface;
@@ -69,21 +70,35 @@ public class BenchmarkImportModule {
 	}
 
 	@Test
-	public void benchmarkAddImport() {
+	public void benchmarkAddImportModule() {
 		start();
 		for (int n = 0; n < NTESTS; n++) {
 			makeBeliefbaseAddImportModule("bb" + n);
 		}
-		end("benchmarkAddImport");
+		end("benchmarkAddImportModule");
+	}
+
+	/**
+	 * For some reason, this test crashes the JVM! Might be
+	 * https://github.com/SWI-Prolog/issues/issues/69.
+	 */
+	@Ignore
+	@Test
+	public void benchmarkSetBaseModule() {
+		start();
+		for (int n = 0; n < NTESTS; n++) {
+			makeUsingSetBaseModule("bb" + n);
+		}
+		end("benchmarkSetBaseModule");
 	}
 
 	@Test
-	public void benchmarkInsertImport() {
+	public void benchmarkAssertAllKnowledge() {
 		start();
 		for (int n = 0; n < NTESTS; n++) {
 			insertAllKnowledge("bb" + n);
 		}
-		end("benchmarkInsertImport");
+		end("benchmarkAssertAllKnowledge");
 	}
 
 	/*********************** support functions *****************/
@@ -95,11 +110,11 @@ public class BenchmarkImportModule {
 	private void end(String string) {
 		long end = System.nanoTime();
 		double time = (end - start) / NTESTS; // ns
-		System.out.println(string + " took on average " + time / 1000000 + "ms.");
+		System.out.println(string + " took on average " + time / 1000000 + "ms per database creation.");
 	}
 
 	/**
-	 * Create new module with name "bb<n>" and "insert" knowledge by using
+	 * Create new module with given name and "insert" knowledge by using
 	 * "add_import_module".
 	 * 
 	 * @param base
@@ -108,6 +123,18 @@ public class BenchmarkImportModule {
 	private void makeBeliefbaseAddImportModule(String base) {
 		query(base, "assert(p)"); // create the new module
 		query(base, "add_import_module(" + KB + "," + base + ",start)");
+	}
+
+	/**
+	 * Create new module with given name and "insert" knowledge by using
+	 * "set_base_module".
+	 * 
+	 * @param base
+	 *            the module name to create
+	 */
+	private void makeUsingSetBaseModule(String base) {
+		query(base, "assert(p)"); // create the new module
+		query(base, "set_base_module(" + KB + ")");
 	}
 
 	/**
