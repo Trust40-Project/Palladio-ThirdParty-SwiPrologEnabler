@@ -91,7 +91,10 @@ public interface KRInterface {
 	 *            true iff the content of this database is static and can not be
 	 *            changed. If set, all calls that intend to change this database
 	 *            will throw an exception.
-	 * @return A database with the given content.
+	 * @return A database with the given content. May return an existing
+	 *         database (with a different name) if the requested database is
+	 *         static and another static database with exactly the same contents
+	 *         already is available.
 	 * @throws KRDatabaseException
 	 *             If the database could not be created, or the content provided
 	 *             could not be added.
