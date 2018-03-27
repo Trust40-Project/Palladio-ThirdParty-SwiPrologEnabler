@@ -47,8 +47,8 @@ import swiprolog.language.impl.PrologVarImpl;
 
 public class PrologDatabase implements Database {
 	/**
-	 * Name of this database; used to name a SWI-Prolog module that implements the
-	 * database.
+	 * Name of this database; used to name a SWI-Prolog module that implements
+	 * the database.
 	 */
 	private final PrologAtomImpl name;
 	/**
@@ -60,23 +60,25 @@ public class PrologDatabase implements Database {
 	 */
 	private final Theory theory;
 	/**
-	 * A cache of write operations. Insert or deletes are queued here until the next
-	 * query, at which point those operations are first all performed.
+	 * A cache of write operations. Insert or deletes are queued here until the
+	 * next query, at which point those operations are first all performed.
 	 */
 	private PrologCompound writecache;
 	private int cachecount = 0;
+	private final boolean isStatic;
 
 	/**
 	 * @param name
 	 *            A human-readable name for the database.
 	 * @param content
-	 *            The theory containing initial database contents.
+	 *            The theory containing initial database contents. Ignored if
+	 *            null.
 	 * @param owner
 	 *            The interface instance that creates this database.
 	 * @throws KRInitFailedException
 	 *             If database creation failed.
 	 */
-	public PrologDatabase(String name, Collection<DatabaseFormula> content, SwiPrologInterface owner)
+	public PrologDatabase(String name, Collection<DatabaseFormula> content, SwiPrologInterface owner, boolean isStatic)
 			throws KRDatabaseException {
 		this.name = new PrologAtomImpl(name, null);
 		this.owner = owner;
@@ -92,6 +94,8 @@ public class PrologDatabase implements Database {
 				insert(dbf);
 			}
 		}
+		// set static only after all KB has been inserted!
+		this.isStatic = isStatic;
 	}
 
 	private PrologCompound prefix(Term term) {
@@ -128,9 +132,9 @@ public class PrologDatabase implements Database {
 	}
 
 	/**
-	 * Performs given query on the database. As databases are implemented as modules
-	 * in SWI Prolog, a query is constructed that contains a reference to the
-	 * corresponding module.
+	 * Performs given query on the database. As databases are implemented as
+	 * modules in SWI Prolog, a query is constructed that contains a reference
+	 * to the corresponding module.
 	 *
 	 * @param pQuery
 	 *            the query to be performed.
@@ -150,16 +154,28 @@ public class PrologDatabase implements Database {
 	}
 
 	/**
-	 * Inserts a set of like {@link #insert(DatabaseFormula)}, but does not add them
-	 * to the theory. This makes sure that they will not show up when the set of
-	 * formulas in this base is requested, and that they cannot be modified either
-	 * (because the theory is always checked for that).
+	 * Check that this database can be modified
+	 * 
+	 * @throws KRDatabaseException
+	 */
+	private void checkModifyable() throws KRDatabaseException {
+		if (isStatic) {
+			throw new KRDatabaseException("Database is static and can not be modified");
+		}
+	}
+
+	/**
+	 * Inserts a set of like {@link #insert(DatabaseFormula)}, but does not add
+	 * them to the theory. This makes sure that they will not show up when the
+	 * set of formulas in this base is requested, and that they cannot be
+	 * modified either (because the theory is always checked for that).
 	 *
 	 * @param knowledge
 	 *            the set of knowledge that should be imposed on this database.
 	 * @throws KRDatabaseException
 	 */
 	public void addKnowledge(Set<DatabaseFormula> knowledge) throws KRDatabaseException {
+		checkModifyable();
 		for (DatabaseFormula formula : knowledge) {
 			insert(formula);
 		}
@@ -168,19 +184,21 @@ public class PrologDatabase implements Database {
 	/**
 	 * <p>
 	 * Inserts formula into SWI prolog database without any checks. You are
-	 * responsible for creating legal SWI prolog query. The formula will be prefixed
-	 * with the label of the database: the SWI prolog query will look like <br>
+	 * responsible for creating legal SWI prolog query. The formula will be
+	 * prefixed with the label of the database: the SWI prolog query will look
+	 * like <br>
 	 * <tt>insert(&lt;database label>:&lt;formula>)</tt>
 	 * </p>
 	 * ASSUMES formula can be argument of assert (fact, rules).
 	 *
 	 * @param formula
-	 *            is the formula to be inserted into database. appropriate database
-	 *            label will be prefixed to your formula
+	 *            is the formula to be inserted into database. appropriate
+	 *            database label will be prefixed to your formula
 	 * @throws KRDatabaseException
 	 */
 	@Override
 	public boolean insert(DatabaseFormula formula) throws KRDatabaseException {
+		checkModifyable();
 		if (this.theory.add(formula)) {
 			insert(((PrologDBFormula) formula).getCompound());
 			return true;
@@ -190,8 +208,8 @@ public class PrologDatabase implements Database {
 	}
 
 	/**
-	 * Creates JPL term that wraps given term inside "assert(databaseName:term)" for
-	 * clauses, and just databaseName:term for directives (without the :-).
+	 * Creates JPL term that wraps given term inside "assert(databaseName:term)"
+	 * for clauses, and just databaseName:term for directives (without the :-).
 	 * <p>
 	 * Prefix notation is used below to construct the assert term.
 	 * </p>
@@ -203,6 +221,7 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	private void insert(PrologCompound formula) throws KRDatabaseException {
+		checkModifyable();
 		PrologCompound query = null;
 		if (formula.isDirective()) {
 			formula = (PrologCompound) formula.getArg(0);
@@ -218,20 +237,21 @@ public class PrologDatabase implements Database {
 	/**
 	 * <p>
 	 * Deletes a formula from a SWI Prolog Database. You are responsible for
-	 * creating legal SWI prolog query. The formula will be prefixed with the label
-	 * of the database: the SWI prolog query will look like <br>
+	 * creating legal SWI prolog query. The formula will be prefixed with the
+	 * label of the database: the SWI prolog query will look like <br>
 	 * <tt>retract(&lt;database label>:&lt;formula>)</tt>
 	 * </p>
 	 *
 	 * @param formula
-	 *            is the DatabaseFormula to be retracted from SWI. ASSUMES formula
-	 *            can be argument of retract (fact, rules). CHECK rules need to be
-	 *            converted into string correctly! toString may be insufficient for
-	 *            SWI queries
+	 *            is the DatabaseFormula to be retracted from SWI. ASSUMES
+	 *            formula can be argument of retract (fact, rules). CHECK rules
+	 *            need to be converted into string correctly! toString may be
+	 *            insufficient for SWI queries
 	 * @throws KRDatabaseException
 	 */
 	@Override
 	public boolean delete(DatabaseFormula formula) throws KRDatabaseException {
+		checkModifyable();
 		if (this.theory.remove(formula)) {
 			delete(((PrologDBFormula) formula).getCompound());
 			return true;
@@ -254,6 +274,7 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	private void delete(PrologCompound formula) throws KRDatabaseException {
+		checkModifyable();
 		PrologCompound retraction = new PrologCompoundImpl("retractall", new Term[] { prefix(formula) }, null);
 		addToWriteCache(retraction);
 	}
@@ -264,15 +285,15 @@ public class PrologDatabase implements Database {
 	 * {@link PrologSubstitution}s.
 	 * </p>
 	 * <p>
-	 * WARNING. this is for internal use in KR implementation only. There is a known
-	 * issue with floats (TRAC #726).
+	 * WARNING. this is for internal use in KR implementation only. There is a
+	 * known issue with floats (TRAC #726).
 	 * </p>
 	 *
 	 * @param query
 	 *            A JPL query.
-	 * @return A set of substitutions, empty set if there are no solutions, and a
-	 *         set with the empty substitution if the query succeeds but does not
-	 *         return any bindings of variables.
+	 * @return A set of substitutions, empty set if there are no solutions, and
+	 *         a set with the empty substitution if the query succeeds but does
+	 *         not return any bindings of variables.
 	 * @throws KRQueryFailedException
 	 */
 	public static Set<Substitution> rawquery(PrologTerm query) throws KRQueryFailedException {
@@ -336,17 +357,21 @@ public class PrologDatabase implements Database {
 	 * Removes all predicates and clauses from the SWI Prolog database.
 	 * </p>
 	 * <p>
-	 * <b>WARNING</b>: This is not implementable fully in SWI prolog. You can reset
-	 * a database to free up some memory, but do not re-use the database. It will
-	 * NOT reset the dynamic declarations. This is an issue but the JPL interface to
-	 * SWI Prolog does not support removing these. Suggested workaround: After
-	 * resetting do not re-use this database but make a new one.
+	 * <b>WARNING</b>: This is not implementable fully in SWI prolog. You can
+	 * reset a database to free up some memory, but do not re-use the database.
+	 * It will NOT reset the dynamic declarations. This is an issue but the JPL
+	 * interface to SWI Prolog does not support removing these. Suggested
+	 * workaround: After resetting do not re-use this database but make a new
+	 * one.
 	 * </p>
 	 * <p>
 	 *
 	 * @throws KRDatabaseException
 	 */
 	protected void eraseContent() throws KRDatabaseException {
+		if (isStatic) {
+			return; // FIXME: static database contents may be shared.
+		}
 		this.writecache = null;
 		this.cachecount = 0;
 		// String deleteone =

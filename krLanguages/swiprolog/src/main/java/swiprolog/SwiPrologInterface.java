@@ -84,10 +84,11 @@ public final class SwiPrologInterface implements KRInterface {
 	}
 
 	@Override
-	public Database getDatabase(String name, Collection<DatabaseFormula> content) throws KRDatabaseException {
+	public Database getDatabase(String name, Collection<DatabaseFormula> content, boolean isStatic)
+			throws KRDatabaseException {
 		// Create new database of given type, content;
 		// use name as base name for name of database.
-		PrologDatabase database = new PrologDatabase(name, content, this);
+		PrologDatabase database = new PrologDatabase(name, content, this, isStatic);
 		// Add database to list of databases maintained by SWI Prolog and
 		// associated with name.
 		this.databases.put(name, database);

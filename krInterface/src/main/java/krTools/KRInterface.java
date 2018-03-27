@@ -87,12 +87,16 @@ public interface KRInterface {
 	 * @param content
 	 *            A list of {@link DatabaseFormula}s that should be inserted in
 	 *            database; possibly null.
+	 * @param isStatic
+	 *            true iff the content of this database is static and can not be
+	 *            changed. If set, all calls that intend to change this database
+	 *            will throw an exception.
 	 * @return A database with the given content.
 	 * @throws KRDatabaseException
 	 *             If the database could not be created, or the content provided
 	 *             could not be added.
 	 */
-	Database getDatabase(String name, Collection<DatabaseFormula> content) throws KRDatabaseException;
+	Database getDatabase(String name, Collection<DatabaseFormula> content, boolean isStatic) throws KRDatabaseException;
 
 	/**
 	 * Returns a parser for this KR language. Only initializes the parser but

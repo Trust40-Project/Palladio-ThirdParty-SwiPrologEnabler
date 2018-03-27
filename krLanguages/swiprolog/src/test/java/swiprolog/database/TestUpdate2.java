@@ -54,8 +54,8 @@ public class TestUpdate2 {
 		Set<DatabaseFormula> kbtheory = new LinkedHashSet<>(2);
 		kbtheory.add(new PrologDBFormulaImpl(this.k1));
 		kbtheory.add(new PrologDBFormulaImpl(this.k2));
-		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory);
-		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0));
+		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory, true);
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0), false);
 	}
 
 	/**
@@ -66,8 +66,8 @@ public class TestUpdate2 {
 	private void fillKB2() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<>(1);
 		kbtheory2.add(new PrologDBFormulaImpl(this.k3));
-		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory2);
-		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0));
+		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory2, true);
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0), false);
 	}
 
 	/**
@@ -93,8 +93,8 @@ public class TestUpdate2 {
 	// }
 
 	/**
-	 * Delete all databases. Just a smoke test, as we can't do anything with deleted
-	 * databases.
+	 * Delete all databases. Just a smoke test, as we can't do anything with
+	 * deleted databases.
 	 */
 	@Test
 	public void testDeleteAll() throws Exception {
@@ -105,8 +105,8 @@ public class TestUpdate2 {
 	}
 
 	/**
-	 * Create new Kb and Bb for SAME AGENT NAME, and check that the new BB has the
-	 * new Kb content.
+	 * Create new Kb and Bb for SAME AGENT NAME, and check that the new BB has
+	 * the new Kb content.
 	 */
 	@Test
 	public void testRecreateKbAndBb() throws Exception {

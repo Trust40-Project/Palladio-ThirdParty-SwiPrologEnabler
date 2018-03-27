@@ -40,8 +40,8 @@ public class TestInsertDelete {
 
 	@Before
 	public void setUp() throws Exception {
-		this.knowledgebase = language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase = language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
+		this.knowledgebase = language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>(), true);
+		this.beliefbase = language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(), false);
 		this.p1 = new PrologAtomImpl("p", null);
 		this.p2 = new PrologAtomImpl("p", null);
 		this.dynamicp = new PrologCompoundImpl("dynamic", new Term[] { this.p1 }, null);

@@ -77,8 +77,8 @@ public class TestInsertDeleteBenchmarks {
 	@Before
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
-		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>());
-		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>());
+		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>(), true);
+		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(), false);
 		this.beliefbase.query(new PrologQueryImpl(this.dynamicpX));
 		this.beliefbase.query(new PrologQueryImpl(this.dynamicpXY));
 	}
@@ -266,8 +266,8 @@ public class TestInsertDeleteBenchmarks {
 	}
 
 	/**
-	 * Prints listing to stdout. For quick test if we have the right formulas in the
-	 * database
+	 * Prints listing to stdout. For quick test if we have the right formulas in
+	 * the database
 	 *
 	 * @throws KRQueryFailedException
 	 */
@@ -277,8 +277,8 @@ public class TestInsertDeleteBenchmarks {
 	// }
 
 	/**
-	 * Upload the large-structure generator into SWI. Returns object that is size
-	 * 2^N.
+	 * Upload the large-structure generator into SWI. Returns object that is
+	 * size 2^N.
 	 *
 	 * @throws KRQueryFailedException
 	 * @throws KRDatabaseException
