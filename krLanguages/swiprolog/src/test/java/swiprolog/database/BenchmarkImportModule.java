@@ -1,8 +1,11 @@
 package swiprolog.database;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.jpl7.Atom;
 import org.jpl7.Compound;
@@ -14,6 +17,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import swiprolog.SwiPrologInterface;
 
@@ -21,23 +27,8 @@ import swiprolog.SwiPrologInterface;
  * Benchmark speed of importing/cloning a (knowledge) module into some other
  * module.
  */
+@RunWith(Parameterized.class)
 public class BenchmarkImportModule {
-
-	// from tictactoe
-	private final static String knowledge = "pos(Pos) :- between(1, 9, Pos)." + "free(Pos) :- pos(Pos, empty)."
-			+ "free(List, Pos) :- member(Pos, List), pos(Pos,empty)."
-			+ "corner(1). corner(3). corner(7). corner(9). center(5)."
-			+ "line(A, B, C) :- pos(A), pos(B), pos(C), B is A+1, C is B+1, 0 is C mod 3."
-			+ "line(A, B, C) :- pos(A), pos(B), pos(C), B is A+3, C is B+3." + "line(1, 5, 9). line(3, 5, 7)."
-			+ "winning_line(Player,A,B,C) :- me(P), line(A, B, C), pos(A, P), pos(B, P), pos(C, P)."
-			+ "winning_move(Player, Pos) :- line(A, B, C), pos(A, Pa), pos(B, Pb), pos(C, Pc),"
-			+ "count([Pa,Pb,Pc], Player, 2), free([A, B, C], Pos)."
-			+ "possible_winning_move(Player, [A, B, C], Pos) :- line(A, B, C), pos(A, Pa), pos(B, Pb), pos(C, Pc),"
-			+ "count([Pa,Pb,Pc], Player, 1), count([Pa,Pb,Pc], empty, 2), free([A, B, C], Pos)."
-			+ "fork(Player, Pos) :- possible_winning_move(Player, [A, B, C], Pos),"
-			+ "possible_winning_move(Player, [D, E, F], Pos), intersection([A, B, C], [D, E, F], L), not(length(L, 3))."
-			+ "count([], A, 0)." + "count([A|T], A, C) :- count(T, A, TC), C is TC+1."
-			+ "count([B|T], A, C) :- not(A=B), count(T, A, C)." + "opponent(x) :- me(o)." + "opponent(o) :- me(x).";
 
 	private String KB = "kb";
 	private String DB = "db";
@@ -47,13 +38,28 @@ public class BenchmarkImportModule {
 	private List<Term> kbterms = new ArrayList<>();
 
 	private long start;
+	private String prologfile;
+
+	@Parameters
+	public static Collection<Object[]> data() {
+		return Arrays.asList(new Object[][] { { "/prolog/starcraft.pl" }, { "/prolog/tictactoe.pl" } });
+	}
+
+	public BenchmarkImportModule(String file) {
+		prologfile = file;
+	}
 
 	@Before
 	public void setUp() throws Exception {
 
 		swi = new SwiPrologInterface();
+		System.out.println("Testing " + prologfile);
+		Scanner scanner = new Scanner(getClass().getResourceAsStream(prologfile), "UTF-8");
+		scanner.useDelimiter("\\A");
+		String text = scanner.next();
+		scanner.close();
 
-		for (String know : knowledge.split("\\.")) {
+		for (String know : text.split("\\.")) {
 			kbterms.add(Util.textToTerm(know));
 		}
 		insertAllKnowledge(KB);
@@ -66,7 +72,7 @@ public class BenchmarkImportModule {
 
 	@Test
 	public void testKB() {
-		query(KB, "corner(9)");
+		query(KB, "lastitem");
 	}
 
 	@Test
