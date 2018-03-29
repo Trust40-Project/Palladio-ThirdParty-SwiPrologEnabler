@@ -376,9 +376,6 @@ public class PrologDatabase implements Database {
 	 * @throws KRDatabaseException
 	 */
 	protected void eraseContent() throws KRDatabaseException {
-		if (isStatic) {
-			return; // FIXME: static database contents may be shared.
-		}
 		this.writecache = null;
 		this.cachecount = 0;
 		// String deleteone =
