@@ -173,12 +173,12 @@ public class Analyzer {
 			// aggregate and aggregate_all /4-operators have the query in
 			// the third argument.
 			addQuery(plTerm.getArg(2), info);
-		} else if (termSig.equals("predsort/3")) {
+		} else if (termSig.equals("predsort/3") && plTerm.getArg(0) instanceof PrologCompound) {
 			// first argument is name that will be called as name/3
 			Term stubfunc = new PrologCompoundImpl(((PrologCompound) plTerm.getArg(0)).getName(),
 					new Term[] { ANON_VAR, ANON_VAR, ANON_VAR }, plTerm.getSourceInfo());
 			addQuery(stubfunc, info);
-		} else if (termSig.equals("dynamic/1")) {
+		} else if (termSig.equals("dynamic/1") && plTerm.getArg(0) instanceof PrologCompound) {
 			// recognize predicate declaration(s).
 			PrologCompound compound = (PrologCompound) plTerm.getArg(0);
 			for (Term dynamicPred : compound.getOperands(",")) {
