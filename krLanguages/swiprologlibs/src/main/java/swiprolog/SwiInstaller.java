@@ -60,8 +60,8 @@ public final class SwiInstaller {
 			return;
 		}
 
-		makeSwiPath(force);
-		preLoadDependencies();
+		unzipSWI(force);
+		loadDependencies();
 
 		try {
 			addFolderToLibraryPath(SwiPath.getAbsolutePath());
@@ -81,7 +81,7 @@ public final class SwiInstaller {
 		initialized = true;
 	}
 
-	private static void makeSwiPath(boolean force) throws RuntimeException {
+	public static void unzipSWI(boolean force) throws RuntimeException {
 		File basedir;
 		try {
 			basedir = unzipToTmp(system + ".zip", force);
@@ -92,9 +92,9 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * Pre-loads all dynamic load libraries for the selected system.
+	 * Loads all dynamic load libraries for the selected system.
 	 */
-	private static void preLoadDependencies() {
+	private static void loadDependencies() {
 		// Dirty system-dependent stuff...
 		switch (system) {
 		case linux:
