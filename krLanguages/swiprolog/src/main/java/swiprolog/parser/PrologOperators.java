@@ -535,6 +535,28 @@ public final class PrologOperators {
 		OP_PRIOS.put("wildcard_match/2", 0);
 		// sleep not supported at prolog level
 
+		// SWI 5.2.1: Predicates that operate on strings (new in SWI7.6.4)
+		OP_PRIOS.put("atom_string/2", 0);
+		OP_PRIOS.put("number_string/2", 0);
+		OP_PRIOS.put("term_string/2", 0);
+		OP_PRIOS.put("term_string/3", 0);
+		OP_PRIOS.put("string_chars/2", 0);
+		OP_PRIOS.put("string_codes/2", 0);
+		OP_PRIOS.put("text_to_string/2", 0);
+		OP_PRIOS.put("string_length/2", 0);
+		OP_PRIOS.put("string_code/3", 0);
+		OP_PRIOS.put("get_string_code/3", 0);
+		OP_PRIOS.put("string_concat/3", 0);
+		OP_PRIOS.put("split_string/4", 0);
+		OP_PRIOS.put("sub_string/5", 0);
+		OP_PRIOS.put("atomics_to_string/2", 0);
+		OP_PRIOS.put("atomics_to_string/3", 0);
+		OP_PRIOS.put("string_upper/2", 0);
+		OP_PRIOS.put("string_lower/2", 0);
+		OP_PRIOS.put("read_string/3", 0);
+		OP_PRIOS.put("read_string/5", 0);
+		OP_PRIOS.put("open_string/2", 0);
+
 		// SWI A.1: Aggregation operators
 		OP_PRIOS.put("aggregate/3", 0);
 		OP_PRIOS.put("aggregate/4", 0);
