@@ -38,8 +38,8 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * Overrides the installation directory. Useful if applicationdata can not
-	 * be used by the application.
+	 * Overrides the installation directory. Useful if applicationdata can not be
+	 * used by the application.
 	 * 
 	 * @param dir
 	 *            the new target directory.
@@ -56,13 +56,12 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * initialize SWI prolog for use. Unzips dlls and connects them to the
-	 * system. This static function needs to be called once, to get SWI hooked
-	 * up to the java system.
+	 * initialize SWI prolog for use. Unzips dlls and connects them to the system.
+	 * This static function needs to be called once, to get SWI hooked up to the
+	 * java system.
 	 *
-	 * This call will unzip required system dynamic link libraries to a temp
-	 * folder, pre-load them, and set the paths such that SWI can find its
-	 * files.
+	 * This call will unzip required system dynamic link libraries to a temp folder,
+	 * pre-load them, and set the paths such that SWI can find its files.
 	 *
 	 * The temp folder will be removed automatically if the JVM exits normally.
 	 *
@@ -98,7 +97,7 @@ public final class SwiInstaller {
 	public static void unzipSWI(boolean force) throws RuntimeException {
 		File basedir;
 		try {
-			basedir = unzipToTmp(system + ".zip", force);
+			basedir = unzip(system + ".zip", force);
 		} catch (URISyntaxException | IOException e) {
 			throw new RuntimeException("failed to install SWI: ", e);
 		}
@@ -170,7 +169,7 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * Unzip a given zip file to /tmp.
+	 * Unzip a given zip file
 	 *
 	 * @param zipfilename
 	 * @return temp directory where swi files are contained.
@@ -178,9 +177,8 @@ public final class SwiInstaller {
 	 * @throws IOException
 	 * @throws ZipException
 	 */
-	private static File unzipToTmp(String zipfilename, boolean force)
-			throws URISyntaxException, ZipException, IOException {
-		String appDataDir = AppDirsFactory.getInstance().getUserDataDir("swilibs", getVersion(), "goal");
+	private static File unzip(String zipfilename, boolean force) throws URISyntaxException, ZipException, IOException {
+		String appDataDir = AppDirsFactory.getInstance().getUserDataDir("swilibs", getVersion(), "GOAL");
 		Path path = (override == null) ? Paths.get(appDataDir) : Paths.get(override);
 		File base = path.toFile();
 		if (base.exists()) {
@@ -221,26 +219,11 @@ public final class SwiInstaller {
 		return base;
 	}
 
-	// /**
-	// * @return a unique number for the current source code, that changes when
-	// * the GOAL version changes. Actually this number is the
-	// * modification date of this class.
-	// * @throws UnsupportedEncodingException
-	// */
-	// private static long getSourceNumber() throws UnsupportedEncodingException
-	// {
-	// String srcpath1 =
-	// SwiInstaller.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-	// String srcpath = URLDecoder.decode(srcpath1, "UTF-8");
-	// File srcfile = new File(srcpath);
-	// return srcfile.lastModified();
-	// }
-
 	/**
-	 * @return a unique number for the current source code, that changes when
-	 *         the GOAL version changes. the maven version number of this SWI
-	 *         installer, or the modification date of this class if no maven
-	 *         info is available..
+	 * @return a unique number for the current source code, that changes when the
+	 *         GOAL version changes. the maven version number of this SWI installer,
+	 *         or the modification date of this class if no maven info is
+	 *         available..
 	 * @throws UnsupportedEncodingException
 	 */
 	private static String getVersion() throws UnsupportedEncodingException {
@@ -255,19 +238,16 @@ public final class SwiInstaller {
 				p.load(is);
 				version = p.getProperty("version", "");
 			}
-		} catch (Exception e) {
-			// ignore
+		} catch (Exception ignore) {
 		}
-
 		// fallback to using Java API
-		if (version == null) {
+		if (version == null || version.isEmpty()) {
 			String srcpath1 = SwiInstaller.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 			String srcpath = URLDecoder.decode(srcpath1, "UTF-8");
 			File srcfile = new File(srcpath);
-			version = "" + srcfile.lastModified();
+			version = Long.toString(srcfile.lastModified());
 		}
 
-		System.out.println("version=" + version);
 		return version;
 	}
 
