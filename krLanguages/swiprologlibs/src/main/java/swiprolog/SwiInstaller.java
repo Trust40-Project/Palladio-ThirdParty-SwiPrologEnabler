@@ -17,6 +17,8 @@ import java.util.zip.ZipInputStream;
 
 import org.jpl7.JPL;
 
+import net.harawata.appdirs.AppDirsFactory;
+
 /**
  * call init() once to install the libraries and prepare SWI for use.
  *
@@ -34,21 +36,32 @@ public final class SwiInstaller {
 	private SwiInstaller() {
 	}
 
+	/**
+	 * Overrides the installation directory. Useful if applicationdata can not
+	 * be used by the application.
+	 * 
+	 * @param dir
+	 *            the new target directory.
+	 */
 	public static void overrideDirectory(String dir) {
 		override = dir;
 	}
 
+	/**
+	 * see {@link #init(boolean)} where boolean=false.
+	 */
 	public static void init() {
 		init(false);
 	}
 
 	/**
-	 * initialize SWI prolog for use. Unzips dlls and connects them to the system.
-	 * This static function needs to be called once, to get SWI hooked up to the
-	 * java system.
+	 * initialize SWI prolog for use. Unzips dlls and connects them to the
+	 * system. This static function needs to be called once, to get SWI hooked
+	 * up to the java system.
 	 *
-	 * This call will unzip required system dynamic link libraries to a temp folder,
-	 * pre-load them, and set the paths such that SWI can find its files.
+	 * This call will unzip required system dynamic link libraries to a temp
+	 * folder, pre-load them, and set the paths such that SWI can find its
+	 * files.
 	 *
 	 * The temp folder will be removed automatically if the JVM exits normally.
 	 *
@@ -166,8 +179,8 @@ public final class SwiInstaller {
 	 */
 	private static File unzipToTmp(String zipfilename, boolean force)
 			throws URISyntaxException, ZipException, IOException {
-		Path path = (override == null) ? Paths.get(System.getProperty("java.io.tmpdir"), "swilibs" + getSourceNumber())
-				: Paths.get(override);
+		String appDataDir = AppDirsFactory.getInstance().getUserDataDir("swilibs", "" + getSourceNumber(), "goal");
+		Path path = (override == null) ? Paths.get(appDataDir) : Paths.get(override);
 		File base = path.toFile();
 		if (base.exists()) {
 			if (force) {
@@ -189,9 +202,7 @@ public final class SwiInstaller {
 		while ((entry = zis.getNextEntry()) != null) {
 			File fileInDir = new File(base, entry.getName());
 			if (entry.isDirectory()) {
-				// Assume directories are stored parents first then children.
-				// System.err.println("Extracting dir: " + entry.getName());
-				fileInDir.mkdir();
+				fileInDir.mkdirs();
 			} else if (!fileInDir.canRead()) {
 				FileOutputStream fOutput = new FileOutputStream(fileInDir);
 				int count = 0;
@@ -210,9 +221,9 @@ public final class SwiInstaller {
 	}
 
 	/**
-	 * @return a unique number for the current source code, that changes when the
-	 *         GOAL version changes. Actually this number is the modification date
-	 *         of this class.
+	 * @return a unique number for the current source code, that changes when
+	 *         the GOAL version changes. Actually this number is the
+	 *         modification date of this class.
 	 * @throws UnsupportedEncodingException
 	 */
 	private static long getSourceNumber() throws UnsupportedEncodingException {
