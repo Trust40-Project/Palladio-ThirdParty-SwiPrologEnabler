@@ -97,7 +97,7 @@ public final class SwiInstaller {
 	public static void unzipSWI(boolean force) throws RuntimeException {
 		File basedir;
 		try {
-			basedir = unzipToTmp(system + ".zip", force);
+			basedir = unzip(system + ".zip", force);
 		} catch (URISyntaxException | IOException e) {
 			throw new RuntimeException("failed to install SWI: ", e);
 		}
@@ -177,9 +177,9 @@ public final class SwiInstaller {
 	 * @throws IOException
 	 * @throws ZipException
 	 */
-	private static File unzipToTmp(String zipfilename, boolean force)
+	private static File unzip(String zipfilename, boolean force)
 			throws URISyntaxException, ZipException, IOException {
-		String appDataDir = AppDirsFactory.getInstance().getUserDataDir("swilibs", "" + getSourceNumber(), "goal");
+		String appDataDir = AppDirsFactory.getInstance().getUserDataDir("swilibs", getSourceNumber(), "GOAL");
 		Path path = (override == null) ? Paths.get(appDataDir) : Paths.get(override);
 		File base = path.toFile();
 		if (base.exists()) {
@@ -226,11 +226,11 @@ public final class SwiInstaller {
 	 *         modification date of this class.
 	 * @throws UnsupportedEncodingException
 	 */
-	private static long getSourceNumber() throws UnsupportedEncodingException {
+	private static String getSourceNumber() throws UnsupportedEncodingException {
 		String srcpath1 = SwiInstaller.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String srcpath = URLDecoder.decode(srcpath1, "UTF-8");
 		File srcfile = new File(srcpath);
-		return srcfile.lastModified();
+		return Long.toString(srcfile.lastModified());
 	}
 
 	private static void deleteFolder(File folder) {
