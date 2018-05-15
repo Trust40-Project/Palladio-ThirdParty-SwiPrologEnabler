@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
@@ -97,7 +98,7 @@ public final class SwiInstaller {
 	public static void unzipSWI(boolean force) throws RuntimeException {
 		File basedir;
 		try {
-			basedir = unzip(system + ".zip", force);
+			basedir = unzipToTmp(system + ".zip", force);
 		} catch (URISyntaxException | IOException e) {
 			throw new RuntimeException("failed to install SWI: ", e);
 		}
@@ -177,9 +178,9 @@ public final class SwiInstaller {
 	 * @throws IOException
 	 * @throws ZipException
 	 */
-	private static File unzip(String zipfilename, boolean force)
+	private static File unzipToTmp(String zipfilename, boolean force)
 			throws URISyntaxException, ZipException, IOException {
-		String appDataDir = AppDirsFactory.getInstance().getUserDataDir("swilibs", getSourceNumber(), "GOAL");
+		String appDataDir = AppDirsFactory.getInstance().getUserDataDir("swilibs", getVersion(), "goal");
 		Path path = (override == null) ? Paths.get(appDataDir) : Paths.get(override);
 		File base = path.toFile();
 		if (base.exists()) {
@@ -220,17 +221,54 @@ public final class SwiInstaller {
 		return base;
 	}
 
+	// /**
+	// * @return a unique number for the current source code, that changes when
+	// * the GOAL version changes. Actually this number is the
+	// * modification date of this class.
+	// * @throws UnsupportedEncodingException
+	// */
+	// private static long getSourceNumber() throws UnsupportedEncodingException
+	// {
+	// String srcpath1 =
+	// SwiInstaller.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+	// String srcpath = URLDecoder.decode(srcpath1, "UTF-8");
+	// File srcfile = new File(srcpath);
+	// return srcfile.lastModified();
+	// }
+
 	/**
 	 * @return a unique number for the current source code, that changes when
-	 *         the GOAL version changes. Actually this number is the
-	 *         modification date of this class.
+	 *         the GOAL version changes. the maven version number of this SWI
+	 *         installer, or the modification date of this class if no maven
+	 *         info is available..
 	 * @throws UnsupportedEncodingException
 	 */
-	private static String getSourceNumber() throws UnsupportedEncodingException {
-		String srcpath1 = SwiInstaller.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		String srcpath = URLDecoder.decode(srcpath1, "UTF-8");
-		File srcfile = new File(srcpath);
-		return Long.toString(srcfile.lastModified());
+	private static String getVersion() throws UnsupportedEncodingException {
+		String version = null;
+
+		// try to load from maven properties first
+		try {
+			Properties p = new Properties();
+			InputStream is = SwiInstaller.class.getResourceAsStream(
+					"/META-INF/maven/org.bitbucket.goalhub.krTools.krLanguages/swiPrologEnabler/pom.properties");
+			if (is != null) {
+				p.load(is);
+				version = p.getProperty("version", "");
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+
+		// fallback to using Java API
+		if (version == null) {
+			String srcpath1 = SwiInstaller.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+			String srcpath = URLDecoder.decode(srcpath1, "UTF-8");
+			File srcfile = new File(srcpath);
+			version = "" + srcfile.lastModified();
+		}
+
+		System.out.println("version=" + version);
+		return version;
 	}
 
 	private static void deleteFolder(File folder) {
