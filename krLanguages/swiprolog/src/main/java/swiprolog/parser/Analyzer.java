@@ -15,7 +15,7 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package swiprolog.language.impl;
+package swiprolog.parser;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -31,7 +31,10 @@ import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
-import swiprolog.parser.PrologOperators;
+import swiprolog.language.impl.PrologCompoundImpl;
+import swiprolog.language.impl.PrologDBFormulaImpl;
+import swiprolog.language.impl.PrologQueryImpl;
+import swiprolog.language.impl.PrologVarImpl;
 
 /**
  * Analyzer to identify unused and undefined predicates.
