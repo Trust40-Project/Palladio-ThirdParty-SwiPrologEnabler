@@ -30,6 +30,11 @@ public interface PrologTerm extends PrologExpression, Term {
 	 */
 	public boolean isQuery();
 
+	/**
+	 * @return Iff the term is a number (integer or double).
+	 */
+	public boolean isNumeric();
+
 	@Override
 	public default Substitution mgu(Expression expression) {
 		if (expression instanceof Term) {

@@ -64,6 +64,11 @@ class PrologIntImpl extends org.jpl7.Integer implements PrologTerm {
 	}
 
 	@Override
+	public boolean isNumeric() {
+		return true;
+	}
+
+	@Override
 	public Set<Var> getFreeVar() {
 		return new HashSet<>(0);
 	}

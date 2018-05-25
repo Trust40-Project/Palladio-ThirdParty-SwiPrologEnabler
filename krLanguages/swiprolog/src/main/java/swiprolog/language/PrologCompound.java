@@ -59,6 +59,11 @@ public interface PrologCompound extends PrologTerm, Iterable<Term> {
 	public List<Term> getOperands(String operator);
 
 	@Override
+	public default boolean isNumeric() {
+		return false;
+	}
+
+	@Override
 	public default Substitution unify(Term x, Substitution s) {
 		if (s == null) {
 			return null;

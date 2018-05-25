@@ -64,6 +64,11 @@ class PrologFloatImpl extends org.jpl7.Float implements PrologTerm {
 	}
 
 	@Override
+	public boolean isNumeric() {
+		return true;
+	}
+
+	@Override
 	public Set<Var> getFreeVar() {
 		return new HashSet<>(0);
 	}

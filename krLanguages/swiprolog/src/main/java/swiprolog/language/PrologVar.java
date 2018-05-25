@@ -41,6 +41,11 @@ public interface PrologVar extends PrologTerm, Var {
 	}
 
 	@Override
+	public default boolean isNumeric() {
+		return false;
+	}
+
+	@Override
 	public default Substitution unify(Term x, Substitution s) {
 		if (s == null) {
 			return null;
