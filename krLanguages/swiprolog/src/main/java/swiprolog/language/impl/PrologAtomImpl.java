@@ -18,6 +18,7 @@
 package swiprolog.language.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -133,6 +134,6 @@ class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 
 	@Override
 	public Iterator<Term> iterator() {
-		return getOperands(null).iterator();
+		return Collections.emptyIterator();
 	}
 }
