@@ -29,7 +29,7 @@ import swiprolog.language.PrologTerm;
 /**
  * A Prolog integer.
  */
-public class PrologIntImpl extends org.jpl7.Integer implements PrologTerm {
+class PrologIntImpl extends org.jpl7.Integer implements PrologTerm {
 	/**
 	 * Information about the source used to construct this integer.
 	 */
@@ -43,7 +43,7 @@ public class PrologIntImpl extends org.jpl7.Integer implements PrologTerm {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologIntImpl(long value, SourceInfo info) {
+	PrologIntImpl(long value, SourceInfo info) {
 		super(value);
 		this.info = info;
 	}

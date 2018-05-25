@@ -18,9 +18,7 @@ import krTools.language.Substitution;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologDBFormulaImpl;
-import swiprolog.language.impl.PrologQueryImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 public class TestUpdate {
 	// components enabling us to run the tests...
@@ -36,8 +34,8 @@ public class TestUpdate {
 		this.language = new SwiPrologInterface();
 		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>(0), true);
 		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0), false);
-		this.aap = new PrologAtomImpl("aap", null);
-		this.kat = new PrologAtomImpl("kat", null);
+		this.aap = PrologImplFactory.getAtom("aap", null);
+		this.kat = PrologImplFactory.getAtom("kat", null);
 	}
 
 	@After
@@ -52,7 +50,7 @@ public class TestUpdate {
 
 	@Test
 	public void testInitialQuery1() throws Exception {
-		PrologQuery query = new PrologQueryImpl(new PrologAtomImpl("true", null));
+		PrologQuery query = PrologImplFactory.getQuery(PrologImplFactory.getAtom("true", null));
 		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
@@ -63,10 +61,10 @@ public class TestUpdate {
 	 */
 	@Test
 	public void testInsertFormula() throws Exception {
-		DatabaseFormula formula = new PrologDBFormulaImpl(this.aap);
+		DatabaseFormula formula = PrologImplFactory.getDBFormula(this.aap);
 		this.beliefbase.insert(formula);
 
-		PrologQuery query = new PrologQueryImpl(this.aap);
+		PrologQuery query = PrologImplFactory.getQuery(this.aap);
 		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}
@@ -89,13 +87,13 @@ public class TestUpdate {
 	 */
 	@Test
 	public void testUseNewBeliefbase() throws KRQueryFailedException, KRDatabaseException {
-		DatabaseFormula formula = new PrologDBFormulaImpl(this.kat);
+		DatabaseFormula formula = PrologImplFactory.getDBFormula(this.kat);
 		this.beliefbase.insert(formula);
 
 		// assertEquals(1, beliefbase.getAllSentences().length);
 		// assertEquals(0, knowledgebase.getAllSentences().length);
 
-		PrologQuery query = new PrologQueryImpl(this.kat);
+		PrologQuery query = PrologImplFactory.getQuery(this.kat);
 		Set<Substitution> sol = this.beliefbase.query(query);
 		assertEquals(1, sol.size());
 	}

@@ -29,7 +29,7 @@ import swiprolog.language.PrologTerm;
 /**
  * A Prolog integer.
  */
-public class PrologFloatImpl extends org.jpl7.Float implements PrologTerm {
+class PrologFloatImpl extends org.jpl7.Float implements PrologTerm {
 	/**
 	 * Information about the source used to construct this float.
 	 */
@@ -43,7 +43,7 @@ public class PrologFloatImpl extends org.jpl7.Float implements PrologTerm {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologFloatImpl(double value, SourceInfo info) {
+	PrologFloatImpl(double value, SourceInfo info) {
 		super(value);
 		this.info = info;
 	}

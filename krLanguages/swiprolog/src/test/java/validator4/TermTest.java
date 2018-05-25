@@ -25,11 +25,7 @@ import org.junit.Test;
 
 import krTools.language.Term;
 import swiprolog.SwiPrologInterface;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologFloatImpl;
-import swiprolog.language.impl.PrologIntImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
 import swiprolog.visitor.Visitor4;
@@ -55,43 +51,44 @@ public class TermTest {
 	@Test
 	public void testValidateFloat() throws Exception {
 		Term term = validator("100.4").term();
-		assertEquals(term, new PrologFloatImpl(100.4, null));
+		assertEquals(term, PrologImplFactory.getNumber(100.4, null));
 	}
 
 	@Test
 	public void testValidateAtom() throws Exception {
 		Term term = validator("aap").term();
-		assertEquals(term, new PrologAtomImpl("aap", null));
+		assertEquals(term, PrologImplFactory.getAtom("aap", null));
 	}
 
 	@Test
 	public void testValidate1arg() throws Exception {
 		Term term = validator("aap(1)").term();
-		assertEquals(term, new PrologCompoundImpl("aap", new Term[] { new PrologIntImpl(1, null) }, null));
+		assertEquals(term,
+				PrologImplFactory.getCompound("aap", new Term[] { PrologImplFactory.getNumber(1, null) }, null));
 	}
 
 	@Test
 	public void testValidate2arg() throws Exception {
 		Term term = validator("aap(1,2)").term();
-		assertEquals(term, new PrologCompoundImpl("aap",
-				new Term[] { new PrologIntImpl(1, null), new PrologIntImpl(2, null) }, null));
+		assertEquals(term, PrologImplFactory.getCompound("aap",
+				new Term[] { PrologImplFactory.getNumber(1, null), PrologImplFactory.getNumber(2, null) }, null));
 	}
 
 	@Test
 	public void testInteger() throws Exception {
 		Term term = validator("33").term();
-		assertEquals(term, new PrologIntImpl(33, null));
+		assertEquals(term, PrologImplFactory.getNumber(33, null));
 	}
 
 	@Test
 	public void testVariable() throws Exception {
 		Term term = validator("X").term();
-		assertEquals(term, new PrologVarImpl("X", null));
+		assertEquals(term, PrologImplFactory.getVar("X", null));
 	}
 
 	@Test
 	public void testVariable2() throws Exception {
 		Term term = validator("_123").term();
-		assertEquals(term, new PrologVarImpl("_123", null));
+		assertEquals(term, PrologImplFactory.getVar("_123", null));
 	}
 }

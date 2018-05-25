@@ -14,33 +14,33 @@ import krTools.database.Database;
 import krTools.exceptions.KRDatabaseException;
 import krTools.language.DatabaseFormula;
 import swiprolog.SwiPrologInterface;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologDBFormulaImpl;
+import swiprolog.language.PrologCompound;
+import swiprolog.language.impl.PrologImplFactory;
 
 public class InterfaceTest {
 	private SwiPrologInterface swi;
 	// we're being lazy, maybe we should mock these?
-	private final PrologAtomImpl a = new PrologAtomImpl("a", null);
-	private DatabaseFormula aformula = new PrologDBFormulaImpl(a);
+	private final PrologCompound a = PrologImplFactory.getAtom("a", null);
+	private DatabaseFormula aformula = PrologImplFactory.getDBFormula(this.a);
 
 	@Before
 	public void before() {
-		swi = new SwiPrologInterface();
+		this.swi = new SwiPrologInterface();
 	}
 
 	@After
 	public void after() throws KRDatabaseException {
-		swi.release();
+		this.swi.release();
 	}
 
 	@Test
 	public void testCache() throws KRDatabaseException {
-		assertEquals(aformula, aformula);
+		assertEquals(this.aformula, this.aformula);
 
 		List<DatabaseFormula> content = new ArrayList<>();
-		content.add(aformula);
-		Database db1 = swi.getDatabase("db1", content, true);
-		Database db2 = swi.getDatabase("db2", content, true);
+		content.add(this.aformula);
+		Database db1 = this.swi.getDatabase("db1", content, true);
+		Database db2 = this.swi.getDatabase("db2", content, true);
 
 		assertTrue("databases should be identical objects, cache seems failing", db1 == db2);
 

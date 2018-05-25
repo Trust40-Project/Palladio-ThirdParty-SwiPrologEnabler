@@ -20,10 +20,7 @@ import krTools.language.Term;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologDBFormulaImpl;
-import swiprolog.language.impl.PrologQueryImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 /**
  * Test inserts and deletes in a database.
@@ -42,10 +39,10 @@ public class TestInsertDelete {
 	public void setUp() throws Exception {
 		this.knowledgebase = language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>(), true);
 		this.beliefbase = language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(), false);
-		this.p1 = new PrologAtomImpl("p", null);
-		this.p2 = new PrologAtomImpl("p", null);
-		this.dynamicp = new PrologCompoundImpl("dynamic", new Term[] { this.p1 }, null);
-		this.beliefbase.query(new PrologQueryImpl(this.dynamicp));
+		this.p1 = PrologImplFactory.getAtom("p", null);
+		this.p2 = PrologImplFactory.getAtom("p", null);
+		this.dynamicp = PrologImplFactory.getCompound("dynamic", new Term[] { this.p1 }, null);
+		this.beliefbase.query(PrologImplFactory.getQuery(this.dynamicp));
 	}
 
 	@After
@@ -64,14 +61,14 @@ public class TestInsertDelete {
 	 * @return set of solutions for query p.
 	 */
 	Set<Substitution> QueryP() throws KRQueryFailedException {
-		return this.beliefbase.query(new PrologQueryImpl(this.p1));
+		return this.beliefbase.query(PrologImplFactory.getQuery(this.p1));
 	}
 
 	@Test
 	public void testInsert() throws KRDatabaseException, KRQueryFailedException {
 		assertTrue(QueryP().isEmpty());
 
-		this.beliefbase.insert(new PrologDBFormulaImpl(this.p1));
+		this.beliefbase.insert(PrologImplFactory.getDBFormula(this.p1));
 
 		assertEquals(1, QueryP().size());
 	}
@@ -86,8 +83,8 @@ public class TestInsertDelete {
 	public void testInsertDuplicate() throws KRDatabaseException, KRQueryFailedException {
 		assertTrue(QueryP().isEmpty());
 
-		this.beliefbase.insert(new PrologDBFormulaImpl(this.p1));
-		this.beliefbase.insert(new PrologDBFormulaImpl(this.p2));
+		this.beliefbase.insert(PrologImplFactory.getDBFormula(this.p1));
+		this.beliefbase.insert(PrologImplFactory.getDBFormula(this.p2));
 
 		assertEquals(1, QueryP().size());
 	}
@@ -101,7 +98,7 @@ public class TestInsertDelete {
 	@Test
 	public void testDeleteAfterDuplicate() throws KRDatabaseException, KRQueryFailedException {
 		testInsertDuplicate();
-		this.beliefbase.delete(new PrologDBFormulaImpl(this.p1));
+		this.beliefbase.delete(PrologImplFactory.getDBFormula(this.p1));
 		assertTrue(QueryP().isEmpty());
 	}
 
@@ -109,10 +106,10 @@ public class TestInsertDelete {
 	public void testDatabaseErase() throws KRDatabaseException, KRQueryFailedException {
 		String stringterm = "requests([request('INTERACTION', 2,'.'(answer(0, 'OK'), [])),request('INTERACTION', 3, '.'(answer(0,'OK'), []))])";
 		org.jpl7.Term t = org.jpl7.Util.textToTerm(stringterm);
-		this.beliefbase.insert(new PrologDBFormulaImpl((PrologCompound) PrologDatabase.fromJpl(t)));
+		this.beliefbase.insert(PrologImplFactory.getDBFormula((PrologCompound) PrologDatabase.fromJpl(t)));
 
 		org.jpl7.Term queryterm = org.jpl7.Util.textToTerm("requests(X)");
-		PrologQuery query = new PrologQueryImpl((PrologCompound) PrologDatabase.fromJpl(queryterm));
+		PrologQuery query = PrologImplFactory.getQuery((PrologCompound) PrologDatabase.fromJpl(queryterm));
 		assertEquals(1, this.beliefbase.query(query).size());
 
 		this.beliefbase.destroy();

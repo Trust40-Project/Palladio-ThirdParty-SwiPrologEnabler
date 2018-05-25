@@ -24,21 +24,20 @@ import org.junit.Test;
 import krTools.language.Term;
 import krTools.language.Var;
 import swiprolog.SwiPrologInterface;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 public class TestPrologTerms {
 	@Test
 	public void testToString() {
 		new SwiPrologInterface();
-		Term term = new PrologAtomImpl("Aap", null);
+		Term term = PrologImplFactory.getAtom("Aap", null);
 		assertEquals("'Aap'", term.toString());
 	}
 
 	@Test
 	public void testEqualVars() {
-		Var X = new PrologVarImpl("X", null);
-		Var X1 = new PrologVarImpl("X", null);
+		Var X = PrologImplFactory.getVar("X", null);
+		Var X1 = PrologImplFactory.getVar("X", null);
 
 		assertEquals(X, X1);
 	}

@@ -25,10 +25,7 @@ import org.junit.Test;
 
 import krTools.language.Term;
 import krTools.language.Var;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologIntImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 public class Terms {
 	// @Test FIXME
@@ -40,8 +37,8 @@ public class Terms {
 
 	@Test
 	public void equality() {
-		Term var1 = new PrologVarImpl("X", null);
-		Term var2 = new PrologVarImpl("X", null);
+		Term var1 = PrologImplFactory.getVar("X", null);
+		Term var2 = PrologImplFactory.getVar("X", null);
 		assertEquals(true, var1.equals(var2));
 	}
 
@@ -50,9 +47,9 @@ public class Terms {
 	 */
 	@Test
 	public void testFreeVars() {
-		Term X = new PrologVarImpl("X", null);
-		Term p = new PrologAtomImpl("p", null);
-		Term term = new PrologCompoundImpl("q", new Term[] { p, X }, null);
+		Term X = PrologImplFactory.getVar("X", null);
+		Term p = PrologImplFactory.getAtom("p", null);
+		Term term = PrologImplFactory.getCompound("q", new Term[] { p, X }, null);
 		Set<Var> vars = term.getFreeVar();
 		assertEquals(1, vars.size());
 		assertEquals(X, vars.iterator().next());
@@ -63,9 +60,9 @@ public class Terms {
 	 */
 	@Test
 	public void testFreeVarsInIs() {
-		Term X = new PrologVarImpl("X", null);
-		Term one = new PrologIntImpl(1, null);
-		Term term = new PrologCompoundImpl("=", new Term[] { X, one }, null);
+		Term X = PrologImplFactory.getVar("X", null);
+		Term one = PrologImplFactory.getNumber(1, null);
+		Term term = PrologImplFactory.getCompound("=", new Term[] { X, one }, null);
 		Set<Var> vars = term.getFreeVar();
 		assertEquals(1, vars.size());
 		assertEquals(X, vars.iterator().next());

@@ -25,21 +25,19 @@ import org.junit.Test;
 import krTools.language.Substitution;
 import krTools.language.Term;
 import krTools.language.Var;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 public class TestPrologSubstitution {
 	@Test
 	public void testSubstitution() {
 		Substitution solution = new PrologSubstitution();
-		Var X = new PrologVarImpl("X", null);
-		Var Y = new PrologVarImpl("Y", null);
-		Var Z = new PrologVarImpl("Z", null);
+		Var X = PrologImplFactory.getVar("X", null);
+		Var Y = PrologImplFactory.getVar("Y", null);
+		Var Z = PrologImplFactory.getVar("Z", null);
 		solution.addBinding(X, Y);
 		solution.addBinding(Y, Z);
 
-		Term term = new PrologCompoundImpl("aap", new Term[] { X, Y }, null);
+		Term term = PrologImplFactory.getCompound("aap", new Term[] { X, Y }, null);
 
 		Term result = term.applySubst(solution);
 		assertTrue(result instanceof PrologCompound);
@@ -53,21 +51,21 @@ public class TestPrologSubstitution {
 		Substitution solution = new PrologSubstitution();
 		assertTrue(solution.getVariables().isEmpty());
 
-		Var X = new PrologVarImpl("X", null);
-		Term a = new PrologAtomImpl("a", null);
+		Var X = PrologImplFactory.getVar("X", null);
+		Term a = PrologImplFactory.getAtom("a", null);
 		solution.addBinding(X, a);
 		assertEquals(1, solution.getVariables().size());
 		assertEquals(a, solution.get(X));
 
-		Var Y = new PrologVarImpl("Y", null);
-		Term b = new PrologAtomImpl("b", null);
+		Var Y = PrologImplFactory.getVar("Y", null);
+		Term b = PrologImplFactory.getAtom("b", null);
 		solution.addBinding(Y, b);
 		assertEquals(2, solution.getVariables().size());
 		assertEquals(a, solution.get(X));
 		assertEquals(b, solution.get(Y));
 
-		Var Z = new PrologVarImpl("Z", null);
-		Term V = new PrologVarImpl("V", null);
+		Var Z = PrologImplFactory.getVar("Z", null);
+		Term V = PrologImplFactory.getVar("V", null);
 		solution.addBinding(Z, V);
 		assertEquals(3, solution.getVariables().size());
 		assertEquals(a, solution.get(X));

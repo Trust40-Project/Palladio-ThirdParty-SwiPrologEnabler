@@ -26,12 +26,7 @@ import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologVar;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologDBFormulaImpl;
-import swiprolog.language.impl.PrologIntImpl;
-import swiprolog.language.impl.PrologQueryImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 /**
  * Test speed of inserts and deletes in a database.
@@ -52,19 +47,19 @@ public class TestInsertDeleteBenchmarks {
 	private Database beliefbase;
 	private Database knowledgebase;
 
-	private final PrologVar X = new PrologVarImpl("X", null);
-	private final PrologVar Y = new PrologVarImpl("Y", null);
-	private final PrologCompound pX = new PrologCompoundImpl("p", new Term[] { this.X }, null);
-	private final PrologCompound pXY = new PrologCompoundImpl("p", new Term[] { this.X, this.Y }, null);
-	private final PrologCompound dynamicpX = new PrologCompoundImpl("dynamic", new Term[] { this.pX }, null);
-	private final PrologCompound dynamicpXY = new PrologCompoundImpl("dynamic", new Term[] { this.pXY }, null);
+	private final PrologVar X = PrologImplFactory.getVar("X", null);
+	private final PrologVar Y = PrologImplFactory.getVar("Y", null);
+	private final PrologCompound pX = PrologImplFactory.getCompound("p", new Term[] { this.X }, null);
+	private final PrologCompound pXY = PrologImplFactory.getCompound("p", new Term[] { this.X, this.Y }, null);
+	private final PrologCompound dynamicpX = PrologImplFactory.getCompound("dynamic", new Term[] { this.pX }, null);
+	private final PrologCompound dynamicpXY = PrologImplFactory.getCompound("dynamic", new Term[] { this.pXY }, null);
 	// private final Atom listing = new Atom("listing");
 
 	// true iff we need to flush after database inserts, deletes
 	private final boolean flushAfterChanges;
 	// term used for querying "false" (no solutions), used to trigger flush
-	private final PrologCompound falseTerm = new PrologAtomImpl("false", null);
-	private final PrologQuery queryFalse = new PrologQueryImpl(this.falseTerm);
+	private final PrologCompound falseTerm = PrologImplFactory.getAtom("false", null);
+	private final PrologQuery queryFalse = PrologImplFactory.getQuery(this.falseTerm);
 
 	// start and end time of a benchmark
 	private long start, end;
@@ -79,8 +74,8 @@ public class TestInsertDeleteBenchmarks {
 		this.language = new SwiPrologInterface();
 		this.knowledgebase = this.language.getDatabase("knowledge", new LinkedHashSet<DatabaseFormula>(), true);
 		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(), false);
-		this.beliefbase.query(new PrologQueryImpl(this.dynamicpX));
-		this.beliefbase.query(new PrologQueryImpl(this.dynamicpXY));
+		this.beliefbase.query(PrologImplFactory.getQuery(this.dynamicpX));
+		this.beliefbase.query(PrologImplFactory.getQuery(this.dynamicpXY));
 	}
 
 	private void start() {
@@ -125,7 +120,7 @@ public class TestInsertDeleteBenchmarks {
 	@Test
 	public void largeInsertBenchmark() throws KRDatabaseException, KRQueryFailedException {
 		start();
-		this.beliefbase.insert(new PrologDBFormulaImpl(largeTerm(16)));
+		this.beliefbase.insert(PrologImplFactory.getDBFormula(largeTerm(16)));
 		end("largeInsertBenchmark");
 	}
 
@@ -193,8 +188,9 @@ public class TestInsertDeleteBenchmarks {
 	 ***********************/
 	private void doInserts() throws KRDatabaseException, KRQueryFailedException {
 		for (int n = 0; n < NINSERTS; n++) {
-			PrologCompound pN = new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(n, null) }, null);
-			this.beliefbase.insert(new PrologDBFormulaImpl(pN));
+			PrologCompound pN = PrologImplFactory.getCompound("p", new Term[] { PrologImplFactory.getNumber(n, null) },
+					null);
+			this.beliefbase.insert(PrologImplFactory.getDBFormula(pN));
 			flush();
 		}
 	}
@@ -207,10 +203,10 @@ public class TestInsertDeleteBenchmarks {
 	 */
 	private PrologCompound largeTerm(int N) {
 		if (N > 0) {
-			return new PrologCompoundImpl("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) }, null);
+			return PrologImplFactory.getCompound("p", new Term[] { largeTerm(N - 1), largeTerm(N - 1) }, null);
 		} else {
-			return new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(0, null), new PrologIntImpl(0, null) },
-					null);
+			return PrologImplFactory.getCompound("p",
+					new Term[] { PrologImplFactory.getNumber(0, null), PrologImplFactory.getNumber(0, null) }, null);
 		}
 	}
 
@@ -225,8 +221,9 @@ public class TestInsertDeleteBenchmarks {
 	 */
 	private void doDeletes(boolean flush) throws KRDatabaseException, KRQueryFailedException {
 		for (int n = 0; n < NINSERTS; n++) {
-			PrologCompound pN = new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(n, null) }, null);
-			this.beliefbase.delete(new PrologDBFormulaImpl(pN));
+			PrologCompound pN = PrologImplFactory.getCompound("p", new Term[] { PrologImplFactory.getNumber(n, null) },
+					null);
+			this.beliefbase.delete(PrologImplFactory.getDBFormula(pN));
 			flush();
 		}
 	}
@@ -251,7 +248,7 @@ public class TestInsertDeleteBenchmarks {
 	 * @return set of solutions for query p(X).
 	 */
 	private Set<Substitution> QueryPX() throws KRQueryFailedException {
-		return this.beliefbase.query(new PrologQueryImpl(this.pX));
+		return this.beliefbase.query(PrologImplFactory.getQuery(this.pX));
 	}
 
 	/**
@@ -261,13 +258,14 @@ public class TestInsertDeleteBenchmarks {
 	 * @return set of solutions for query p(N,Y).
 	 */
 	private Set<Substitution> QueryPXY(int N) throws KRQueryFailedException {
-		PrologCompound query = new PrologCompoundImpl("p", new Term[] { new PrologIntImpl(N, null), this.Y }, null);
-		return this.beliefbase.query(new PrologQueryImpl(query));
+		PrologCompound query = PrologImplFactory.getCompound("p",
+				new Term[] { PrologImplFactory.getNumber(N, null), this.Y }, null);
+		return this.beliefbase.query(PrologImplFactory.getQuery(query));
 	}
 
 	/**
-	 * Prints listing to stdout. For quick test if we have the right formulas in
-	 * the database
+	 * Prints listing to stdout. For quick test if we have the right formulas in the
+	 * database
 	 *
 	 * @throws KRQueryFailedException
 	 */
@@ -277,8 +275,8 @@ public class TestInsertDeleteBenchmarks {
 	// }
 
 	/**
-	 * Upload the large-structure generator into SWI. Returns object that is
-	 * size 2^N.
+	 * Upload the large-structure generator into SWI. Returns object that is size
+	 * 2^N.
 	 *
 	 * @throws KRQueryFailedException
 	 * @throws KRDatabaseException
@@ -286,8 +284,8 @@ public class TestInsertDeleteBenchmarks {
 	private void uploadGenerator() throws KRQueryFailedException, KRDatabaseException {
 		org.jpl7.Term term1 = org.jpl7.Util.textToTerm("p(0,0)");
 		org.jpl7.Term term2 = org.jpl7.Util.textToTerm("p(N,s(X,X)):-( N>0, N1 is N-1, p(N1, X))");
-		this.beliefbase.insert(new PrologDBFormulaImpl((PrologCompound) PrologDatabase.fromJpl(term1)));
-		this.beliefbase.insert(new PrologDBFormulaImpl((PrologCompound) PrologDatabase.fromJpl(term2)));
+		this.beliefbase.insert(PrologImplFactory.getDBFormula((PrologCompound) PrologDatabase.fromJpl(term1)));
+		this.beliefbase.insert(PrologImplFactory.getDBFormula((PrologCompound) PrologDatabase.fromJpl(term2)));
 		flush();
 		// listing();
 	}

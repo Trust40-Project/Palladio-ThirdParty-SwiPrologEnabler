@@ -25,8 +25,7 @@ import org.junit.Test;
 
 import krTools.language.Update;
 import swiprolog.SwiPrologInterface;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologUpdateImpl;
+import swiprolog.language.impl.PrologImplFactory;
 import swiprolog.parser.Parser4;
 import swiprolog.validator.Validator4;
 import swiprolog.visitor.Visitor4;
@@ -52,13 +51,13 @@ public class UpdateTest {
 	@Test
 	public void testValidateBasicUpdate() throws Exception {
 		Update term = validator("aap").updateOrEmpty();
-		assertEquals(term, new PrologUpdateImpl(new PrologAtomImpl("aap", null)));
+		assertEquals(term, PrologImplFactory.getUpdate(PrologImplFactory.getAtom("aap", null)));
 	}
 
 	@Test
 	public void testValidateTrueUpdate() throws Exception {
 		// special update. Should work and not throw that true is protected.
 		Update term = validator("true").updateOrEmpty();
-		assertEquals(term, new PrologUpdateImpl(new PrologAtomImpl("true", null)));
+		assertEquals(term, PrologImplFactory.getUpdate(PrologImplFactory.getAtom("true", null)));
 	}
 }

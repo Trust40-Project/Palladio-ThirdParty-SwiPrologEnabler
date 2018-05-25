@@ -36,7 +36,7 @@ import swiprolog.language.PrologUpdate;
 /**
  * See {@link Update}.
  */
-public class PrologUpdateImpl implements PrologUpdate {
+class PrologUpdateImpl implements PrologUpdate {
 	/**
 	 *
 	 */
@@ -66,7 +66,7 @@ public class PrologUpdateImpl implements PrologUpdate {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologUpdateImpl(PrologCompound compound) {
+	PrologUpdateImpl(PrologCompound compound) {
 		this.compound = compound;
 
 		// Sort positive and negative literals, assuming that each conjunct

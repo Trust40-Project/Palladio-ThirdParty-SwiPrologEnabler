@@ -31,16 +31,13 @@ import krTools.parser.SourceInfo;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologDBFormulaImpl;
-import swiprolog.language.impl.PrologQueryImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 /**
  * Analyzer to identify unused and undefined predicates.
  */
 public class Analyzer {
-	private static final Term ANON_VAR = new PrologVarImpl("_", null);
+	private static final Term ANON_VAR = PrologImplFactory.getVar("_", null);
 	/**
 	 * Map of definitions.
 	 */
@@ -107,13 +104,13 @@ public class Analyzer {
 		if (plFormula.getName().equals(":-")) {
 			if (plFormula.getArity() == 1 && plFormula.getArg(0) instanceof PrologCompound) {
 				// Directive: the first argument is a query.
-				addQuery(new PrologQueryImpl((PrologCompound) plFormula.getArg(0)));
+				addQuery(PrologImplFactory.getQuery((PrologCompound) plFormula.getArg(0)));
 			} else if (plFormula.getArity() == 2 && plFormula.getArg(0) instanceof PrologCompound
 					&& plFormula.getArg(1) instanceof PrologCompound) {
 				// The first argument is the only defined term.
 				headTerm = (PrologCompound) plFormula.getArg(0);
 				// The other argument is a conjunction of queried terms.
-				addQuery(new PrologQueryImpl((PrologCompound) plFormula.getArg(1)));
+				addQuery(PrologImplFactory.getQuery((PrologCompound) plFormula.getArg(1)));
 			}
 		}
 
@@ -127,7 +124,7 @@ public class Analyzer {
 			} else {
 				formulas = new LinkedList<>();
 			}
-			formulas.add(new PrologDBFormulaImpl(headTerm));
+			formulas.add(PrologImplFactory.getDBFormula(headTerm));
 			this.definitions.put(headSig, formulas);
 		}
 	}
@@ -178,14 +175,14 @@ public class Analyzer {
 			addQuery(plTerm.getArg(2), info);
 		} else if (termSig.equals("predsort/3") && plTerm.getArg(0) instanceof PrologCompound) {
 			// first argument is name that will be called as name/3
-			Term stubfunc = new PrologCompoundImpl(((PrologCompound) plTerm.getArg(0)).getName(),
+			Term stubfunc = PrologImplFactory.getCompound(((PrologCompound) plTerm.getArg(0)).getName(),
 					new Term[] { ANON_VAR, ANON_VAR, ANON_VAR }, plTerm.getSourceInfo());
 			addQuery(stubfunc, info);
 		} else if (termSig.equals("dynamic/1") && plTerm.getArg(0) instanceof PrologCompound) {
 			// recognize predicate declaration(s).
 			PrologCompound compound = (PrologCompound) plTerm.getArg(0);
 			for (Term dynamicPred : compound.getOperands(",")) {
-				addDefinition(new PrologDBFormulaImpl((PrologCompound) dynamicPred));
+				addDefinition(PrologImplFactory.getDBFormula((PrologCompound) dynamicPred));
 			}
 		} else if (!PrologOperators.prologBuiltin(termSig)) {
 			// if we get here, the term should not be unpacked
@@ -197,7 +194,7 @@ public class Analyzer {
 			} else {
 				formulas = new LinkedList<>();
 			}
-			formulas.add(new PrologQueryImpl(plTerm));
+			formulas.add(PrologImplFactory.getQuery(plTerm));
 			this.used.put(termSig, formulas);
 		}
 	}

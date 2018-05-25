@@ -29,14 +29,11 @@ import swiprolog.SwiPrologInterface;
  */
 @RunWith(Parameterized.class)
 public class BenchmarkImportModule {
-
 	private String KB = "kb";
-	private String DB = "db";
+	// private String DB = "db";
 	private SwiPrologInterface swi;
 	private final int NTESTS = 100;
-
 	private List<Term> kbterms = new ArrayList<>();
-
 	private long start;
 	private String prologfile;
 
@@ -46,39 +43,38 @@ public class BenchmarkImportModule {
 	}
 
 	public BenchmarkImportModule(String file) {
-		prologfile = file;
+		this.prologfile = file;
 	}
 
 	@Before
 	public void setUp() throws Exception {
-
-		swi = new SwiPrologInterface();
-		System.out.println("Testing " + prologfile);
-		Scanner scanner = new Scanner(getClass().getResourceAsStream(prologfile), "UTF-8");
+		this.swi = new SwiPrologInterface();
+		System.out.println("Testing " + this.prologfile);
+		Scanner scanner = new Scanner(getClass().getResourceAsStream(this.prologfile), "UTF-8");
 		scanner.useDelimiter("\\A");
 		String text = scanner.next();
 		scanner.close();
 
 		for (String know : text.split("\\.")) {
-			kbterms.add(Util.textToTerm(know));
+			this.kbterms.add(Util.textToTerm(know));
 		}
-		insertAllKnowledge(KB);
+		insertAllKnowledge(this.KB);
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		swi.release();
+		this.swi.release();
 	}
 
 	@Test
 	public void testKB() {
-		query(KB, "lastitem");
+		query(this.KB, "lastitem");
 	}
 
 	@Test
 	public void benchmarkAddImportModule() {
 		start();
-		for (int n = 0; n < NTESTS; n++) {
+		for (int n = 0; n < this.NTESTS; n++) {
 			makeBeliefbaseAddImportModule("bb" + n);
 		}
 		end("benchmarkAddImportModule");
@@ -92,7 +88,7 @@ public class BenchmarkImportModule {
 	@Test
 	public void benchmarkSetBaseModule() {
 		start();
-		for (int n = 0; n < NTESTS; n++) {
+		for (int n = 0; n < this.NTESTS; n++) {
 			makeUsingSetBaseModule("bb" + n);
 		}
 		end("benchmarkSetBaseModule");
@@ -101,7 +97,7 @@ public class BenchmarkImportModule {
 	@Test
 	public void benchmarkAssertAllKnowledge() {
 		start();
-		for (int n = 0; n < NTESTS; n++) {
+		for (int n = 0; n < this.NTESTS; n++) {
 			insertAllKnowledge("bb" + n);
 		}
 		end("benchmarkAssertAllKnowledge");
@@ -109,58 +105,57 @@ public class BenchmarkImportModule {
 
 	/*********************** support functions *****************/
 	private void start() {
-		start = System.nanoTime();
+		this.start = System.nanoTime();
 
 	}
 
 	private void end(String string) {
 		long end = System.nanoTime();
-		double time = (end - start) / NTESTS; // ns
+		double time = (end - this.start) / this.NTESTS; // ns
 		System.out.println(string + " took on average " + time / 1000000 + "ms per database creation.");
 	}
 
 	/**
 	 * Create new module with given name and "insert" knowledge by using
 	 * "add_import_module".
-	 * 
+	 *
 	 * @param base
 	 *            the module name to create
 	 */
 	private void makeBeliefbaseAddImportModule(String base) {
 		query(base, "assert(p)"); // create the new module
-		query(base, "add_import_module(" + KB + "," + base + ",start)");
+		query(base, "add_import_module(" + this.KB + "," + base + ",start)");
 	}
 
 	/**
 	 * Create new module with given name and "insert" knowledge by using
 	 * "set_base_module".
-	 * 
+	 *
 	 * @param base
 	 *            the module name to create
 	 */
 	private void makeUsingSetBaseModule(String base) {
 		query(base, "assert(p)"); // create the new module
-		query(base, "set_base_module(" + KB + ")");
+		query(base, "set_base_module(" + this.KB + ")");
 	}
 
 	/**
-	 * Create new module with name "bb<n>" and "insert" knowledge by inserting
-	 * all knowledge one by one.
-	 * 
+	 * Create new module with name "bb<n>" and "insert" knowledge by inserting all
+	 * knowledge one by one.
+	 *
 	 * @param n
 	 *            the number of the module
 	 */
 
 	private void insertAllKnowledge(String module) {
-		for (Term knowledge : kbterms) {
+		for (Term knowledge : this.kbterms) {
 			insert(module, knowledge);
 		}
-
 	}
 
 	/**
 	 * Insert knowledge in database
-	 * 
+	 *
 	 * @param know
 	 */
 	private void insert(String module, Term know) {
@@ -171,24 +166,22 @@ public class BenchmarkImportModule {
 
 	/**
 	 * Do a query and check the result is OK.
-	 * 
+	 *
 	 * @param query
 	 *            the string to query
 	 */
 	private Map<String, Term>[] query(String module, String query) {
 		return query(new Query(module + ":" + query));
-
 	}
 
 	/**
 	 * Do a query and check the result is OK.
-	 * 
+	 *
 	 * @param query
 	 *            the string to query
 	 */
 	private Map<String, Term>[] query(Query query) {
 		Map<String, Term>[] res;
-
 		try {
 			res = query.allSolutions();
 		} catch (PrologException e) {
@@ -198,7 +191,5 @@ public class BenchmarkImportModule {
 			throw new IllegalStateException("knowledge query " + query + " returns false");
 		}
 		return res;
-
 	}
-
 }

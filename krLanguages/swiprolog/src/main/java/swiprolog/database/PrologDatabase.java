@@ -39,11 +39,7 @@ import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologSubstitution;
 import swiprolog.language.PrologTerm;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologFloatImpl;
-import swiprolog.language.impl.PrologIntImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 public class PrologDatabase implements Database {
 	private static final Object queryLock = new Object();
@@ -51,7 +47,7 @@ public class PrologDatabase implements Database {
 	 * Name of this database; used to name a SWI-Prolog module that implements the
 	 * database.
 	 */
-	private final PrologAtomImpl name;
+	private final PrologCompound name;
 	/**
 	 * The KRI that is managing this database.
 	 */
@@ -80,14 +76,14 @@ public class PrologDatabase implements Database {
 	 */
 	public PrologDatabase(String name, Collection<DatabaseFormula> content, SwiPrologInterface owner, boolean isStatic)
 			throws KRDatabaseException {
-		this.name = new PrologAtomImpl(name, null);
+		this.name = PrologImplFactory.getAtom(name, null);
 		this.owner = owner;
 		this.theory = new Theory();
 		// Create SWI Prolog module that will act as our database.
 		// FIXME: this is an expensive operation that is now run for
 		// knowledge bases as well, and might be run for bases in a mental
 		// model that will never be used anyway too.
-		PrologCompound init = prefix(new PrologAtomImpl("true", null));
+		PrologCompound init = prefix(PrologImplFactory.getAtom("true", null));
 		addToWriteCache(init);
 		if (content != null) {
 			for (DatabaseFormula dbf : content) {
@@ -106,18 +102,18 @@ public class PrologDatabase implements Database {
 	}
 
 	private PrologCompound prefix(Term term) {
-		return new PrologCompoundImpl(":", new Term[] { this.name, term }, null);
+		return PrologImplFactory.getCompound(":", new Term[] { this.name, term }, null);
 	}
 
 	@Override
 	public String getName() {
-		return this.name.name();
+		return this.name.getName();
 	}
 
 	/**
 	 * @return atom with name of this database
 	 */
-	public PrologAtomImpl getJPLName() {
+	public PrologCompound getJPLName() {
 		return this.name;
 	}
 
@@ -153,8 +149,8 @@ public class PrologDatabase implements Database {
 		// We need to create conjunctive query with "true" as first conjunct and
 		// db_query as second conjunct as JPL query dbname:not(..) does not work
 		// otherwise...
-		PrologCompound db_query_final = new PrologCompoundImpl(",",
-				new Term[] { new PrologAtomImpl("true", null), prefix(query) }, null);
+		PrologCompound db_query_final = PrologImplFactory.getCompound(",",
+				new Term[] { PrologImplFactory.getAtom("true", null), prefix(query) }, null);
 		// Perform the query
 		flushWriteCache();
 		return rawquery(db_query_final);
@@ -231,9 +227,10 @@ public class PrologDatabase implements Database {
 		PrologCompound query = null;
 		if (formula.isDirective()) {
 			formula = (PrologCompound) formula.getArg(0);
-			query = new PrologCompoundImpl(",", new Term[] { new PrologAtomImpl("true", null), prefix(formula) }, null);
+			query = PrologImplFactory.getCompound(",",
+					new Term[] { PrologImplFactory.getAtom("true", null), prefix(formula) }, null);
 		} else {
-			query = new PrologCompoundImpl("assert", new Term[] { prefix(formula) }, null);
+			query = PrologImplFactory.getCompound("assert", new Term[] { prefix(formula) }, null);
 		}
 		addToWriteCache(query);
 	}
@@ -281,7 +278,7 @@ public class PrologDatabase implements Database {
 	 */
 	private void delete(PrologCompound formula) throws KRDatabaseException {
 		checkModifyable();
-		PrologCompound retraction = new PrologCompoundImpl("retractall", new Term[] { prefix(formula) }, null);
+		PrologCompound retraction = PrologImplFactory.getCompound("retractall", new Term[] { prefix(formula) }, null);
 		addToWriteCache(retraction);
 	}
 
@@ -304,7 +301,7 @@ public class PrologDatabase implements Database {
 	 */
 	public static Set<Substitution> rawquery(PrologTerm query) throws KRQueryFailedException {
 		// Create JPL query.
-		org.jpl7.Query jplQuery = new org.jpl7.Query((PrologCompoundImpl) query);
+		org.jpl7.Query jplQuery = new org.jpl7.Query((org.jpl7.Compound) query);
 
 		// Get all solutions.
 		Map<String, org.jpl7.Term>[] solutions;
@@ -326,7 +323,7 @@ public class PrologDatabase implements Database {
 		for (Map<String, org.jpl7.Term> solution : solutions) {
 			Substitution subst = new PrologSubstitution();
 			for (Entry<String, org.jpl7.Term> entry : solution.entrySet()) {
-				Var var = new PrologVarImpl(entry.getKey(), null);
+				Var var = PrologImplFactory.getVar(entry.getKey(), null);
 				Term term = fromJpl(entry.getValue());
 				subst.addBinding(var, term);
 			}
@@ -339,23 +336,23 @@ public class PrologDatabase implements Database {
 	public static Term fromJpl(org.jpl7.Term term) {
 		if (term.isAtom()) {
 			org.jpl7.Atom atom = (org.jpl7.Atom) term;
-			return new PrologAtomImpl(atom.name(), null);
+			return PrologImplFactory.getAtom(atom.name(), null);
 		} else if (term.isCompound()) {
 			org.jpl7.Compound compound = (org.jpl7.Compound) term;
 			Term[] args = new Term[compound.arity()];
 			for (int i = 1; i <= compound.arity(); ++i) {
 				args[i - 1] = fromJpl(compound.arg(i));
 			}
-			return new PrologCompoundImpl(compound.name(), args, null);
+			return PrologImplFactory.getCompound(compound.name(), args, null);
 		} else if (term.isFloat()) {
 			org.jpl7.Float flot = (org.jpl7.Float) term;
-			return new PrologFloatImpl(flot.doubleValue(), null);
+			return PrologImplFactory.getNumber(flot.doubleValue(), null);
 		} else if (term.isInteger()) {
 			org.jpl7.Integer integer = (org.jpl7.Integer) term;
-			return new PrologIntImpl(integer.longValue(), null);
+			return PrologImplFactory.getNumber(integer.longValue(), null);
 		} else if (term.isVariable()) {
 			org.jpl7.Variable var = (org.jpl7.Variable) term;
-			return new PrologVarImpl(var.name(), null);
+			return PrologImplFactory.getVar(var.name(), null);
 		} else {
 			return null;
 		}
@@ -389,29 +386,30 @@ public class PrologDatabase implements Database {
 		// + "retractall(" + this.name + ":Head)"
 		// + ").";
 		// Construct jpl term for above.
-		Term predicate = new PrologVarImpl("Predicate", null);
-		Term head = new PrologVarImpl("Head", null);
+		Term predicate = PrologImplFactory.getVar("Predicate", null);
+		Term head = PrologImplFactory.getVar("Head", null);
 		PrologCompound db_head = prefix(head);
-		PrologCompound current = new PrologCompoundImpl("current_predicate", new Term[] { predicate, head }, null);
+		PrologCompound current = PrologImplFactory.getCompound("current_predicate", new Term[] { predicate, head },
+				null);
 		PrologCompound db_current = prefix(current);
-		PrologCompound built_in_atom = new PrologAtomImpl("built_in", null);
-		PrologCompound built_in = new PrologCompoundImpl("predicate_property", new Term[] { db_head, built_in_atom },
-				null);
-		PrologCompound foreign_atom = new PrologAtomImpl("foreign", null);
-		PrologCompound foreign = new PrologCompoundImpl("predicate_property", new Term[] { db_head, foreign_atom },
-				null);
-		Term anon = new PrologVarImpl("_", null);
-		PrologCompound imported_from = new PrologCompoundImpl("imported_from", new Term[] { anon }, null);
-		PrologCompound imported = new PrologCompoundImpl("predicate_property", new Term[] { db_head, imported_from },
-				null);
-		PrologCompound not_built_in = new PrologCompoundImpl("not", new Term[] { built_in }, null);
-		PrologCompound not_foreign = new PrologCompoundImpl("not", new Term[] { foreign }, null);
-		PrologCompound not_imported = new PrologCompoundImpl("not", new Term[] { imported }, null);
-		PrologCompound retract = new PrologCompoundImpl("retractall", new Term[] { db_head }, null);
-		PrologCompound conj45 = new PrologCompoundImpl(",", new Term[] { not_imported, retract }, null);
-		PrologCompound conj345 = new PrologCompoundImpl(",", new Term[] { not_foreign, conj45 }, null);
-		PrologCompound conj2345 = new PrologCompoundImpl(",", new Term[] { not_built_in, conj345 }, null);
-		PrologCompound query = new PrologCompoundImpl(",", new Term[] { db_current, conj2345 }, null);
+		PrologCompound built_in_atom = PrologImplFactory.getAtom("built_in", null);
+		PrologCompound built_in = PrologImplFactory.getCompound("predicate_property",
+				new Term[] { db_head, built_in_atom }, null);
+		PrologCompound foreign_atom = PrologImplFactory.getAtom("foreign", null);
+		PrologCompound foreign = PrologImplFactory.getCompound("predicate_property",
+				new Term[] { db_head, foreign_atom }, null);
+		Term anon = PrologImplFactory.getVar("_", null);
+		PrologCompound imported_from = PrologImplFactory.getCompound("imported_from", new Term[] { anon }, null);
+		PrologCompound imported = PrologImplFactory.getCompound("predicate_property",
+				new Term[] { db_head, imported_from }, null);
+		PrologCompound not_built_in = PrologImplFactory.getCompound("not", new Term[] { built_in }, null);
+		PrologCompound not_foreign = PrologImplFactory.getCompound("not", new Term[] { foreign }, null);
+		PrologCompound not_imported = PrologImplFactory.getCompound("not", new Term[] { imported }, null);
+		PrologCompound retract = PrologImplFactory.getCompound("retractall", new Term[] { db_head }, null);
+		PrologCompound conj45 = PrologImplFactory.getCompound(",", new Term[] { not_imported, retract }, null);
+		PrologCompound conj345 = PrologImplFactory.getCompound(",", new Term[] { not_foreign, conj45 }, null);
+		PrologCompound conj2345 = PrologImplFactory.getCompound(",", new Term[] { not_built_in, conj345 }, null);
+		PrologCompound query = PrologImplFactory.getCompound(",", new Term[] { db_current, conj2345 }, null);
 
 		try {
 			rawquery(query);
@@ -425,7 +423,7 @@ public class PrologDatabase implements Database {
 		if (this.writecache == null) {
 			this.writecache = formula;
 		} else {
-			this.writecache = new PrologCompoundImpl(",", new Term[] { this.writecache, formula },
+			this.writecache = PrologImplFactory.getCompound(",", new Term[] { this.writecache, formula },
 					formula.getSourceInfo());
 		}
 		if (++this.cachecount == Byte.MAX_VALUE) {

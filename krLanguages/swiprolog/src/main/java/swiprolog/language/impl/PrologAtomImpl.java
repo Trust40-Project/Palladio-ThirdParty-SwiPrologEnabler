@@ -35,7 +35,7 @@ import swiprolog.parser.PrologOperators;
 /**
  * A Prolog variable.
  */
-public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
+class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 	/**
 	 * Information about the source used to construct this atom.
 	 */
@@ -53,7 +53,7 @@ public class PrologAtomImpl extends org.jpl7.Atom implements PrologCompound {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologAtomImpl(String name, SourceInfo info) {
+	PrologAtomImpl(String name, SourceInfo info) {
 		super(name, name.equals(JPL.LIST_NIL.name()) ? "reserved_symbol" : "text");
 		this.info = info;
 		this.hashcode = name.hashCode();

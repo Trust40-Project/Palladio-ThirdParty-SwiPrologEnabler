@@ -30,7 +30,7 @@ import swiprolog.language.PrologQuery;
 /**
  * A Prolog query.
  */
-public class PrologQueryImpl implements PrologQuery {
+class PrologQueryImpl implements PrologQuery {
 	/**
 	*
 	*/
@@ -40,16 +40,16 @@ public class PrologQueryImpl implements PrologQuery {
 	 * Creates a Prolog query.
 	 *
 	 * <p>
-	 * Performs no checks whether the term can be queried on a Prolog database
-	 * for efficiency reasons (to avoid checks at run time, e.g., as a result
-	 * from applying a substitution). These checks have been delegated to the
-	 * parser (to perform checks at compile time only).
+	 * Performs no checks whether the term can be queried on a Prolog database for
+	 * efficiency reasons (to avoid checks at run time, e.g., as a result from
+	 * applying a substitution). These checks have been delegated to the parser (to
+	 * perform checks at compile time only).
 	 * </p>
 	 *
 	 * @param compound
 	 *            A compound that can be used as a query.
 	 */
-	public PrologQueryImpl(PrologCompound compound) {
+	PrologQueryImpl(PrologCompound compound) {
 		this.compound = compound;
 	}
 
@@ -74,9 +74,9 @@ public class PrologQueryImpl implements PrologQuery {
 	}
 
 	/**
-	 * ASSUMES the inner prolog term of the query can also be parsed as an
-	 * update. If called on (a-)goal literals in the context of a module, this
-	 * has already been checked by the parser.
+	 * ASSUMES the inner prolog term of the query can also be parsed as an update.
+	 * If called on (a-)goal literals in the context of a module, this has already
+	 * been checked by the parser.
 	 */
 	@Override
 	public Update toUpdate() {

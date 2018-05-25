@@ -27,13 +27,11 @@ import krTools.language.Update;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.PrologCompound;
+import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologExpression;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologUpdate;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologDBFormulaImpl;
-import swiprolog.language.impl.PrologQueryImpl;
-import swiprolog.language.impl.PrologUpdateImpl;
+import swiprolog.language.impl.PrologImplFactory;
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -55,7 +53,7 @@ public class SemanticTools {
 	 *             if the conjunction is not a good Update.
 	 */
 	public static PrologUpdate conj2Update(PrologCompound conjunct) throws ParserException {
-		return new PrologUpdateImpl(basicUpdateCheck(conjunct));
+		return PrologImplFactory.getUpdate(basicUpdateCheck(conjunct));
 	}
 
 	/**
@@ -131,7 +129,7 @@ public class SemanticTools {
 			body = (PrologCompound) term.getArg(1);
 		} else {
 			head = term;
-			body = new PrologAtomImpl("true", term.getSourceInfo());
+			body = PrologImplFactory.getAtom("true", term.getSourceInfo());
 		}
 
 		/*
@@ -170,7 +168,7 @@ public class SemanticTools {
 
 		// try to convert, it will throw if it fails.
 		toGoal(body);
-		return new PrologDBFormulaImpl(term);
+		return PrologImplFactory.getDBFormula(term);
 	}
 
 	/**
@@ -224,7 +222,7 @@ public class SemanticTools {
 	 *             if the conjunction is not a good Query.
 	 */
 	public static PrologQuery toQuery(PrologCompound conjunction) throws ParserException {
-		return new PrologQueryImpl(toGoal(conjunction));
+		return PrologImplFactory.getQuery(toGoal(conjunction));
 	}
 
 	/**
@@ -241,9 +239,7 @@ public class SemanticTools {
 	 */
 	public static Set<String> getDefinedSignatures(Term term, SourceInfo info) throws ParserException {
 		Set<String> signatures = new LinkedHashSet<>();
-		if (term instanceof PrologAtomImpl) {
-			signatures.add(term.getSignature());
-		} else if (term instanceof PrologCompound) {
+		if (term instanceof PrologCompound) {
 			PrologCompound compound = (PrologCompound) term;
 			if (compound.getName().equals(":-")) {
 				switch (compound.getArity()) {
@@ -309,12 +305,12 @@ public class SemanticTools {
 	 */
 	public static Set<String> getUsedSignatures(PrologExpression term) {
 		PrologCompound compound;
-		if (term instanceof PrologDBFormulaImpl) {
-			compound = ((PrologDBFormulaImpl) term).getCompound();
-		} else if (term instanceof PrologQueryImpl) {
-			compound = ((PrologQueryImpl) term).getCompound();
-		} else if (term instanceof PrologUpdateImpl) {
-			compound = ((PrologUpdateImpl) term).getCompound();
+		if (term instanceof PrologDBFormula) {
+			compound = ((PrologDBFormula) term).getCompound();
+		} else if (term instanceof PrologQuery) {
+			compound = ((PrologQuery) term).getCompound();
+		} else if (term instanceof PrologUpdate) {
+			compound = ((PrologUpdate) term).getCompound();
 		} else if (term instanceof PrologCompound) {
 			compound = (PrologCompound) term;
 		} else {

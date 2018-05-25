@@ -23,5 +23,8 @@ import krTools.language.Update;
  * See {@link Update}.
  */
 public interface PrologUpdate extends PrologExpression, Update {
-
+	/**
+	 * @return The {@link PrologCompound} wrapped in this update.
+	 */
+	public PrologCompound getCompound();
 }

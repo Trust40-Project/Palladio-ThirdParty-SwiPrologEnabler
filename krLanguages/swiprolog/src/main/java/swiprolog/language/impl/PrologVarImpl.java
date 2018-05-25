@@ -29,7 +29,7 @@ import swiprolog.language.PrologVar;
 /**
  * A Prolog variable.
  */
-public class PrologVarImpl extends org.jpl7.Variable implements PrologVar {
+class PrologVarImpl extends org.jpl7.Variable implements PrologVar {
 	/**
 	 * Information about the source used to construct this variable.
 	 */
@@ -51,7 +51,7 @@ public class PrologVarImpl extends org.jpl7.Variable implements PrologVar {
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologVarImpl(String name, SourceInfo info) {
+	PrologVarImpl(String name, SourceInfo info) {
 		super(name);
 		this.info = info;
 		this.hashcode = name.hashCode();

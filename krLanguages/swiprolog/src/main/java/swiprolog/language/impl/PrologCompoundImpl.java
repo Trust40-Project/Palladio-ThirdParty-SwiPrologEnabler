@@ -36,7 +36,7 @@ import swiprolog.language.PrologTerm;
 /**
  * A Prolog variable.
  */
-public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompound {
+class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompound {
 	/**
 	 * The terms arguments (exact same as in jpl7.Compound but with different type)
 	 */
@@ -64,7 +64,7 @@ public class PrologCompoundImpl extends org.jpl7.Compound implements PrologCompo
 	 * @param info
 	 *            A source info object.
 	 */
-	public PrologCompoundImpl(String name, Term[] args, SourceInfo info) {
+	PrologCompoundImpl(String name, Term[] args, SourceInfo info) {
 		super(name, args.length);
 		this.args = args;
 		for (int i = 0; i < args.length; ++i) {

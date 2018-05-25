@@ -32,8 +32,7 @@ import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologQuery;
 import swiprolog.language.PrologTerm;
-import swiprolog.language.impl.PrologQueryImpl;
-import swiprolog.language.impl.PrologUpdateImpl;
+import swiprolog.language.impl.PrologImplFactory;
 import swiprolog.visitor.Visitor4;
 
 /**
@@ -65,7 +64,7 @@ public class Validator4 {
 					conj.getSourceInfo()));
 			return null;
 		} else if (conj.toString().equals("true")) { // special case.
-			return new PrologUpdateImpl((PrologCompound) conj);
+			return PrologImplFactory.getUpdate((PrologCompound) conj);
 		} else {
 			try {
 				return SemanticTools.conj2Update((PrologCompound) conj);
@@ -108,7 +107,7 @@ public class Validator4 {
 		for (Term t : this.visitor.visitPrologtext()) {
 			if (t instanceof PrologCompound) {
 				try {
-					goals.add(new PrologQueryImpl(SemanticTools.toGoal((PrologCompound) t)));
+					goals.add(PrologImplFactory.getQuery(SemanticTools.toGoal(t)));
 				} catch (ParserException e) {
 					this.errors.add(e);
 				}

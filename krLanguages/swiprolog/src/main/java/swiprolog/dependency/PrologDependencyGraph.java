@@ -30,8 +30,7 @@ import krTools.language.Term;
 import swiprolog.language.PrologCompound;
 import swiprolog.language.PrologDBFormula;
 import swiprolog.language.PrologQuery;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 import swiprolog.parser.PrologOperators;
 
 /**
@@ -154,8 +153,8 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
 			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
-			Term anon = new PrologVarImpl("_", null);
-			Term stubfunc = new PrologCompoundImpl(content.getName(), new Term[] { anon }, term.getSourceInfo());
+			Term anon = PrologImplFactory.getVar("_", null);
+			Term stubfunc = PrologImplFactory.getCompound(content.getName(), new Term[] { anon }, term.getSourceInfo());
 			terms.add(stubfunc);
 		} else if (signature.equals(";/2") || signature.equals(",/2") || signature.equals("forall/2")) {
 			// Unpack the conjunction, disjunction and forall /2-operators.
@@ -182,8 +181,8 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 			 */
 			// CHECK we assume here that arg is plain atom. What if not??
 			PrologCompound content = (PrologCompound) ((PrologCompound) term).getArg(0);
-			Term anon = new PrologVarImpl("_", null);
-			Term stubfunc = new PrologCompoundImpl(content.getName(), new Term[] { anon, anon, anon },
+			Term anon = PrologImplFactory.getVar("_", null);
+			Term stubfunc = PrologImplFactory.getCompound(content.getName(), new Term[] { anon, anon, anon },
 					term.getSourceInfo());
 			terms.add(stubfunc);
 		} else {

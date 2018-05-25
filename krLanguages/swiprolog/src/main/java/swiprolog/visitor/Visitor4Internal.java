@@ -31,11 +31,7 @@ import krTools.language.Term;
 import krTools.parser.SourceInfo;
 import swiprolog.errors.ParserErrorMessages;
 import swiprolog.language.PrologTerm;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologCompoundImpl;
-import swiprolog.language.impl.PrologFloatImpl;
-import swiprolog.language.impl.PrologIntImpl;
-import swiprolog.language.impl.PrologVarImpl;
+import swiprolog.language.impl.PrologImplFactory;
 import swiprolog.parser.Prolog4Parser;
 import swiprolog.parser.Prolog4Parser.ArglistContext;
 import swiprolog.parser.Prolog4Parser.ClauseContext;
@@ -170,7 +166,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	@Override
 	public PrologTerm visitDirective(DirectiveContext ctx) {
 		PrologTerm t = visitTerm1200(ctx.term1200());
-		return new PrologCompoundImpl(":-", new Term[] { t }, getSourceInfo(ctx));
+		return PrologImplFactory.getCompound(":-", new Term[] { t }, getSourceInfo(ctx));
 	}
 
 	@Override
@@ -194,7 +190,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		if (ctx.term1000() != null) {
 			return visitTerm1000(ctx.term1000());
 		} else {
-			return new PrologAtomImpl("true", getSourceInfo(ctx));
+			return PrologImplFactory.getAtom("true", getSourceInfo(ctx));
 		}
 	}
 
@@ -203,7 +199,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		if (ctx.term1100() != null) {
 			return visitTerm1100(ctx.term1100());
 		} else {
-			return new PrologAtomImpl("true", getSourceInfo(ctx));
+			return PrologImplFactory.getAtom("true", getSourceInfo(ctx));
 		}
 	}
 
@@ -217,7 +213,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		if (ctx.items() != null) {
 			return visitItems(ctx.items());
 		} else {
-			return new PrologAtomImpl(JPL.LIST_NIL.name(), getSourceInfo(ctx));
+			return PrologImplFactory.getAtom(JPL.LIST_NIL.name(), getSourceInfo(ctx));
 		}
 	}
 
@@ -232,14 +228,14 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		} else if (ctx.listterm() != null) {
 			tail = visitListterm(ctx.listterm());
 		} else if (ctx.VARIABLE() != null) {
-			tail = new PrologVarImpl(ctx.VARIABLE().getText(), getSourceInfo(ctx.VARIABLE()));
+			tail = PrologImplFactory.getVar(ctx.VARIABLE().getText(), getSourceInfo(ctx.VARIABLE()));
 		}
 
 		if (tail == null) {
-			PrologTerm empty = new PrologAtomImpl(JPL.LIST_NIL.name(), getSourceInfo(ctx));
-			return new PrologCompoundImpl(JPL.LIST_PAIR, new Term[] { head, empty }, getSourceInfo(ctx));
+			PrologTerm empty = PrologImplFactory.getAtom(JPL.LIST_NIL.name(), getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(JPL.LIST_PAIR, new Term[] { head, empty }, getSourceInfo(ctx));
 		} else {
-			return new PrologCompoundImpl(JPL.LIST_PAIR, new Term[] { head, tail }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(JPL.LIST_PAIR, new Term[] { head, tail }, getSourceInfo(ctx));
 		}
 	}
 
@@ -247,7 +243,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	public PrologTerm visitPrefixoperator(PrefixoperatorContext ctx) {
 		PrologTerm expr1 = visitExpression(ctx.expression(0));
 		PrologTerm expr2 = visitExpression(ctx.expression(1));
-		return new PrologCompoundImpl(ctx.prefixop().getText(), new Term[] { expr1, expr2 }, getSourceInfo(ctx));
+		return PrologImplFactory.getCompound(ctx.prefixop().getText(), new Term[] { expr1, expr2 }, getSourceInfo(ctx));
 	}
 
 	/**
@@ -266,11 +262,9 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			try {
 				Long val = Long.valueOf(num);
 				if (val < Integer.MIN_VALUE || val > Integer.MAX_VALUE) {
-					System.out.println(
-							"SwiPrologMentalState: Warning: Converting large integer number coming from environment to floating point");
-					return new PrologFloatImpl(val, info);
+					return PrologImplFactory.getNumber((double) val, info);
 				} else {
-					return new PrologIntImpl(val, info);
+					return PrologImplFactory.getNumber(val, info);
 				}
 			} catch (NumberFormatException e) {
 				System.out.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING.toReadableString(num));
@@ -281,17 +275,17 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			Double val = Double.valueOf(num);
 			if (val.isNaN()) {
 				throw new NumberFormatException(ParserErrorMessages.NUMBER_NAN.toReadableString(num));
-			}
-			if (val.isInfinite()) {
+			} else if (val.isInfinite()) {
 				throw new NumberFormatException(ParserErrorMessages.NUMBER_INFINITY.toReadableString(num));
+			} else {
+				return PrologImplFactory.getNumber(val, info);
 			}
-			return new PrologFloatImpl(val, info);
 		} catch (NumberFormatException e) {
 			this.errors.add(new ParserException(
 					ParserErrorMessages.NUMBER_NOT_PARSED.toReadableString() + ":" + e.getMessage(), info));
 		}
 		// never return null as others may post process our output.
-		return new PrologIntImpl(1, info);
+		return PrologImplFactory.getNumber(0, info);
 	}
 
 	@Override
@@ -302,15 +296,15 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			String name = ctx.NAME().getText();
 			ArglistContext args = ctx.arglist();
 			if (args == null) {
-				return new PrologAtomImpl(name, getSourceInfo(ctx));
+				return PrologImplFactory.getAtom(name, getSourceInfo(ctx));
 			} else {
 				List<PrologTerm> terms = visitArglist(args);
-				return new PrologCompoundImpl(name, terms.toArray(new Term[terms.size()]), getSourceInfo(ctx));
+				return PrologImplFactory.getCompound(name, terms.toArray(new Term[terms.size()]), getSourceInfo(ctx));
 			}
 		} else if (ctx.VARIABLE() != null) {
-			return new PrologVarImpl(ctx.VARIABLE().getText(), getSourceInfo(ctx));
+			return PrologImplFactory.getVar(ctx.VARIABLE().getText(), getSourceInfo(ctx));
 		} else if (ctx.STRING() != null) {
-			return new PrologAtomImpl(unquote(ctx.STRING().getText()), getSourceInfo(ctx));
+			return PrologImplFactory.getAtom(unquote(ctx.STRING().getText()), getSourceInfo(ctx));
 		} else if (ctx.LBR() != null || ctx.CLBR() != null) {
 			return visitTerm1200(ctx.term1200());
 		} else if (ctx.listterm() != null) {
@@ -329,7 +323,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			return t1;
 		} else {
 			PrologTerm t2 = visitTerm0(ctx.term0(1));
-			return new PrologCompoundImpl(":", new Term[] { t1, t2 }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(":", new Term[] { t1, t2 }, getSourceInfo(ctx));
 		}
 	}
 
@@ -340,14 +334,14 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			return t1;
 		} else {
 			PrologTerm t2 = visitTerm50(ctx.term50(1));
-			return new PrologCompoundImpl("@", new Term[] { t1, t2 }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound("@", new Term[] { t1, t2 }, getSourceInfo(ctx));
 		}
 	}
 
 	@Override
 	public PrologTerm visitTerm200(Term200Context ctx) {
 		String op = null;
-		SourceInfo info = getSourceInfo(ctx);
+		// SourceInfo info = getSourceInfo(ctx);
 		/**
 		 * (op = '-' | op= '\\' ) term200 <br>
 		 * | term100 ( (op= '^' term200) | (op='**' term100) )?
@@ -360,19 +354,19 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		if ("-".equals(op) || "\\".equals(op)) {
 			// (op = '-' | op= '\\' ) term200
 			PrologTerm t = visitTerm200(ctx.term200());
-			term = new PrologCompoundImpl(op, new Term[] { t }, getSourceInfo(ctx));
-			if (op.equals("-")) {
-				// minus sign, check special case of numeric constant.
-				// See ISO 6.3.1.2 footnote
-				// Note, we interpret this footnote RECURSIVELY, eg --1 == 1.
-				// Note that this notation is not SWI prolog compatible, SWI
-				// seems to fail ISO compliance here.
-				if (t instanceof PrologFloatImpl) {
-					term = new PrologFloatImpl(-1 * ((PrologFloatImpl) t).doubleValue(), info);
-				} else if (t instanceof PrologIntImpl) {
-					term = new PrologIntImpl(-1 * ((PrologIntImpl) t).longValue(), info);
-				}
-			}
+			term = PrologImplFactory.getCompound(op, new Term[] { t }, getSourceInfo(ctx));
+			// if (op.equals("-")) {
+			// minus sign, check special case of numeric constant.
+			// See ISO 6.3.1.2 footnote
+			// Note, we interpret this footnote RECURSIVELY, eg --1 == 1.
+			// Note that this notation is not SWI prolog compatible, SWI
+			// seems to fail ISO compliance here.
+			// if (t instanceof PrologFloatImpl) {
+			// term = new PrologFloatImpl(-1 * ((PrologFloatImpl) t).doubleValue(), info);
+			// } else if (t instanceof PrologIntImpl) {
+			// term = new PrologIntImpl(-1 * ((PrologIntImpl) t).longValue(), info);
+			// }
+			// }
 		} else {
 			// term100 ( (op= '^' term200) | (op= '**' term100) )?
 			PrologTerm t1 = visitTerm100(ctx.term100(0));
@@ -385,7 +379,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 				} else {
 					t2 = visitTerm100(ctx.term100(1));
 				}
-				term = new PrologCompoundImpl(op, new Term[] { t1, t2 }, getSourceInfo(ctx));
+				term = PrologImplFactory.getCompound(op, new Term[] { t1, t2 }, getSourceInfo(ctx));
 			}
 		}
 		return term;
@@ -400,7 +394,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		PrologTerm term = visitTerm200(ctx.term200());
 		for (Term400bContext t : ctx.term400b()) {
 			PrologTerm t1 = visitTerm400b(t);
-			term = new PrologCompoundImpl(t.op.getText(), new Term[] { term, t1 }, getSourceInfo(ctx));
+			term = PrologImplFactory.getCompound(t.op.getText(), new Term[] { term, t1 }, getSourceInfo(ctx));
 		}
 		return term;
 	}
@@ -418,7 +412,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		PrologTerm term = visitTerm400(ctx.term400());
 		for (Term500bContext t : ctx.term500b()) {
 			PrologTerm t1 = visitTerm500b(t);
-			term = new PrologCompoundImpl(t.op.getText(), new Term[] { term, t1 }, getSourceInfo(ctx));
+			term = PrologImplFactory.getCompound(t.op.getText(), new Term[] { term, t1 }, getSourceInfo(ctx));
 		}
 		return term;
 	}
@@ -441,7 +435,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		} else {
 			// we DO have the optional RHS term. Make a compound.
 			PrologTerm rhs = visitTerm500(ctx.term500(1));
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
 		}
 	}
 
@@ -454,7 +448,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			return visitTerm700(ctx.term700());
 		} else {
 			PrologTerm hs = visitTerm900(ctx.term900());
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { hs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { hs }, getSourceInfo(ctx));
 		}
 	}
 
@@ -468,7 +462,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			return lhs;
 		} else {
 			PrologTerm rhs = visitTerm1000(ctx.term1000());
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
 		}
 
 	}
@@ -483,7 +477,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			return lhs;
 		} else {
 			PrologTerm rhs = visitTerm1050(ctx.term1050());
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
 		}
 	}
 
@@ -497,7 +491,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			return lhs;
 		} else {
 			PrologTerm rhs = visitTerm1100(ctx.term1100());
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
 		}
 	}
 
@@ -511,7 +505,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			return lhs;
 		} else {
 			PrologTerm rhs = visitTerm1105(ctx.term1105());
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
 		}
 	}
 
@@ -522,7 +516,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 			return visitTerm1105(ctx.term1105());
 		} else {
 			PrologTerm hs = visitTerm1000(ctx.term1000());
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { hs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { hs }, getSourceInfo(ctx));
 		}
 	}
 
@@ -535,11 +529,11 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		if (ctx.op == null) {
 			return lhs;
 		} else if ("?-".equals(ctx.op.getText())) {
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { lhs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { lhs }, getSourceInfo(ctx));
 		} else {
 			// op=':-' | op='-->' and we have a 2nd arg
 			PrologTerm rhs = visitTerm1150(ctx.term1150(1));
-			return new PrologCompoundImpl(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
+			return PrologImplFactory.getCompound(ctx.op.getText(), new Term[] { lhs, rhs }, getSourceInfo(ctx));
 		}
 	}
 

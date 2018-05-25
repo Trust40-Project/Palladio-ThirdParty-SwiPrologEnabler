@@ -13,8 +13,7 @@ import krTools.exceptions.KRDatabaseException;
 import krTools.language.DatabaseFormula;
 import swiprolog.SwiPrologInterface;
 import swiprolog.language.PrologCompound;
-import swiprolog.language.impl.PrologAtomImpl;
-import swiprolog.language.impl.PrologDBFormulaImpl;
+import swiprolog.language.impl.PrologImplFactory;
 
 public class TestUpdate2 {
 	// components enabling us to run the tests...
@@ -29,9 +28,9 @@ public class TestUpdate2 {
 	@Before
 	public void setUp() throws Exception {
 		this.language = new SwiPrologInterface();
-		this.k1 = new PrologAtomImpl("aap", null);
-		this.k2 = new PrologAtomImpl("beer", null);
-		this.k3 = new PrologAtomImpl("kat", null);
+		this.k1 = PrologImplFactory.getAtom("aap", null);
+		this.k2 = PrologImplFactory.getAtom("beer", null);
+		this.k3 = PrologImplFactory.getAtom("kat", null);
 		fillKB();
 	}
 
@@ -52,8 +51,8 @@ public class TestUpdate2 {
 	 */
 	private void fillKB() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory = new LinkedHashSet<>(2);
-		kbtheory.add(new PrologDBFormulaImpl(this.k1));
-		kbtheory.add(new PrologDBFormulaImpl(this.k2));
+		kbtheory.add(PrologImplFactory.getDBFormula(this.k1));
+		kbtheory.add(PrologImplFactory.getDBFormula(this.k2));
 		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory, true);
 		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0), false);
 	}
@@ -65,7 +64,7 @@ public class TestUpdate2 {
 	 */
 	private void fillKB2() throws KRDatabaseException {
 		Set<DatabaseFormula> kbtheory2 = new LinkedHashSet<>(1);
-		kbtheory2.add(new PrologDBFormulaImpl(this.k3));
+		kbtheory2.add(PrologImplFactory.getDBFormula(this.k3));
 		this.knowledgebase = this.language.getDatabase("knowledge", kbtheory2, true);
 		this.beliefbase = this.language.getDatabase("beliefs", new LinkedHashSet<DatabaseFormula>(0), false);
 	}
@@ -93,8 +92,8 @@ public class TestUpdate2 {
 	// }
 
 	/**
-	 * Delete all databases. Just a smoke test, as we can't do anything with
-	 * deleted databases.
+	 * Delete all databases. Just a smoke test, as we can't do anything with deleted
+	 * databases.
 	 */
 	@Test
 	public void testDeleteAll() throws Exception {
@@ -105,8 +104,8 @@ public class TestUpdate2 {
 	}
 
 	/**
-	 * Create new Kb and Bb for SAME AGENT NAME, and check that the new BB has
-	 * the new Kb content.
+	 * Create new Kb and Bb for SAME AGENT NAME, and check that the new BB has the
+	 * new Kb content.
 	 */
 	@Test
 	public void testRecreateKbAndBb() throws Exception {
