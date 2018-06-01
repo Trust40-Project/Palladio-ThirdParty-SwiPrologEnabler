@@ -61,7 +61,7 @@ public class Validator4 {
 		Term conj = this.visitor.visitPossiblyEmptyConjunct();
 		if (!(conj instanceof PrologCompound)) {
 			this.errors.add(new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(conj),
-					conj.getSourceInfo()));
+					(conj == null) ? null : conj.getSourceInfo()));
 			return null;
 		} else if (conj.toString().equals("true")) { // special case.
 			return PrologImplFactory.getUpdate((PrologCompound) conj);
@@ -196,7 +196,7 @@ public class Validator4 {
 	}
 
 	/**
-	 * @return true iff parsing was successfull which means {@link #getErrors()}
+	 * @return true iff parsing was successful which means {@link #getErrors()}
 	 *         returns empty list.
 	 */
 	public boolean isSuccess() {
