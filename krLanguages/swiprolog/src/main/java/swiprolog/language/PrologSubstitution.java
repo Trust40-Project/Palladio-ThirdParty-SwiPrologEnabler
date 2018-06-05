@@ -63,8 +63,7 @@ public class PrologSubstitution extends LinkedHashMap<Var, Term> implements Subs
 	 *            JPL substitution.
 	 */
 	private PrologSubstitution(Map<Var, Term> solution) {
-		super();
-		putAll(solution);
+		super(solution);
 	}
 
 	/**
