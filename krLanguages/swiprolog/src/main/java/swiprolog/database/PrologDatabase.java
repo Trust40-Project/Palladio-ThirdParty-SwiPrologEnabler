@@ -327,7 +327,6 @@ public class PrologDatabase implements Database {
 				Term term = fromJpl(entry.getValue());
 				subst.addBinding(var, term);
 			}
-			subst.makeConsistent();
 			substitutions.add(subst);
 		}
 

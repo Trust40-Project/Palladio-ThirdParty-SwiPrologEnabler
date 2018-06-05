@@ -176,27 +176,6 @@ public class PrologSubstitution extends LinkedHashMap<Var, Term> implements Subs
 		return new PrologSubstitution(this);
 	}
 
-	public void makeConsistent() {
-		// FIXME: THIS IS A HACKY WORKAROUND FOR A SWI 7 BUG,
-		// where e.g. Term/_1234 and _1234/atom occur in substs.
-		for (Var var : keySet()) {
-			Term term = get(var);
-			if (term.isVar()) {
-				Term realterm = get((Var) term);
-				if (realterm != null) {
-					put(var, realterm);
-				}
-			}
-		}
-		Iterator<Var> vars = keySet().iterator();
-		while (vars.hasNext()) {
-			PrologVar next = (PrologVar) vars.next();
-			if (next.getName().startsWith("_")) {
-				vars.remove();
-			}
-		}
-	}
-
 	/**
 	 * Returns a string representation of this {@link PrologSubstitution}.
 	 *
