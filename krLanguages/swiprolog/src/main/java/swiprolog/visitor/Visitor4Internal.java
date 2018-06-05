@@ -97,16 +97,16 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		}
 		return (start == null) ? null
 				: new SourceInfoObject(this.source.getSource(), start.getLine(), start.getCharPositionInLine(),
-						this.source.getStartIndex() + start.getStartIndex() + 1,
-						this.source.getStartIndex() + stop.getStopIndex() + 1);
+						this.source.getStartIndex() + start.getStartIndex(),
+						this.source.getStartIndex() + stop.getStopIndex());
 	}
 
 	private SourceInfo getSourceInfo(TerminalNode leaf) {
 		Token symbol = (leaf == null) ? null : leaf.getSymbol();
 		return (symbol == null) ? null
 				: new SourceInfoObject(this.source.getSource(), symbol.getLine(), symbol.getCharPositionInLine(),
-						this.source.getStartIndex() + symbol.getStartIndex() + 1,
-						this.source.getStartIndex() + symbol.getStopIndex() + 1);
+						this.source.getStartIndex() + symbol.getStartIndex(),
+						this.source.getStartIndex() + symbol.getStopIndex());
 	}
 
 	/**
