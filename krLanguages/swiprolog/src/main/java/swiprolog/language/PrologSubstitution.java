@@ -19,6 +19,7 @@ package swiprolog.language;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +121,7 @@ public class PrologSubstitution extends LinkedHashMap<Var, Term> implements Subs
 		Substitution combination = new PrologSubstitution();
 
 		// Apply the parameter substitution to this substitution.
-		for (Var var : getVariables()) {
+		for (Var var : keySet()) {
 			// Add binding for variable to term obtained by applying the
 			// parameter substitution to the original term.
 			Term term = var.applySubst(substitution);
@@ -159,9 +160,11 @@ public class PrologSubstitution extends LinkedHashMap<Var, Term> implements Subs
 	@Override
 	public boolean retainAll(Collection<Var> varsToRetain) {
 		boolean removed = false;
-		for (Var var : getVariables()) {
+		Iterator<Var> vars = keySet().iterator();
+		while (vars.hasNext()) {
+			Var var = vars.next();
 			if (!varsToRetain.contains(var)) {
-				remove(var);
+				vars.remove();
 				removed = true;
 			}
 		}
@@ -171,6 +174,27 @@ public class PrologSubstitution extends LinkedHashMap<Var, Term> implements Subs
 	@Override
 	public Substitution clone() {
 		return new PrologSubstitution(this);
+	}
+
+	public void makeConsistent() {
+		// FIXME: THIS IS A HACKY WORKAROUND FOR A SWI 7 BUG,
+		// where e.g. Term/_1234 and _1234/atom occur in substs.
+		for (Var var : keySet()) {
+			Term term = get(var);
+			if (term.isVar()) {
+				Term realterm = get((Var) term);
+				if (realterm != null) {
+					put(var, realterm);
+				}
+			}
+		}
+		Iterator<Var> vars = keySet().iterator();
+		while (vars.hasNext()) {
+			PrologVar next = (PrologVar) vars.next();
+			if (next.getName().startsWith("_")) {
+				vars.remove();
+			}
+		}
 	}
 
 	/**
@@ -185,7 +209,7 @@ public class PrologSubstitution extends LinkedHashMap<Var, Term> implements Subs
 		builder.append("[");
 		boolean addComma = false;
 
-		for (Var var : getVariables()) {
+		for (Var var : keySet()) {
 			if (addComma) {
 				builder.append(", ");
 			}

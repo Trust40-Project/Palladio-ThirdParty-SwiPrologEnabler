@@ -321,12 +321,13 @@ public class PrologDatabase implements Database {
 		// Convert to PrologSubstitution.
 		Set<Substitution> substitutions = new LinkedHashSet<>(solutions.length);
 		for (Map<String, org.jpl7.Term> solution : solutions) {
-			Substitution subst = new PrologSubstitution();
+			PrologSubstitution subst = new PrologSubstitution();
 			for (Entry<String, org.jpl7.Term> entry : solution.entrySet()) {
 				Var var = PrologImplFactory.getVar(entry.getKey(), null);
 				Term term = fromJpl(entry.getValue());
 				subst.addBinding(var, term);
 			}
+			subst.makeConsistent();
 			substitutions.add(subst);
 		}
 
