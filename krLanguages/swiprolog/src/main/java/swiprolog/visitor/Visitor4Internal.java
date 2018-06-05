@@ -251,16 +251,21 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	 *
 	 * @param num
 	 *            number to parse
+	 * @param boolean
+	 *            there was a minus sign in front of the number
 	 * @param info
 	 *            the {@link SourceInfo}
 	 * @return the parsed term. If failure, this returns a term '1' and reports the
 	 *         error in the {@link #errors} list.
 	 */
-	private PrologTerm parseNumber(String num, SourceInfo info) {
+	private PrologTerm parseNumber(String num, boolean negative, SourceInfo info) {
 		if (num.matches("[0-9]+") || num.matches("0[box].*")) {
 			// integer string
 			try {
 				Long val = Long.valueOf(num);
+				if (negative) {
+					val *= -1;
+				}
 				if (val < Integer.MIN_VALUE || val > Integer.MAX_VALUE) {
 					return PrologImplFactory.getNumber((double) val, info);
 				} else {
@@ -273,6 +278,9 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		// float
 		try {
 			Double val = Double.valueOf(num);
+			if (negative) {
+				val *= -1;
+			}
 			if (val.isNaN()) {
 				throw new NumberFormatException(ParserErrorMessages.NUMBER_NAN.toReadableString(num));
 			} else if (val.isInfinite()) {
@@ -291,7 +299,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	@Override
 	public PrologTerm visitTerm0(Term0Context ctx) {
 		if (ctx.NUMBER() != null) {
-			return parseNumber(ctx.NUMBER().getText(), getSourceInfo(ctx));
+			return parseNumber(ctx.NUMBER().getText(), false, getSourceInfo(ctx));
 		} else if (ctx.NAME() != null) {
 			String name = ctx.NAME().getText();
 			ArglistContext args = ctx.arglist();
@@ -341,7 +349,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	@Override
 	public PrologTerm visitTerm200(Term200Context ctx) {
 		String op = null;
-		// SourceInfo info = getSourceInfo(ctx);
+		SourceInfo info = getSourceInfo(ctx);
 		/**
 		 * (op = '-' | op= '\\' ) term200 <br>
 		 * | term100 ( (op= '^' term200) | (op='**' term100) )?
@@ -354,19 +362,15 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		if ("-".equals(op) || "\\".equals(op)) {
 			// (op = '-' | op= '\\' ) term200
 			PrologTerm t = visitTerm200(ctx.term200());
-			term = PrologImplFactory.getCompound(op, new Term[] { t }, getSourceInfo(ctx));
-			// if (op.equals("-")) {
-			// minus sign, check special case of numeric constant.
-			// See ISO 6.3.1.2 footnote
-			// Note, we interpret this footnote RECURSIVELY, eg --1 == 1.
-			// Note that this notation is not SWI prolog compatible, SWI
-			// seems to fail ISO compliance here.
-			// if (t instanceof PrologFloatImpl) {
-			// term = new PrologFloatImpl(-1 * ((PrologFloatImpl) t).doubleValue(), info);
-			// } else if (t instanceof PrologIntImpl) {
-			// term = new PrologIntImpl(-1 * ((PrologIntImpl) t).longValue(), info);
-			// }
-			// }
+			term = PrologImplFactory.getCompound(op, new Term[] { t }, info);
+			if (op.equals("-") && t.isNumeric()) {
+				// minus sign, check special case of numeric constant.
+				// See ISO 6.3.1.2 footnote
+				// Note, we interpret this footnote RECURSIVELY, eg --1 == 1.
+				// Note that this notation is not SWI prolog compatible, SWI
+				// seems to fail ISO compliance here.
+				term = parseNumber(t.toString(), true, info);
+			}
 		} else {
 			// term100 ( (op= '^' term200) | (op= '**' term100) )?
 			PrologTerm t1 = visitTerm100(ctx.term100(0));
