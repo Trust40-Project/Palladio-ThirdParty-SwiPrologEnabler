@@ -107,9 +107,9 @@ prefixoperator   // compensates for absence of names derived from graphic token.
  only as unary prefix operator (see term200 below for the 'infix' version.)
 */
 prefixop
-  :  '-->' | ';' | '->' | '=' | '\\=' | '==' | '\\==' | '@<' | '@=<' | '@>' | '@>=' | '=..' | 'is' |
-    '=:=' | '=\\=' | '<' | '=<' | '>' | '>=' | '+' | '/\\' | '\\/' | '*' | '/' | '//' | 'rem' |
-    'mod' | '<<' | '>>' | '**' | '^' ;
+  :  LARROW | SEMICOLON | ARROW | EQ | NOTEQ | IDENTICAL | NOTIDENTICAL | ALPHALT | ALPHALE | ALPHAGT | ALPHAGE | UNIV | IS |
+    EQUAL | NOTEQUAL | LT | LE | GT | GE | PLUS | AND | OR | STAR | SLASH | SLASH2 | REM |
+    MOD | LT2 | GT2 | STAR2 | UP ;
 
 /* 
  * Prolog terms have been defined using the grammar design pattern in Terence Parr, 2007, The Definitive ANTLR
