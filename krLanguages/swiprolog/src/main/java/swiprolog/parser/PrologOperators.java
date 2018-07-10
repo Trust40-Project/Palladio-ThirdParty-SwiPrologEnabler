@@ -39,8 +39,9 @@ public final class PrologOperators {
 	/**
 	 * Fixity is a part of a prolog operator specification. The specifier is a
 	 * mnemonic that defines the class (prefix, infix or postfix) and the
-	 * associativity (right-, left- or non-) of the operator. This has consequences
-	 * for bracketing requirements. See the ISO/IEC 12331 manual for more details.
+	 * associativity (right-, left- or non-) of the operator. This has
+	 * consequences for bracketing requirements. See the ISO/IEC 12331 manual
+	 * for more details.
 	 */
 	public enum Fixity {
 		NOT_OPERATOR, XFX, FX, XFY, YFX, FY, XF
@@ -48,8 +49,9 @@ public final class PrologOperators {
 
 	/**
 	 * The built-in ops. Users are NOT allowed to overwrite builtin ops. All
-	 * operators that are built-in but not defined here are not known as built-in,
-	 * and thus not useable (i.e., will give not defined error in parsing).
+	 * operators that are built-in but not defined here are not known as
+	 * built-in, and thus not useable (i.e., will give not defined error in
+	 * parsing).
 	 */
 	public static final Map<String, Integer> OP_PRIOS;
 
@@ -245,8 +247,22 @@ public final class PrologOperators {
 
 		// SWI 4.14 - database is purposely restricted (handled by GOAL)
 		// SWI 4.15 - idem for predicate properties
-		// (dynamic/1 is the only directive that is supported; handled in SemanticTools)
-		// SWI 4.16 - program examination does not seem useful
+		// (dynamic/1 is the only directive that is supported; handled in
+		// SemanticTools)
+		// SWI 4.16 - program examination
+		OP_PRIOS.put("current_atom/1", 0);
+		OP_PRIOS.put("current_blob/2", 0);
+		OP_PRIOS.put("current_functor/2", 0);
+		OP_PRIOS.put("current_flag/1", 0);
+		OP_PRIOS.put("current_key/1", 0);
+		OP_PRIOS.put("current_predicate/1", 0);
+		OP_PRIOS.put("current_predicate/2", 0);
+		OP_PRIOS.put("predicate_property/2", 0);
+		OP_PRIOS.put("dwim_predicate/2", 0);
+		OP_PRIOS.put("clause/2", 0);
+		OP_PRIOS.put("clause/3", 0);
+		OP_PRIOS.put("nth_clause/3", 0);
+		OP_PRIOS.put("clause_property/2", 0);
 
 		// SWI 4.17: Input and output
 		OP_PRIOS.put("open/4", 0);
@@ -485,7 +501,8 @@ public final class PrologOperators {
 		// SWI 4.33 - we do not support global variables
 		// SWI 4.34 - terminal control is not needed
 
-		// SWI 4.35.2: Dealing with time and date (other OS predicates not supported)
+		// SWI 4.35.2: Dealing with time and date (other OS predicates not
+		// supported)
 		OP_PRIOS.put("get_time/1", 0);
 		OP_PRIOS.put("stamp_date_time/3", 0);
 		OP_PRIOS.put("date_time_stamp/2", 0);
@@ -584,13 +601,16 @@ public final class PrologOperators {
 		OP_PRIOS.put("scanl/6", 0); // new in SWI7.6.4
 		OP_PRIOS.put("scanl/7", 0); // new in SWI7.6.4
 
-		// SWI A.3 - Association lists not supported at the moment (TODO: seems useful?)
+		// SWI A.3 - Association lists not supported at the moment (TODO: seems
+		// useful?)
 		// SWI A.4 - Event notifications not supported
 		// SWI A.5 - Not supported as better native predicates are available
 		// SWI A.6 - Consistency checking not supported
 		// SWI A.7/A.8/A.9 - Constraint programming not supported
-		// SWI A.10 - CSV processing not supported at the moment (TODO: seems useful?)
-		// SWI A.11 - Not supported as it is a replacement for the native format/3
+		// SWI A.10 - CSV processing not supported at the moment (TODO: seems
+		// useful?)
+		// SWI A.11 - Not supported as it is a replacement for the native
+		// format/3
 		// SWI A.12 - "" "" for print_message/2
 		// SWI A.13 - Generating unique identifiers is not supported
 		// SWI A.14 - External streams not supported at the moment
@@ -698,6 +718,12 @@ public final class PrologOperators {
 		// SWI A.38 - URLs not supported
 		// SWI A.39 - Numbered terms not supported
 		// SWI A.40 - Lambda expressions not supported
+
+		// SWI 6.13
+		OP_PRIOS.put("module_transparent/1", 0);
+		OP_PRIOS.put("context_module/1", 0);
+		OP_PRIOS.put("strip_module/3", 0);
+
 	}
 
 	// constructor is not allowed. Static utility method.
@@ -705,13 +731,15 @@ public final class PrologOperators {
 	}
 
 	/**
-	 * Built-in operators are already defined in SWI Prolog, and one should not try
-	 * to redefine these by inserting or deleting these (even though SWI Prolog
-	 * allows redefining built-in operators, we do not consider this good practice).
+	 * Built-in operators are already defined in SWI Prolog, and one should not
+	 * try to redefine these by inserting or deleting these (even though SWI
+	 * Prolog allows redefining built-in operators, we do not consider this good
+	 * practice).
 	 * </p>
 	 *
-	 * @returns {@code true} if signature is built-in Prolog function <em>and</em>
-	 *          is not a protected predicate, {@code false} otherwise.
+	 * @returns {@code true} if signature is built-in Prolog function
+	 *          <em>and</em> is not a protected predicate, {@code false}
+	 *          otherwise.
 	 */
 	public static boolean prologBuiltin(String signature) {
 		return OP_PRIOS.containsKey(signature);
@@ -720,8 +748,8 @@ public final class PrologOperators {
 	/**
 	 * @param signature
 	 *            is funcname+"/"+#arguments, eg "member/2"
-	 * @return spec given signature, or null if no such signature. specification is
-	 *         fx, fy, xfy, xfx, etc.
+	 * @return spec given signature, or null if no such signature. specification
+	 *         is fx, fy, xfy, xfx, etc.
 	 */
 	public static PrologOperators.Fixity getFixity(String signature) {
 		return OPERATOR_SPECS.get(signature);
@@ -730,16 +758,17 @@ public final class PrologOperators {
 	/**
 	 * @param signature
 	 *            is funcname+"/"+#arguments, e.g. "member/2"
-	 * @returns priority of given signature, or {@code null} if no such signature.
+	 * @returns priority of given signature, or {@code null} if no such
+	 *          signature.
 	 */
 	public static Integer getPriority(String signature) {
 		return OP_PRIOS.get(signature);
 	}
 
 	/**
-	 * Checks if given label is L-atom (see L-atom, ISO p.132 in sec.A.3.1). which
-	 * refers to a concrete atom (identifier), see clause 6.1.2b see also ISO Prolog
-	 * definition of Name in section 6.4.2.
+	 * Checks if given label is L-atom (see L-atom, ISO p.132 in sec.A.3.1).
+	 * which refers to a concrete atom (identifier), see clause 6.1.2b see also
+	 * ISO Prolog definition of Name in section 6.4.2.
 	 *
 	 * @return {@code true} if label is predication.
 	 */
