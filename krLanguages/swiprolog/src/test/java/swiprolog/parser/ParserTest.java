@@ -47,9 +47,9 @@ public class ParserTest {
 				{ "head :- a , b , c" }, { "p([p])" }, { "p([a,b,c])" }, { "bet(-1,1,X)" }, { "p([[a,b,c],[d,e,f]])" },
 				// WE CAN NOT PARSE THIS { "[1,2|4]" },
 				{ "head :- X is 1- -1" }, { "head :- X*(-1 , 2)" }, { "head :- X is 1+ -(1+2)" }, { "p([p(1,2),3])" },
-				{ "p" }, { "'.'" },
-				// We apparently can't parse terms like "'bla.'" ,
-				// "p('.'(1,2,3))"
+				{ "p" }, { "'.'" }, { "p('bla.')" },
+				// { "p('.'(1,2,3))" }, allowed in ISO but not by us: predicate
+				// name can not be single-quoted strings.
 				// JPL7 bug: single quotes are not escaped properly
 				// { "p('a\'bc ')" },
 				{ "p('Příliš žluťoučký kůň úpěl ďábelské ódy')" } });
@@ -82,9 +82,9 @@ public class ParserTest {
 
 		// Term list = Util.textToTerm(input);
 		/*
-		 * With some terms like "between(-1,1,X), JPLUtils is playing some weird tricks:
-		 * it inserts whitespaces where they are not in the original term, and removes
-		 * them where they are in the original term.
+		 * With some terms like "between(-1,1,X), JPLUtils is playing some weird
+		 * tricks: it inserts whitespaces where they are not in the original
+		 * term, and removes them where they are in the original term.
 		 */
 		assertEquals(this.input.replaceAll(" ", ""), result.replaceAll(" ", ""));
 	}
