@@ -41,13 +41,13 @@ import swiprolog.parser.PrologOperators;
 public class SemanticTools {
 	/**
 	 * <p>
-	 * Performs additional checks on top of {@link #basicUpdateCheck}, to check that
-	 * conjunct is good update.
+	 * Performs additional checks on top of {@link #basicUpdateCheck}, to check
+	 * that conjunct is good update.
 	 * </p>
 	 *
 	 * @param {@link
-	 * 			PrologCompound} that is supposedly an update (ie conjunct of [not]
-	 *            dbFormula)
+	 * 			PrologCompound} that is supposedly an update (ie conjunct of
+	 *            [not] dbFormula)
 	 * @returns the original term (no conversion is performed)
 	 * @throws ParserException
 	 *             if the conjunction is not a good Update.
@@ -58,12 +58,12 @@ public class SemanticTools {
 
 	/**
 	 * <p>
-	 * Checks if {@link PrologCompound} may be used as update, i.e. a conjunct of
-	 * either a {@link DatabaseFormula} or not(DatabaseFormula).
+	 * Checks if {@link PrologCompound} may be used as update, i.e. a conjunct
+	 * of either a {@link DatabaseFormula} or not(DatabaseFormula).
 	 *
 	 * @param conjunct
-	 *            is the PrologCompound to be checked which is a zipped conjunct.
-	 *            (see {@link PrologCompound#getConjuncts})
+	 *            is the PrologCompound to be checked which is a zipped
+	 *            conjunct. (see {@link PrologCompound#getConjuncts})
 	 * @throws ParserException
 	 *             if term not acceptable as DatabaseFormula.
 	 *             </p>
@@ -89,30 +89,31 @@ public class SemanticTools {
 
 	/**
 	 * <p>
-	 * Converts given {@link PrologCompound} into a {@link DatabaseFormula} object
-	 * made of it. Basic idea is that it checks that assert() will work (not throw
-	 * exceptions). This function checks only SINGLE formulas, not conjunctions. Use
-	 * toDBFormulaList for that.
+	 * Converts given {@link PrologCompound} into a {@link DatabaseFormula}
+	 * object made of it. Basic idea is that it checks that assert() will work
+	 * (not throw exceptions). This function checks only SINGLE formulas, not
+	 * conjunctions. Use toDBFormulaList for that.
 	 * </p>
 	 * <p>
-	 * Check ISO section 8.9.1.3. If term not of form "head:-body" then head is to
-	 * be taken the term itself and body to be "true" We fail if<br>
+	 * Check ISO section 8.9.1.3. If term not of form "head:-body" then head is
+	 * to be taken the term itself and body to be "true" We fail if<br>
 	 * 1. Head is a variable<br>
-	 * 2. head can not be converted to a predication (@see D-is-a-precication in ISO
-	 * p.132- )<br>
+	 * 2. head can not be converted to a predication (@see D-is-a-precication in
+	 * ISO p.132- )<br>
 	 * 3. body can not be converted to a goal<br>
 	 * CHECK 4. "The predicate indicator Pred of Head is not that of a dynamic
-	 * procedure" . What does that mean and should we do something to prevent this?
+	 * procedure" . What does that mean and should we do something to prevent
+	 * this?
 	 * </p>
 	 * <p>
-	 * ISO section 6.2 also deals with this. Basically it defines directive terms
-	 * and clause terms, and combined they allow every term that can be part of the
-	 * database.
+	 * ISO section 6.2 also deals with this. Basically it defines directive
+	 * terms and clause terms, and combined they allow every term that can be
+	 * part of the database.
 	 * </p>
 	 * <p>
 	 * ISO section 7.4 defines the way they are used when loading a database.
-	 * Particularly the operators that are Directives are treated specially. In GOAL
-	 * we do not want to support these and need exclusion. this is done via
+	 * Particularly the operators that are Directives are treated specially. In
+	 * GOAL we do not want to support these and need exclusion. this is done via
 	 * PrologOperators.goalProtected()
 	 * </p>
 	 *
@@ -172,45 +173,41 @@ public class SemanticTools {
 	}
 
 	/**
-	 * Checks that compound is a well formed Prolog goal.
-	 * <p>
-	 * ISO requires rebuild of the term but in our case we do not allow variables
-	 * and hence a real rebuild is not necessary. Instead, we simply return the
-	 * original term after checking.
-	 * </p>
+	 * Checks that compound is a well formed Prolog goal. ISO requires rebuild
+	 * of the term but in our case we do not allow variables and hence a real
+	 * rebuild is not necessary. Instead, we simply return the original term
+	 * after checking.
 	 *
-	 * @return the compound "rewritten" as a Prolog goal according to ISO.
+	 * @return the compound "rewritten" as a Prolog goal according to ISO 7.6.2.
 	 * @throws ParserException
 	 *             If t is not a well formed Prolog goal.
 	 */
 	public static PrologCompound toGoal(Term t) throws ParserException {
-		if (t instanceof PrologCompound) {
-			PrologCompound c = (PrologCompound) t;
-			if (c.getName().equals(":-")) {
-				if (c.getArity() == 1) {
-					throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t),
-							t.getSourceInfo());
-				} else if (c.getArity() == 2) {
-					throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t),
-							t.getSourceInfo());
-				}
-			}
-			if ((c.getArity() == 2)
-					&& (c.getName().equals(",") || c.getName().equals(";") || c.getName().equals("->"))) {
-				toGoal(c.getArg(0));
-				toGoal(c.getArg(1));
-			}
-			return c;
-		} else {
+		if (!(t instanceof PrologCompound)) {
 			throw new ParserException(ParserErrorMessages.EXPECTED_COMPOUND.toReadableString(t), t.getSourceInfo());
 		}
+
+		PrologCompound c = (PrologCompound) t;
+		switch (c.getSignature()) {
+		case ":-/1":
+			throw new ParserException(ParserErrorMessages.DIRECTIVE_NOT_AS_GOAL.toReadableString(t), t.getSourceInfo());
+		case ":-/2":
+			throw new ParserException(ParserErrorMessages.CLAUSE_NOT_AS_GOAL.toReadableString(t), t.getSourceInfo());
+		case ",/2":
+		case ";/2":
+		case "->/2":
+			toGoal(c.getArg(0));
+			toGoal(c.getArg(1));
+			break;
+		}
+		return c;
 	}
 
 	/**
 	 * <p>
 	 * Checks that conjunction is a Prolog query and returns {@link PrologQuery}
-	 * object made of it. This means that, if successful, the result can be queried
-	 * to the (SWI) prolog engine.
+	 * object made of it. This means that, if successful, the result can be
+	 * queried to the (SWI) prolog engine.
 	 * </p>
 	 * <p>
 	 * ISO section 7.6.2 on p.27 specifies how to convert a term to a goal.
@@ -226,14 +223,14 @@ public class SemanticTools {
 	}
 
 	/**
-	 * Extract the defined signature(s) from the compound. A signature is defined if
-	 * the databaseformula defines a predicate of that signature (as fact or as
-	 * following from inference.
+	 * Extract the defined signature(s) from the compound. A signature is
+	 * defined if the databaseformula defines a predicate of that signature (as
+	 * fact or as following from inference.
 	 *
 	 * @param term
 	 * @param info
-	 *            the source info of the term. Used when an error message needs to
-	 *            be thrown.
+	 *            the source info of the term. Used when an error message needs
+	 *            to be thrown.
 	 * @return signatures of defined terms.
 	 * @throws ParserException
 	 */
@@ -293,10 +290,10 @@ public class SemanticTools {
 	}
 
 	/**
-	 * Extract the non-system defined used signature(s) from the {@link Expression}.
-	 * A signature is used if the expression is or contains a predicate of that
-	 * signature. 'contains' means that one of the arguments of this predicate uses
-	 * the signature (recursive definition).
+	 * Extract the non-system defined used signature(s) from the
+	 * {@link Expression}. A signature is used if the expression is or contains
+	 * a predicate of that signature. 'contains' means that one of the arguments
+	 * of this predicate uses the signature (recursive definition).
 	 *
 	 * @param expression
 	 *            the {@link DatabaseFormula} to extract the defined signatures
