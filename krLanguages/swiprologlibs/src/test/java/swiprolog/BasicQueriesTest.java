@@ -135,6 +135,20 @@ public class BasicQueriesTest {
 
 	}
 
+	@Ignore
+	@Test
+	public void testEscapesInAtomToString() {
+		Atom atom = new Atom("a'b");
+		assertEquals("'a\\'b'", atom.toString());
+	}
+
+	@Ignore
+	@Test
+	public void testEscapesInCompoundToString() {
+		Compound atom = new Compound("p'q");
+		assertEquals("'p\\'q'", atom.toString());
+	}
+
 	/**
 	 * Disabled, there is some problem with clause/3 or maybe already with
 	 * strip_module.
