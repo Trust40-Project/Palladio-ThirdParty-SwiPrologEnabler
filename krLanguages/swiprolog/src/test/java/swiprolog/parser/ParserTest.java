@@ -50,8 +50,9 @@ public class ParserTest {
 				{ "p" }, { "'.'" }, { "p('bla.')" },
 				// { "p('.'(1,2,3))" }, allowed in ISO but not by us: predicate
 				// name can not be single-quoted strings.
-				// JPL7 bug: single quotes are not escaped properly
-				// { "p('a\'bc ')" },
+				// JPL7 toString regression bug: single quotes are not escaped
+				// properly
+				// { "p('a''bc ')" },
 				{ "p('Příliš žluťoučký kůň úpěl ďábelské ódy')" } });
 	}
 
