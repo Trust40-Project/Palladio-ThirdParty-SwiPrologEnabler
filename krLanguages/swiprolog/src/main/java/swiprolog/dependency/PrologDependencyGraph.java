@@ -53,7 +53,7 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 		 * The :- function needs to be treated differently from other terms; the head
 		 * term is defined, whereas the terms in the body are queried.
 		 */
-		if (term.isDirective()) {
+		if (term.isQuery()) {
 			if (defined) {
 				// The first argument is the term that is being defined.
 				Term content1 = term.getArg(0);
@@ -84,7 +84,7 @@ public class PrologDependencyGraph extends DependencyGraph<Term> {
 	@Override
 	public void add(Query query) throws KRException {
 		PrologCompound compound = ((PrologQuery) query).getCompound();
-		if (compound.isDirective()) {
+		if (compound.isQuery()) {
 			throw new KRDatabaseException("a clause with main operator :-/2 cannot be queried.");
 		} else {
 			addTerm(compound, false, true);
