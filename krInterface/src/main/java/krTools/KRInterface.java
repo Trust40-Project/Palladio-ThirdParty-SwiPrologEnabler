@@ -139,8 +139,12 @@ public interface KRInterface {
 	Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
-	 * Reports the formulas that have been defined in the set of database
-	 * formulas but are not used (queried).
+	 * @param dbfs
+	 *            the defined database formulas
+	 * @param queries
+	 *            the queries that are actually done
+	 * @return the formulas that have been defined in the set of database
+	 *         formulas but are not used (queried).
 	 */
 	Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
