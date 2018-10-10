@@ -56,17 +56,19 @@ import krTools.parser.SourceInfo;
  * <li>checking if the expressions of the KR Language support serialization.
  * </li>
  * </ul>
+ * 
+ * Logging from implementors can be done through the "KRLogger", got by using
+ * {@link Logger#getLogger(String)}.
  */
 public interface KRInterface {
+
 	/**
 	 * Performs any initializations that need to be performed before the KR
-	 * interface can be used. Pass on any URI (file or URL) from use cases that
-	 * is needed to initialize the interface.
+	 * interface can be used. Pass on any URI (file or URL) from use cases that is
+	 * needed to initialize the interface.
 	 *
-	 * @param set
-	 *            of URI-s that can be files, url-s or urn-s to be passed
-	 * @throws KRInitFailedException
-	 *             If initialization of the KR interface failed.
+	 * @param set of URI-s that can be files, url-s or urn-s to be passed
+	 * @throws KRInitFailedException If initialization of the KR interface failed.
 	 */
 	void initialize(List<URI> uris) throws KRInitFailedException;
 
@@ -74,84 +76,74 @@ public interface KRInterface {
 	 * Resets the KR interface. Should clear and free all memory used by the
 	 * inference engine and any of the databases that have been created.
 	 *
-	 * @throws KRDatabaseException
-	 *             If releasing resources was not successful or incomplete.
+	 * @throws KRDatabaseException If releasing resources was not successful or
+	 *                             incomplete.
 	 */
 	void release() throws KRDatabaseException;
 
 	/**
 	 * Creates new database from the content provided.
 	 *
-	 * @param name
-	 *            A human-readable name for the database
-	 * @param content
-	 *            A list of {@link DatabaseFormula}s that should be inserted in
-	 *            database; possibly null.
-	 * @param isStatic
-	 *            true iff the content of this database is static and can not be
-	 *            changed. If set, all calls that intend to change this database
-	 *            will throw an exception.
-	 * @return A database with the given content. May return an existing
-	 *         database (with a different name) if the requested database is
-	 *         static and another static database with exactly the same contents
-	 *         already is available.
-	 * @throws KRDatabaseException
-	 *             If the database could not be created, or the content provided
-	 *             could not be added.
+	 * @param name     A human-readable name for the database
+	 * @param content  A list of {@link DatabaseFormula}s that should be inserted in
+	 *                 database; possibly null.
+	 * @param isStatic true iff the content of this database is static and can not
+	 *                 be changed. If set, all calls that intend to change this
+	 *                 database will throw an exception.
+	 * @return A database with the given content. May return an existing database
+	 *         (with a different name) if the requested database is static and
+	 *         another static database with exactly the same contents already is
+	 *         available.
+	 * @throws KRDatabaseException If the database could not be created, or the
+	 *                             content provided could not be added.
 	 */
 	Database getDatabase(String name, Collection<DatabaseFormula> content, boolean isStatic) throws KRDatabaseException;
 
 	/**
-	 * Returns a parser for this KR language. Only initializes the parser but
-	 * does not parse the source yet. See {@link Parser} for methods that parse
-	 * the input.
+	 * Returns a parser for this KR language. Only initializes the parser but does
+	 * not parse the source yet. See {@link Parser} for methods that parse the
+	 * input.
 	 *
-	 * @param source
-	 *            A reader of the source that is to be parsed.
-	 * @param info
-	 *            the {@link SourceInfo}. This is needed as this parser will be
-	 *            used as subparser, and then it needs to be able to create
-	 *            correct source references and error messages with correct line
-	 *            numbers.
-	 * @throws ParserException
-	 *             If anything went wrong during initialization of the parser,
-	 *             e.g., due to a problem with the source.
+	 * @param source A reader of the source that is to be parsed.
+	 * @param info   the {@link SourceInfo}. This is needed as this parser will be
+	 *               used as subparser, and then it needs to be able to create
+	 *               correct source references and error messages with correct line
+	 *               numbers.
+	 * @throws ParserException If anything went wrong during initialization of the
+	 *                         parser, e.g., due to a problem with the source.
 	 */
 	Parser getParser(Reader source, SourceInfo info) throws ParserException;
 
 	/**
 	 * Creates a substitution from a map of variables to terms.
 	 *
-	 * @param map
-	 *            The Var to Term mapping; possibly null.
+	 * @param map The Var to Term mapping; possibly null.
 	 *
-	 * @return A substitution which binds all variables in the map to the
-	 *         associated terms.
+	 * @return A substitution which binds all variables in the map to the associated
+	 *         terms.
 	 */
 	Substitution getSubstitution(Map<Var, Term> map);
 
 	/**
-	 * Reports the queries in the given set of queries that have not been
-	 * defined in the set of database formulas as well as those queries that are
-	 * implicitly queries in the set of database formulas itself (e.g., as
-	 * condition in a rule).
+	 * Reports the queries in the given set of queries that have not been defined in
+	 * the set of database formulas as well as those queries that are implicitly
+	 * queries in the set of database formulas itself (e.g., as condition in a
+	 * rule).
 	 */
 	Set<Query> getUndefined(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
-	 * @param dbfs
-	 *            the defined database formulas
-	 * @param queries
-	 *            the queries that are actually done
-	 * @return the formulas that have been defined in the set of database
-	 *         formulas but are not used (queried).
+	 * @param dbfs    the defined database formulas
+	 * @param queries the queries that are actually done
+	 * @return the formulas that have been defined in the set of database formulas
+	 *         but are not used (queried).
 	 */
 	Set<DatabaseFormula> getUnused(Set<DatabaseFormula> dbfs, Set<Query> queries);
 
 	/**
 	 * Check if the expressions of this KR implementation can be serialized
-	 * (converted into a byte stream for easy transmission and then converted
-	 * back into the original object).
+	 * (converted into a byte stream for easy transmission and then converted back
+	 * into the original object).
 	 *
 	 * @return true iff terms from this KR implementation can be serialized
 	 */

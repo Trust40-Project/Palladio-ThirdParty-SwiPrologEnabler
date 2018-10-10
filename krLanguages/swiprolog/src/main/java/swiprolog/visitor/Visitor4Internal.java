@@ -20,6 +20,8 @@ package swiprolog.visitor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -73,6 +75,7 @@ import swiprolog.parser.SourceInfoObject;
 public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	private final SourceInfo source;
 	private final List<ParserException> errors = new LinkedList<>();
+	private final static Logger logger = Logger.getLogger("KRLogger");
 
 	/**
 	 * @param source
@@ -84,8 +87,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	/**
 	 * Create {@link SourceInfoObject} for given context.
 	 *
-	 * @param ctx
-	 *            the {@link DirectiveContext} from the parsed object
+	 * @param ctx the {@link DirectiveContext} from the parsed object
 	 * @return {@link SourceInfoObject}
 	 */
 	private SourceInfo getSourceInfo(ParserRuleContext ctx) {
@@ -249,12 +251,9 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 	/**
 	 * Parse number as term.
 	 *
-	 * @param num
-	 *            number to parse
-	 * @param boolean
-	 *            there was a minus sign in front of the number
-	 * @param info
-	 *            the {@link SourceInfo}
+	 * @param num  number to parse
+	 * @param      boolean there was a minus sign in front of the number
+	 * @param info the {@link SourceInfo}
 	 * @return the parsed term. If failure, this returns a term '1' and reports the
 	 *         error in the {@link #errors} list.
 	 */
@@ -272,7 +271,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 					return PrologImplFactory.getNumber(val, info);
 				}
 			} catch (NumberFormatException e) {
-				System.out.println(ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING.toReadableString(num));
+				logger.log(Level.WARNING, ParserErrorMessages.NUMBER_TOO_LARGE_CONVERTING.toReadableString(num));
 			}
 		}
 		// float

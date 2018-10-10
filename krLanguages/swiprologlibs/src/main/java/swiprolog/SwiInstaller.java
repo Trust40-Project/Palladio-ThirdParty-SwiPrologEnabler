@@ -12,6 +12,8 @@ import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
@@ -30,6 +32,7 @@ public final class SwiInstaller {
 	private static String override = null;
 	private static File SwiPath;
 	private static boolean initialized = false;
+	private final static Logger logger = Logger.getLogger("KRLogger");
 
 	/**
 	 * This is a utility class. Just call init().
@@ -41,8 +44,7 @@ public final class SwiInstaller {
 	 * Overrides the installation directory. Useful if applicationdata can not be
 	 * used by the application.
 	 * 
-	 * @param dir
-	 *            the new target directory.
+	 * @param dir the new target directory.
 	 */
 	public static void overrideDirectory(String dir) {
 		override = dir;
@@ -65,8 +67,7 @@ public final class SwiInstaller {
 	 *
 	 * The temp folder will be removed automatically if the JVM exits normally.
 	 *
-	 * @throws RuntimeException
-	 *             if initialization failed (see nested exception).
+	 * @throws RuntimeException if initialization failed (see nested exception).
 	 */
 	public static synchronized void init(boolean force) {
 		if (initialized && !force) {
@@ -152,8 +153,7 @@ public final class SwiInstaller {
 	/**
 	 * Adds given folder to java.library.path
 	 *
-	 * @param s
-	 *            the path to be added (as string)
+	 * @param s the path to be added (as string)
 	 * @throws NoSuchFieldException
 	 * @throws SecurityException
 	 * @throws IllegalAccessException
@@ -189,7 +189,7 @@ public final class SwiInstaller {
 			}
 		}
 
-		System.out.println("unzipping SWI prolog libraries (" + zipfilename + ") to " + base);
+		logger.log(Level.INFO, "unzipping SWI prolog libraries (" + zipfilename + ") to " + base);
 		base.mkdir();
 
 		InputStream fis = Thread.currentThread().getContextClassLoader()
