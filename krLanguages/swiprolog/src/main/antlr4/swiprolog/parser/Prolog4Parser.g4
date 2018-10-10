@@ -137,8 +137,8 @@ term100
   : term50 ('@' term50)?
   ;
 
-term200
-  : (op = '-' | op= '\\' ) term200 
+term200 // '=' especially allowed for include(=(a), ...,...)
+  : (op = '-' | op= '\\' | op='=' ) term200 
   | term100  ( (op= '^' term200) | (op= '**' term100) )?
   ;
 

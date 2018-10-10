@@ -39,19 +39,17 @@ public final class PrologOperators {
 	/**
 	 * Fixity is a part of a prolog operator specification. The specifier is a
 	 * mnemonic that defines the class (prefix, infix or postfix) and the
-	 * associativity (right-, left- or non-) of the operator. This has
-	 * consequences for bracketing requirements. See the ISO/IEC 12331 manual
-	 * for more details.
+	 * associativity (right-, left- or non-) of the operator. This has consequences
+	 * for bracketing requirements. See the ISO/IEC 12331 manual for more details.
 	 */
 	public enum Fixity {
-		NOT_OPERATOR, XFX, FX, XFY, YFX, FY, XF
+	NOT_OPERATOR, XFX, FX, XFY, YFX, FY, XF
 	}
 
 	/**
 	 * The built-in ops. Users are NOT allowed to overwrite builtin ops. All
-	 * operators that are built-in but not defined here are not known as
-	 * built-in, and thus not useable (i.e., will give not defined error in
-	 * parsing).
+	 * operators that are built-in but not defined here are not known as built-in,
+	 * and thus not useable (i.e., will give not defined error in parsing).
 	 */
 	public static final Map<String, Integer> OP_PRIOS;
 
@@ -160,6 +158,9 @@ public final class PrologOperators {
 		OPERATOR_SPECS.put(":-/2", Fixity.XFX);
 		OP_PRIOS.put("-->/2", 1200);
 		OPERATOR_SPECS.put("-->/2", Fixity.XFX);
+
+		// special case, to work around KR-133.
+		OP_PRIOS.put("=/1", 0);
 
 		// true, cut, fail, conjunction, ;_, not, and var operators.
 		OP_PRIOS.put("true/0", 0);
@@ -731,44 +732,39 @@ public final class PrologOperators {
 	}
 
 	/**
-	 * Built-in operators are already defined in SWI Prolog, and one should not
-	 * try to redefine these by inserting or deleting these (even though SWI
-	 * Prolog allows redefining built-in operators, we do not consider this good
-	 * practice).
+	 * Built-in operators are already defined in SWI Prolog, and one should not try
+	 * to redefine these by inserting or deleting these (even though SWI Prolog
+	 * allows redefining built-in operators, we do not consider this good practice).
 	 * </p>
 	 *
-	 * @returns {@code true} if signature is built-in Prolog function
-	 *          <em>and</em> is not a protected predicate, {@code false}
-	 *          otherwise.
+	 * @returns {@code true} if signature is built-in Prolog function <em>and</em>
+	 *          is not a protected predicate, {@code false} otherwise.
 	 */
 	public static boolean prologBuiltin(String signature) {
 		return OP_PRIOS.containsKey(signature);
 	}
 
 	/**
-	 * @param signature
-	 *            is funcname+"/"+#arguments, eg "member/2"
-	 * @return spec given signature, or null if no such signature. specification
-	 *         is fx, fy, xfy, xfx, etc.
+	 * @param signature is funcname+"/"+#arguments, eg "member/2"
+	 * @return spec given signature, or null if no such signature. specification is
+	 *         fx, fy, xfy, xfx, etc.
 	 */
 	public static PrologOperators.Fixity getFixity(String signature) {
 		return OPERATOR_SPECS.get(signature);
 	}
 
 	/**
-	 * @param signature
-	 *            is funcname+"/"+#arguments, e.g. "member/2"
-	 * @returns priority of given signature, or {@code null} if no such
-	 *          signature.
+	 * @param signature is funcname+"/"+#arguments, e.g. "member/2"
+	 * @returns priority of given signature, or {@code null} if no such signature.
 	 */
 	public static Integer getPriority(String signature) {
 		return OP_PRIOS.get(signature);
 	}
 
 	/**
-	 * Checks if given label is L-atom (see L-atom, ISO p.132 in sec.A.3.1).
-	 * which refers to a concrete atom (identifier), see clause 6.1.2b see also
-	 * ISO Prolog definition of Name in section 6.4.2.
+	 * Checks if given label is L-atom (see L-atom, ISO p.132 in sec.A.3.1). which
+	 * refers to a concrete atom (identifier), see clause 6.1.2b see also ISO Prolog
+	 * definition of Name in section 6.4.2.
 	 *
 	 * @return {@code true} if label is predication.
 	 */

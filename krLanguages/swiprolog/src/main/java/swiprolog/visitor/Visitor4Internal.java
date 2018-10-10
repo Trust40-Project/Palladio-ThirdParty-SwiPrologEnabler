@@ -350,7 +350,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		String op = null;
 		SourceInfo info = getSourceInfo(ctx);
 		/**
-		 * (op = '-' | op= '\\' ) term200 <br>
+		 * (op = '-' | op= '\\' | op='=') term200 <br>
 		 * | term100 ( (op= '^' term200) | (op='**' term100) )?
 		 */
 		if (ctx.op != null) {
@@ -358,7 +358,7 @@ public class Visitor4Internal extends Prolog4ParserBaseVisitor<Object> {
 		}
 
 		PrologTerm term;
-		if ("-".equals(op) || "\\".equals(op)) {
+		if ("-".equals(op) || "\\".equals(op) || "=".equals(op)) {
 			// (op = '-' | op= '\\' ) term200
 			PrologTerm t = visitTerm200(ctx.term200());
 			term = PrologImplFactory.getCompound(op, new Term[] { t }, info);
