@@ -17,6 +17,7 @@
 
 package swiprolog.database;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -49,8 +50,7 @@ public class Theory {
 	/**
 	 * Creates a theory and adds all given formulas to it.
 	 *
-	 * @param formulas
-	 *            A collection of formulas to set the theory's initial content.
+	 * @param formulas A collection of formulas to set the theory's initial content.
 	 */
 	public Theory() {
 		this.content = new LinkedHashSet<>();
@@ -62,7 +62,7 @@ public class Theory {
 	 * @return the {@link DatabaseFormula}s in this theory.
 	 */
 	public Set<DatabaseFormula> getFormulas() {
-		return this.content;
+		return Collections.unmodifiableSet(this.content);
 	}
 
 	// *************** insertion methods *************/
@@ -71,8 +71,7 @@ public class Theory {
 	 * Adds a formula to this {@link Theory}, if it not already occurs in the
 	 * theory.
 	 *
-	 * @param formula
-	 *            The formula.
+	 * @param formula The formula.
 	 *
 	 * @return <code>true</code> if the theory changed; <code>false</code>
 	 *         otherwise.
@@ -82,11 +81,10 @@ public class Theory {
 	}
 
 	/**
-	 * Adds all formulas in theory literally to this theory (but does not
-	 * introduce duplicates).
+	 * Adds all formulas in theory literally to this theory (but does not introduce
+	 * duplicates).
 	 *
-	 * @param content
-	 *            The content.
+	 * @param content The content.
 	 *
 	 * @return {@code true} if theory changed; {@code false} otherwise.
 	 */
@@ -100,8 +98,7 @@ public class Theory {
 	 * Removes a formula from the theory if it occurs literally as element in
 	 * theory.
 	 *
-	 * @param formula
-	 *            formula to be removed from theory.
+	 * @param formula formula to be removed from theory.
 	 * @return true if the theory contained formula as element and it has been
 	 *         successfully removed.
 	 */
