@@ -378,7 +378,8 @@ compile_aux_clause_if_new(Head, Lambda) :-
     prolog_load_context(module, Context),
     (   predicate_property(Context:Head, defined)
     ->  true
-    ;   compile_aux_clauses([(Head :- Lambda)])
+    ;   expand_goal(Lambda, LambdaExpanded),
+        compile_aux_clauses([(Head :- LambdaExpanded)])
     ).
 
 lambda_like(Goal) :-
@@ -420,6 +421,8 @@ is_lamdba_params(Var) :-
 is_lamdba_params(Free/Params) :-
     !,
     is_lambda_free(Free),
+    is_list(Params).
+is_lamdba_params(Params) :-
     is_list(Params).
 
 is_lambda_free(Free) :-

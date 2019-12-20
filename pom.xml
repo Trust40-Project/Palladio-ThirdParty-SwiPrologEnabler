@@ -16,6 +16,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jUnit>4.12</jUnit>
+		<maven.deploy.skip>true</maven.deploy.skip>
 	</properties>
 
 	<licenses>
@@ -70,8 +71,10 @@
 	</repositories>
 
 	<modules>
+	<!--
 		<module>krInterface</module>
 		<module>krFactory</module>
+	-->
 		<module>krLanguages</module>
 	</modules>
 
@@ -136,13 +139,16 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.4</version>
+				<version>3.0.0</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
 						<goals>
 							<goal>jar</goal>
 						</goals>
+						<configuration>
+							<source>1.8</source>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -176,6 +182,7 @@
 				</configuration>
 			</plugin>
 
+<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
@@ -203,6 +210,8 @@
 					<stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
 				</configuration>
 			</plugin>
+-->
+
 		</plugins>
 	</build>
 
@@ -215,6 +224,45 @@
 			<properties>
 				<additionalparam>-Xdoclint:none</additionalparam>
 			</properties>
+		</profile>
+		<!-- Build configuration of parent POM itself -->
+		<profile>
+			<id>local-build-deployable</id>
+			<!-- activate this profile explicitly by adding -Plocal-build-deployable to the maven command -->
+			<distributionManagement>
+				<snapshotRepository>
+					<id>ossrh</id>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+				</snapshotRepository>
+				<repository>
+					<id>ossrh</id>
+					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+				</repository>
+			</distributionManagement>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 </project>

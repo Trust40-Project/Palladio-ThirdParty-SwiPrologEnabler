@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2014-2016, VU University Amsterdam
+    Copyright (c)  2014-2018, VU University Amsterdam
                               CWI Amsterdam
     All rights reserved.
 
@@ -45,7 +45,9 @@
 :- use_module(library(error)).
 :- use_module(library(apply)).
 :- use_module(library(gensym)).
+:- if(exists_source(library(uuid))).
 :- use_module(library(uuid)).
+:- endif.
 :- use_module(library(ordsets)).
 :- use_module(library(http/websocket)).
 
@@ -92,8 +94,8 @@ demand and die if no more work needs to be done.
 :- dynamic
     hub/2,                          % Hub, Queues ...
     websocket/5.                    % Hub, Socket, Queue, Lock, Id
-    
-:- volatile hub/2, websocket/5.    
+
+:- volatile hub/2, websocket/5.
 
 %!  hub_create(+Name, -Hub, +Options) is det.
 %
@@ -186,6 +188,13 @@ hub_add(HubName, WebSocket, Id) :-
     debug(hub(gate), 'Joined ~w: ~w', [HubName, Id]),
     create_wait_thread(Hub).
 
+:- if(\+current_predicate(uuid/1)).
+% FIXME: Proper pure Prolog random UUID implementation
+uuid(UUID) :-
+    A is random(1<<63),
+    format(atom(UUID), '~d', [A]).
+:- endif.
+
 create_wait_thread(Hub) :-
     hub_thread(wait_for_sockets(Hub), Hub, hub_wait_).
 
@@ -199,8 +208,11 @@ wait_for_sockets(Hub, Max) :-
       (   List \== []
       ->  create_new_waiter_if_needed(Hub),
           sort(List, Set),
-          length(Set, Len),
-          debug(hub(wait), 'Waiting for ~d queues', [Len]),
+          (   debugging(hub(wait))
+          ->  length(Set, Len),
+              debug(hub(wait), 'Waiting for ~d queues', [Len])
+          ;   true
+          ),
           wait_for_set(Set, Left, ReadySet, Max),
           (   ReadySet \== []
           ->  debug(hub(ready), 'Data on ~p', [ReadySet]),
@@ -329,12 +341,17 @@ read_message(Hub) :-
     catch(ws_receive(WS, Message), Error, true),
     (   var(Error),
         websocket(HubName, WS, _, _, Id)
-    ->  (   _{opcode:close, data:end_of_file} :< Message
-        ->  eof(WS)
+    ->  (   Message.get(opcode) == close
+        ->  close_client(WS, Message)
         ;   Event = Message.put(_{client:Id, hub:HubName}),
             debug(hub(event), 'Event: ~p', [Event]),
             thread_send_message(Queues.event, Event),
-            thread_send_message(Queues.wait, WS),
+            (   Message.get(opcode) == close
+            ->  CloseError = error(_,_),
+                catch(ws_close(WS, 1000, ""), CloseError,
+                      ws_warning(CloseError))
+            ;   thread_send_message(Queues.wait, WS)
+            ),
             (   message_queue_property(Queues.ready, size(0))
             ->  !,
                 wait_for_sockets(Hub)
@@ -349,6 +366,13 @@ read_message(Hub) :-
     ).
 read_message(_).
 
+ws_warning(error(Formal, _)) :-
+    silent(Formal),
+    !.
+ws_warning(Error) :-
+    print_message(warning, Error).
+
+silent(socket_error(epipe, _)).
 
 %!  io_read_error(+WebSocket, +Error)
 %
@@ -362,18 +386,34 @@ io_read_error(WebSocket, Error) :-
           [WebSocket, Error]),
     retract(websocket(HubName, WebSocket, _Queue, _Lock, Id)),
     !,
+    E = error(_,_),
     catch(ws_close(WebSocket, 1011, Error), E,
-          print_message(warning, E)),
+          ws_warning(E)),
     hub(HubName, Hub),
     thread_send_message(Hub.queues.event,
                         hub{left:Id,
-                                 hub:HubName,
-                                 reason:read,
-                                 error:Error}).
+                            hub:HubName,
+                            reason:read,
+                            error:Error}).
 io_read_error(_, _).                      % already considered gone
 
-eof(WebSocket) :-
+close_client(WebSocket, Message) :-
+    Message.get(data) == end_of_file,
+    !,
     io_read_error(WebSocket, end_of_file).
+close_client(WebSocket, Message) :-
+    retract(websocket(HubName, WebSocket, _Queue, _Lock, Id)),
+    !,
+    E = error(_,_),
+    catch(ws_close(WebSocket, 1000, "Bye"), E,
+          ws_warning(E)),
+    hub(HubName, Hub),
+    thread_send_message(Hub.queues.event,
+                        hub{left:Id,
+                            hub:HubName,
+                            reason:close,
+                            data:Message.data
+                           }).
 
 %!  io_write_error(+WebSocket, +Message, +Error)
 %
@@ -387,8 +427,7 @@ io_write_error(WebSocket, Message, Error) :-
           [WebSocket, Error]),
     retract(websocket(HubName, WebSocket, _Queue, _Lock, Id)),
     !,
-    catch(ws_close(WebSocket, 1011, Error), E,
-          print_message(warning, E)),
+    catch(ws_close(WebSocket, 1011, Error), _, true),
     (   websocket(_, _, _, _, Id)
     ->  true
     ;   hub(HubName, Hub),

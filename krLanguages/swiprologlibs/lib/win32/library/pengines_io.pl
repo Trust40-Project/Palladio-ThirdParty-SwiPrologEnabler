@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2014-2017, VU University Amsterdam
+    Copyright (c)  2014-2019, VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -56,7 +57,9 @@
 
             pengine_io_predicate/1,     % ?Head
             pengine_bind_io_to_html/1,  % +Module
-            pengine_io_goal_expansion/2 % +Goal, -Expanded
+            pengine_io_goal_expansion/2,% +Goal, -Expanded
+
+            message_lines_to_html/3     % +Lines, +Classes, -HTML
           ]).
 :- use_module(library(lists)).
 :- use_module(library(pengines)).
@@ -73,7 +76,9 @@
 :- if(exists_source(library(prolog_stream))).
 :- use_module(library(prolog_stream)).
 :- endif.
+
 :- html_meta send_html(html).
+:- public send_html/1.
 
 :- meta_predicate
     pengine_format(+,:).
@@ -184,7 +189,7 @@ pengine_write_term(Term, Options) :-
 %   Redirect the corresponding Prolog output predicates.
 
 pengine_write(Term) :-
-    pengine_write_term(Term, []).
+    pengine_write_term(Term, [numbervars(true)]).
 pengine_writeq(Term) :-
     pengine_write_term(Term, [quoted(true), numbervars(true)]).
 pengine_display(Term) :-
@@ -264,14 +269,23 @@ user:message_hook(Term, Kind, Lines) :-
     Kind \== silent,
     pengine_self(_),
     atom_concat('msg-', Kind, Class),
-    phrase(html(pre(class(['prolog-message', Class]),
-                    \message_lines(Lines))), Tokens),
-    with_output_to(string(HTMlString), print_html(Tokens)),
+    message_lines_to_html(Lines, [Class], HTMlString),
     (   source_location(File, Line)
     ->  Src = File:Line
     ;   Src = (-)
     ),
     pengine_output(message(Term, Kind, HTMlString, Src)).
+
+%!  message_lines_to_html(+MessageLines, +Classes, -HTMLString) is det.
+%
+%   Helper that translates the `Lines` argument from user:message_hook/3
+%   into an HTML string. The  HTML  is   a  <pre>  object with the class
+%   `'prolog-message'` and the given Classes.
+
+message_lines_to_html(Lines, Classes, HTMlString) :-
+    phrase(html(pre(class(['prolog-message'|Classes]),
+                    \message_lines(Lines))), Tokens),
+    with_output_to(string(HTMlString), print_html(Tokens)).
 
 message_lines([]) -->
     !.
@@ -283,15 +297,19 @@ message_lines([flush]) -->
     !.
 message_lines([ansi(Attributes, Fmt, Args)|T]) -->
     !,
-    { foldl(style, Attributes, Fmt-Args, HTML) },
+    {  is_list(Attributes)
+    -> foldl(style, Attributes, Fmt-Args, HTML)
+    ;  style(Attributes, Fmt-Args, HTML)
+    },
     html(HTML),
     message_lines(T).
 message_lines([H|T]) -->
     html(H),
     message_lines(T).
 
-style(bold, Content, b(Content)).
-style(fg(Color), Content, span(style('color:'+Color), Content)).
+style(bold, Content, b(Content)) :- !.
+style(fg(default), Content, span(style('color: black'), Content)) :- !.
+style(fg(Color), Content, span(style('color:'+Color), Content)) :- !.
 style(_, Content, Content).
 
 
@@ -442,15 +460,15 @@ term_string_value(Pengine, N-V, N-A) :-
 
 %!  pengines:event_to_json(+Event, -JSON, +Format, +VarNames)
 %
-%   Implement translation of a Pengine  event to =json-html= format.
-%   This format represents the answer  as   JSON,  but  the variable
-%   bindings are (structured) HTML strings rather than JSON objects.
+%   Implement translation of a Pengine event to =json-html= format. This
+%   format represents the answer as JSON,  but the variable bindings are
+%   (structured) HTML strings rather than JSON objects.
 %
-%   CHR residual goals are not bound to the projection variables. We
-%   hacked a bypass to fetch these by   returning them in a variable
-%   named   `Residuals`,   which   must   be   bound   to   a   term
-%   '$residuals'(List).  Such  a  variable  is    removed  from  the
-%   projection and added to residual goals.
+%   CHR residual goals are not  bound   to  the projection variables. We
+%   hacked a bypass to fetch these by returning them in a variable named
+%   `_residuals`, which must be bound to a term '$residuals'(List). Such
+%   a variable is removed from  the   projection  and  added to residual
+%   goals.
 
 pengines:event_to_json(success(ID, Answers0, Projection, Time, More),
                        JSON, 'json-html') :-
@@ -599,6 +617,18 @@ map_output(ID, Term, json{event:output, id:ID, data:Data}) :-
     ).
 
 
+%!  prolog_help:show_html_hook(+HTML)
+%
+%   Hook into help/1 to render the help output in the SWISH console.
+
+:- multifile
+    prolog_help:show_html_hook/1.
+
+prolog_help:show_html_hook(HTML) :-
+    pengine_output,
+    pengine_output(HTML).
+
+
                  /*******************************
                  *          SANDBOXING          *
                  *******************************/
@@ -609,9 +639,12 @@ map_output(ID, Term, json{event:output, id:ID, data:Data}) :-
 
 sandbox:safe_primitive(pengines_io:pengine_listing(_)).
 sandbox:safe_primitive(pengines_io:pengine_nl).
+sandbox:safe_primitive(pengines_io:pengine_flush_output).
 sandbox:safe_primitive(pengines_io:pengine_print(_)).
 sandbox:safe_primitive(pengines_io:pengine_write(_)).
 sandbox:safe_primitive(pengines_io:pengine_read(_)).
+sandbox:safe_primitive(pengines_io:pengine_read_line_to_string(_,_)).
+sandbox:safe_primitive(pengines_io:pengine_read_line_to_codes(_,_)).
 sandbox:safe_primitive(pengines_io:pengine_write_canonical(_)).
 sandbox:safe_primitive(pengines_io:pengine_write_term(_,_)).
 sandbox:safe_primitive(pengines_io:pengine_writeln(_)).

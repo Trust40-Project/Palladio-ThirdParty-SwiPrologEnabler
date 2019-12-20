@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2008-2014, University of Amsterdam
+    Copyright (c)  2008-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -44,11 +45,14 @@
             process_kill/1,             % +PID
             process_group_kill/1,       % +PID
             process_group_kill/2,       % +PID, +Signal
-            process_kill/2              % +PID, +Signal
+            process_kill/2,             % +PID, +Signal
+
+            process_set_method/1        % +CreateMethod
           ]).
 :- use_module(library(shlib)).
-:- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(error)).
+:- use_module(library(apply)).
 
 :- use_foreign_library(foreign(process)).
 
@@ -58,6 +62,7 @@
                        stderr(any),
                        cwd(atom),
                        env(list(any)),
+                       environment(list(any)),
                        priority(+integer),
                        process(-integer),
                        detached(+boolean),
@@ -99,7 +104,9 @@ following finds the executable for =ls=:
     current implementation uses setsid() on Unix systems.
 
     * An extra option env([Name=Value, ...]) is added to
-    process_create/3.
+    process_create/3.  As of version 4.1 SICStus added
+    environment(List) which _modifies_ the environment.  A
+    compatible option was added to SWI-Prolog 7.7.23.
 
 @tbd    Implement detached option in process_create/3
 @compat SICStus 4
@@ -147,10 +154,13 @@ following finds the executable for =ls=:
 %       compound specification, which is converted using
 %       absolute_file_name/3.
 %       * env(+List)
-%       Specify the environment for the new process.  List is
-%       a list of Name=Value terms.  Note that the current
-%       implementation does not pass any environment variables.
-%       If unspecified, the environment is inherited from the
+%       As environment(List), but _only_ the specified variables
+%       are passed, i.e., no variables are _inherited_.
+%       * environment(+List)
+%       Specify _additional_ environment variables for the new process.
+%       List is a list of `Name=Value` terms, where `Value` is expanded
+%       the same way as the Args argument. If neither `env` nor
+%       `environment` is passed the environment is inherited from the
 %       Prolog process.
 %       * process(-PID)
 %       Unify PID with the process id of the created process.
@@ -236,6 +246,8 @@ following finds the executable for =ls=:
 %           exit(Code) or killed(Signal).  Raised if the process
 %           is waited for (i.e., Options does not include
 %           process(-PID)), and does not exit with status 0.
+%   @bug    On Windows, environment(List) is handled as env(List),
+%           i.e., the environment is not inherited.
 
 process_create(Exe, Args, Options) :-
     exe_options(ExeOptions),
@@ -245,7 +257,9 @@ process_create(Exe, Args, Options) :-
     prolog_to_os_filename(PlProg, Prog),
     Term =.. [Prog|Av],
     expand_cwd_option(Options, Options1),
-    process_create(Term, Options1).
+    expand_env_option(env, Options1, Options2),
+    expand_env_option(environment, Options2, Options3),
+    process_create(Term, Options3).
 
 exe_options(Options) :-
     current_prolog_flag(windows, true),
@@ -267,6 +281,18 @@ expand_cwd_option(Options0, Options) :-
     ).
 expand_cwd_option(Options, Options).
 
+expand_env_option(Name, Options0, Options) :-
+    Term =.. [Name,Value0],
+    select_option(Term, Options0, Options1),
+    !,
+    must_be(list, Value0),
+    maplist(map_env, Value0, Value),
+    NewOption =.. [Name,Value],
+    Options = [NewOption|Options1].
+expand_env_option(_, Options, Options).
+
+map_env(Name=Value0, Name=Value) :-
+    map_arg(Value0, Value).
 
 %!  map_arg(+ArgIn, -Arg) is det.
 %
@@ -345,8 +371,10 @@ process_release(PID) :-
 %       Do/do not release the process.  We do not support this flag
 %       and a domain_error is raised if release(false) is provided.
 %
-%   @param  Status is one of exit(Code) or killed(Signal), where
-%           Code and Signal are integers.
+%   @arg  Status is one of exit(Code) or killed(Signal), where
+%         Code and Signal are integers.  If the `timeout` option
+%         is used Status is unified with `timeout` after the wait
+%         timed out.
 
 process_wait(PID, Status) :-
     process_wait(PID, Status, []).
@@ -380,6 +408,34 @@ process_kill(PID) :-
 
 process_group_kill(PID) :-
     process_group_kill(PID, term).
+
+
+%!  process_set_method(+Method) is det.
+%
+%   Determine how the process is created on  Unix systems. Method is one
+%   of `spawn` (default), `fork` or `vfork`.   If  the method is `spawn`
+%   but this cannot be used because it is either not supported by the OS
+%   or the cwd(Dir) option is given `fork` is used.
+%
+%   The problem is to be understood   as  follows. The official portable
+%   and safe method to create a process is using the fork() system call.
+%   This call however copies the process   page tables and get seriously
+%   slow  as  the  (Prolog)  process  is   multiple  giga  bytes  large.
+%   Alternatively, we may use vfork() which   avoids copying the process
+%   space. But, the safe usage as guaranteed   by  the POSIX standard of
+%   vfork() is insufficient for our purposes.  On practical systems your
+%   mileage may vary. Modern posix   systems also provide posix_spawn(),
+%   which provides a safe and portable   alternative  for the fork() and
+%   exec() sequence that may be implemented using   fork()  or may use a
+%   fast  but  safe  alternative.  Unfortunately  posix_spawn()  doesn't
+%   support the option to specify the   working  directory for the child
+%   and we cannot use working_directory/2 as   the  working directory is
+%   shared between threads.
+%
+%   Summarizing, the default is  safe  and  tries   to  be  as  fast  as
+%   possible. On some scenarios and on some   OSes  it is possible to do
+%   better. It is generally a good  idea   to  avoid  using the cwd(Dir)
+%   option of process_create/3 as without we can use posix_spawn().
 
 
                  /*******************************

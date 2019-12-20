@@ -4,7 +4,7 @@
                    Jiri Spitz and Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2004-2016, various people and institutions
+    Copyright (c)  2004-2018, various people and institutions
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -161,11 +161,17 @@ balance(>,>).
 %
 %   @see get_assoc/3.
 
-gen_assoc(Key, t(_,_,_,L,_), Val) :-
-    gen_assoc(Key, L, Val).
-gen_assoc(Key, t(Key,Val,_,_,_), Val).
-gen_assoc(Key, t(_,_,_,_,R), Val) :-
-    gen_assoc(Key, R, Val).
+gen_assoc(Key, Assoc, Value) :-
+    (   ground(Key)
+    ->  get_assoc(Key, Assoc, Value)
+    ;   gen_assoc_(Key, Assoc, Value)
+    ).
+
+gen_assoc_(Key, t(_,_,_,L,_), Val) :-
+    gen_assoc_(Key, L, Val).
+gen_assoc_(Key, t(Key,Val,_,_,_), Val).
+gen_assoc_(Key, t(_,_,_,_,R), Val) :-
+    gen_assoc_(Key, R, Val).
 
 
 %!  get_assoc(+Key, +Assoc, -Value) is semidet.
@@ -176,7 +182,15 @@ gen_assoc(Key, t(_,_,_,_,R), Val) :-
 
 get_assoc(Key, Assoc, Val) :-
     must_be(assoc, Assoc),
-    Assoc = t(K,V,_,L,R),
+    get_assoc_(Key, Assoc, Val).
+
+:- if(current_predicate('$btree_find_node'/5)).
+get_assoc_(Key, Tree, Val) :-
+    Tree \== t,
+    '$btree_find_node'(Key, Tree, 0x010405, Node, =),
+    arg(2, Node, Val).
+:- else.
+get_assoc_(Key, t(K,V,_,L,R), Val) :-
     compare(Rel, Key, K),
     get_assoc(Rel, Key, V, L, R, Val).
 
@@ -185,6 +199,7 @@ get_assoc(<, Key, _, Tree, _, Val) :-
     get_assoc(Key, Tree, Val).
 get_assoc(>, Key, _, _, Tree, Val) :-
     get_assoc(Key, Tree, Val).
+:- endif.
 
 
 %!  get_assoc(+Key, +Assoc0, ?Val0, ?Assoc, ?Val) is semidet.

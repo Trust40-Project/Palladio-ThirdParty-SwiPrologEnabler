@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2017, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -102,6 +103,7 @@
 :- use_module(doc_search).
 :- use_module(doc_index).
 :- use_module(doc_util).
+:- use_module(library(solution_sequences)).
 :- include(hooks).
 
 /** <module> PlDoc HTML backend
@@ -364,7 +366,17 @@ reply_file_objects(File, Objs0, Objects, FileOptions, Options) :-
     module_info(File, ModuleOptions, Options),
     file_info(Objs0, Objs1, FileOptions, ModuleOptions),
     doc_hide_private(Objs1, ObjectsSelf, ModuleOptions),
-    include_reexported(ObjectsSelf, Objects, File, FileOptions).
+    include_reexported(ObjectsSelf, Objects1, File, FileOptions),
+    remove_doc_duplicates(Objects1, Objects, []).
+
+remove_doc_duplicates([], [], _).
+remove_doc_duplicates([H|T0], [H|T], Seen) :-
+    H = doc(_, _, Comment),
+    \+ memberchk(Comment, Seen),
+    !,
+    remove_doc_duplicates(T0, T, [Comment|Seen]).
+remove_doc_duplicates([_|T0], T, Seen) :-
+    remove_doc_duplicates(T0, T, Seen).
 
 include_reexported(SelfObjects, Objects, File, Options) :-
     option(include_reexported(true), Options),
@@ -1033,10 +1045,17 @@ object_synopsis(Name/Arity, Options) -->
     object_synopsis(_:Name/Arity, Options).
 object_synopsis(M:Name/Arity, Options) -->
     { functor(Head, Name, Arity),
-      predicate_property(M:Head, exported),
-      \+ predicate_property(M:Head, imported_from(_)),
-      module_property(M, file(File)),
-      file_name_on_path(File, Spec),
+      (   option(source(Spec), Options)
+      ->  absolute_file_name(Spec, File,
+                             [ access(read),
+                               file_type(prolog),
+                               file_errors(fail)
+                             ])
+      ;   predicate_property(M:Head, exported),
+          \+ predicate_property(M:Head, imported_from(_)),
+          module_property(M, file(File)),
+          file_name_on_path(File, Spec)
+      ),
       !,
       unquote_filespec(Spec, Unquoted),
       (   predicate_property(Head, autoload(FileBase)),
@@ -1049,6 +1068,14 @@ object_synopsis(M:Name/Arity, Options) -->
     ->  synopsis([code([':- use_module(',a(href(HREF), '~q'-[Unquoted]),').'])|Extra])
     ;   synopsis([code(':- use_module(~q).'-[Unquoted])|Extra])
     ).
+object_synopsis(Name//Arity, Options) -->
+    !,
+    { DCGArity is Arity+2 },
+    object_synopsis(Name/DCGArity, Options).
+object_synopsis(Module:Name//Arity, Options) -->
+    !,
+    { DCGArity is Arity+2 },
+    object_synopsis(Module:Name/DCGArity, Options).
 object_synopsis(f(_/_), _) -->
     synopsis(span(class(function),
                   [ 'Arithmetic function (see ',
@@ -1076,6 +1103,7 @@ synopsis(Text) -->
 unquote_filespec(Spec, Unquoted) :-
     compound(Spec),
     Spec =.. [Alias,Path],
+    atom(Path),
     atomic_list_concat(Parts, /, Path),
     maplist(need_no_quotes, Parts),
     !,
@@ -1926,8 +1954,8 @@ pred_source_href(Name/Arity, Module, HREF) :-
     (   catch(relative_file(Module:Head, File), _, fail)
     ->  uri_data(path, Components, File),
         uri_components(HREF, Components)
-    ;   in_file(Module:Head, File0),
-        insert_alias(File0, File),
+    ;   in_file(Module:Head, File0)
+    ->  insert_alias(File0, File),
         http_location_by_id(pldoc_doc, DocHandler),
         atom_concat(DocHandler, File, Path),
         uri_data(path, Components, Path),
@@ -2089,6 +2117,10 @@ object_name(_, file(File), _) -->
 object_name(_, directory(Dir), _) -->
     { file_base_name(Dir, Base) },
     html(Base).
+object_name(_, module(Title), _Options) -->
+    { print_message(warning,
+                    pldoc(module_comment_outside_module(Title)))
+    }.
 
 pi(title, PI, Options) -->
     pi_type(PI),
@@ -2129,27 +2161,39 @@ pi_type(_//_) -->
 
 in_file(Module:Head, File) :-
     !,
-    in_file(Module, Head, File).
+    distinct(File, in_file(Module, Head, File)).
 in_file(Head, File) :-
-    in_file(_, Head, File).
+    distinct(File, in_file(_, Head, File)).
 
-in_file(_, Head, File) :-
+in_file(Module, Head, File) :-
+    var(Module),
+    (   predicate_property(system:Head, file(File))
+    ->  !
+    ;   predicate_property(system:Head, foreign)
+    ->  !,
+        fail
+    ).
+in_file(Module, Head, File) :-
+    xref_defined(File, Head, How),
     xref_current_source(File),
     atom(File),                     % only plain files
-    xref_defined(File, Head, How),
+    xref_module(File, Module),
     How \= imported(_From).
 in_file(Module, Head, File) :-
-    predicate_property(Module:Head, exported),
-    (   predicate_property(Module:Head, imported_from(Primary))
-    ->  true
-    ;   Primary = Module
-    ),
+    distinct(Primary,
+             (   predicate_property(Module:Head, exported),
+                 (   predicate_property(Module:Head, imported_from(Primary))
+                 ->  true
+                 ;   Primary = Module
+                 ))),
     module_property(Primary, file(File)).
 in_file(Module, Head, File) :-
-    predicate_property(Module:Head, file(File)).
+    predicate_property(Module:Head, file(File)),
+    \+ predicate_property(Module:Head, imported_from(_)).
 in_file(Module, Head, File) :-
     current_module(Module),
     source_file(Module:Head, File).
+
 
 %%     file(+FileName)// is det.
 %%     file(+FileName, +Options)// is det.
@@ -2502,3 +2546,8 @@ pred_anchor_name(//(Head), Name/Arity, Anchor) :-
 pred_anchor_name(Head, Name/Arity, Anchor) :-
     functor(Head, Name, Arity),
     format(atom(Anchor), '~w/~d', [Name, Arity]).
+
+:- multifile prolog:message//1.
+
+prolog:message(pldoc(module_comment_outside_module(Title))) -->
+    [ 'PlDoc comment <module> ~w does not appear in a module'-[Title] ].

@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2000-2016, University of Amsterdam
+    Copyright (c)  2000-2018, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -94,6 +94,7 @@
 
 :- predicate_options(load_structure/3, 3,
                      [ charpos(integer),
+                       cdata(oneof([atom,string])),
                        defaults(boolean),
                        dialect(oneof([html,html4,html5,sgml,xhtml,xhtml5,xml,xmlns])),
                        doctype(atom),
@@ -132,6 +133,7 @@
 :- predicate_options(sgml_parse/2, 2,
                      [ call(oneof([begin,end,cdata,pi,decl,error,xmlns,urlns]),
                             callable),
+                       cdata(oneof([atom,string])),
                        content_length(integer),
                        document(-any),
                        max_errors(integer),
@@ -422,7 +424,6 @@ sgml_encoding_l('iso_latin_1').
 sgml_encoding_l('ascii').
 
 load_structure_from_stream(In, Term, M:Options) :-
-    !,
     (   select_option(dtd(DTD), Options, Options1)
     ->  ExplicitDTD = true
     ;   ExplicitDTD = false,

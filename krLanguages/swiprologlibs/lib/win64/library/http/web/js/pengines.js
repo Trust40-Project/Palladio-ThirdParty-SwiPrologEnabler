@@ -58,6 +58,7 @@
  * @param {Function} [options.ondebug]
  * @param {Function} [options.onping]
  * @param {Function} [options.onabort]
+ * @param {Function} [options.ondetach]
  * @param {Function} [options.ondestroy]
  * Callback functions.  The callback function is called with an object
  * argument.  This object always has a property `pengine` that refers
@@ -95,6 +96,14 @@ function Pengine(options) {
     }
   }
 
+  // initialize network support in browser
+  if (typeof Pengine.network === "undefined") {
+    Pengine.network = $;  // assume jQuery initialized by now
+    $(window).on("beforeunload", function() {
+      Pengine.destroy_all();
+    });
+  }
+
   // create instance
   this.options = fillDefaultOptions(options);
   this.id = null;
@@ -114,22 +123,24 @@ function Pengine(options) {
 		"destroy"
 	      ]);
 
-  this.request =
-  $.ajax(this.options.server + '/create',
-	 { contentType: "application/json; charset=utf-8",
-	   dataType: "json",
-	   data: JSON.stringify(createOptions),
-	   type: "POST",
-	   success: function(obj) {
-	     that.process_response(obj);
-	   },
-	   error: function(jqXHR, textStatus, errorThrown) {
-	     that.error(jqXHR, textStatus, errorThrown);
-	   },
-	   complete: function() {
-	     that.request = undefined;
-	   }
-	 });
+  if ( options.id ) {				/* re-attaching */
+    this.id = options.id;
+    Pengine.alive.push(this);
+    this.pull_response();
+  } else {
+    Pengine.network.ajax(this.options.server + '/create',
+	   { contentType: "application/json; charset=utf-8",
+	     dataType: "json",
+	     data: JSON.stringify(createOptions),
+	     type: "POST",
+	     success: function(obj) {
+	       that.process_response(obj);
+	     },
+	     error: function(jqXHR, textStatus, errorThrown) {
+	       that.error(jqXHR, textStatus, errorThrown);
+	     }
+	   });
+  }
 
 }/*end of Pengine()*/
 
@@ -196,22 +207,47 @@ Pengine.prototype.respond = function(input) {
 Pengine.prototype.abort = function() {
   var pengine = this;
 
-  if ( this.request ) {
-    this.request.pengine_aborted = true;
-    this.request.abort();
-  }
-
-  this.request =
-  $.get(this.options.server + '/abort',
-	{ id: this.id,
-	  format: this.options.format
-	},
+  var url = this.options.server + '/abort' +
+    '?id=' + encodeURIComponent(this.id) +
+    '&format=' + encodeURIComponent(this.options.format);
+  Pengine.network.get(url,
 	function(obj) {
-	  pengine.process_response(obj);
+	  // Should reply `true`
 	}).fail(function(jqXHR, textStatus, errorThrown) {
 	  pengine.error(jqXHR, textStatus, errorThrown);
-	}).always(function() {
-	  pengine.request = undefined;
+	});
+};
+
+/**
+ * Detach the pengine.  This causes the Pengine to keep running,
+ * even if the browser is closed.
+ *
+ * @param {Object} [data] provides additional data that is stored
+ * on the server with the detached Pengine and made available to
+ * the client on request.
+ */
+Pengine.prototype.detach = function(data) {
+  var pengine = this;
+
+  if ( data == undefined )
+    data = {};
+
+  this.ping(0);					/* stop pinging */
+
+  var url = this.options.server + '/detach' +
+    '?id=' + encodeURIComponent(this.id) +
+    '&format=' + encodeURIComponent(this.options.format);
+  Pengine.network.ajax(url,
+	{ contentType: "application/json; charset=utf-8",
+	  dataType: "json",
+	  data: JSON.stringify(data),
+	  type: "POST",
+	  success: function(obj) {
+	  // Should reply `true`
+	  },
+	  error: function(jqXHR, textStatus, errorThrown) {
+	    pengine.error(jqXHR, textStatus, errorThrown);
+	  }
 	});
 };
 
@@ -224,15 +260,17 @@ Pengine.prototype.ping = function(interval) {
   var pengine = this;
 
   if ( interval == undefined ) {
-    $.get(this.options.server + '/ping',
-	  { id: this.id,
-	    format: this.options.format
-	  },
-	  function(obj) {
-	    pengine.process_response(obj);
-	  }).fail(function(jqXHR, textStatus, errorThrown) {
-	    pengine.error(jqXHR, textStatus, errorThrown);
-	  });
+    if ( this.id ) {				/* Might not be there yet */
+      var url = this.options.server + '/ping' +
+        '?id=' + encodeURIComponent(this.id) +
+        '&format=' + encodeURIComponent(this.options.format);
+      Pengine.network.get(url,
+	    function(obj) {
+	      pengine.process_response(obj);
+	    }).fail(function(jqXHR, textStatus, errorThrown) {
+	      pengine.error(jqXHR, textStatus, errorThrown);
+	    });
+    }
   } else {
     if ( pengine.pingid )
       clearInterval(pengine.pingid);
@@ -265,18 +303,15 @@ Pengine.prototype.destroy = function() {
 Pengine.prototype.pull_response = function() {
   var pengine = this;
 
-  this.request =
-  $.get(this.options.server + '/pull_response',
-	{ id: this.id,
-	  format: this.options.format
-	},
+  var url = this.options.server + '/pull_response' +
+    '?id=' + encodeURIComponent(this.id) +
+    '&format=' + encodeURIComponent(this.options.format);
+  Pengine.network.get(url,
 	function(obj) {
 	  if ( obj.event !== 'died')
 	    pengine.process_response(obj);
 	}).fail(function(jqXHR, textStatus, errorThrown) {
 	  pengine.error(jqXHR, textStatus, errorThrown);
-	}).always(function() {
-	  pengine.request = undefined;
 	});
 };
 
@@ -295,11 +330,11 @@ Pengine.prototype.pull_response = function() {
 Pengine.prototype.send = function(event) {
   var pengine = this;
 
-  this.request =
-  $.ajax({ type: "POST",
-	   url: pengine.options.server +
-		'/send?format=' + this.options.format +
-		'&id=' + this.id,
+  var url = pengine.options.server +
+		'/send?format=' + encodeURIComponent(this.options.format) +
+		'&id=' + encodeURIComponent(this.id);
+  Pengine.network.ajax({ type: "POST",
+	   url: url,
 	   data: event + " .\n",
 	   contentType: "application/x-prolog; charset=UTF-8",
 	   success: function(obj) {
@@ -307,14 +342,14 @@ Pengine.prototype.send = function(event) {
 	   },
 	   error: function(jqXHR, textStatus, errorThrown) {
 	     pengine.error(jqXHR, textStatus, errorThrown);
-	   },
-	   complete: function() {
-	     pengine.request = undefined;
 	   }
          });
 };
 
 Pengine.prototype.script_sources = function(src) {
+  if (typeof document === 'undefined') {
+    return src;
+  }
   var scripts = document.getElementsByTagName('script');
 
   src = src||[];
@@ -327,7 +362,10 @@ Pengine.prototype.script_sources = function(src) {
   return src;
 };
 
-Pengine.prototype.process_response = function(obj) {
+Pengine.prototype.process_response = function(response) {
+  // Processes response coming from either jQuery or najax.
+  // najax does not parse JSON automatically.
+  var obj = typeof response === 'string' ? JSON.parse(response) : response;
   obj.pengine = this;
   Pengine.onresponse[obj.event].call(this, obj);
 };
@@ -354,7 +392,12 @@ Pengine.prototype.error = function(jqXHR, textStatus, errorThrown) {
   if ( jqXHR.responseText ) {
     var msg = jqXHR.responseText.replace(/[^]*<body[^>]*>/, "")
 				.replace(/<\/body>/, "");
-    var plain = $("<div></div>").html(msg).text();
+    var plain;
+    if (typeof $ === 'undefined') {
+      plain = msg.replace(/(<([^>]+)>)/ig, '');
+    } else {
+      plain = $("<div></div>").html(msg).text();
+    }
     obj.data = plain;
     obj.dataHTML = msg;
   } else if ( textStatus )
@@ -449,6 +492,12 @@ Pengine.onresponse = {
     this.callback('onabort', obj);
   },
 
+  detached: function(obj) {
+    this.detached = true;
+    unregisterPengine(this);
+    this.callback('ondetach', obj);
+  },
+
   destroy: function(obj) {
     unregisterPengine(this);
     if ( obj.data )
@@ -482,7 +531,8 @@ function unregisterPengine(pengine) {
   if ( index > -1 )
     Pengine.alive.splice(index, 1);
 
-  pengine.died = true;
+  if ( !this.detached )
+    pengine.died = true;
 }
 
 /**
@@ -653,7 +703,7 @@ Pengine.destroy_all = function(async) {
 
     for(var server in servers) {
       if ( servers.hasOwnProperty(server) ) {
-	$.ajax({ url:server + '/destroy_all?ids=' + servers[server],
+	Pengine.network.ajax({ url:server + '/destroy_all?ids=' + servers[server],
 	         async: async === undefined ? true : false,
 		 timeout: 1000
 	       });
@@ -662,6 +712,10 @@ Pengine.destroy_all = function(async) {
   }
 };
 
-$(window).on("beforeunload", function() {
-  Pengine.destroy_all();
-});
+if (typeof window === 'undefined') {
+  // Node.js
+  module.exports = Pengine;
+  var najax = require('najax');
+  Pengine.network = najax;
+  Pengine.network.ajax = najax;
+}

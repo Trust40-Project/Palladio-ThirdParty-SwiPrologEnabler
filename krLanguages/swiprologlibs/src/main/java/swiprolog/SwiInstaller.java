@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.file.Path;
@@ -77,12 +76,8 @@ public final class SwiInstaller {
 		unzipSWI(force);
 		loadDependencies();
 
-		try {
-			addFolderToLibraryPath(SwiPath.getAbsolutePath());
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			throw new RuntimeException("failed to install SWI: ", e);
-		}
-
+		JPL.setNativeLibraryDir(SwiPath.getAbsolutePath());
+		
 		// Don't Tell Me Mode needs to be false as it ensures that variables
 		// with initial '_' are treated as regular variables.
 		JPL.setDTMMode(false);
@@ -112,12 +107,11 @@ public final class SwiInstaller {
 		// Dirty system-dependent stuff...
 		switch (system) {
 		case linux:
-			load("libswipl.so.7.6.4");
+			load("libswipl.so.8.0.3");
 			load("libjpl.so");
 			break;
 		case mac:
-			load("libncurses.6.dylib");
-			load("libreadline.6.dylib");
+			load("libreadline.8.dylib");
 			load("libgmp.10.dylib");
 			load("libswipl.dylib");
 			load("libjpl.dylib");
@@ -125,7 +119,6 @@ public final class SwiInstaller {
 		case win32:
 			load("libwinpthread-1.dll");
 			load("libgcc_s_sjlj-1.dll");
-			load("libdwarf.dll");
 			load("libgmp-10.dll");
 			load("libswipl.dll");
 			load("jpl.dll");
@@ -133,7 +126,6 @@ public final class SwiInstaller {
 		case win64:
 			load("libwinpthread-1.dll");
 			load("libgcc_s_seh-1.dll");
-			load("libdwarf.dll");
 			load("libgmp-10.dll");
 			load("libswipl.dll");
 			load("jpl.dll");
@@ -148,24 +140,6 @@ public final class SwiInstaller {
 	 */
 	private static void load(String libname) {
 		System.load(new File(SwiPath, libname).getAbsolutePath());
-	}
-
-	/**
-	 * Adds given folder to java.library.path
-	 *
-	 * @param s the path to be added (as string)
-	 * @throws NoSuchFieldException
-	 * @throws SecurityException
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 */
-	private static void addFolderToLibraryPath(final String s)
-			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		final String path = s + File.pathSeparator + System.getProperty("java.library.path");
-		System.setProperty("java.library.path", path);
-		final Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
-		fieldSysPath.setAccessible(true);
-		fieldSysPath.set(null, null);
 	}
 
 	/**

@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2002-2011, University of Amsterdam
+    Copyright (c)  2002-2018, University of Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -39,19 +40,29 @@
             dispatch_stream_pool/1,     % +TimeOut
             stream_pool_main_loop/0
           ]).
-:- use_module(library(quintus)).
+:- use_module(library(debug)).
 
 :- meta_predicate
-    add_stream_to_pool(+, :).
+    add_stream_to_pool(+, 0).
 
 :- volatile
     pool/2.                         % sockets don't survive a saved-state
 :- dynamic
     pool/2.                         % Stream, Action
 
-%       add_stream_to_pool(+Stream :Goal)
+/** <module> Input multiplexing
+
+This libary allows a single thread to  monitor multiple streams and call
+a goal if input is available on a stream.
+
+@bug Note that if the processing   predicate blocks other input channals
+are not processed. This may happen, for example, if a read/2 call blocks
+due to incomplete input.
+*/
+
+%!   add_stream_to_pool(+Stream :Goal)
 %
-%       Call Goal whenever there is input on Stream.
+%    Call Goal whenever there is input on Stream.
 
 add_stream_to_pool(Stream, Action) :-
     strip_module(Action, Module, Plain),
@@ -60,31 +71,32 @@ add_stream_to_pool(Stream, Action) :-
 register_stream(Stream, Goal) :-
     assert(pool(Stream, Goal)).
 
-%       delete_stream_from_pool(+Stream)
+%!  delete_stream_from_pool(+Stream)
 %
-%       Retract stream from the pool
+%   Retract stream from the pool
 
 delete_stream_from_pool(Stream) :-
     retractall(pool(Stream, _)).
 
-%       close_stream_pool
+%!  close_stream_pool
+%
+%   Close all streams in the   pool. This causes stream_pool_main_loop/0
+%   to terminate.
 
 close_stream_pool :-
-    (   retract(pool(Stream, _)),
-        close(Stream, [force(true)]),
-        fail
-    ;   true
-    ).
+    forall(retract(pool(Stream, _)),
+           close(Stream, [force(true)])).
 
-%       dispatch_stream_pool(+TimeOut)
+%!  dispatch_stream_pool(+TimeOut)
 %
-%       Wait for input on one or more streams and handle that.  Wait for
-%       at most TimeOut seconds (0 means infinite).
+%   Wait for input on one or more streams   and handle that. Wait for at
+%   most TimeOut seconds (0 means infinite).
 
 dispatch_stream_pool(Timeout) :-
     findall(S, pool(S, _), Pool),
+    debug(tcp, 'Select ~p ...', [Pool]),
     catch(wait_for_input(Pool, Ready, Timeout), E, true),
-    debug(tcp, 'Select ~w --> ~w (E=~w)', [Pool, Ready, E]),
+    debug(tcp, '    --> ~p (E=~p)', [Ready, E]),
     (   var(E)
     ->  actions(Ready)
     ;   E = error(existence_error(stream, Stream), _)
@@ -107,10 +119,10 @@ action(Stream) :-
                       goal_failed(Action, stream_pool))
     ).
 
-%       stream_pool_main_loop
+%!  stream_pool_main_loop
 %
-%       Keep handling input from the streams in the pool until they have
-%       all died away.
+%   Keep handling input from the streams in the pool until they have all
+%   died away.
 
 stream_pool_main_loop :-
     pool(_, _),

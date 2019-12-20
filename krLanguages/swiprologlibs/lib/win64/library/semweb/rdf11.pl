@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker and Wouter Beek
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2015-2016, VU University Amsterdam
+    Copyright (c)  2015-2018, VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -171,7 +172,8 @@ In a nutshell, the following issues are addressed:
 
 :- multifile
     in_ground_type_hook/3,                  % +Type, +Input, -Lexical:atom
-    out_type_hook/3.                        % +Type, -Output, +Lexical:atom
+    out_type_hook/3,                        % +Type, -Output, +Lexical:atom
+    invalid_lexical_form_hook/3.            % +Type, +Lexical, -Prolog
 
 :- meta_predicate
     parse_partial_xml(3,+,-).
@@ -422,7 +424,7 @@ rdf_update_(S, P, O, G1, graph(G2)) :-
 %
 %   If both S and O are given,   these predicates are `semidet`. The
 %   number of steps D is  minimal   because  the implementation uses
-%   _breath first_ search.
+%   _breadth first_ search.
 
 rdf_reachable(S,P,O) :-
     pre_object(O,O0),
@@ -511,7 +513,7 @@ rdf_compare(Diff, Left, Right) :-
 %   and/or predicate hash or the ordered literal table.
 %
 %     ==
-%         { Date >= "2000-01-01"^^xsd:dateTime },
+%         { Date >= "2000-01-01"^^xsd:date },
 %         rdf(S, P, Date)
 %     ==
 %
@@ -1465,7 +1467,16 @@ out_type(_Unknown, Val, Val0) :-
 %   into the cannical form as defined by xsd_time_string/3.
 
 out_date_time(Type, Prolog, Lexical) :-
-    xsd_time_string(Prolog, Type, Lexical).
+    catch(xsd_time_string(Prolog, Type, Lexical),
+          error(_,_),
+          invalid_lexical_form_hook(Type, Lexical, Prolog)).
+
+
+%!  invalid_lexical_form_hook(+Type, +Lexical, -Prolog)
+%
+%   This hook is called if translation of the lexical form to the Prolog
+%   representation fails due to a syntax  error.   By  default it is not
+%   defined, causing such invalid triples to be silently ignored.
 
 
                  /*******************************
@@ -1474,7 +1485,7 @@ out_date_time(Type, Prolog, Lexical) :-
 
 %!  rdf_term(?Term) is nondet.
 %
-%   True if Term appears in the RDF database. Term is either an iri,
+%   True if Term appears in the RDF database. Term is either an IRI,
 %   literal or blank node and may  appear   in  any  position of any
 %   triple. If Term is ground,  it   is  pre-processed as the object
 %   argument of rdf_assert/3 and the predicate is _semidet_.
@@ -1586,7 +1597,7 @@ rdf_predicate(P) :-
 
 %!  rdf_object(?O) is nondet.
 %
-%   True when O is a currently known  object, i.e. it appeasr in the
+%   True when O is a currently known  object, i.e. it appears in the
 %   object position of some visible triple. If Term is ground, it is
 %   pre-processed as the object  argument   of  rdf_assert/3 and the
 %   predicate is _semidet_.
@@ -1744,7 +1755,7 @@ literal_form(_^^_).
 %
 %   Success of this goal does not imply that the name is
 %   well-formed or that it is present in the database (see
-%   rdf_name/1) for that).
+%   rdf_name/1 for that).
 
 rdf_is_name(T) :- rdf_is_iri(T), !.
 rdf_is_name(T) :- rdf_is_literal(T).
@@ -1756,7 +1767,7 @@ rdf_is_name(T) :- rdf_is_literal(T).
 %
 %   Success of this goal does not imply that the object term in
 %   well-formed or that it is present in the database (see
-%   rdf_object/1) for that).
+%   rdf_object/1 for that).
 %
 %   Since any RDF term can appear in the object position, this is
 %   equaivalent to rdf_is_term/1.
@@ -1770,7 +1781,7 @@ rdf_is_object(T) :- rdf_is_literal(T).
 %   True if Term can appear in the   predicate position of a triple.
 %
 %   Success of this goal does not imply that the predicate term is
-%   present in the database (see rdf_predicate/1) for that).
+%   present in the database (see rdf_predicate/1 for that).
 %
 %   Since only IRIs can appear in the predicate position, this is
 %   equivalent to rdf_is_iri/1.
@@ -1785,7 +1796,7 @@ rdf_is_predicate(T) :- rdf_is_iri(T).
 %   Only blank nodes and IRIs can appear in the subject position.
 %
 %   Success of this goal does not imply that the subject term is
-%   present in the database (see rdf_subject/1) for that).
+%   present in the database (see rdf_subject/1 for that).
 %
 %   Since blank nodes are represented by atoms that start with
 %   `_:` and an IRIs are atoms as well, this is equivalent to
@@ -1799,7 +1810,7 @@ rdf_is_subject(T) :- atom(T).
 %   either an IRI, a blank node or an RDF literal.
 %
 %   Success of this goal does not imply that the RDF term is
-%   present in the database (see rdf_term/1) for that).
+%   present in the database (see rdf_term/1 for that).
 
 rdf_is_term(N) :- rdf_is_subject(N), !.
 rdf_is_term(N) :- rdf_is_literal(N).
@@ -1952,7 +1963,7 @@ rdf_nth(Offset, I, L, X) :-
     ;   must_be(nonneg, I)
     ),
     rdf_nth_(I, Offset, L, X).
-rdf_nth(_, L, _) :-
+rdf_nth(_, _, L, _) :-
     type_error(rdf_subject, L).
 
 rdf_nth_(I, I0, L, X) :-

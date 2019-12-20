@@ -3,7 +3,7 @@
     Author:        Markus Triska
     E-mail:        triska@metalevel.at
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2014-2016 Markus Triska
+    Copyright (C): 2014-2018 Markus Triska
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -71,9 +71,8 @@ Diagrams (BDDs).
 Benchmarks and usage examples of this library are available from:
 [__https://www.metalevel.at/clpb/__](https://www.metalevel.at/clpb/)
 
-We recommend the following reference (PDF:
-[https://www.metalevel.at/swiclpb.pdf](https://www.metalevel.at/swiclpb.pdf))
-for citing this library in scientific publications:
+We recommend the following references for citing this library in
+scientific publications:
 
 ==
 @inproceedings{Triska2016,
@@ -86,11 +85,28 @@ for citing this library in scientific publications:
   year      = 2016,
   pages     = "45--61"
 }
+
+@article{Triska2018,
+  title = "Boolean constraints in {SWI-Prolog}:
+           A comprehensive system description",
+  journal = "Science of Computer Programming",
+  volume = "164",
+  pages = "98 - 115",
+  year = "2018",
+  note = "Special issue of selected papers from FLOPS 2016",
+  issn = "0167-6423",
+  doi = "https://doi.org/10.1016/j.scico.2018.02.001",
+  url = "http://www.sciencedirect.com/science/article/pii/S0167642318300273",
+  author = "Markus Triska",
+  keywords = "CLP(B), Boolean unification, Decision diagrams, BDD"
+}
 ==
 
-and the following URL to link to its documentation:
-
-http://eu.swi-prolog.org/man/clpb.html
+These papers are available from
+[https://www.metalevel.at/swiclpb.pdf](https://www.metalevel.at/swiclpb.pdf)
+and
+[https://www.metalevel.at/boolean.pdf](https://www.metalevel.at/boolean.pdf)
+respectively.
 
 ## Boolean expressions {#clpb-exprs}
 
@@ -111,15 +127,17 @@ A _Boolean expression_ is one of:
     | _Expr_ >= _Expr_   | greater or equal                     |
     | _Expr_ < _Expr_    | less than                            |
     | _Expr_ > _Expr_    | greater than                         |
-    | card(Is,Exprs)     | _see below_                          |
-    | `+(Exprs)`         | _see below_                          |
-    | `*(Exprs)`         | _see below_                          |
+    | card(Is,Exprs)     | cardinality constraint (_see below_) |
+    | `+(Exprs)`         | n-fold disjunction (_see below_)     |
+    | `*(Exprs)`         | n-fold conjunction (_see below_)     |
 
 where _Expr_ again denotes a Boolean expression.
 
 The Boolean expression card(Is,Exprs) is true iff the number of true
 expressions in the list `Exprs` is a member of the list `Is` of
-integers and integer ranges of the form `From-To`.
+integers and integer ranges of the form `From-To`. For example, to
+state that precisely two of the three variables `X`, `Y` and `Z` are
+`true`, you can use `sat(card([2],[X,Y,Z]))`.
 
 `+(Exprs)` and `*(Exprs)` denote, respectively, the disjunction and
 conjunction of all elements in the list `Exprs` of Boolean

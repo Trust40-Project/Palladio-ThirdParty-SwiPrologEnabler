@@ -3,8 +3,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.bitbucket.goalhub.krTools.krLanguages</groupId>
+	<groupId>org.palladiosimulator</groupId>
 	<artifactId>swiPrologEnabler</artifactId>
+	<version>0.1.0</version>
 	<parent>
 		<groupId>org.bitbucket.goalhub.krTools</groupId>
 		<artifactId>krLanguages</artifactId>
@@ -13,11 +14,15 @@
 
 	<description>Installs SWI Prolog libraries</description>
 
+	<properties>
+		<maven.deploy.skip>false</maven.deploy.skip>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>jpl</groupId>
 			<artifactId>jpl</artifactId>
-			<version>7.6.4</version>
+			<version>7.4.0</version>
 		</dependency>
 
 		<dependency>
@@ -33,5 +38,59 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+
+		<resources>
+			<resource>
+				<directory>${project.build.directory}/generated-resources</directory>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<phase>generate-resources</phase>
+						<configuration>
+							<target>
+								<property name="buildDir" value="${project.build.directory}/generated-resources/swiprolog"/>
+								<taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+								<taskdef resource="net/sf/antcontrib/antlib.xml"/>
+								<for param="file">
+									<path>
+										<dirset dir="./lib" includes="*"/>
+									</path>
+									<sequential>
+										<var name="name" unset="true"/>
+										<basename file="@{file}" property="name" />
+										<zip destfile="${buildDir}/${name}.zip" basedir="./lib" includes="${name}/**/*"/>
+									</sequential>
+								</for>     
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>1.0b3</version>
+						<exclusions>
+							<exclusion>
+								<artifactId>ant</artifactId>
+								<groupId>ant</groupId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
