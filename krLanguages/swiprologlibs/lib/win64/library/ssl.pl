@@ -79,7 +79,9 @@
                        peer_cert(boolean),
                        close_parent(boolean),
                        close_notify(boolean),
-                       sni_hook(callable)
+                       sni_hook(callable),
+                       alpn_protocols(any),
+                       alpn_protocol_hook(callable)
                      ]).
 
 /** <module> Secure Socket Layer (SSL) library
@@ -207,7 +209,7 @@ easily be used.
 %     implementation that accepts any certificate.
 %     * cipher_list(+Atom)
 %     Specify a cipher preference list (one or more cipher strings
-%     separated by colons, commas or spaces).
+%     separated by colons, commas or spaces). See ssl_secure_ciphers/1.
 %     * ecdh_curve(+Atom)
 %     Specify a curve for ECDHE ciphers. If this option is not
 %     specified, the OpenSSL default parameters are used.  With
@@ -230,14 +232,14 @@ easily be used.
 %     very rarely a concern.
 %     * min_protocol_version(+Atom)
 %     Set the _minimum_ protocol version that can be negotiated.
-%     Atom is one of `sslv3`, `tlsv1`, `tlsv1_1` and `tlsv1_2`.
-%     This option is available with OpenSSL 1.1.0 and later, and
-%     should be used instead of `disable_ssl_methods/1`.
+%     Atom is one of `sslv3`, `tlsv1`, `tlsv1_1`, `tlsv1_2` and
+%     `tlsv1_3`. This option is available with OpenSSL 1.1.0 and
+%     later, and should be used instead of `disable_ssl_methods/1`.
 %     * max_protocol_version(+Atom)
 %     Set the _maximum_ protocol version that can be negotiated.
-%     Atom is one of `sslv3`, `tlsv1`, `tlsv1_1` and `tlsv1_2`.
-%     This option is available with OpenSSL 1.1.0 and later, and
-%     should be used instead of `disable_ssl_methods/1`.
+%     Atom is one of `sslv3`, `tlsv1`, `tlsv1_1`, `tlsv1_2` and
+%     `tlsv1_3`. This option is available with OpenSSL 1.1.0 and
+%     later, and should be used instead of `disable_ssl_methods/1`.
 %     * disable_ssl_methods(+List)
 %     A list of methods to disable. Unsupported methods will be
 %     ignored. Methods include `sslv2`, `sslv3`, `sslv23`,
@@ -273,6 +275,20 @@ easily be used.
 %     used, which are those of the encompassing ssl_context/3
 %     call. In that case, if no default certificate and key are
 %     specified, the client connection is rejected.
+%     * alpn_protocols(+ListOfProtoIdentifiers)
+%     Provide a list of acceptable ALPN protocol identifiers as atoms.
+%     ALPN support requires OpenSSL 1.0.2 or greater.
+%     * alpn_protocol_hook(:Goal)
+%     This options provides a callback for a server context to use to
+%     select an ALPN protocol. It will be called as follows:
+%
+%     ===
+%     call(Goal, +SSLCtx0, +ListOfClientProtocols, -SSLCtx1, -SelectedProtocol)
+%     ===
+%
+%     If this option is unset and the `alpn_protocols/1` option is
+%     set, then the first common protocol between client & server will
+%     be selected.
 %
 %   @arg Role is one of `server` or `client` and denotes whether the
 %   SSL  instance  will  have  a  server   or  client  role  in  the
@@ -313,11 +329,11 @@ ssl_copy_context(SSL0, SSL) :-
 %   Options.  The following options are supported: close_notify/1,
 %   close_parent/1, host/1, peer_cert/1, ecdh_curve/1,
 %   min_protocol_version/1, max_protocol_version/1,
-%   disable_ssl_methods/1, sni_hook/1, cert_verify_hook/1. See
-%   ssl_context/3 for more information about these options. This
-%   predicate allows you to tweak existing SSL contexts, which can be
-%   useful in hooks when creating servers with the HTTP
-%   infrastructure.
+%   disable_ssl_methods/1, sni_hook/1, cert_verify_hook/1,
+%   alpn_protocols/1, and alpn_protocol_hook/1. See ssl_context/3 for
+%   more information about these options. This predicate allows you to
+%   tweak existing SSL contexts, which can be useful in hooks when
+%   creating servers with the HTTP infrastructure.
 
 ssl_set_options(SSL0, SSL, Options) :-
     ssl_copy_context(SSL0, SSL),
@@ -392,6 +408,9 @@ ssl_set_options(SSL0, SSL, Options) :-
 %     The SSLv3 session ID. Note that if ECDHE is being used (which
 %     is the default for newer versions of OpenSSL), this data will
 %     not actually be sent to the server.
+%     * alpn_protocol(Protocol)
+%     The negotiated ALPN protocol, if supported. If no protocol was
+%     negotiated, this will be an empty string.
 
 %!  load_certificate(+Stream, -Certificate) is det.
 %
@@ -496,11 +515,14 @@ cert_accept_any(_SSL,
 
 %!  ssl_secure_ciphers(-Ciphers:atom) is det.
 %
+%   Ciphers is a  secure cipher preference list that can  be used in the
+%   cipher_list/1 option of ssl_context/3.
+%
 %   Secure ciphers must guarantee forward secrecy, and must mitigate all
-%   known critical attacks. As of  2017,   using  the  following ciphers
-%   allows you to obtain grade A on https://www.ssllabs.com. For A+, you
-%   must also enable HTTP Strict Transport  Security (HSTS) by sending a
-%   suitable header field in replies.
+%   known critical attacks.  As of  2018, using these ciphers allows you
+%   to obtain grade A on  https://www.ssllabs.com. For A+, you must also
+%   enable HTTP Strict  Transport Security (HSTS) by  sending a suitable
+%   header field in replies.
 %
 %   Note that obsolete ciphers *must* be   disabled  to reliably prevent
 %   protocol downgrade attacks.

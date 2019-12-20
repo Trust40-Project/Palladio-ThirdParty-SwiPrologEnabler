@@ -78,7 +78,7 @@ expand_maplist(Callable0, Lists, Goal) :-
     length(Lists, N),
     expand_closure_no_fail(Callable0, N, Callable1),
     (   Callable1 = _:_
-    ->  strip_module(Callable0, M, Callable),
+    ->  strip_module(Callable1, M, Callable),
         NextGoal = M:NextCall,
         QPred = M:Pred
     ;   Callable = Callable1,
@@ -353,12 +353,12 @@ prolog_clause:unify_goal(Maplist, Expanded, _Module, Pos0, Pos) :-
 
 is_maplist(Goal) :-
     compound(Goal),
-    functor(Goal, maplist, A),
+    compound_name_arity(Goal, maplist, A),
     A >= 2.
 
 maplist_expansion(Expanded) :-
     compound(Expanded),
-    functor(Expanded, Name, _),
+    compound_name_arity(Expanded, Name, _),
     sub_atom(Name, 0, _, _, '__aux_maplist/').
 
 

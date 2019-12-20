@@ -84,6 +84,7 @@
     ]).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
+:- use_module(library(debug)).
 
 /** <module> A Java interface for SWI Prolog 7.x
 
@@ -699,13 +700,14 @@ jpl_get_instance_field(array(_), Obj, FieldID, V) :-
     jGetObjectField(Obj, FieldID, V).
 
 
-%! jpl_get_object_array_elements(+Array, +LoIndex, +HiIndex, -Vcs) is det
+%!  jpl_get_object_array_elements(+Array, +LoIndex, +HiIndex, -Vcs) is det
 %
-% Array should be a (zero-based) array of some object (array or non-array)  type;  LoIndex  is  an  integer,   0  =<  LoIndex  <
-%   length(Array); HiIndex is an  integer,   LoIndex-1  =< HiIndex <
-%   length(Array); at call, Vcs will be   unbound; at exit, Vcs will
-%   be  a  list   of   (references    to)   the   array's   elements
-%   [LoIndex..HiIndex] inclusive
+%   Array should be a  (zero-based)  array   of  some  object  (array or
+%   non-array)  type;  LoIndex  is  an   integer,    0   =<   LoIndex  <
+%   length(Array);  HiIndex  is  an  integer,  LoIndex-1  =<  HiIndex  <
+%   length(Array); at call, Vcs will be unbound;  at exit, Vcs will be a
+%   list of (references to)  the   array's  elements  [LoIndex..HiIndex]
+%   inclusive
 
 jpl_get_object_array_elements(Array, Lo, Hi, Vcs) :-
     (   Lo =< Hi
@@ -717,7 +719,7 @@ jpl_get_object_array_elements(Array, Lo, Hi, Vcs) :-
     ).
 
 
-%! jpl_get_primitive_array_elements(+ElementType, +Array, +LoIndex, +HiIndex, -Vcs) is det.
+%!  jpl_get_primitive_array_elements(+ElementType, +Array, +LoIndex, +HiIndex, -Vcs) is det.
 %
 %   Array  should  be  a  (zero-based)  Java  array  of  (primitive)
 %   ElementType; Vcs should be unbound on entry, and on exit will be
@@ -3357,82 +3359,82 @@ jpl_is_ref(Term) :-
 
 %! jpl_is_true(@Term)
 %
-% True if Term is =|@(true)|=, the JPL representation of the Java boolean value 'true'.
+%  True if Term is  =|@(true)|=,  the   JPL  representation  of the Java
+%  boolean value 'true'.
 
 jpl_is_true(X) :-
     X == @(true).
 
-
 %! jpl_is_type(@Term)
 %
-% True if Term is a well-formed JPL type structure.
+%  True if Term is a well-formed JPL type structure.
 
 jpl_is_type(X) :-
     ground(X),
     jpl_ground_is_type(X).
 
-
 %! jpl_is_void(@Term)
 %
-% True if Term is =|@(void)|=, the JPL representation of the pseudo Java value 'void'
-% (which is returned by jpl_call/4 when invoked on void methods).
+%  True if Term is =|@(void)|=,  the   JPL  representation of the pseudo
+%  Java value 'void' (which is returned   by  jpl_call/4 when invoked on
+%  void methods).
 %
-% NB you can try passing 'void' back to Java, but it won't ever be interested.
+%  NB you can try passing 'void' back  to   Java,  but  it won't ever be
+%  interested.
 
 jpl_is_void(X) :-
     X == @(void).
 
-
 %! jpl_false(-X:datum) is semidet
 %
-% X is =|@(false)|=, the JPL representation of the Java boolean value 'false'.
+%  X is =|@(false)|=, the JPL representation of the Java boolean value
+%  'false'.
 %
-% @see jpl_is_false/1
+%  @see jpl_is_false/1
 
 jpl_false(@(false)).
 
-
 %! jpl_null(-X:datum) is semidet
 %
-% X is =|@(null)|=, the JPL representation of Java's 'null' reference
+%  X is =|@(null)|=, the JPL representation of Java's 'null' reference.
 %
-% @see jpl_is_null/1
+%  @see jpl_is_null/1
 
 jpl_null(@(null)).
 
-
 %! jpl_true(-X:datum) is semidet
 %
-% X is =|@(true)|=, the JPL representation of the Java boolean value 'true'.
+%  X is =|@(true)|=, the JPL representation   of  the Java boolean value
+%  'true'.
 %
-% @see jpl_is_true/1
+%  @see jpl_is_true/1
 
 jpl_true(@(true)).
 
 
 %! jpl_void(-X:datum) is semidet
 %
-% X is =|@(void)|=, the JPL representation of the pseudo Java value 'void'
+%  X is =|@(void)|=, the JPL  representation   of  the pseudo Java value
+%  'void'.
 %
-% @see jpl_is_void/1
+%  @see jpl_is_void/1
 
 jpl_void(@(void)).
 
 
 %! jpl_array_to_length(+Array:jref, -Length:integer)
 %
-% Array should be a JPL reference to a Java array of any type.
+%  Array should be a JPL reference to a Java array of any type.
 %
-% Length is the length of that array.
+%  Length is the length of that  array.   This  is  a utility predicate,
+%  defined thus:
 %
-% This is a utility predicate, defined thus:
-%
-%  ==
+%  ```
 %  jpl_array_to_length(A, N) :-
 %      (   jpl_ref_to_type(A, array(_))
 %      ->  jGetArrayLength(A, N)
 %      ).
-%  ==
+%  ```
 
 jpl_array_to_length(A, N) :-
     (   jpl_ref_to_type(A, array(_))    % can this be done cheaper e.g. in foreign code?
@@ -3442,14 +3444,13 @@ jpl_array_to_length(A, N) :-
 
 %! jpl_array_to_list(+Array:jref, -Elements:list(datum))
 %
-% Array should be a JPL reference to a Java array of any type.
+%  Array should be a JPL reference to a Java array of any type.
 %
-% Elements is a Prolog list of JPL representations of the array's elements
-% (values or references, as appropriate).
+%  Elements is a Prolog  list  of   JPL  representations  of the array's
+%  elements (values or references, as appropriate).   This  is a utility
+%  predicate, defined thus:
 %
-% This is a utility predicate, defined thus:
-%
-%  ==
+%  ```
 %  jpl_array_to_list(A, Es) :-
 %      jpl_array_to_length(A, Len),
 %      (   Len > 0
@@ -3458,7 +3459,7 @@ jpl_array_to_length(A, N) :-
 %          jpl_get(A, LoBound-HiBound, Es)
 %      ;   Es = []
 %      ).
-%  ==
+%  ```
 
 jpl_array_to_list(A, Es) :-
     jpl_array_to_length(A, Len),
@@ -3472,13 +3473,15 @@ jpl_array_to_list(A, Es) :-
 
 %! jpl_datums_to_array(+Datums:list(datum), -A:jref)
 %
-% A will be a JPL reference to a new Java array,
-% whose base type is the most specific Java type
-% of which each member of Datums is (directly or indirectly) an instance.
+%  A will be a JPL reference to a new Java array, whose base type is the
+%  most specific Java type of which each   member of Datums is (directly
+%  or indirectly) an instance.
 %
-% NB this fails silently if
-% * Datums is an empty list (no base type can be inferred)
-% * Datums contains both a primitive value and an object (including array) reference (no common supertype)
+%  NB this fails silently if
+%
+%   - Datums is an empty list (no base type can be inferred)
+%   - Datums contains both a primitive value and an object (including
+%     array) reference (no common supertype)
 
 jpl_datums_to_array(Ds, A) :-
     ground(Ds),
@@ -3489,10 +3492,11 @@ jpl_datums_to_array(Ds, A) :-
 
 %! jpl_enumeration_element(+Enumeration:jref, -Element:datum)
 %
-% generates each Element from the Enumeration
-% * if the element is a java.lang.String then Element will be an atom
-% * if the element is null then Element will (oughta) be null
-% * otherwise I reckon it has to be an object ref
+%  Generates each Element from Enumeration.
+%
+%  - if the element is a java.lang.String then Element will be an atom
+%  - if the element is null then Element will (oughta) be null
+%  - otherwise I reckon it has to be an object ref
 
 jpl_enumeration_element(En, E) :-
     (   jpl_call(En, hasMoreElements, [], @(true))
@@ -3505,12 +3509,13 @@ jpl_enumeration_element(En, E) :-
 
 %! jpl_enumeration_to_list(+Enumeration:jref, -Elements:list(datum))
 %
-% Enumeration should be a JPL reference to an object which implements the =|Enumeration|= interface.
+%  Enumeration should be a JPL reference   to an object which implements
+%  the =|Enumeration|= interface.
 %
-% Elements is a Prolog list of JPL references to the enumerated objects.
+%  Elements is a  Prolog  list  of   JPL  references  to  the enumerated
+%  objects. This is a utility predicate, defined thus:
 %
-% This is a utility predicate, defined thus:
-%  ==
+%  ```
 %  jpl_enumeration_to_list(Enumeration, Es) :-
 %      (   jpl_call(Enumeration, hasMoreElements, [], @(true))
 %      ->  jpl_call(Enumeration, nextElement, [], E),
@@ -3518,7 +3523,7 @@ jpl_enumeration_element(En, E) :-
 %          jpl_enumeration_to_list(Enumeration, Es1)
 %      ;   Es = []
 %      ).
-%  ==
+%  ```
 
 jpl_enumeration_to_list(Enumeration, Es) :-
     (   jpl_call(Enumeration, hasMoreElements, [], @(true))
@@ -3531,12 +3536,12 @@ jpl_enumeration_to_list(Enumeration, Es) :-
 
 %! jpl_hashtable_pair(+HashTable:jref, -KeyValuePair:pair(datum,datum)) is nondet
 %
-% Generates Key-Value pairs from the given HashTable.
+%  Generates Key-Value pairs from the given HashTable.
 %
-% NB String is converted to atom but Integer is presumably returned as an object ref
-% (i.e. as elsewhere, no auto unboxing);
+%  NB String is converted to atom but Integer is presumably returned as
+%  an object ref (i.e. as elsewhere, no auto unboxing);
 %
-% NB this is anachronistic: the Map interface is preferred.
+%  NB this is anachronistic: the Map interface is preferred.
 
 jpl_hashtable_pair(HT, K-V) :-
     jpl_call(HT, keys, [], Ek),
@@ -3547,19 +3552,20 @@ jpl_hashtable_pair(HT, K-V) :-
 
 %! jpl_iterator_element(+Iterator:jref, -Element:datum)
 %
-% Iterator should be a JPL reference to an object which implements the =|java.util.Iterator|= interface.
+%  Iterator should be a JPL reference to  an object which implements the
+%  =|java.util.Iterator|= interface.
 %
-% Element is the JPL representation of the next element in the iteration.
+%  Element is the  JPL  representation  of   the  next  element  in  the
+%  iteration. This is a utility predicate, defined thus:
 %
-% This is a utility predicate, defined thus:
-%  ==
+%  ```
 %  jpl_iterator_element(I, E) :-
 %      (   jpl_call(I, hasNext, [], @(true))
 %      ->  (   jpl_call(I, next, [], E)
 %          ;   jpl_iterator_element(I, E)
 %          )
 %      ).
-%  ==
+%  ```
 
 jpl_iterator_element(I, E) :-
     (   jpl_call(I, hasNext, [], @(true))
@@ -3571,11 +3577,13 @@ jpl_iterator_element(I, E) :-
 
 %! jpl_list_to_array(+Datums:list(datum), -Array:jref)
 %
-% Datums should be a proper Prolog list of JPL datums (values or references).
+%  Datums should be a proper  Prolog  list   of  JPL  datums  (values or
+%  references).
 %
-% If Datums have a most specific common supertype,
-% then Array is a JPL reference to a new Java array, whose base type is that common supertype,
-% and whose respective elements are the Java values or objects represented by Datums.
+%  If Datums have a most specific common  supertype, then Array is a JPL
+%  reference to a new  Java  array,  whose   base  type  is  that common
+%  supertype, and whose respective  elements  are   the  Java  values or
+%  objects represented by Datums.
 
 jpl_list_to_array(Ds, A) :-
     jpl_datums_to_array(Ds, A).
@@ -3583,10 +3591,10 @@ jpl_list_to_array(Ds, A) :-
 
 %! jpl_terms_to_array(+Terms:list(term), -Array:jref) is semidet
 %
-% Terms should be a proper Prolog list of arbitrary terms.
+%  Terms should be a proper Prolog list of arbitrary terms.
 %
-% Array is a JPL reference to a new Java array of org.jpl7.Term,
-% whose elements represent the respective members of the list.
+%  Array is a JPL reference to a   new  Java array of ``org.jpl7.Term``,
+%  whose elements represent the respective members of the list.
 
 jpl_terms_to_array(Ts, A) :-
     jpl_terms_to_array_1(Ts, Ts2),
@@ -3600,8 +3608,9 @@ jpl_terms_to_array_1([T|Ts], [{T}|Ts2]) :-
 
 %! jpl_array_to_terms(+JRef:jref, -Terms:list(term))
 %
-% JRef should be a JPL reference to a Java array of org.jpl7.Term instances (or ots subtypes);
-% Terms will be a list of the terms which the respective array elements represent.
+%  JRef should be a JPL  reference  to   a  Java  array of org.jpl7.Term
+%  instances (or ots subtypes); Terms will be  a list of the terms which
+%  the respective array elements represent.
 
 jpl_array_to_terms(JRef, Terms) :-
     jpl_call('org.jpl7.Util', termArrayToList, [JRef], {Terms}).
@@ -3609,28 +3618,29 @@ jpl_array_to_terms(JRef, Terms) :-
 
 %! jpl_map_element(+Map:jref, -KeyValue:pair(datum,datum)) is nondet
 %
-% Map must be a JPL Reference to an object which implements the =|java.util.Map|= interface
+%  Map must be a  JPL  Reference  to   an  object  which  implements the
+%  =|java.util.Map|= interface
 %
-% This generates each Key-Value pair from the Map, e.g.
+%  This generates each Key-Value pair from the Map, e.g.
 %
-%  ==
+%  ```
 %  ?- jpl_call('java.lang.System', getProperties, [], Map), jpl_map_element(Map, E).
 %  Map = @<jref>(0x20b5c38),
 %  E = 'java.runtime.name'-'Java(TM) SE Runtime Environment' ;
 %  Map = @<jref>(0x20b5c38),
 %  E = 'sun.boot.library.path'-'C:\\Program Files\\Java\\jre7\\bin'
 %  etc.
-%  ==
+%  ```
 %
-% This is a utility predicate, defined thus:
+%  This is a utility predicate, defined thus:
 %
-%  ==
+%  ```
 %  jpl_map_element(Map, K-V) :-
 %      jpl_call(Map, entrySet, [], ES),
 %      jpl_set_element(ES, E),
 %      jpl_call(E, getKey, [], K),
 %      jpl_call(E, getValue, [], V).
-%  ==
+%  ```
 
 jpl_map_element(Map, K-V) :-
     jpl_call(Map, entrySet, [], ES),
@@ -3641,17 +3651,17 @@ jpl_map_element(Map, K-V) :-
 
 %! jpl_set_element(+Set:jref, -Element:datum) is nondet
 %
-% Set must be a JPL reference to an object which implements the =|java.util.Set|= interface.
+%  Set must be a  JPL  reference  to   an  object  which  implements the
+%  =|java.util.Set|= interface.
 %
-% On backtracking, Element is bound to a JPL representation of each element of Set.
+%  On backtracking, Element is bound  to   a  JPL representation of each
+%  element of Set. This is a utility predicate, defined thus:
 %
-% This is a utility predicate, defined thus:
-%
-%  ==
+%  ```
 %  jpl_set_element(S, E) :-
 %      jpl_call(S, iterator, [], I),
 %      jpl_iterator_element(I, E).
-%  ==
+%  ```
 
 jpl_set_element(S, E) :-
     jpl_call(S, iterator, [], I),
@@ -3660,12 +3670,12 @@ jpl_set_element(S, E) :-
 
 %! jpl_servlet_byref(+Config, +Request, +Response)
 %
-% This serves the "byref" servlet demo,
-% exemplifying one tactic for implementing a servlet in Prolog
-% by accepting the Request and Response objects as JPL references
-% and accessing their members via JPL as required;
+%  This serves the _byref_ servlet  demo,   exemplifying  one tactic for
+%  implementing a servlet  in  Prolog  by   accepting  the  Request  and
+%  Response objects as JPL references and   accessing  their members via
+%  JPL as required;
 %
-% @see jpl_servlet_byval/3
+%  @see jpl_servlet_byval/3
 
 jpl_servlet_byref(Config, Request, Response) :-
     jpl_call(Config, getServletContext, [], Context),
@@ -3850,10 +3860,10 @@ jpl_servlet_byref(Config, Request, Response) :-
 
 %! jpl_servlet_byval(+MultiMap, -ContentType:atom, -Body:atom)
 %
-% This exemplifies an alternative (to jpl_servlet_byref) tactic
-% for implementing a servlet in Prolog;
-% most Request fields are extracted in Java before this is called,
-% and passed in as a multimap (a map, some of whose values are maps).
+%  This exemplifies an alternative  (to   jpl_servlet_byref)  tactic for
+%  implementing a servlet in Prolog; most   Request fields are extracted
+%  in Java before this is called, and passed   in  as a multimap (a map,
+%  some of whose values are maps).
 
 jpl_servlet_byval(MM, CT, Ba) :-
     CT = 'text/html',
@@ -3863,7 +3873,7 @@ jpl_servlet_byval(MM, CT, Ba) :-
 
 %! is_pair(?T:term)
 %
-%   I define a half-decent "pair" as having a ground key (any val)
+%  I define a half-decent "pair" as having a ground key (any val).
 
 is_pair(Key-_Val) :-
     ground(Key).
@@ -3899,9 +3909,9 @@ multimap_to_atom_1([K-V|KVs], T, Cs1, Cs0) :-
 
 %! to_atom(+Term, -Atom)
 %
-% unifies Atom with a printed representation of Term.
+%  Unifies Atom with a printed representation of Term.
 %
-% @tbd Sort of quoting requirements and use format(codes(Codes),...)
+%  @tbd Sort of quoting requirements and use format(codes(Codes),...)
 
 to_atom(Term, Atom) :-
     (   atom(Term)
@@ -3911,7 +3921,8 @@ to_atom(Term, Atom) :-
 
 %! jpl_pl_syntax(-Syntax:atom)
 %
-% unifies Syntax with 'traditional' or 'modern' according to the mode in which SWI Prolog 7.x was started
+%  Unifies Syntax with 'traditional' or 'modern'   according to the mode
+%  in which SWI Prolog 7.x was started
 
 jpl_pl_syntax(Syntax) :-
 	(	[] == '[]'
@@ -3943,38 +3954,53 @@ prolog:error_message(java_exception(Ex)) -->
 
 user:file_search_path(jar, swi(lib)).
 
-%! add_search_path(+Var, +Value) is det.
+classpath(DirOrJar) :-
+    getenv('CLASSPATH', ClassPath),
+    (   current_prolog_flag(windows, true)
+    ->  atomic_list_concat(Elems, (;), ClassPath)
+    ;   atomic_list_concat(Elems, :, ClassPath)
+    ),
+    member(DirOrJar, Elems).
+
+%!  add_search_path(+Var, +Value) is det.
 %
-%    Add value to the end of  search-path   Var.  Value is normally a
-%    directory. Does not change the environment  if Dir is already in
-%    Var.
+%   Add value to the  end  of  search-path   Var.  Value  is  normally a
+%   directory. Does not change the environment if Dir is already in Var.
 %
-%    @param Value    Path to add in OS notation.
+%   @param Value    Path to add in OS notation.
 
 add_search_path(Path, Dir) :-
     (   getenv(Path, Old)
-    ->  (   current_prolog_flag(windows, true)
-        ->  Sep = (;)
-        ;   Sep = (:)
-        ),
+    ->  search_path_separator(Sep),
         (   atomic_list_concat(Current, Sep, Old),
-        memberchk(Dir, Current)
+            memberchk(Dir, Current)
         ->  true            % already present
         ;   atomic_list_concat([Old, Sep, Dir], New),
-        setenv(Path, New)
+            (   debugging(jpl(path))
+            ->  env_var_separators(A,Z),
+                debug(jpl(path), 'Set ~w~w~w to ~p', [A,Path,Z,New])
+            ;   true
+            ),
+            setenv(Path, New)
         )
     ;   setenv(Path, Dir)
     ).
 
 %! search_path_separator(-Sep:atom)
 %
-%    Separator  used  the  the  OS    in  =PATH=,  =LD_LIBRARY_PATH=,
-%    =CLASSPATH=, etc.
+%  Separator  used  the  the  OS    in  =PATH=,  =LD_LIBRARY_PATH=,
+%  =CLASSPATH=, etc.
 
 search_path_separator((;)) :-
     current_prolog_flag(windows, true),
     !.
 search_path_separator(:).
+
+env_var_separators('%','%') :-
+    current_prolog_flag(windows, true),
+    !.
+env_var_separators($,'').
+
 
          /*******************************
          *         LOAD THE JVM         *
@@ -4001,29 +4027,25 @@ check_java_environment :-
     !,
     print_message(error, jpl(run(jpl_config_dylib))).
 check_java_environment :-
-    check_lib(java),
     check_lib(jvm).
 
 check_lib(Name) :-
     check_shared_object(Name, File, EnvVar, Absolute),
     (   Absolute == (-)
-    ->  (   current_prolog_flag(windows, true)
-        ->  A = '%', Z = '%'
-        ;   A = '$', Z = ''
-        ),
+    ->  env_var_separators(A, Z),
         format(string(Msg), 'Please add directory holding ~w to ~w~w~w',
-           [ File, A, EnvVar, Z ]),
+               [ File, A, EnvVar, Z ]),
         throw(error(existence_error(library, Name),
-            context(_, Msg)))
+                    context(_, Msg)))
     ;   true
     ).
 
 %! check_shared_object(+Lib, -File, -EnvVar, -AbsFile) is semidet.
 %
-%    True if AbsFile is existing .so/.dll file for Lib.
+%  True if AbsFile is existing .so/.dll file for Lib.
 %
-%    @param File    Full name of Lib (i.e. libjpl.so or jpl.dll)
-%    @param EnvVar    Search-path for shared objects.
+%  @arg File    Full name of Lib (i.e. libjpl.so or jpl.dll)
+%  @arg EnvVar  Search-path for shared objects.
 
 check_shared_object(Name, File, EnvVar, Absolute) :-
     libfile(Name, File),
@@ -4050,9 +4072,8 @@ libfile(Base, File) :-
 
 %! library_search_path(-Dirs:list, -EnvVar) is det.
 %
-%    Dirs  is  the  list   of    directories   searched   for  shared
-%    objects/DLLs. EnvVar is the variable in which the search path os
-%    stored.
+%  Dirs is the list of  directories   searched  for shared objects/DLLs.
+%  EnvVar is the variable in which the search path os stored.
 
 library_search_path(Path, EnvVar) :-
     current_prolog_flag(shared_object_search_path, EnvVar),
@@ -4066,22 +4087,34 @@ library_search_path(Path, EnvVar) :-
 
 %!  add_jpl_to_classpath
 %
-%   Add jpl.jar to =CLASSPATH= to facilitate callbacks
+%   Add jpl.jar to =CLASSPATH= to facilitate  callbacks. If `jpl.jar` is
+%   already in CLASSPATH, do nothing. Note that   this may result in the
+%   user picking up a different version   of `jpl.jar`. We'll assume the
+%   user is right in this case.
+%
+%   @tbd Should we warn if both `classpath`   and  `jar` return a result
+%   that is different? What is different?   According  to same_file/2 or
+%   content?
 
 add_jpl_to_classpath :-
-    absolute_file_name(jar('jpl.jar'),
-               [ access(read)
-               ], JplJAR),
+    classpath(Jar),
+    file_base_name(Jar, 'jpl.jar'),
+    !.
+add_jpl_to_classpath :-
+    classpath(Dir),
+    directory_file_path(Dir, 'jpl.jar', File),
+    access_file(File, read),
+    !.
+add_jpl_to_classpath :-
+    absolute_file_name(jar('jpl.jar'), JplJAR,
+                       [ access(read)
+                       ]),
     !,
     (   getenv('CLASSPATH', Old)
-    ->  true
-    ;   Old = '.'
+    ->  search_path_separator(Separator),
+        atomic_list_concat([JplJAR, Old], Separator, New)
+    ;   New = JplJAR
     ),
-    (       current_prolog_flag(windows, true)
-    ->      Separator = ';'
-    ;       Separator = ':'
-    ),
-    atomic_list_concat([JplJAR, Old], Separator, New),
     setenv('CLASSPATH', New).
 
 
@@ -4097,46 +4130,88 @@ libjpl(File) :-
     ;   File = foreign(jpl)
     ).
 
-%! add_jpl_to_ldpath(+JPL) is det.
+%!  add_jpl_to_ldpath(+JPL) is det.
 %
-%    Add the directory holding jpl.so  to   search  path  for dynamic
-%    libraries. This is needed for callback   from Java. Java appears
-%    to use its own search  and  the   new  value  of the variable is
-%    picked up correctly.
+%   Add  the  directory  holding  jpl.so  to  search  path  for  dynamic
+%   libraries. This is needed for callback   from  Java. Java appears to
+%   use its own search and the new value   of  the variable is picked up
+%   correctly.
 
 add_jpl_to_ldpath(JPL) :-
     absolute_file_name(JPL, File,
                [ file_type(executable),
+                 access(read),
                  file_errors(fail)
                ]),
     !,
     file_directory_name(File, Dir),
     prolog_to_os_filename(Dir, OsDir),
+    extend_java_library_path(OsDir),
     current_prolog_flag(shared_object_search_path, PathVar),
     add_search_path(PathVar, OsDir).
 add_jpl_to_ldpath(_).
 
-%! add_java_to_ldpath is det.
+%!  add_java_to_ldpath is det.
 %
-%    Adds the directories holding jvm.dll and java.dll to the %PATH%.
-%    This appears to work on Windows. Unfortunately most Unix systems
-%    appear to inspect the content of LD_LIBRARY_PATH only once.
+%   Adds the directories holding jvm.dll to  the %PATH%. This appears to
+%   work on Windows. Unfortunately most Unix   systems appear to inspect
+%   the content of =LD_LIBRARY_PATH= (=DYLD_LIBRARY_PATH= on MacOS) only
+%   once.
 
+:- if(current_prolog_flag(windows,true)).
 add_java_to_ldpath :-
     current_prolog_flag(windows, true),
     !,
     phrase(java_dirs, Extra),
     (   Extra \== []
     ->  print_message(informational, extend_ld_path(Extra)),
-        maplist(win_add_dll_directory, Extra)
+        maplist(extend_dll_search_path, Extra)
     ;   true
     ).
+:- endif.
 add_java_to_ldpath.
 
-%! java_dirs// is det.
+
+%!  extend_dll_search_path(+Dir)
 %
-%    DCG that produces existing candidate directories holding
-%    Java related DLLs
+%   Add Dir to search for DLL files. We use win_add_dll_directory/1, but
+%   this doesn't seem to work on Wine,  so we also add these directories
+%   to %PATH% on this platform.
+
+:- if(current_prolog_flag(windows,true)).
+extend_dll_search_path(Dir) :-
+    win_add_dll_directory(Dir),
+    (   current_prolog_flag(wine_version, _)
+    ->  getenv('PATH', Path0),
+        prolog_to_os_filename(Dir, OSDir),
+        atomic_list_concat([Path0, OSDir], ';', Path),
+        setenv('PATH', Path)
+    ;   true
+    ).
+:- endif.
+
+%!  extend_java_library_path(+OsDir)
+%
+%   Add Dir (in OS notation) to   the  Java =|-Djava.library.path|= init
+%   options.
+
+extend_java_library_path(OsDir) :-
+    jpl_get_default_jvm_opts(Opts0),
+    (   select(PathOpt0, Opts0, Rest),
+        sub_atom(PathOpt0, 0, _, _, '-Djava.library.path=')
+    ->  search_path_separator(Separator),
+        atomic_list_concat([PathOpt0, Separator, OsDir], PathOpt),
+        NewOpts = [PathOpt|Rest]
+    ;   atom_concat('-Djava.library.path=', OsDir, PathOpt),
+        NewOpts = [PathOpt|Opts0]
+    ),
+    debug(jpl(path), 'Setting Java options to ~p', [NewOpts]),
+    jpl_set_default_jvm_opts(NewOpts).
+
+%!  java_dirs// is det.
+%
+%   DCG  that  produces  existing  candidate  directories  holding  Java
+%   related DLLs
 
 java_dirs -->
     % JDK directories
@@ -4163,11 +4238,11 @@ java_dir(_DLL, SubPath) -->
 java_dir(_, _) --> [].
 
 
-%! java_home(-Home) is semidet
+%!  java_home(-Home) is semidet
 %
-%    Find the home location of Java.
+%   Find the home location of Java.
 %
-%    @param Home    JAVA home in OS notation
+%   @param Home    JAVA home in OS notation
 
 java_home_win_key(
     jre,
@@ -4210,8 +4285,8 @@ setup_jvm :-
     add_jpl_to_classpath,
     add_java_to_ldpath,
     libjpl(JPL),
-    add_jpl_to_ldpath(JPL),
     catch(load_foreign_library(JPL), E, report_java_setup_problem(E)),
+    add_jpl_to_ldpath(JPL),
     assert(jvm_ready).
 
 report_java_setup_problem(E) :-

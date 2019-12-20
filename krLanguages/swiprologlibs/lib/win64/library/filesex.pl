@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2002-2017, University of Amsterdam
-                              Vu University Amsterdam
+    Copyright (c)  2002-2018, University of Amsterdam
+                              VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -39,6 +40,7 @@
             chmod/2,                    % +File, +Mode
             relative_file_name/3,       % ?AbsPath, +RelTo, ?RelPath
             directory_file_path/3,      % +Dir, +File, -Path
+            directory_member/3,		% +Dir, -Member, +Options
             copy_file/2,                % +From, +To
             make_directory_path/1,      % +Directory
             copy_directory/2,           % +Source, +Destination
@@ -60,6 +62,19 @@ operating system primitives through shell/1  or process_create/3 because
 dependency  on  operating   system   commands    and   (3)   using   the
 implementations from this library is usually faster.
 */
+
+:- predicate_options(directory_member/3, 3,
+                     [ recursive(boolean),
+                       follow_links(boolean),
+                       file_type(atom),
+                       extensions(list(atom)),
+                       file_errors(oneof([fail,warning,error])),
+                       access(oneof([read,write,execute])),
+                       matches(text),
+                       exclude(text),
+                       exclude_directory(text),
+                       hidden(boolean)
+                     ]).
 
 
 :- use_foreign_library(foreign(files), install_files).
@@ -95,37 +110,44 @@ implementations from this library is usually faster.
 
 %!  link_file(+OldPath, +NewPath, +Type) is det.
 %
-%   Create a link in the filesystem   from  NewPath to OldPath. Type
+%   Create a link in  the  filesystem   from  NewPath  to  OldPath. Type
 %   defines the type of link and is one of =hard= or =symbolic=.
 %
-%   With some limitations, these  functions   also  work on Windows.
-%   First of all, the unerlying filesystem  must support links. This
-%   requires NTFS. Second, symbolic  links   are  only  supported in
-%   Vista and later.
+%   With some limitations, these functions also   work on Windows. First
+%   of all, the underlying filesystem must  support links. This requires
+%   NTFS. Second, symbolic links are only supported in Vista and later.
 %
 %   @error  domain_error(link_type, Type) if the requested link-type
 %           is unknown or not supported on the target OS.
 
-%!  relative_file_name(+Path:atom, +RelTo:atom, -RelPath:atom) is det.
-%!  relative_file_name(-Path:atom, +RelTo:atom, +RelPath:atom) is det.
+%!  relative_file_name(+Path:atom, +RelToFile:atom, -RelPath:atom) is det.
+%!  relative_file_name(-Path:atom, +RelToFile:atom, +RelPath:atom) is det.
 %
-%   True when RelPath is Path, relative to RelTo. Path and RelTo are
-%   first handed to absolute_file_name/2, which   makes the absolute
-%   *and* canonical. Below are two examples:
+%   True when RelPath is Path, relative to the _file_ RelToFile. Path and
+%   RelTo are first handed to absolute_file_name/2, which makes the
+%   absolute *and* canonical. Below are two examples:
 %
-%   ==
+%   ```
 %   ?- relative_file_name('/home/janw/nice',
 %                         '/home/janw/deep/dir/file', Path).
 %   Path = '../../nice'.
 %
 %   ?- relative_file_name(Path, '/home/janw/deep/dir/file', '../../nice').
 %   Path = '/home/janw/nice'.
-%   ==
+%   ```
+%
+%   Add a terminating `/` to get a path relative to a _directory_, e.g.
+%
+%       ?- relative_file_name('/home/janw/deep/dir/file', './', Path).
+%       Path = 'deep/dir/file'.
 %
 %   @param  All paths must be in canonical POSIX notation, i.e.,
 %           using / to separate segments in the path.  See
 %           prolog_to_os_filename/2.
-%   @bug    This predicate is defined as a _syntactical_ operation.
+%   @bug    It would probably have been cleaner to use a directory
+%	    as second argument.  We can not do such dynamically as this
+%	    predicate is defined as a _syntactical_ operation, which
+%	    implies it may be used for non-existing paths and URLs.
 
 relative_file_name(Path, RelTo, RelPath) :- % +,+,-
     nonvar(Path),
@@ -207,7 +229,154 @@ strip_trailing_slash(Dir0, Dir) :-
     ).
 
 
-%!  copy_file(From, To) is det.
+%!  directory_member(+Directory, -Member, +Options) is nondet.
+%
+%   True when Member is a path inside Directory.  Options defined are:
+%
+%     - recursive(+Boolean)
+%       If `true` (default `false`), recurse into subdirectories
+%     - follow_links(+Boolean)
+%       If `true` (default), follow symbolic links.
+%     - file_type(+Type)
+%       See absolute_file_name/3.
+%     - extensions(+List)
+%       Only return entries whose extension appears in List.
+%     - file_errors(+Errors)
+%       How to handle errors.  One of `fail`, `warning` or `error`.
+%       Default is `warning`.  Errors notably happen if a directory is
+%       unreadable or a link points nowhere.
+%     - access(+Access)
+%       Only return entries with Access
+%     - matches(+GlobPattern)
+%       Only return files that match GlobPattern.
+%     - exclude(+GlobPattern)
+%       Exclude files matching GlobPattern.
+%     - exclude_directory(+GlobPattern)
+%       Do not recurse into directories matching GlobPattern.
+%     - hidden(+Boolean)
+%       If `true` (default), also return _hidden_ files.
+%
+%   This predicate is safe against cycles   introduced by symbolic links
+%   to directories.
+%
+%   The idea for a non-deterministic file   search  predicate comes from
+%   Nicos Angelopoulos.
+
+directory_member(Directory, Member, Options) :-
+    dict_create(Dict, options, Options),
+    (   Dict.get(recursive) == true,
+        \+ Dict.get(follow_links) == false
+    ->  empty_nb_set(Visited),
+        DictOptions = Dict.put(visited, Visited)
+    ;   DictOptions = Dict
+    ),
+    directory_member_dict(Directory, Member, DictOptions).
+
+directory_member_dict(Directory, Member, Dict) :-
+    directory_files(Directory, Files, Dict),
+    member(Entry, Files),
+    \+ special(Entry),
+    directory_file_path(Directory, Entry, AbsEntry),
+    filter_link(AbsEntry, Dict),
+    (   exists_directory(AbsEntry)
+    ->  (   filter_dir_member(AbsEntry, Entry, Dict),
+            Member = AbsEntry
+        ;   filter_directory(Entry, Dict),
+            Dict.get(recursive) == true,
+            \+ hidden_file(Entry, Dict),
+            no_link_cycle(AbsEntry, Dict),
+            directory_member_dict(AbsEntry, Member, Dict)
+        )
+    ;   filter_dir_member(AbsEntry, Entry, Dict),
+        Member = AbsEntry
+    ).
+
+directory_files(Directory, Files, Dict) :-
+    Errors = Dict.get(file_errors),
+    !,
+    errors_directory_files(Errors, Directory, Files).
+directory_files(Directory, Files, _Dict) :-
+    errors_directory_files(warning, Directory, Files).
+
+errors_directory_files(fail, Directory, Files) :-
+    catch(directory_files(Directory, Files), _, fail).
+errors_directory_files(warning, Directory, Files) :-
+    catch(directory_files(Directory, Files), E,
+          (   print_message(warning, E),
+              fail)).
+errors_directory_files(error, Directory, Files) :-
+    directory_files(Directory, Files).
+
+
+filter_link(File, Dict) :-
+    \+ ( Dict.get(follow_links) == false,
+         read_link(File, _, _)
+       ).
+
+no_link_cycle(Directory, Dict) :-
+    Visited = Dict.get(visited),
+    !,
+    absolute_file_name(Directory, Canonical,
+                       [ file_type(directory)
+                       ]),
+    add_nb_set(Canonical, Visited, true).
+no_link_cycle(_, _).
+
+hidden_file(Entry, Dict) :-
+    false == Dict.get(hidden),
+    sub_atom(Entry, 0, _, _, '.').
+
+%!  filter_dir_member(+Absolute, +BaseName, +Options)
+%
+%   True when the given file satisfies the filter expressions.
+
+filter_dir_member(_AbsEntry, Entry, Dict) :-
+    Exclude = Dict.get(exclude),
+    wildcard_match(Exclude, Entry),
+    !, fail.
+filter_dir_member(_AbsEntry, Entry, Dict) :-
+    Include = Dict.get(matches),
+    \+ wildcard_match(Include, Entry),
+    !, fail.
+filter_dir_member(AbsEntry, _Entry, Dict) :-
+    Type = Dict.get(file_type),
+    \+ matches_type(Type, AbsEntry),
+    !, fail.
+filter_dir_member(_AbsEntry, Entry, Dict) :-
+    ExtList = Dict.get(extensions),
+    file_name_extension(_, Ext, Entry),
+    \+ memberchk(Ext, ExtList),
+    !, fail.
+filter_dir_member(AbsEntry, _Entry, Dict) :-
+    Access = Dict.get(access),
+    \+ access_file(AbsEntry, Access),
+    !, fail.
+filter_dir_member(_AbsEntry, Entry, Dict) :-
+    hidden_file(Entry, Dict),
+    !, fail.
+filter_dir_member(_, _, _).
+
+matches_type(directory, Entry) :-
+    !,
+    exists_directory(Entry).
+matches_type(Type, Entry) :-
+    \+ exists_directory(Entry),
+    user:prolog_file_type(Ext, Type),
+    file_name_extension(_, Ext, Entry).
+
+
+%!  filter_directory(+Entry, +Dict) is semidet.
+%
+%   Implement the exclude_directory(+GlobPattern) option.
+
+filter_directory(Entry, Dict) :-
+    Exclude = Dict.get(exclude_directory),
+    wildcard_match(Exclude, Entry),
+    !, fail.
+filter_directory(_, _).
+
+
+%!  copy_file(+From, +To) is det.
 %
 %   Copy a file into a new file or  directory. The data is copied as
 %   binary data.
@@ -345,7 +514,7 @@ delete_directory_contents(Dir) :-
 %   a plain `Mode`, which adds new   permissions, revokes permissions or
 %   sets the exact permissions. `Mode`  itself   is  an integer, a POSIX
 %   mode name or a list of POSIX   mode names. Defines names are `suid`,
-%   `sgid`, `svtx` and the all names   defined by the regular expression
+%   `sgid`, `svtx` and  all names  defined  by  the  regular  expression
 %   =|[ugo]*[rwx]*|=. Specifying none of "ugo" is the same as specifying
 %   all of them. For example, to make   a  file executable for the owner
 %   (user) and group, we can use:

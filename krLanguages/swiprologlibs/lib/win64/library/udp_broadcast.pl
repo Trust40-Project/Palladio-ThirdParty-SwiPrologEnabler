@@ -1,9 +1,10 @@
 /*  Part of SWI-Prolog
 
-    Author:        Jeffrey Rosenwald
+    Author:        Jeffrey Rosenwald and Jan Wielemaker
     E-mail:        jeffrose@acm.org
     WWW:           http://www.swi-prolog.org
     Copyright (c)  2012-2013, Jeffrey Rosenwald
+		   2018, CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -33,13 +34,23 @@
 */
 
 :- module(udp_broadcast,
-             [
-             udp_host_to_address/2,    % ? Host, ? Address
-             udp_broadcast_initialize/2,   % +IPAddress, +Subnet
-             udp_broadcast_service/2   % ? Domain, ? Address
-             ]).
+          [ udp_broadcast_initialize/2,         % +IPAddress, +Options
+            udp_broadcast_close/1,		% +Scope
 
-/** <module> A UDP Broadcast Bridge
+            udp_peer_add/2,                     % +Scope, +IP
+            udp_peer_del/2,                     % +Scope, ?IP
+            udp_peer/2                          % +Scope, -IP
+          ]).
+:- use_module(library(socket)).
+:- use_module(library(broadcast)).
+:- use_module(library(option)).
+:- use_module(library(apply)).
+:- use_module(library(debug)).
+:- use_module(library(error)).
+
+% :- debug(udp(broadcast)).
+
+/** <module> A UDP broadcast proxy
 
 SWI-Prolog's broadcast library provides a  means   that  may  be used to
 facilitate publish and subscribe communication regimes between anonymous
@@ -49,24 +60,44 @@ broadcast library removes that restriction.   With  this library loaded,
 any member on your local IP subnetwork that also has this library loaded
 may hear and respond to your broadcasts.
 
-This  module  has  only  two  public  predicates.  When  the  module  is
-initialized, it starts a two listener threads that listen for broadcasts
-from others, received as UDP datagrams.
+This library support three styles of networking as described below. Each
+of these networks have their own   advantages  and disadvantages. Please
+study the literature to understand the consequences.
 
-Unlike TIPC broadcast, UDP broadcast has only one scope, =udp_subnet=. A
-broadcast/1 or broadcast_request/1 that is not  directed to the listener
-above, behaves as usual and is confined   to the instance of Prolog that
-originated it. But when so directed, the   broadcast will be sent to all
-participating systems, including  itself,  by   way  of  UDP's multicast
-addressing facility. A UDP broadcast  or   broadcast  request  takes the
-typical form: =|broadcast(udp_subnet(+Term, +Timeout))|=. To prevent the
-potential for feedback loops, the scope   qualifier is stripped from the
-message before transmission. The timeout is   optional. It specifies the
-amount to time  to  wait  for  replies   to  arrive  in  response  to  a
-broadcast_request. The default period is 0.250   seconds. The timeout is
-ignored for broadcasts.
+  $ broadcast :
+  Broadcast messages are sent to the LAN subnet. The broadcast
+  implementation uses two UDP ports: a public to address the whole
+  group and a private one to address a specific node.  Broadcasting
+  is generally a good choice if the subnet is small and traffic is
+  low.
 
-An example of three separate processes cooperating on the same Node:
+  $ unicast :
+  Unicast sends copies of packages to known peers.  Unicast networks
+  can easily be routed.  The unicast version uses a single UDP port
+  per node.  Unicast is generally a good choice for a small party,
+  in particular if the peers are in different networks.
+
+  $ multicast :
+  Multicast is like broadcast, but it can be configured to
+  work accross networks and may work more efficiently on VLAN networks.
+  Like the broadcast setup, two UDP ports are used.  Multicasting can
+  in general deliver the most efficient LAN and WAN networks, but
+  requires properly configured routing between the peers.
+
+After initialization and, in the case   of  a _unicast_ network managing
+the  set  of  peers,   communication    happens   through   broadcast/1,
+broadcast_request/1 and listen/1,2,3.
+
+A broadcast/1 or broadcast_request/1 of the   shape  udp(Scope, Term) or
+udp(Scope, Term, TimeOut) is forwarded over the UDP network to all peers
+that joined the same `Scope`.  To   prevent  the  potential for feedback
+loops, only the plain `Term`  is   broadcasted  locally.  The timeout is
+optional. It specifies the amount to time  to wait for replies to arrive
+in response to a  broadcast_request/1.  The   default  period  is  0.250
+seconds. The timeout is ignored for broadcasts.
+
+An example of three separate processes   cooperating in the same _scope_
+called `peers`:
 
 ==
 Process A:
@@ -85,7 +116,7 @@ Process B:
 
 Process C:
 
-   ?- findall(X, broadcast_request(udp_subnet(number(X))), Xs).
+   ?- findall(X, broadcast_request(udp(peers, number(X))), Xs).
    Xs = [1, 2, 3, 4, 5, 7, 8, 9].
 
    ?-
@@ -126,15 +157,20 @@ Host A Process 2:
    ?- listen(number(X), between(1, 5, X)).
    true.
 
-   ?- bagof(X, broadcast_request(udp_subnet(number(X):From,1)), Xs).
+   ?- bagof(X, broadcast_request(udp(peers,number(X):From,1)), Xs).
    From = ip(192, 168, 1, 103):34855,
    Xs = [7, 8, 9] ;
    From = ip(192, 168, 1, 103):56331,
    Xs = [1, 2, 3, 4, 5] ;
    From = ip(192, 168, 1, 104):3217,
    Xs = [1, 2, 3, 4, 5].
-
 ==
+
+All incomming trafic is handled  by  a   single  thread  with  the alias
+`udp_inbound_proxy`. This thread also performs  the internal dispatching
+using broadcast/1 and broadcast_request/1. Future   versions may provide
+for handling these requests in seperate threads.
+
 
 ## Caveats {#udp-broadcase-caveats}
 
@@ -142,12 +178,14 @@ While the implementation is mostly transparent, there are some important
 and subtle differences that must be taken into consideration:
 
     * UDP broadcast requires an initialization step in order to
-    launch the broadcast listener daemon. See udp_broadcast_initialize/2.
+    launch the broadcast listener proxy. See
+    udp_broadcast_initialize/2.
 
     * Prolog's broadcast_request/1 is nondet. It sends the request,
     then evaluates the replies synchronously, backtracking as needed
     until a satisfactory reply is received. The remaining potential
-    replies are not evaluated. This is not so when UDP is involved.
+    replies are not evaluated.  With UDP, all peers will send all
+    answers to the query.  The receiver may however stop listening.
 
     * A UDP broadcast/1 is completely asynchronous.
 
@@ -200,12 +238,14 @@ and subtle differences that must be taken into consideration:
     (or none at all). No ordering of replies is implied.
 
     * Prolog terms are sent to others after first converting them to
-    atoms using term_to_atom/2. Passing real numbers this way may
-    result in a substantial truncation of precision.
+    atoms using term_string/3.  Serialization does not deal with cycles,
+    attributes or sharing.   The hook udp_term_string_hook/3 may be
+    defined to change the message serialization and support different
+    message formats and/or encryption.
 
     * The broadcast model is based on anonymity and a presumption of
     trust--a perfect recipe for compromise. UDP is an Internet protocol.
-    A UDP broadcast listener exposes a public port (20005), which is
+    A UDP broadcast listener exposes a public port, which is
     static and shared by all listeners, and a private port, which is
     semi-static and unique to the listener instance. Both can be seen
     from off-cluster nodes and networks. Usage of this module exposes
@@ -219,71 +259,35 @@ and subtle differences that must be taken into consideration:
     members of the local subnet. This security measure only keeps honest
     people honest!
 
-@author    Jeffrey Rosenwald (JeffRose@acm.org)
+@author    Jeffrey Rosenwald (JeffRose@acm.org), Jan Wielemaker
 @license   BSD-2
 @see       tipc.pl
 */
 
-:- use_module(library(socket)).
-:- use_module(library(broadcast)).
-:- use_module(library(time)).
+:- multifile
+    udp_term_string_hook/3,                     % +Scope, ?Term, ?String
+    udp_unicast_join_hook/3,                    % +Scope, +From, +Data
+    black_list/1.                               % +Term
 
-:- require([ thread_self/1
-           , forall/2
-           , term_to_atom/2
-           , thread_send_message/2
-           , catch/3
-           , setup_call_cleanup/3
-           , thread_create/3
-           ]).
-
-% %     ~>(:P, :Q) is nondet.
-% %     eventually_implies(P, Q) is nondet.
-%    asserts temporal Liveness (something good happens, eventually) and
-%    Safety (nothing bad ever happens) properties. Analogous to the
-%    "leads-to" operator of Owicki and Lamport, 1982. Provides a sort of
-%    lazy implication described informally as:
-%
-%    * Liveness: For all possible outcomes, P -> Q, eventually.
-%    * Safety: For all possible outcomes, (\+P ; Q), is invariant.
-%
-%  Described practically:
-%
-%    P ~> Q, declares that if P is true, then Q must be true, now or at
-%    some point in the future.
-%
-
-:- meta_predicate ~>(0,0).
-:- op(950, xfy, ~>).
-
-~>(P, Q) :-
-    setup_call_cleanup(P,
-                       (true; fail),
-                       (   Q -> true;
-                       throw(error(goal_failed(Q), context(~>, _))))
-                      ).
-
-:- meta_predicate safely(0).
+:- meta_predicate
+    safely(0),
+    safely_det(0).
 
 safely(Predicate) :-
+    Err = error(_,_),
     catch(Predicate, Err,
-          (Err == '$aborted' -> (!, fail);
-          print_message(error, Err), fail)).
+          print_message_fail(Err)).
 
-:- meta_predicate make_thread(0, +).
+safely_det(Predicate) :-
+    Err = error(_,_),
+    catch(Predicate, Err,
+          print_message_fail(Err)),
+    !.
+safely_det(_).
 
-% You can't thread_signal a thread that isn't running.
-
-join_thread(Id) :-
-    catch(thread_signal(Id, abort),
-          error(existence_error(thread, Id), _Context),
-          true),
-
-    thread_join(Id, exception('$aborted')).
-
-make_thread(Goal, Options) :-
-    thread_create(safely(Goal), Id, [ detached(false) | Options ])
-      ~> join_thread(Id).
+print_message_fail(Term) :-
+    print_message(error, Term),
+    fail.
 
 udp_broadcast_address(IPAddress, Subnet, BroadcastAddress) :-
     IPAddress = ip(A1, A2, A3, A4),
@@ -295,21 +299,21 @@ udp_broadcast_address(IPAddress, Subnet, BroadcastAddress) :-
     B3 is A3 \/ (S3 xor 255),
     B4 is A4 \/ (S4 xor 255).
 
-%!  udp_broadcast_service(?Domain, ?Address) is nondet.
-%   provides the UDP broadcast address for a given Domain. At present,
-%   only one domain is supported, =|udp_subnet|=.
+%!  udp_broadcast_service(?Scope, ?Address) is nondet.
 %
+%   provides the UDP broadcast address for   a  given Scope. At present,
+%   only one scope is supported, =|udp_subnet|=.
 
-%  The following are defined at initialization:
+%!  udp_scope(?ScopeName, ?ScopeDef)
+
 :- dynamic
-    udp_subnet_member/1,      % +IpAddress:Port
-    udp_broadcast_service/2.  % ?Domain, ?BroadcastAddress:Port
-
+    udp_scope/2,
+    udp_scope_peer/2.
 :- volatile
-    udp_subnet_member/1,      % +IpAddress:Port
-    udp_broadcast_service/2.  % ?Domain, ?BroadcastAddress:Port
+    udp_scope/2,
+    udp_scope_peer/2.
 %
-%  Here's a UDP bridge to Prolog's broadcast library
+%  Here's a UDP proxy to Prolog's broadcast library
 %
 %  A sender may extend a broadcast  to  a   subnet  of  a UDP network by
 %  specifying a =|udp_subnet|= scoping qualifier   in his/her broadcast.
@@ -327,223 +331,620 @@ udp_broadcast_address(IPAddress, Subnet, BroadcastAddress) :-
 %  and replies are  sent  on  the   private  port.  Directed  broadcasts
 %  (unicasts) are received on the private port   and replies are sent on
 %  the private port.
-%
-%  Interactions with TIPC Broadcast
-%
-%  As a security precaution, we do   not allow unsupervised transactions
-%  directly between UDP and TIPC broadcast. These terms are black-listed
-%  and ignored when received via UDP   listeners.  A UDP enabled service
-%  that wishes to use TIPC resources on  the cluster must have a sponsor
-%  on the TIPC cluster to filter   incoming  UDP broadcast traffic. This
-%  can be as simple as loading  and initializing both tipc_broadcast and
-%  udp_broadcast within the same TIPC broadcast service.
-%
-%  Because the UDP  and  TIPC  broadcast   listeners  are  operating  in
-%  separate threads of execution, a  UDP   broadcast  sponsor can safely
-%  perform a broadcast_request with  TIPC  scope   from  within  the UDP
-%  broadcast listener context. This is one of the few scenarios where a
-%  recursive broadcast_request with TIPC scope is safe.
-%
-
-black_list(tipc_node(_)).
-black_list(tipc_node(_,_)).
-black_list(tipc_cluster(_)).
-black_list(tipc_cluster(_,_)).
-black_list(tipc_zone(_)).
-black_list(tipc_zone(_,_)).
-%
-ld_dispatch(_S, '$udp_request'(Term), _From) :-
-    black_list(Term), !, fail.
-
-ld_dispatch(_S, Term, _From) :-
-    black_list(Term), !, fail.
-
-ld_dispatch(S, '$udp_request'(wru(Name)), From) :-
-    !, gethostname(Name),
-    term_to_atom(wru(Name), Atom),
-    udp_send(S, Atom, From, []).
-
-ld_dispatch(S, '$udp_request'(Term), From) :-
-    !, forall(broadcast_request(Term),
-          (   term_to_atom(Term, Atom),
-              udp_send(S, Atom, From, []))).
-
-ld_dispatch(_S, Term, _From) :-
-    safely(broadcast(Term)).
 
 %  Thread 1 listens for directed traffic on the private port.
 %
-udp_listener_daemon1(S) :-
-    repeat,
-    safely(dispatch_traffic(S, S)).
 
-%  Thread 2 listens for broadcast traffic on the well-known public port
-%  (S). All replies are originated from the private port (S1).
+:- dynamic
+    udp_private_socket/3,                       % Port, Socket, FileNo
+    udp_public_socket/4,                        % Scope, Port, Socket, FileNo
+    udp_closed/1.				% Scope
+
+udp_inbound_proxy :-
+    thread_at_exit(inbound_proxy_died),
+    udp_inbound_proxy_loop.
+
+udp_inbound_proxy_loop :-
+    make_private_socket,
+    forall(udp_scope(Scope, ScopeData),
+           make_public_socket(ScopeData, Scope)),
+    retractall(udp_closed(_)),
+    findall(FileNo, udp_socket_file_no(FileNo), FileNos),
+    catch(dispatch_inbound(FileNos),
+          E, dispatch_exception(E)),
+    udp_inbound_proxy_loop.
+
+dispatch_exception(E) :-
+    E = error(_,_),
+    !,
+    print_message(warning, E).
+dispatch_exception(_).
+
+
+%!  make_private_socket is det.
 %
-udp_listener_daemon2(Parent) :-
-    udp_socket(S) ~> tcp_close_socket(S),
-    udp_socket(S1) ~> tcp_close_socket(S1),
+%   Create our private socket. This socket is used for messages that are
+%   directed to me. Note that we only  need this for broadcast networks.
+%   If we use a unicast network we use   our public port to contact this
+%   specific server.
 
-    tcp_bind(S1, _PrivatePort),   % bind him to a private port now
+make_private_socket :-
+    udp_private_socket(_Port, S, _F),
+    !,
+    (   (   udp_scope(Scope, broadcast(_,_,_))
+        ;   udp_scope(Scope, multicast(_,_))
+        ),
+        \+ udp_closed(Scope)
+    ->  true
+    ;   tcp_close_socket(S),
+        retractall(udp_private_socket(_,_,_))
+    ).
+make_private_socket :-
+    udp_scope(_, broadcast(_,_,_)),
+    !,
+    udp_socket(S),
+    tcp_bind(S, Port),
+    tcp_getopt(S, file_no(F)),
+    tcp_setopt(S, broadcast),
+    assertz(udp_private_socket(Port, S, F)).
+make_private_socket :-
+    udp_scope(_, multicast(_,_)),
+    !,
+    udp_socket(S),
+    tcp_bind(S, Port),
+    tcp_getopt(S, file_no(F)),
+    assertz(udp_private_socket(Port, S, F)).
+make_private_socket.
 
-    make_thread(udp_listener_daemon1(S1),
-                [ alias(udp_listener_daemon1)]),
+%!  make_public_socket(+ScopeData, +Scope)
+%
+%   Create the public port Scope.
 
+make_public_socket(_, Scope) :-
+    udp_public_socket(Scope, _Port, S, _),
+    !,
+    (   udp_closed(Scope)
+    ->  tcp_close_socket(S),
+        retractall(udp_public_socket(Scope, _, _, _))
+    ;   true
+    ).
+make_public_socket(broadcast(_SubNet, _Broadcast, Port), Scope) :-
+    udp_socket(S),
     tcp_setopt(S, reuseaddr),
+    tcp_bind(S, Port),
+    tcp_getopt(S, file_no(F)),
+    assertz(udp_public_socket(Scope, Port, S, F)).
+make_public_socket(multicast(Group, Port), Scope) :-
+    udp_socket(S),
+    tcp_setopt(S, reuseaddr),
+    tcp_bind(S, Port),
+    tcp_setopt(S, ip_add_membership(Group)),
+    tcp_getopt(S, file_no(F)),
+    assertz(udp_public_socket(Scope, Port, S, F)).
+make_public_socket(unicast(Port), Scope) :-
+    udp_socket(S),
+    tcp_bind(S, Port),
+    tcp_getopt(S, file_no(F)),
+    assertz(udp_public_socket(Scope, Port, S, F)).
 
-    udp_broadcast_service(udp_subnet, _Address:Port),
-    tcp_bind(S, Port),      % bind to our public port
+udp_socket_file_no(FileNo) :-
+    udp_private_socket(_,_,FileNo).
+udp_socket_file_no(FileNo) :-
+    udp_public_socket(_,_,_,FileNo).
 
-    listen(udp_broadcast, Head, broadcast_listener(Head))
-         ~> unlisten(udp_broadcast),
+%!  dispatch_inbound(+FileNos)
+%
+%   Dispatch inbound traffic. This loop   uses  wait_for_input/3 to wait
+%   for one or more UDP sockets and   dispatches  the requests using the
+%   internal broadcast service. For an  incomming broadcast _request_ we
+%   send the reply only to the  requester   and  therefore we must use a
+%   socket that is not in broadcast mode.
 
-    thread_send_message(Parent, udp_listener_daemon_ready),
+dispatch_inbound(FileNos) :-
+    debug(udp(broadcast), 'Waiting for ~p', [FileNos]),
+    wait_for_input(FileNos, Ready, infinite),
+    debug(udp(broadcast), 'Ready: ~p', [Ready]),
+    maplist(dispatch_ready, Ready),
+    dispatch_inbound(FileNos).
 
-    repeat,
-    safely(dispatch_traffic(S, S1)).
-
-dispatch_traffic(S, S1) :-
-    udp_receive(S, Data, From,
-                [as(atom), max_message_size(65535)]),
-    udp_subnet_member(From),  % ignore all traffic that is foreign to my subnet
-    term_to_atom(Term, Data),
-    with_mutex(udp_broadcast, ld_dispatch(S1, Term, From)),
+dispatch_ready(FileNo) :-
+    udp_private_socket(_Port, Private, FileNo),
     !,
-    dispatch_traffic(S, S1).
+    udp_receive(Private, Data, From, [max_message_size(65535)]),
+    debug(udp(broadcast), 'Inbound on private port', []),
+    (   in_scope(Scope, From),
+        udp_term_string(Scope, Term, Data) % only accept valid data
+    ->  ld_dispatch(Private, Term, From, Scope)
+    ;   true
+    ).
+dispatch_ready(FileNo) :-
+    udp_public_socket(Scope, _PublicPort, Public, FileNo),
+    !,
+    udp_receive(Public, Data, From, [max_message_size(65535)]),
+    debug(udp(broadcast), 'Inbound on public port from ~p for scope ~p',
+          [From, Scope]),
+    (   in_scope(Scope, From),
+        udp_term_string(Scope, Term, Data) % only accept valid data
+    ->  (   udp_scope(Scope, unicast(_))
+        ->  ld_dispatch(Public, Term, From, Scope)
+        ;   udp_private_socket(_PrivatePort, Private, _FileNo),
+            ld_dispatch(Private, Term, From, Scope)
+        )
+    ;   udp_scope(Scope, unicast(_)),
+        udp_term_string(Scope, Term, Data),
+        unicast_out_of_scope_request(Scope, From, Term)
+    ->  true
+    ;   true
+    ).
 
-start_udp_listener_daemon :-
-    catch(thread_property(udp_listener_daemon2, status(running)),_, fail),
-
+in_scope(Scope, Address) :-
+    udp_scope(Scope, ScopeData),
+    in_scope(ScopeData, Scope, Address),
     !.
+in_scope(Scope, From) :-
+    debug(udp(broadcast), 'Out-of-scope ~p datagram from ~p',
+          [Scope, From]),
+    fail.
 
-start_udp_listener_daemon :-
+in_scope(broadcast(Subnet, Broadcast, _PublicPort), _Scope, IP:_FromPort) :-
+    udp_broadcast_address(IP, Subnet, Broadcast).
+in_scope(multicast(_Group, _Port), _Scope, _From).
+in_scope(unicast(_PublicPort), Scope, IP:_) :-
+    udp_peer(Scope, IP:_).
+
+
+%!  ld_dispatch(+PrivateSocket, +Term, +From, +Scope)
+%
+%   Locally dispatch Term received from From. If it concerns a broadcast
+%   request, send the replies to PrivateSocket   to  From. The multifile
+%   hook black_list/1 can be used to ignore certain messages.
+
+ld_dispatch(_S, Term, From, _Scope) :-
+    debug(udp(broadcast), 'ld_dispatch(~p) from ~p', [Term, From]),
+    fail.
+ld_dispatch(_S, Term, _From, _Scope) :-
+    blacklisted(Term), !.
+ld_dispatch(S, request(Key, Term), From, Scope) :-
+    !,
+    forall(safely(broadcast_request(Term)),
+           safely((udp_term_string(Scope, reply(Key,Term), Message),
+                   udp_send(S, Message, From, [])))).
+ld_dispatch(_S, send(Term), _From, _Scope) :-
+    safely_det(broadcast(Term)).
+ld_dispatch(_S, reply(Key, Term), From, _Scope) :-
+    (   reply_queue(Key, Queue)
+    ->  safely(thread_send_message(Queue, Term:From))
+    ;   true
+    ).
+
+blacklisted(send(Term))      :- black_list(Term).
+blacklisted(request(_,Term)) :- black_list(Term).
+blacklisted(reply(_,Term))   :- black_list(Term).
+
+
+%!  reload_udp_proxy
+%
+%   Update the UDP relaying proxy service.   The proxy consists of three
+%   forwarding mechanisms:
+%
+%     - Listen on our _scope_.  If any messages are received, hand them
+%       to udp_broadcast/3 to be broadcasted to _scope_ or sent to a
+%       specific recipient.
+%     - Listen on the _scope_ public port. Incomming messages are
+%       relayed to the internal broadcast mechanism and replies are sent
+%       to from our private socket.
+%     - Listen on our private port and reply using the same port.
+
+reload_udp_proxy :-
+    reload_outbound_proxy,
+    reload_inbound_proxy.
+
+reload_outbound_proxy :-
+    listening(udp_broadcast, udp(_,_), _),
+    !.
+reload_outbound_proxy :-
+    listen(udp_broadcast, udp(Scope,Message),
+           udp_broadcast(Message, Scope, 0.25)),
+    listen(udp_broadcast, udp(Scope,Message,Timeout),
+           udp_broadcast(Message, Scope, Timeout)),
+    listen(udp_broadcast, udp_subnet(Message),  % backward compatibility
+           udp_broadcast(Message, subnet, 0.25)),
+    listen(udp_broadcast, udp_subnet(Message,Timeout),
+           udp_broadcast(Message, subnet, Timeout)).
+
+reload_inbound_proxy :-
+    catch(thread_signal(udp_inbound_proxy, throw(udp_reload)),
+          error(existence_error(thread, _),_),
+          fail),
+    !.
+reload_inbound_proxy :-
+    thread_create(udp_inbound_proxy, _,
+                  [ alias(udp_inbound_proxy),
+                    detached(true)
+                  ]).
+
+inbound_proxy_died :-
     thread_self(Self),
-    thread_create(udp_listener_daemon2(Self), _,
-           [alias(udp_listener_daemon2), detached(true)]),
-    call_with_time_limit(6.0,
-                         thread_get_message(udp_listener_daemon_ready)).
+    thread_property(Self, status(Status)),
+    (   catch(recreate_proxy(Status), _, fail)
+    ->  print_message(informational,
+                      httpd_restarted_worker(Self))
+    ;   done_status_message_level(Status, Level),
+        print_message(Level,
+                      httpd_stopped_worker(Self, Status))
+    ).
 
-:- multifile udp:host_to_address/2.
+recreate_proxy(exception(Error)) :-
+    recreate_on_error(Error),
+    reload_inbound_proxy.
+
+recreate_on_error('$aborted').
+recreate_on_error(time_limit_exceeded).
+
+done_status_message_level(true, silent) :- !.
+done_status_message_level(exception('$aborted'), silent) :- !.
+done_status_message_level(_, informational).
+
+
+%!  udp_broadcast_close(+Scope)
 %
-broadcast_listener(udp_host_to_address(Host, Addr)) :-
-    udp:host_to_address(Host, Addr).
+%   Close a UDP broadcast scope.
 
-broadcast_listener(udp_broadcast_service(Class, Addr)) :-
-    udp_broadcast_service(Class, Addr).
-
-broadcast_listener(udp_subnet(X)) :-
-    udp_broadcast(X, udp_subnet, 0.250).
-
-broadcast_listener(udp_subnet(X, Timeout)) :-
-    udp_broadcast(X, udp_subnet, Timeout).
-
-%
-%
-udp_basic_broadcast(S, Port, Term, Address) :-
-    udp_socket(S)
-      ~> tcp_close_socket(S),
-
-    (   udp_broadcast_service(udp_subnet, Address)
-           -> tcp_setopt(S, broadcast)
-           ; true
-    ),
-
-    tcp_bind(S, Port),  % find our own ephemeral Port
-    term_to_atom(Term, Atom),
-
-    (   udp_subnet_member(Address)  % talk only to your local subnet
-        -> safely(udp_send(S, Atom, Address, []))
-        ;  true).
-
-% directed broadcast to a single listener
-udp_broadcast(Term:To, _Scope, _Timeout) :-
-    ground(Term), ground(To),
+udp_broadcast_close(Scope) :-
+    udp_scope(Scope, _ScopeData),
     !,
-    udp_basic_broadcast(_S, _Port, Term, To),
+    assert(udp_closed(Scope)),
+    reload_udp_proxy.
+udp_broadcast_close(_).
 
-    !.
 
-% broadcast to all listeners
+%!  udp_broadcast(+What, +Scope, +TimeOut)
+%
+%   Send a broadcast request to my UDP peers in Scope. What is either of
+%   the shape `Term:Address` to send Term to a specific address or query
+%   the address from which term is answered or it is a plain `Term`.
+%
+%   If `Term` is  nonground,  it  is   considered  is  a  _request_ (see
+%   broadcast_request/1) and the predicate  succeeds   for  each  answer
+%   received within TimeOut seconds. If Term is ground it is considered
+%   an asynchronous broadcast and udp_broadcast/3 is deterministic.
+
+udp_broadcast(Term:To, Scope, _Timeout) :-
+    ground(Term), ground(To),           % broadcast to single listener
+    !,
+    udp_basic_broadcast(send(Term), Scope, single(To)).
 udp_broadcast(Term, Scope, _Timeout) :-
-    ground(Term),
+    ground(Term),                       % broadcast to all listeners
     !,
-    udp_broadcast_service(Scope, Address),
-    udp_basic_broadcast(_S, _Port, Term, Address),
-
-    !.
-
-% directed broadcast_request to a single listener
-udp_broadcast(Term:Address, _Scope, Timeout) :-
-    ground(Address),
+    udp_basic_broadcast(send(Term), Scope, broadcast).
+udp_broadcast(Term:To, Scope, Timeout) :-
+    ground(To),                         % request to single listener
     !,
-    udp_basic_broadcast(S, Port, '$udp_request'(Term), Address),
-    udp_br_collect_replies(S, Port, Timeout, Term:Address).
-
-% broadcast_request to all listeners returning responder port-id
+    setup_call_cleanup(
+        request_queue(Id, Queue),
+        ( udp_basic_broadcast(request(Id, Term), Scope, single(To)),
+          udp_br_collect_replies(Queue, Timeout, Term:To)
+        ),
+        destroy_request_queue(Queue)).
 udp_broadcast(Term:From, Scope, Timeout) :-
-    !, udp_broadcast_service(Scope, Address),
-    udp_basic_broadcast(S, Port, '$udp_request'(Term), Address),
-    udp_br_collect_replies(S, Port, Timeout, Term:From).
-
-% broadcast_request to all listeners ignoring responder port-id
-udp_broadcast(Term, Scope, Timeout) :-
+    !,                                  % request to all listeners, collect sender
+    setup_call_cleanup(
+        request_queue(Id, Queue),
+        ( udp_basic_broadcast(request(Id, Term), Scope, broadcast),
+          udp_br_collect_replies(Queue, Timeout, Term:From)
+        ),
+        destroy_request_queue(Queue)).
+udp_broadcast(Term, Scope, Timeout) :-  % request to all listeners
     udp_broadcast(Term:_, Scope, Timeout).
 
-udp_br_send_timeout(Port) :-
-    udp_socket(S)
-      ~> tcp_close_socket(S),
-    udp_send(S, '$udp_br_timeout', localhost:Port, []),
+:- dynamic
+    reply_queue/2.
 
-    !.
+request_queue(Id, Queue) :-
+    Id is random(1<<63),
+    message_queue_create(Queue),
+    asserta(reply_queue(Id, Queue)).
 
-udp_br_collect_replies(S, Port, Timeout, Term:From) :-
-    alarm(Timeout, udp_br_send_timeout(Port), Id, [remove(false)])
-      ~> remove_alarm(Id),
+destroy_request_queue(Queue) :-         % leave queue to GC
+    retractall(reply_queue(_, Queue)).
 
-    tcp_setopt(S, dispatch(false)),
 
+%!  udp_basic_broadcast(+Term, +Dest) is multi.
+%
+%   Create a UDP private socket and use it   to send Term to Address. If
+%   Address is our broadcast address, set the socket in broadcast mode.
+%
+%   This predicate succeeds with a choice   point. Committing the choice
+%   point closes S.
+%
+%   @arg Dest is one of single(Target) or `broadcast`.
+
+udp_basic_broadcast(Term, Scope, Dest) :-
+    debug(udp(broadcast), 'UDP proxy outbound ~p to ~p', [Term, Dest]),
+    udp_term_string(Scope, Term, String),
+    udp_send_message(Dest, String, Scope).
+
+udp_send_message(single(Address), String, Scope) :-
+    (   udp_scope(Scope, unicast(_))
+    ->  udp_public_socket(Scope, _Port, S, _)
+    ;   udp_private_socket(_Port, S, _F)
+    ),
+    safely(udp_send(S, String, Address, [])).
+udp_send_message(broadcast, String, Scope) :-
+    (   udp_scope(Scope, unicast(_))
+    ->  udp_public_socket(Scope, _Port, S, _),
+        forall(udp_peer(Scope, Address),
+               ( debug(udp(broadcast), 'Unicast to ~p', [Address]),
+                 safely(udp_send(S, String, Address, []))))
+    ;   udp_scope(Scope, broadcast(_SubNet, Broadcast, Port))
+    ->  udp_private_socket(_PrivatePort, S, _F),
+        udp_send(S, String, Broadcast:Port, [])
+    ;   udp_scope(Scope, multicast(Group, Port))
+    ->  udp_private_socket(_PrivatePort, S, _F),
+        udp_send(S, String, Group:Port, [])
+    ).
+
+% ! udp_br_collect_replies(+Queue, +TimeOut, -TermAndFrom) is nondet.
+%
+%   Collect replies on Socket for  TimeOut   seconds.  Succeed  for each
+%   received message.
+
+udp_br_collect_replies(Queue, Timeout, Reply) :-
+    get_time(Start),
+    Deadline is Start+Timeout,
     repeat,
-    udp_receive(S, Atom, From1, [as(atom)]),
-    (   (Atom \== '$udp_br_timeout')
-        -> (From1 = From, safely(term_to_atom(Term, Atom)))
-        ;  (!, fail)).
+       (   thread_get_message(Queue, Reply,
+                              [ deadline(Deadline)
+                              ])
+       ->  true
+       ;   !,
+           fail
+       ).
 
-%!  udp_host_to_address(?Service, ?Address) is nondet.
+%!  udp_broadcast_initialize(+IPAddress, +Options) is semidet.
 %
-%   locates a UDP service by name. Service  is an atom or grounded term
-%   representing the common name  of  the   service.  Address  is a UDP
-%   address structure. A server may advertise   its  services by name by
-%   including  the  fact,    udp:host_to_address(+Service,   +Address),
-%   somewhere in its source. This predicate can  also be used to perform
-%   reverse searches. That is it  will  also   resolve  an  Address to a
-%   Service name.
+%   Initialized UDP broadcast bridge. IPAddress is the IP address on the
+%   network we want to broadcast on.  IP addresses are terms ip(A,B,C,D)
+%   or an atom or string of the format =|A.B.C.D|=.   Options processed:
 %
-
-udp_host_to_address(Host, Address) :-
-    broadcast_request(udp_subnet(udp_host_to_address(Host, Address))).
-
-%!  udp_initialize is semidet.
-%   See udp:udp_initialize/0
+%     - scope(+ScopeName)
+%     Name of the scope.  Default is `subnet`.
+%     - subnet_mask(+SubNet)
+%     Subnet to broadcast on.  This uses the same syntax as IPAddress.
+%     Default classifies the network as class A, B or C depending on
+%     the the first octet and applies the default mask.
+%     - port(+Port)
+%     Public port to use.  Default is 20005.
+%     - method(+Method)
+%     Method to send a message to multiple peers.  One of
+%       - broadcast
+%       Use UDP broadcast messages to the LAN.  This is the
+%       default
+%       - multicast
+%       Use UDP multicast messages.  This can be used on WAN networks,
+%       provided the intermediate routers understand multicast.
+%       - unicast
+%       Send the messages individually to all registered peers.
 %
-%:- multifile udp:udp_stack_initialize/0.
+%   For compatibility reasons Options may be the subnet mask.
+
+udp_broadcast_initialize(IP, Options) :-
+    with_mutex(udp_broadcast,
+               udp_broadcast_initialize_sync(IP, Options)).
+
+udp_broadcast_initialize_sync(IP, Options) :-
+    nonvar(Options),
+    Options = ip(_,_,_,_),
+    !,
+    udp_broadcast_initialize(IP, [subnet_mask(Options)]).
+udp_broadcast_initialize_sync(IP, Options) :-
+    to_ip4(IP, IPAddress),
+    option(method(Method), Options, broadcast),
+    must_be(oneof([broadcast, multicast, unicast]), Method),
+    udp_broadcast_initialize_sync(Method, IPAddress, Options),
+    reload_udp_proxy.
+
+udp_broadcast_initialize_sync(broadcast, IPAddress, Options) :-
+    option(subnet_mask(Subnet), Options, _),
+    mk_subnet(Subnet, IPAddress, Subnet4),
+    option(port(Port), Options, 20005),
+    option(scope(Scope), Options, subnet),
+
+    udp_broadcast_address(IPAddress, Subnet4, Broadcast),
+    udp_broadcast_close(Scope),
+    assertz(udp_scope(Scope, broadcast(Subnet4, Broadcast, Port))).
+udp_broadcast_initialize_sync(unicast, _IPAddress, Options) :-
+    option(port(Port), Options, 20005),
+    option(scope(Scope), Options, subnet),
+    udp_broadcast_close(Scope),
+    assertz(udp_scope(Scope, unicast(Port))).
+udp_broadcast_initialize_sync(multicast, IPAddress, Options) :-
+    option(port(Port), Options, 20005),
+    option(scope(Scope), Options, subnet),
+    udp_broadcast_close(Scope),
+    multicast_address(IPAddress),
+    assertz(udp_scope(Scope, multicast(IPAddress, Port))).
+
+to_ip4(Atomic, ip(A,B,C,D)) :-
+    atomic(Atomic),
+    !,
+    (   split_string(Atomic, ".", "", Strings),
+        maplist(number_string, [A,B,C,D], Strings)
+    ->  true
+    ;   syntax_error(illegal_ip_address)
+    ).
+to_ip4(IP, IP).
+
+mk_subnet(Var, IP, Subnet) :-
+    var(Var),
+    !,
+    (   default_subnet(IP, Subnet)
+    ->  true
+    ;   domain_error(ip_with_subnet, IP)
+    ).
+mk_subnet(Subnet, _, Subnet4) :-
+    to_ip4(Subnet, Subnet4).
+
+default_subnet(ip(A,_,_,_), ip(A,0,0,0)) :-
+    between(1,126, A), !.
+default_subnet(ip(A,B,_,_), ip(A,B,0,0)) :-
+    between(128,191, A), !.
+default_subnet(ip(A,B,C,_), ip(A,B,C,0)) :-
+    between(192,223, A), !.
+
+multicast_address(ip(A,_,_,_)) :-
+    between(224, 239, A),
+    !.
+multicast_address(IP) :-
+    domain_error(multicast_network, IP).
 
 
-%!  udp_broadcast_initialize(+IPAddress, +SubnetMask) is semidet.
-%   causes any required runtime initialization to occur. At present,
-%   proper operation of UDP broadcast depends on local information
-%   that is not easily obtained mechanically. In order to determine
-%   the appropriate UDP broadcast address, you must supply the
-%   IPAddress and SubnetMask for the node that is running this module.
-%   These data are supplied in the form of ip/4 terms. This is now
-%   required to be included in an applications intialization directive.
+		 /*******************************
+		 *          UNICAST PEERS	*
+		 *******************************/
+
+%!  udp_peer_add(+Scope, +Address) is det.
+%!  udp_peer_del(+Scope, ?Address) is det.
+%!  udp_peer(?Scope, ?Address) is nondet.
 %
+%   Manage and query the set  of  known   peers  for  a unicast network.
+%   Address is either a term  IP:Port  or   a  plain  IP address. In the
+%   latter case the default port registered with the scope is used.
+%
+%   @arg Address has canonical form ip(A,B,C,D):Port.
 
-udp_broadcast_initialize(IPAddress, Subnet) :-
-    retractall(udp_broadcast_service(_,_)),
-    retractall(udp_subnet_member(_)),
+udp_peer_add(Scope, Address) :-
+    must_be(ground, Address),
+    peer_address(Address, Scope, Canonical),
+    (   udp_scope_peer(Scope, Canonical)
+    ->  true
+    ;   assertz(udp_scope_peer(Scope, Canonical))
+    ).
 
-    udp_broadcast_address(IPAddress, Subnet, BroadcastAddr),
-    assert(udp_broadcast_service(udp_subnet, BroadcastAddr:20005)),
-    assert(udp_subnet_member(Address:_Port) :- udp_broadcast_address(Address, Subnet, BroadcastAddr)),
+udp_peer_del(Scope, Address) :-
+    peer_address(Address, Scope, Canonical),
+    retractall(udp_scope_peer(Scope, Canonical)).
 
-    start_udp_listener_daemon.
+udp_peer(Scope, IPAddress) :-
+    udp_scope_peer(Scope, IPAddress).
+
+peer_address(IP:Port, _Scope, IPAddress:Port) :-
+    !,
+    to_ip4(IP, IPAddress).
+peer_address(IP, Scope, IPAddress:Port) :-
+    (   udp_scope(Scope, unicast(Port))
+    ->  true
+    ;   existence_error(udp_scope, Scope)
+    ),
+    to_ip4(IP, IPAddress).
+
+
+
+		 /*******************************
+		 *             HOOKS		*
+		 *******************************/
+
+%!  udp_term_string_hook(+Scope, +Term, -String) is det.
+%!  udp_term_string_hook(+Scope, -Term, +String) is semidet.
+%
+%   Hook  for  serializing  the  message    Term.   The  default  writes
+%   =|%prolog\n|=, followed by the Prolog term  in quoted notation while
+%   ignoring operators. This hook may use alternative serialization such
+%   as fast_term_serialized/2, use  library(ssl)   to  realise encrypted
+%   messages, etc.
+%
+%   @arg Scope is the scope for which the message is broadcasted.  This
+%   can be used to use different serialization for different scopes.
+%   @arg Term encapsulates the term broadcasted by the application as
+%   follows:
+%
+%     - send(ApplTerm)
+%       Is sent by broadcast(udp(Scope, ApplTerm))
+%     - request(Id,ApplTerm)
+%       Is sent by broadcast_request/1, where Id is a unique large
+%       (64 bit) integer.
+%     - reply(Id,ApplTerm)
+%       Is sent to reply on a broadcast_request/1 request that has
+%       been received.  Arguments are the same as above.
+%
+%   @throws The hook may throw udp(invalid_message) to stop processing
+%   the message.
+
+%!  udp_term_string(+Scope, +Term, -String) is det.
+%!  udp_term_string(+Scope, -Term, +String) is semidet.
+%
+%   Serialize an arbitrary Prolog  term  as   a  string.  The  string is
+%   prefixed by a magic key to ensure   we only accept messages that are
+%   meant for us.
+%
+%   In mode (+,-), Term is written with the options ignore_ops(true) and
+%   quoted(true).
+%
+%   This predicate first calls  udp_term_string_hook/3.
+
+udp_term_string(Scope, Term, String) :-
+    catch(udp_term_string_hook(Scope, Term, String), udp(Error), true),
+    !,
+    (   var(Error)
+    ->  true
+    ;   Error == invalid_message
+    ->  fail
+    ;   throw(udp(Error))
+    ).
+udp_term_string(_Scope, Term, String) :-
+    (   var(String)
+    ->  format(string(String), '%-prolog-\n~W',
+               [ Term,
+                 [ ignore_ops(true),
+                   quoted(true)
+                 ]
+               ])
+    ;   sub_string(String, 0, _, _, '%-prolog-\n'),
+        term_string(Term, String,
+                    [ syntax_errors(quiet)
+                    ])
+    ).
+
+%!  unicast_out_of_scope_request(+Scope, +From, +Data) is semidet.
+
+%!  udp_unicast_join_hook(+Scope, +From, +Data) is semidet.
+%
+%   This multifile hook is called if an   UDP package is received on the
+%   port of the unicast network identified by  Scope. From is the origin
+%   IP and port and Data is  the   message  data that is deserialized as
+%   defined for the scope (see udp_term_string/3).
+%
+%   This hook is intended to initiate a  new node joining the network of
+%   peers. We could in theory also  omit   the  in-scope  test and use a
+%   normal broadcast to join. Using a different channal however provides
+%   a basic level of security. A   possibe  implementation is below. The
+%   first fragment is a hook  added  to   the  server,  the  second is a
+%   predicate added to a client and the   last  initiates the request in
+%   the client. The excanged term (join(X)) can   be  used to exchange a
+%   welcome handshake.
+%
+%
+%   ```
+%   :- multifile udp_broadcast:udp_unicast_join_hook/3.
+%   udp_broadcast:udp_unicast_join_hook(Scope, From, join(welcome)) :-
+%       udp_peer_add(Scope, From),
+%   ```
+%
+%   ```
+%   join_request(Scope, Address, Reply) :-
+%       udp_peer_add(Scope, Address),
+%       broadcast_request(udp(Scope, join(X))).
+%   ```
+%
+%   ```
+%   ?- join_request(myscope, "1.2.3.4":10001, Reply).
+%   Reply = welcome.
+%   ```
+
+unicast_out_of_scope_request(Scope, From, send(Term)) :-
+    udp_unicast_join_hook(Scope, From, Term).
+unicast_out_of_scope_request(Scope, From, request(Key, Term)) :-
+    udp_unicast_join_hook(Scope, From, Term),
+    udp_public_socket(Scope, _Port, Socket, _FileNo),
+    safely((udp_term_string(Scope, reply(Key,Term), Message),
+            udp_send(Socket, Message, From, []))).

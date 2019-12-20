@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2009-2015, VU University Amsterdam
+    Copyright (c)  2009-2018, VU University Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -153,7 +153,7 @@ uri_data(fragment,  uri_components(S, A, P, Q, _), F,
 %   True if URI has a scheme. The  semantics   is  the  same as the code
 %   below, but the implementation is more efficient  as it does not need
 %   to parse the other components, nor  needs   to  bind the scheme. The
-%   condition to demand a scheme of more  than one character as added to
+%   condition to demand a scheme of more  than one character is added to
 %   avoid confusion with DOS path names.
 %
 %   ==
@@ -236,18 +236,19 @@ uri_authority_data(port,     uri_authority(_, _, _, P), P).
 %!  uri_encoded(+Component, +Value, -Encoded) is det.
 %!  uri_encoded(+Component, -Value, +Encoded) is det.
 %
-%   Encoded  is  the  URI   encoding    for   Value.  When  encoding
-%   (Value->Encoded), Component specifies the   URI  component where
-%   the value is used. It  is   one  of =query_value=, =fragment= or
-%   =path=.  Besides  alphanumerical  characters,    the   following
-%   characters are passed verbatim (the  set   is  split  in logical
-%   groups according to RFC3986).
+%   Encoded   is   the   URI   encoding   for   Value.   When   encoding
+%   (Value->Encoded), Component specifies the URI   component  where the
+%   value is used. It is  one   of  =query_value=, =fragment=, =path= or
+%   =segment=.  Besides  alphanumerical   characters,    the   following
+%   characters are passed verbatim (the set   is split in logical groups
+%   according to RFC3986).
 %
 %       $ query_value, fragment :
-%       "-._~" | "!$'()*,;" | ":@" | "/?"
+%       "-._~" | "!$'()*,;" | "@" | "/?"
 %       $ path :
-%       "-._~" | "!$&'()*,;=" | ":@" | "/"
-
+%       "-._~" | "!$&'()*,;=" | "@" | "/"
+%       $ segment :
+%       "-._~" | "!$&'()*,;=" | "@"
 
 %!  uri_iri(+URI, -IRI) is det.
 %!  uri_iri(-URI, +IRI) is det.

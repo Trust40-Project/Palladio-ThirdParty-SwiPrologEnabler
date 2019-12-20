@@ -148,8 +148,10 @@ doc_server(Port, Options) :-
     doc_enable(true),
     prepare_editor,
     host_access_options(Options, ServerOptions),
+    http_absolute_location(pldoc('.'), Entry, []),
     merge_options(ServerOptions,
-                  [ port(Port)
+                  [ port(Port),
+                    entry_page(Entry)
                   ], HTTPOptions),
     http_server(http_dispatch, HTTPOptions),
     assertz(doc_server_port(Port)).
@@ -733,8 +735,13 @@ pldoc_search(Request) :-
                           [ optional(true),
                             description('String to search for')
                           ]),
+                      page(Page,
+                           [ integer,
+                             default(1),
+                             description('Page of search results to view')
+                           ]),
                       in(In,
-                         [ oneof([all,app,man]),
+                         [ oneof([all,app,noapp,man,lib,pack,wiki]),
                            default(all),
                            description('Search everying, application only or manual only')
                          ]),
@@ -756,7 +763,8 @@ pldoc_search(Request) :-
                     \search_reply(For,
                                   [ resultFormat(Format),
                                     search_in(In),
-                                    search_match(Match)
+                                    search_match(Match),
+                                    page(Page)
                                   | EditOptions
                                   ])).
 

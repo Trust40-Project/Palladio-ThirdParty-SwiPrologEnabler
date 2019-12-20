@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker, Matt Lilley
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2017, University of Amsterdam
+    Copyright (c)  2006-2019, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -51,7 +52,13 @@
             http_session_assert/1,      % +Data
             http_session_retract/1,     % ?Data
             http_session_retractall/1,  % +Data
-            http_session_data/1         % ?Data
+            http_session_data/1,        % ?Data
+
+            http_session_asserta/2,     % +Data, +SessionId
+            http_session_assert/2,      % +Data, +SessionId
+            http_session_retract/2,     % ?Data, +SessionId
+            http_session_retractall/2,  % +Data, +SessionId
+            http_session_data/2         % ?Data, +SessionId
           ]).
 :- use_module(http_wrapper).
 :- use_module(http_stream).
@@ -113,6 +120,7 @@ session_setting(enabled(true)).
 session_setting(create(auto)).
 session_setting(proxy_enabled(false)).
 session_setting(gc(passive)).
+session_setting(samesite(lax)).
 
 session_option(timeout, integer).
 session_option(cookie, atom).
@@ -122,6 +130,7 @@ session_option(route, atom).
 session_option(enabled, boolean).
 session_option(proxy_enabled, boolean).
 session_option(gc, oneof([active,passive])).
+session_option(samesite, oneof([none,lax,strict])).
 
 %!  http_set_session_options(+Options) is det.
 %
@@ -167,6 +176,16 @@ session_option(gc, oneof([active,passive])).
 %           performs session cleanup at close to the moment of the
 %           timeout or `passive`, which runs session GC when a new
 %           session is created.
+%
+%           * samesite(+Restriction)
+%           One of `none`, `lax` (default), or `strict` - The
+%           SameSite attribute prevents the CSRF vulnerability.
+%           strict has best security, but prevents links from
+%           external sites from operating properly. lax stops most
+%           CSRF attacks against REST endpoints but rarely interferes
+%           with legitimage operations. `none` removes the samesite
+%           attribute entirely. __Caution: The value `none` exposes the
+%           entire site to CSRF attacks.__
 
 http_set_session_options([]).
 http_set_session_options([H|T]) :-
@@ -344,9 +363,14 @@ create_session(Request0, Request, SessionID) :-
     http_session_cookie(SessionID),
     session_setting(cookie(Cookie)),
     session_setting(path(Path)),
+    session_setting(samesite(SameSite)),
     debug(http_session, 'Created session ~q at path=~q', [SessionID, Path]),
-    format('Set-Cookie: ~w=~w; Path=~w; Version=1\r\n',
-           [Cookie, SessionID, Path]),
+    (   SameSite == none
+    ->  format('Set-Cookie: ~w=~w; Path=~w; Version=1\r\n',
+               [Cookie, SessionID, Path])
+    ;   format('Set-Cookie: ~w=~w; Path=~w; Version=1; SameSite=~w\r\n',
+               [Cookie, SessionID, Path, SameSite])
+    ),
     Request = [session(SessionID)|Request0],
     peer(Request0, Peer),
     open_session(SessionID, Peer).
@@ -510,6 +534,38 @@ http_session_retractall(Data) :-
 http_session_data(Data) :-
     http_session_id(SessionId),
     session_data(SessionId, Data).
+
+%!  http_session_asserta(+Data, +SessionID) is det.
+%!  http_session_assert(+Data, +SessionID) is det.
+%!  http_session_retract(?Data, +SessionID) is nondet.
+%!  http_session_retractall(@Data, +SessionID) is det.
+%!  http_session_data(?Data, +SessionID) is det.
+%
+%   Versions of assert/1, retract/1 and retractall/1 that associate data
+%   with an explicit HTTP session.
+%
+%   @see http_current_session/2.
+
+http_session_asserta(Data, SessionId) :-
+    must_be(atom, SessionId),
+    asserta(session_data(SessionId, Data)).
+
+http_session_assert(Data, SessionId) :-
+    must_be(atom, SessionId),
+    assert(session_data(SessionId, Data)).
+
+http_session_retract(Data, SessionId) :-
+    must_be(atom, SessionId),
+    retract(session_data(SessionId, Data)).
+
+http_session_retractall(Data, SessionId) :-
+    must_be(atom, SessionId),
+    retractall(session_data(SessionId, Data)).
+
+http_session_data(Data, SessionId) :-
+    must_be(atom, SessionId),
+    session_data(SessionId, Data).
+
 
 
                  /*******************************

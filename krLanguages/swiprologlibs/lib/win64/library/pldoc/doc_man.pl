@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2017, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -34,382 +35,47 @@
 */
 
 :- module(pldoc_man,
-          [ clean_man_index/0,          %
-            index_man_directory/2,      % +DirSpec, +Options
-            index_man_file/2,           % +Class, +FileSpec
-            current_man_object/1,       % ?Object
-                                        % HTML generation
-            man_page//2,                % +Obj, +Options
+          [ man_page//2,                % +Obj, +Options
             man_overview//1,            % +Options
 
             man_content_tree/2,         % +Dir, -Tree
             man_packages_tree/1         % -Tree
           ]).
-:- use_module(library(sgml)).
-:- use_module(library(occurs)).
 :- use_module(library(lists)).
 :- use_module(library(uri)).
 :- use_module(library(apply)).
 :- use_module(library(option)).
 :- use_module(library(filesex)).
 :- use_module(library(xpath)).
-:- use_module(doc_wiki).
 :- use_module(doc_html).
 :- use_module(doc_search).
 :- use_module(doc_process).
 :- use_module(doc_util).
+:- use_module(man_index).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/mimetype)).
+:- use_module(library(prolog_xref)).
 :- include(hooks).
 
 /** <module> Process SWI-Prolog HTML manuals
 
 */
 
-:- predicate_options(index_man_directory/2, 2,
-                     [ class(oneof([manual,packages,misc])),
-                       pass_to(system:absolute_file_name/3, 3)
-                     ]).
 :- predicate_options(man_page//2, 2,
                      [ for(atom),
                        links(boolean),
                        navtree(boolean),
                        synopsis(boolean),
                        footer(boolean),
+                       link_source(boolean),
                        no_manual(oneof([fail,error])),
                        search_in(oneof([all, app, man])),
                        search_match(oneof([name, summary])),
                        search_options(boolean)
                      ]).
-
-
-:- dynamic
-    man_index/5.            % Object, Summary, File, Class, Offset
-
-%!  clean_man_index is det.
-%
-%   Clean already loaded manual index.
-
-clean_man_index :-
-    retractall(man_index(_,_,_,_,_)).
-
-
-%!  manual_directory(-Class, -Dir)// is nondet.
-%
-%   True if Dir is a directory holding manual files. Class is an
-%   identifier used by doc_object_summary/4.
-
-manual_directory(manual,   swi('doc/Manual')).
-manual_directory(packages, swi('doc/packages')).
-
-
-                 /*******************************
-                 *          PARSE MANUAL        *
-                 *******************************/
-
-%!  index_manual is det.
-%
-%   Load the manual index if not already done.
-
-index_manual :-
-    man_index(_,_,_,_,_),
-    !.
-index_manual :-
-    with_mutex(pldoc_man,
-               locked_index_manual).
-
-locked_index_manual :-
-    man_index(_,_,_,_,_),
-    !.
-locked_index_manual :-
-    (   manual_directory(Class, Dir),
-        index_man_directory(Dir,
-                            [ class(Class),
-                              file_errors(fail)
-                            ]),
-        fail ; true
-    ).
-
-check_duplicate_ids :-
-    findall(Id, man_index(section(_,_,Id,_),_,_,_,_), Ids),
-    msort(Ids, Sorted),
-    duplicate_ids(Sorted, Duplicates),
-    (   Duplicates == []
-    ->  true
-    ;   print_message(warning, pldoc(duplicate_ids(Duplicates)))
-    ).
-
-duplicate_ids([], []).
-duplicate_ids([H,H|T0], [H|D]) :-
-    !,
-    take_prefix(H,T0,T),
-    duplicate_ids(T, D).
-duplicate_ids([_|T], D) :-
-    duplicate_ids(T, D).
-
-take_prefix(H, [H|T0], T) :-
-    !,
-    take_prefix(H, T0, T).
-take_prefix(_, L, L).
-
-
-%!  index_man_directory(Dir, +Options) is det
-%
-%   Index  the  HTML  directory   Dir.    Options are:
-%
-%           * class(Class)
-%           Define category of the found objects.
-%
-%   Remaining Options are passed to absolute_file_name/3.
-
-index_man_directory(Spec, Options) :-
-    select_option(class(Class), Options, Options1, misc),
-    absolute_file_name(Spec, Dir,
-                       [ file_type(directory),
-                         access(read)
-                       | Options1
-                       ]),
-    atom_concat(Dir, '/*.html', Pattern),
-    expand_file_name(Pattern, Files),
-    maplist(index_man_file(Class), Files).
-
-
-%!  index_man_file(+Class, +File)
-%
-%   Collect the documented objects from the SWI-Prolog manual file
-%   File.
-
-index_man_file(Class, File) :-
-    absolute_file_name(File, Path,
-                       [ access(read)
-                       ]),
-    open(Path, read, In, [type(binary)]),
-    dtd(html, DTD),
-    new_sgml_parser(Parser, [dtd(DTD)]),
-    set_sgml_parser(Parser, file(File)),
-    set_sgml_parser(Parser, dialect(sgml)),
-    set_sgml_parser(Parser, shorttag(false)),
-    nb_setval(pldoc_man_index, []),
-    nb_setval(pldoc_index_class, Class),
-    call_cleanup(sgml_parse(Parser,
-                            [ source(In),
-                              syntax_errors(quiet),
-                              call(begin, index_on_begin)
-                            ]),
-                 (   free_sgml_parser(Parser),
-                     close(In),
-                     nb_delete(pldoc_man_index)
-                 )).
-
-
-%!  index_on_begin(+Element, +Attributes, +Parser) is semidet.
-%
-%   Called from sgml_parse/2 in  index_man_file/2.   Element  is the
-%   name of the element, Attributes the  list of Name=Value pairs of
-%   the open attributes. Parser is the parser objects.
-
-index_on_begin(dt, Attributes, Parser) :-
-    memberchk(class=pubdef, Attributes),
-    get_sgml_parser(Parser, charpos(Offset)),
-    get_sgml_parser(Parser, file(File)),
-    sgml_parse(Parser,
-               [ document(DT),
-                 syntax_errors(quiet),
-                 parse(content)
-               ]),
-    (   sub_term(element(a, AA, _), DT),
-        member(Attr, ['data-obj', id, name]),
-        memberchk(Attr=Id, AA),
-        name_to_object(Id, PI)
-    ->  true
-    ),
-    nb_getval(pldoc_man_index, DD0),
-    (   memberchk(dd(PI, File, _), DD0)
-    ->  true
-    ;   nb_setval(pldoc_man_index, [dd(PI, File, Offset)|DD0])
-    ).
-index_on_begin(dd, _, Parser) :-
-    !,
-    nb_getval(pldoc_man_index, DDList0), DDList0 \== [],
-    nb_setval(pldoc_man_index, []),
-    sgml_parse(Parser,
-               [ document(DD),
-                 syntax_errors(quiet),
-                 parse(content)
-               ]),
-    summary(DD, Summary),
-    nb_getval(pldoc_index_class, Class),
-    reverse(DDList0, [dd(Object, File, Offset)|DDTail]),
-    assertz(man_index(Object, Summary, File, Class, Offset)),
-    forall(member(dd(Obj2,_,_), DDTail),
-           assertz(man_index(Obj2, Summary, File, Class, Offset))).
-index_on_begin(div, Attributes, Parser) :-
-    !,
-    memberchk(class=title, Attributes),
-    get_sgml_parser(Parser, charpos(Offset)),
-    get_sgml_parser(Parser, file(File)),
-    sgml_parse(Parser,
-               [ document(DOM),
-                 syntax_errors(quiet),
-                 parse(content)
-               ]),
-    dom_to_text(DOM, Title),
-    nb_getval(pldoc_index_class, Class),
-    swi_local_path(File, Local),
-    assertz(man_index(section(0, '0', Local, File),
-                      Title, File, Class, Offset)).
-index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
-    heading(H, Level),
-    get_sgml_parser(Parser, charpos(Offset)),
-    get_sgml_parser(Parser, file(File)),
-    sgml_parse(Parser,
-               [ document(Doc),
-                 syntax_errors(quiet),
-                 parse(content)
-               ]),
-    dom_section(Doc, Nr, Title),
-    nb_getval(pldoc_index_class, Class),
-    section_id(Attributes, Title, File, ID),
-    assertz(man_index(section(Level, Nr, ID, File),
-                      Title, File, Class, Offset)).
-
-section_id(Attributes, _Title, _, ID) :-
-    memberchk(id=ID, Attributes),
-    !.
-section_id(_, "Bibliography", _, 'sec:bibliography') :- !.
-section_id(_Attributes, Title, File, ID) :-
-    atomic_list_concat(Words, ' ', Title),
-    atomic_list_concat(Words, '_', ID0),
-    atom_concat('sec:', ID0, ID),
-    print_message(warning, pldoc(no_section_id(File, Title))).
-
-%!  dom_section(+HeaderDOM, -NR, -Title) is semidet.
-%
-%   NR is the section number (e.g. 1.1, 1.23) and Title is the title
-%   from a section header. The  first   clauses  processes the style
-%   information from latex2html, emitting sections as:
-%
-%   ==
-%   <HN> <A name="sec:nr"><span class='sec-nr'>NR</span>|_|
-%                         <span class='sec-title'>Title</span>
-%   ==
-
-dom_section(DOM, Nr, Title) :-
-    sub_term([ element(span, A1, [Nr]) | Rest ], DOM),
-    append(_Sep, [element(span, A2, TitleDOM)], Rest),
-    memberchk(class='sec-nr', A1),
-    memberchk(class='sec-title', A2),
-    !,
-    dom_to_text(TitleDOM, Title).
-dom_section(DOM, Nr, Title) :-
-    dom_to_text(DOM, Title),
-    section_number(Title, Nr, Title).
-
-section_number(Title, Nr, PlainTitle) :-
-    sub_atom(Title, 0, 1, _, Start),
-    (   char_type(Start, digit)
-    ->  true
-    ;   char_type(Start, upper),
-        sub_atom(Title, 1, 1, _, '.')       % A., etc: Appendices
-    ),
-    sub_atom(Title, B, _, A, ' '),
-    !,
-    sub_atom(Title, 0, B, _, Nr),
-    sub_string(Title, _, A, 0, PlainTitle).
-
-heading(h1, 1).
-heading(h2, 2).
-heading(h3, 3).
-heading(h4, 4).
-
-
-%!  summary(+DOM, -Summary:string) is det.
-%
-%   Summary is the first sentence of DOM.
-
-summary(DOM, Summary) :-
-    phrase(summary(DOM, _), SummaryCodes0),
-    phrase(normalise_white_space(SummaryCodes), SummaryCodes0),
-    string_codes(Summary, SummaryCodes).
-
-summary([], _) -->
-    !,
-    [].
-summary(_, Done) -->
-    { Done == true },
-    !,
-    [].
-summary([element(_,_,Content)|T], Done) -->
-    !,
-    summary(Content, Done),
-    summary(T, Done).
-summary([CDATA|T], Done) -->
-    { atom_codes(CDATA, Codes)
-    },
-    (   { Codes = [Period|Rest],
-          code_type(Period, period),
-          space(Rest)
-        }
-    ->  [ Period ],
-        { Done = true }
-    ;   { append(Sentence, [C, Period|Rest], Codes),
-          code_type(Period, period),
-          \+ code_type(C, period),
-          space(Rest)
-        }
-    ->  string(Sentence),
-        [C, Period],
-        { Done = true }
-    ;   string(Codes),
-        summary(T, Done)
-    ).
-
-string([]) -->
-    [].
-string([H|T]) -->
-    [H],
-    string(T).
-
-space([C|_]) :- code_type(C, space), !.
-space([]).
-
-%!  dom_to_text(+DOM, -Text)
-%
-%   Extract the text of a parsed HTML term.  White-space in the
-%   result is normalised.  See normalise_white_space//1.
-
-dom_to_text(Dom, Text) :-
-    phrase(cdata_list(Dom), CDATA),
-    with_output_to(codes(Codes0),
-                   forall(member(T, CDATA),
-                          write(T))),
-    phrase(normalise_white_space(Codes), Codes0),
-    string_codes(Text, Codes).
-
-cdata_list([]) -->
-    [].
-cdata_list([H|T]) -->
-    cdata(H),
-    cdata_list(T).
-
-cdata(element(_, _, Content)) -->
-    !,
-    cdata_list(Content).
-cdata(CDATA) -->
-    { atom(CDATA) },
-    !,
-    [CDATA].
-cdata(_) -->
-    [].
-
-%!  current_man_object(?Object) is nondet.
-
-current_man_object(Object) :-
-    index_manual,
-    man_index(Object, _, _, _, _).
 
 
                  /*******************************
@@ -493,7 +159,7 @@ make_man_tree :-
     man_tree_done,
     !.
 make_man_tree :-
-    man_content_tree(swi('doc/Manual'), ManTree),
+    man_content_tree(swi_man_manual('.'), ManTree),
     man_packages_tree(PkgTree),
     assert_tree(node(root, [ManTree, PkgTree])),
     assertz(man_tree_done).
@@ -527,7 +193,7 @@ man_content_tree(Spec, node(manual, Chapters)) :-
                          access(read)
                        ]),
     directory_file_path(Dir, 'Contents.html', ContentsFile),
-    load_html_file(ContentsFile, DOM),
+    load_html(ContentsFile, DOM, [cdata(string)]),
     findall(Level-Path,
             ( xpath(DOM, //div(@class=Class), DIV),
               class_level(Class, Level),
@@ -565,10 +231,9 @@ index_sections(Rest, _, [], Rest).
 %   Tree is the content tree of all packages
 
 man_packages_tree(node(packages, Packages)) :-
-    index_manual,
     Section = section(0, _, _, _),
     findall(File,
-            man_index(Section, _Title, File, packages, _),
+            manual_object(Section, _Title, File, packages, _),
             Files),
     maplist(package_node, Files, Packages).
 
@@ -586,10 +251,10 @@ package_node(File, Tree) :-
 %
 %       node(Object, ListOfTree).
 
-html_content_tree(File, Tree) :-
-    index_manual,
+html_content_tree(FileIn, Tree) :-
+    absolute_file_name(FileIn, File),
     findall(Offset-Obj,
-            man_index(Obj, _Summary, File, _Class, Offset),
+            manual_object(Obj, _Summary, File, _Class, Offset),
             Pairs),
     keysort(Pairs, Sorted),
     pairs_values(Sorted, Objects),
@@ -640,7 +305,7 @@ load_man_object(Obj, ParentSection, Path, DOM) :-
         ;   Pairs == []
         )
     ->  !,
-        load_html_file(Path, DOM)           % Load whole file
+        load_html(Path, DOM, [cdata(string)])           % Load whole file
     ;   append(_, [SN-Start|Rest], Pairs)
     ->  !,
         (   member(N-End, Rest),
@@ -663,7 +328,8 @@ load_man_object(Obj, ParentSection, Path, DOM) :-
         call_cleanup(sgml_parse(Parser,
                                 [ document(DOM),
                                   source(In),
-                                  syntax_errors(quiet)
+                                  syntax_errors(quiet),
+                                  cdata(string)
                                 | Options
                                 ]),
                      ( free_sgml_parser(Parser),
@@ -671,9 +337,8 @@ load_man_object(Obj, ParentSection, Path, DOM) :-
                      ))
     ).
 load_man_object(For, Parent, Path, DOM) :-
-    index_manual,
     object_spec(For, Obj),
-    man_index(Obj, _, Path, _, Position),
+    manual_object(Obj, _, Path, _, Position),
     (   object_section(Path, Position, Parent)
     ->  true
     ;   Parent = Path
@@ -696,6 +361,7 @@ load_man_object(For, Parent, Path, DOM) :-
 parse_dts_upto_dd(Parser, In, Description) :-
     sgml_parse(Parser,
                [ document(DOM0),
+                 cdata(string),
                  source(In),
                  parse(element),
                  syntax_errors(quiet)
@@ -708,8 +374,7 @@ parse_dts_upto_dd(Parser, In, Description) :-
     ).
 
 section_start(Path, Nr, Pos) :-
-    index_manual,
-    man_index(section(_,Nr,_,_), _, Path, _, Pos).
+    manual_object(section(_,Nr,_,_), _, Path, _, Pos).
 
 %!  resolve_section(+SecIn, -SecOut) is det.
 %
@@ -723,8 +388,7 @@ resolve_section(section(Level, No, Spec), Section) :-
 resolve_section(section(Level, No, ID, Path),
                 section(Level, No, ID, Path)) :-
     nonvar(ID),
-    index_manual,
-    man_index(section(Level,No,ID,Path), _, _, _, _),
+    manual_object(section(Level,No,ID,Path), _, _, _, _),
     !.
 resolve_section(section(Level, No, ID, Spec),
                 section(Level, No, ID, Path)) :-
@@ -732,8 +396,7 @@ resolve_section(section(Level, No, ID, Spec),
     absolute_file_name(Spec, Path,
                        [ access(read)
                        ]),
-    (   index_manual,
-        man_index(section(Level, No, ID, Path), _, _, _, _)
+    (   manual_object(section(Level, No, ID, Path), _, _, _, _)
     ->  true
     ;   path_allowed(Path)
     ->  true
@@ -763,17 +426,17 @@ parent_section(section(Level, Nr, _ID, File), Parent) :-
     findall(B, sub_atom(Nr, B, _, _, '.'), BL),
     last(BL, Before),
     sub_atom(Nr, 0, Before, _, PNr),
-    (   man_index(Parent, _, File, _, _)
+    (   manual_object(Parent, _, File, _, _)
     ->  true
-    ;   man_index(Parent, _, ParentFile, _, _),
+    ;   manual_object(Parent, _, ParentFile, _, _),
         same_dir(File, ParentFile)
     ->  true
-    ;   man_index(Parent, _, _, _, _)
+    ;   manual_object(Parent, _, _, _, _)
     ),
     !.
 parent_section(section(Level, _, _, File), Parent) :-
     Parent = section(ParentLevel, _, _, File),
-    man_index(Parent, _, _, _, _),
+    manual_object(Parent, _, _, _, _),
     ParentLevel < Level,
     !.
 parent_section(section(_, _, _, File), File).
@@ -787,7 +450,7 @@ parent_section(section(_, _, _, File), File).
 object_section(Path, Pos, Section) :-
     Section = section(_,_,_,_),
     findall(Section,
-           (man_index(Section, _, Path, _, SecPos), SecPos =< Pos),
+           (manual_object(Section, _, Path, _, SecPos), SecPos =< Pos),
             List),
     last(List, Section).
 
@@ -800,13 +463,15 @@ same_dir(File1, File2) :-
 %   Tranform the Name/Arity, etc strings as   received from the HTTP
 %   into a term.  Must return unique results.
 
-object_spec(Spec, Spec).
+object_spec(Spec, Spec) :-
+    compound(Spec),
+    !.
 object_spec(Atom, Spec) :-
     catch(atom_to_term(Atom, Spec, _), _, fail),
     !,
     Atom \== Spec.
 object_spec(Atom, PI) :-
-    name_to_object(Atom, PI).
+    atom_to_object(Atom, PI).
 
 
                  /*******************************
@@ -846,6 +511,10 @@ object_spec(Atom, PI) :-
 %           * links(Bool)
 %           If =true= (default), include links to the parent object;
 %           if =false=, just emit the manual material.
+%
+%           * navtree(Bool)
+%           If `true` (default), display the navigation tree, otherwise
+%           suppress it.
 
 man_page(Obj, Options) -->
     { ground(Obj),
@@ -884,10 +553,12 @@ man_page(Obj, Options) -->                      % PlDoc predicates, etc.
     ->  object_page_header(File, Options)
     ;   object_page_header(-, Options)
     ),
-    objects(Objs, [ synopsis(true),
-                    navtree(true)
-                  | Options
-                  ]).
+    { merge_options(Options,
+                    [ synopsis(true),
+                      navtree(true)
+                    ], Options2)
+    },
+    objects(Objs, Options2).
 man_page(Obj, Options) -->                      % failure
     { \+ option(no_manual(fail), Options)
     },
@@ -910,10 +581,9 @@ full_page(Obj, Obj) :-
 full_page(section(ID), section(_,_,ID,_)) :- !.
 full_page(manual, section(_,_,'sec:intro',_)) :- !.
 full_page(Obj0, Obj) :-
-    index_manual,
     ground(Obj0),
     alt_obj(Obj0, Obj),
-    man_index(Obj, _, _, _, _),
+    manual_object(Obj, _, _, _, _),
     !.
 full_page(Obj, Obj) :-
     ground(Obj).
@@ -940,7 +610,8 @@ full_object(Object, M:Obj) :-
 qualify(M:O, M:O).
 qualify(O, _:O).
 
-%!  man_qualified_object(+Text, +Parent, -Object, -Section) is semidet.
+%!  man_qualified_object(+Object, +Parent,
+%!                       -LibraryOpt, -QObject, -Section) is semidet.
 %
 %   Get a qualified predicate description from  Text that appears in
 %   the section Parent.
@@ -949,20 +620,20 @@ qualify(O, _:O).
 %   export the same predicate. We must find   from  the title of the
 %   manual section which library is documented.
 
-
-man_qualified_object(Text, Parent, Object, Section) :-
+man_qualified_object(Text, Parent, LibOpt, Object, Section) :-
     atom(Text),
     atom_pi(Text, PI),
     ground(PI),
     !,
-    man_qualified_object_2(PI, Parent, Object, Section).
-man_qualified_object(Object0, Parent, Object, Section) :-
-    man_qualified_object_2(Object0, Parent, Object, Section).
+    man_qualified_object_2(PI, Parent, LibOpt, Object, Section).
+man_qualified_object(Object0, Parent, LibOpt, Object, Section) :-
+    man_qualified_object_2(Object0, Parent, LibOpt, Object, Section).
 
-man_qualified_object_2(Name/Arity, Parent, Module:Name/Arity, Section) :-
-    object_module(Parent, Module, Section),
+man_qualified_object_2(Name/Arity, Parent,
+                       LibOpt, Module:Name/Arity, Section) :-
+    object_module(Parent, Module, Section, LibOpt),
     !.
-man_qualified_object_2(Object, Parent, Object, Parent).
+man_qualified_object_2(Object, Parent, [], Object, Parent).
 
 
 %!  man_synopsis(+Object, +Section)//
@@ -974,20 +645,20 @@ man_qualified_object_2(Object, Parent, Object, Parent).
     man_synopsis//2.                % called from man_match//2
 
 man_synopsis(PI, Section) -->
+    man_synopsis(PI, Section, []).
+
+man_synopsis(PI, Section, Options) -->
     { object_href(Section, HREF)
     },
-    object_synopsis(PI, [href(HREF)]).
+    object_synopsis(PI, [href(HREF)|Options]).
 
-%!  object_module(+Section0, -Module, -Section) is semidet.
+%!  object_module(+Section0, -Module, -Section, -LibOpt) is semidet.
 %
 %   Find the module documented by Section.
-%
-%   @tbd This requires that the documented file is loaded. If
-%   not, should we use the title of the section?
 
-object_module(Section0, Module, Section) :-
+object_module(Section0, Module, Section, [source(Term)]) :-
     parent_section_ndet(Section0, Section),
-    man_index(Section, Title, _File, _Class, _Offset),
+    manual_object(Section, Title, _File, _Class, _Offset),
     (   once(sub_atom(Title, B, _, _, :)),
         sub_atom(Title, 0, B, _, Atom),
         catch(term_to_atom(Term, Atom), _, fail),
@@ -999,7 +670,12 @@ object_module(Section0, Module, Section) :-
                              access(read),
                              file_errors(fail)
                            ]),
-        module_property(Module, file(PlFile))
+        (   module_property(Module, file(PlFile))
+        ->  true
+        ;   xref_public_list(PlFile, -,         % module is not loaded
+                             [ module(Module)
+                             ])
+        )
     ).
 
 parent_section_ndet(Section, Section).
@@ -1042,23 +718,32 @@ man_matches_list([H|T], Obj, Options) -->
 man_match(packages, packages, _) -->
     !,
     html({|html||
-              <p>
-              Packages are relatively independent add-on libraries that
-              may not be available in all installations.
-             |}).
+          <p>
+          Packages are relatively independent add-on libraries that
+          may not be available in all installations.  Packages are
+          part of the source code releases of SWI-Prolog and may be
+          enabled or disabled during the build.</p>
+
+          <p>
+          See also <a href="/pack/list">Add-ons</a> for extensions
+          provided by the community that must be installed seperately
+          using
+          <a href="/pldoc/doc_for?object=pack_install/1">pack_install/1</a>.</p>
+         |}).
 man_match(root, root, _) -->
     !,
     man_overview([]).
 man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj, Options) -->
     { \+ option(synopsis(false), Options),
-      man_qualified_object(Obj, Parent, QObj, Section),
+      option(link_source(Link), Options, true),
+      man_qualified_object(Obj, Parent, LibOpt, QObj, Section),
       !,
       C = [ span(style('float:right;margin-left:5px;'),
-                 \object_source_button(QObj, [link_source(true)]))
+                 \object_source_button(QObj, [source_link(Link)]))
           | C0
           ]
     },
-    dom_list([ element(dt,[],[\man_synopsis(QObj, Section)]),
+    dom_list([ element(dt,[],[\man_synopsis(QObj, Section, LibOpt)]),
                element(dt,A,C)
              | DD
              ], Path).
@@ -1105,19 +790,20 @@ dom_element(span, Att, [CDATA], _) -->
     html(a(href(HREF), CDATA)).
 dom_element(img, Att0, [], Path) -->
     { selectchk(src=Src, Att0, Att1),
-      current_prolog_flag(home, SWI),
-      sub_atom(Path, 0, Len, _, SWI),
-      (   sub_atom(Path, Len, _, _, '/doc/Manual/')
-      ->  Handler = manual_file
-      ;   sub_atom(Path, Len, _, _, '/doc/packages/')
-      ->  Handler = pldoc_package
-      ),
+      relative_file_name(ImgFile, Path, Src),
+      handler_alias(Handler, DirAlias),
+      absolute_file_name(DirAlias, Dir,
+                         [ file_errors(fail),
+                           solutions(all),
+                           file_type(directory)
+                         ]),
+      ensure_slash(Dir, DirS),
+      atom_concat(DirS, NewSrc, ImgFile),
       !,
       http_link_to_id(Handler, [], ManRef),
-      directory_file_path(ManRef, Src, NewPath),
+      directory_file_path(ManRef, NewSrc, NewPath),
       Begin =.. [img, src(NewPath) | Att1]
     },
-    !,
     html_begin(Begin),
     html_end(img).
 dom_element(div, Att, _, _) -->
@@ -1140,13 +826,21 @@ dom_element(Name, Attrs, Content, Path) -->
     dom_list(Content, Path),
     html_end(Name).
 
+handler_alias(manual_file,   swi_man_manual(.)).
+handler_alias(pldoc_package, swi_man_packages(.)).
+
+ensure_slash(Dir, DirS) :-
+    (   sub_atom(Dir, _, _, 0, /)
+    ->  DirS = Dir
+    ;   atom_concat(Dir, /, DirS)
+    ).
+
 %!  documented(+PI) is semidet.
 %
 %   True if we have documentation about PI
 
 documented(PI) :-
-    index_manual,
-    man_index(PI, _, _, _, _),
+    manual_object(PI, _, _, _, _),
     !.
 documented(PI) :-
     full_object(PI, _Obj).
@@ -1183,8 +877,8 @@ rewrite_ref(pred, Ref0, _, Ref) :-              % Predicate/DCG reference
     sub_atom(Ref0, _, _, A, '#'),
     !,
     sub_atom(Ref0, _, A, 0, Fragment),
-    name_to_object(Fragment, PI),
-    man_index(PI, _, _, _, _),
+    atom_to_object(Fragment, PI),
+    manual_object(PI, _, _, _, _),
     uri_encoded(query_value, Fragment, Enc),
     http_location_by_id(pldoc_man, ManHandler),
     format(string(Ref), '~w?predicate=~w', [ManHandler, Enc]).
@@ -1192,8 +886,8 @@ rewrite_ref(function, Ref0, _, Ref) :-          % Arithmetic function reference
     sub_atom(Ref0, _, _, A, '#'),
     !,
     sub_atom(Ref0, _, A, 0, Fragment),
-    name_to_object(Fragment, PI),
-    man_index(PI, _, _, _, _),
+    atom_to_object(Fragment, PI),
+    manual_object(PI, _, _, _, _),
     PI=f(Name/Arity),
     format(atom(PIName), '~w/~w', [Name,Arity]),
     uri_encoded(query_value, PIName, Enc),
@@ -1203,8 +897,8 @@ rewrite_ref(func, Ref0, _, Ref) :-              % C-API reference
     sub_atom(Ref0, _, _, A, '#'),
     !,
     sub_atom(Ref0, _, A, 0, Fragment),
-    name_to_object(Fragment, Obj),
-    man_index(Obj, _, _, _, _),
+    atom_to_object(Fragment, Obj),
+    manual_object(Obj, _, _, _, _),
     Obj = c(Function),
     uri_encoded(query_value, Function, Enc),
     http_location_by_id(pldoc_man, ManHandler),
@@ -1220,7 +914,7 @@ rewrite_ref(sec, File, Path, Ref) :-            % Section is a file
     file_directory_name(Path, Dir),
     atomic_list_concat([Dir, /, File], SecPath),
     Obj = section(_, _, _, SecPath),
-    man_index(Obj, _, _, _, _),
+    manual_object(Obj, _, _, _, _),
     !,
     object_href(Obj, Ref).
 rewrite_ref(cite, Ref0, Path, Ref) :-           % Citation (bit hard-wired)
@@ -1239,32 +933,10 @@ rewrite_ref(flag, Ref0, Path, Ref) :-
     file_directory_name(Path, Dir),
     atomic_list_concat([Dir, /, File], SecPath),
     Obj = section(_, _, _, SecPath),
-    man_index(Obj, _, _, _, _),
+    manual_object(Obj, _, _, _, _),
     !,
     object_href(Obj, Ref1),
     format(string(Ref), '~w#~w', [Ref1, Fragment]).
-
-%!  name_to_object(+Atom, -PredicateIndicator) is semidet.
-%
-%   If Atom is `Name/Arity', decompose to Name and Arity. No errors.
-
-name_to_object(Atom, Object) :-
-    atom(Atom),
-    atom_pi(Atom, PI),
-    ground(PI),
-    (   PI = Name/Arity,
-        integer(Arity),
-        atom_concat('f-', FuncName, Name)
-    ->  Object = f(FuncName/Arity)
-    ;   Object = PI
-    ).
-name_to_object(Atom, c(Function)) :-
-    atom(Atom),
-    sub_atom(Atom, 0, _, _, 'PL_'),
-    sub_atom(Atom, B, _, _, '('),
-    !,
-    sub_atom(Atom, 0, B, _, Function).
-
 
 %!  referenced_section(+Fragment, +File, +Path, -Section)
 
@@ -1275,7 +947,7 @@ referenced_section(Fragment, File, Path, section(Level, Nr, ID, SecPath)) :-
     ;   file_directory_name(Path, Dir),
         atomic_list_concat([Dir, /, File], SecPath)
     ),
-    man_index(section(Level, Nr, ID, SecPath), _, _, _, _).
+    manual_object(section(Level, Nr, ID, SecPath), _, _, _, _).
 
 
 %!  man_links(+ParentPaths, +Options)// is det.
@@ -1313,7 +985,7 @@ parent_to_section(X+_, X) :-
     !.
 parent_to_section(File+_, Section) :-
     atom(File),
-    man_index(Section, _Title, File, _Class, _Offset),
+    manual_object(Section, _Title, File, _Class, _Offset),
     !.
 
 %!  section_link(+Obj, +Options)// is det.
@@ -1336,13 +1008,13 @@ section_link(number, section(_, Number, _, _), _Options) -->
     ).
 section_link(title, Obj, _Options) -->
     !,
-    { man_index(Obj, Title, _File, _Class, _Offset)
+    { manual_object(Obj, Title, _File, _Class, _Offset)
     },
     html(Title).
 section_link(_, Obj, _Options) -->
     !,
     { Obj = section(_, Number, _, _),
-      man_index(Obj, Title, _File, _Class, _Offset)
+      manual_object(Obj, Title, _File, _Class, _Offset)
     },
     (   { Number == '0' }
     ->  html(Title)
@@ -1405,7 +1077,7 @@ package_class(true,  pkg_link, _).
 package_class(false, no_pkg_link, _).
 
 current_package(pkg(Title, HREF, HavePackage)) :-
-    man_index(section(0, _, _, _), Title, File, packages, _),
+    manual_object(section(0, _, _, _), Title, File, packages, _),
     file_base_name(File, FileNoDir),
     file_name_extension(Base, _, FileNoDir),
     (   exists_source(library(Base))
@@ -1447,8 +1119,7 @@ pldoc_package(Request) :-
     memberchk(path_info(Img), Request),
     file_mime_type(Img, image/_),
     !,
-    atom_concat('doc/packages/', Img, Path),
-    http_reply_file(swi(Path), [], Request).
+    http_reply_file(swi_man_packages(Img), [], Request).
 pldoc_package(Request) :-
     memberchk(path_info('jpl'), Request),
     !,
@@ -1510,8 +1181,7 @@ pldoc_refman(Request) :-
     memberchk(path_info(Section), Request),
     \+ sub_atom(Section, _, _, _, /),
     Obj = section(0,_,_,_),
-    index_manual,
-    man_index(Obj, Title, File, manual, _),
+    manual_object(Obj, Title, File, manual, _),
     file_base_name(File, Section),
     !,
     reply_html_page(pldoc(man),
@@ -1533,11 +1203,9 @@ pldoc_refman(Request) :-
 
 prolog:doc_object_summary(section(ID), Class, File, Summary) :-
     nonvar(ID),                     % when generating, only do full ones
-    index_manual,
-    man_index(section(_Level, _No, ID, _Path), Summary, File, Class, _Offset).
+    manual_object(section(_Level, _No, ID, _Path), Summary, File, Class, _Offset).
 prolog:doc_object_summary(Obj, Class, File, Summary) :-
-    index_manual,
-    man_index(Obj, Summary, File, Class, _Offset).
+    manual_object(Obj, Summary, File, Class, _Offset).
 
 prolog:doc_object_page(Obj, Options) -->
     man_page(Obj, [no_manual(fail),footer(false)|Options]).
@@ -1547,16 +1215,13 @@ prolog:doc_object_page(Obj, Options) -->
 %   Provide the HTML to describe Obj for linking purposes.
 
 prolog:doc_object_link(Obj, Options) -->
-    { Obj = section(_,_,_,_),
-      index_manual
-    },
+    { Obj = section(_,_,_,_) },
     !,
     section_link(Obj, Options).
 prolog:doc_object_link(Obj0, Options) -->
     { Obj0 = section(ID),
       Obj = section(_Level, _No, ID, _Path),
-      index_manual,
-      man_index(Obj, _, _, _, _)
+      manual_object(Obj, _, _, _, _)
     },
     !,
     section_link(Obj, Options).
@@ -1573,12 +1238,12 @@ prolog:doc_object_link(manual, _Options) -->
 prolog:doc_object_link(packages, _) -->
     html('Packages').
 
-prolog:doc_category(manual,   30, 'SWI-Prolog Reference Manual').
-prolog:doc_category(packages, 40, 'Package documentation').
+prolog:doc_category(manual,   30, 'Reference Manual').
+prolog:doc_category(packages, 40, 'Packages').
 
 prolog:doc_file_index_header(File, Options) -->
     { Section = section(_Level, _No, _ID, File),
-      man_index(Section, _Summary, File, _Cat, _Offset)
+      manual_object(Section, _Summary, File, _Cat, _Offset)
     },
     !,
     html(tr(th([colspan(3), class(section)],
@@ -1590,21 +1255,11 @@ prolog:doc_file_index_header(File, Options) -->
 
 prolog:doc_object_title(Obj, Title) :-
     Obj = section(_,_,_,_),
-    man_index(Obj, Title, _, _, _),
+    manual_object(Obj, Title, _, _, _),
     !.
 
 prolog:doc_canonical_object(section(_Level, _No, ID, _Path),
                             section(ID)).
-
-swi_local_path(Path, Local) :-
-    atom(Path),
-    is_absolute_file_name(Path),
-    absolute_file_name(swi(doc), SWI,
-                       [ file_type(directory),
-                         solutions(all)
-                       ]),
-    directory_file_path(SWI, Local, Path),
-    !.
 
 %!  prolog:doc_object_href(+Object, -HREF) is semidet.
 %
@@ -1637,6 +1292,6 @@ duplicate_ids([]) --> [].
 duplicate_ids([H|T]) --> duplicate_id(H), duplicate_ids(T).
 
 duplicate_id(Id) -->
-    { findall(File, man_index(section(_,_,Id,File),_,_,_,_), Files) },
+    { findall(File, manual_object(section(_,_,Id,File),_,_,_,_), Files) },
     [ '    ~w: ~p'-[Id, Files], nl ].
 

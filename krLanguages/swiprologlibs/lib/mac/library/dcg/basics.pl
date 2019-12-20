@@ -52,9 +52,9 @@
 	    float//1,			% [+-]?[0-9]+(.[0-9]*)?(e[+-]?[0-9]+)? --> float
 	    number//1,			% integer | float
 					% Hexadecimal numbers
-	    xdigits//1,			% [0-9a-f]* --> 0-15*
-	    xdigit//1,			% [0-9a-f] --> 0-15
-	    xinteger//1,		% [0-9a-f]+ --> integer
+	    xdigits//1,			% [0-9A-Fa-f]* --> 0-15*
+	    xdigit//1,			% [0-9A-Fa-f] --> 0-15
+	    xinteger//1,		% [0-9A-Fa-f]+ --> integer
 
 	    prolog_var_name//1,		% Read a Prolog variable name
 
@@ -309,6 +309,9 @@ number(N, Head, Tail) :-
 	number(N), !,
 	format(codes(Head, Tail), '~w', N).
 number(N) -->
+	{ var(N)
+	},
+	!,
 	int_codes(I),
 	(   dot,
 	    digit(DF0),
@@ -324,6 +327,8 @@ number(N) -->
 	{ append([I, F, E], Codes),
 	  number_codes(N, Codes)
 	}.
+number(N) -->
+	{ type_error(number, N) }.
 
 sign(0'-) --> "-".
 sign(0'+) --> "+".
@@ -341,11 +346,23 @@ exp --> "E".
 %%	xinteger(-Integer)// is semidet.
 %
 %	Generate or extract an integer from   a  sequence of hexadecimal
-%	digits.
+%	digits. Hexadecimal characters include both  uppercase (A-F) and
+%	lowercase (a-f) letters. The value may   be  preceeded by a sign
+%	(+/-)
 
 xinteger(Val, Head, Tail) :-
-	integer(Val),
+	integer(Val), !,
 	format(codes(Head, Tail), '~16r', [Val]).
+xinteger(Val) -->
+	sign(C), !,
+	xdigit(D0),
+	xdigits(D),
+	{ mkval([D0|D], 16, Val0),
+	  (   C == 0'-
+	  ->  Val is -Val0
+	  ;   Val = Val0
+	  )
+	}.
 xinteger(Val) -->
 	xdigit(D0),
 	xdigits(D),
@@ -355,7 +372,8 @@ xinteger(Val) -->
 %%	xdigit(-Weight)// is semidet.
 %
 %	True if the next code is a  hexdecimal digit with Weight. Weight
-%	is between 0 and 15.
+%	is  between  0  and  15.  Hexadecimal  characters  include  both
+%	uppercase (A-F) and lowercase (a-f) letters.
 
 xdigit(D) -->
 	[C],
@@ -364,8 +382,9 @@ xdigit(D) -->
 
 %%	xdigits(-WeightList)// is det.
 %
-%	List of weights of a sequence of hexadecimal codes.  WeightList
-%	may be empty.
+%	List of weights of a sequence   of hexadecimal codes. WeightList
+%	may be empty. Hexadecimal  characters   include  both  uppercase
+%	(A-F) and lowercase (a-f) letters.
 
 xdigits([D0|D]) -->
 	xdigit(D0), !,

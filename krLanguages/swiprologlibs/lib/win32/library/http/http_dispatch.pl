@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2017, University of Amsterdam
+    Copyright (c)  2007-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -37,6 +38,7 @@
           [ http_dispatch/1,            % +Request
             http_handler/3,             % +Path, +Predicate, +Options
             http_delete_handler/1,      % +Path
+            http_request_expansion/2,   % :Goal, +Rank
             http_reply_file/3,          % +File, +Options, +Request
             http_redirect/3,            % +How, +Path, +Request
             http_404/2,                 % +Options, +Request
@@ -50,6 +52,7 @@
           ]).
 :- use_module(library(option)).
 :- use_module(library(lists)).
+:- use_module(library(pairs)).
 :- use_module(library(time)).
 :- use_module(library(error)).
 :- use_module(library(settings)).
@@ -97,91 +100,107 @@ write_index(Request) :-
 
 %!  http_handler(+Path, :Closure, +Options) is det.
 %
-%   Register Closure as a handler for HTTP requests. Path is a
-%   specification as provided by http_path.pl.  If an HTTP
-%   request arrives at the server that matches Path, Closure
-%   is called with one extra argument: the parsed HTTP request.
-%   Options is a list containing the following options:
+%   Register Closure as a handler for HTTP   requests. Path is either an
+%   absolute path such as =|'/home.html'|=   or  a term Alias(Relative).
+%   Where Alias is associated with a concrete path using http:location/3
+%   and resolved using http_absolute_location/3.  `Relative`   can  be a
+%   single atom or a term `Segment1/Segment2/...`, where each element is
+%   either an atom or a variable. If a  segment is a variable it matches
+%   any segment and the binding may  be   passed  to the closure. If the
+%   last segment is a variable  it   may  match  multiple segments. This
+%   allows registering REST paths, for example:
 %
-%           * authentication(+Type)
-%           Demand authentication.  Authentication methods are
-%           pluggable.  The library http_authenticate.pl provides
-%           a plugin for user/password based =Basic= HTTP
-%           authentication.
+%      ```
+%      :- http_handler(root(user/User), user(Method, User),
+%                      [ method(Method),
+%                        methods([get,port,put])
+%                      ]).
 %
-%           * chunked
-%           Use =|Transfer-encoding: chunked|= if the client
-%           allows for it.
+%      user(get, User, Request) :-
+%          ...
+%      user(post, User, Request) :-
+%          ...
+%      ```
 %
-%           * condition(:Goal)
-%           If present, the handler is ignored if Goal does not succeed.
+%   If an HTTP request arrives at the  server that matches Path, Closure
+%   is called as below, where `Request` is the parsed HTTP request.
 %
-%           * content_type(+Term)
-%           Specifies the content-type of the reply.  This value is
-%           currently not used by this library.  It enhances the
-%           reflexive capabilities of this library through
-%           http_current_handler/3.
+%       call(Closure, Request)
 %
-%           * id(+Term)
-%           Identifier of the handler.  The default identifier is
-%           the predicate name.  Used by http_location_by_id/2.
+%   Options  is  a  list containing the following options:
 %
-%           * hide_children(+Bool)
-%           If =true= on a prefix-handler (see prefix), possible
-%           children are masked.  This can be used to (temporary)
-%           overrule part of the tree.
+%     - authentication(+Type)
+%       Demand authentication. Authentication methods are pluggable. The
+%       library http_authenticate.pl provides a plugin for user/password
+%       based =Basic= HTTP authentication.
 %
-%           * method(+Method)
-%           Declare that the handler processes Method.  This is
-%           equivalent to methods([Method]).  Using method(*)
-%           allows for all methods.
+%     - chunked
+%       Use =|Transfer-encoding: chunked|= if the client allows for it.
 %
-%           * methods(+ListOfMethods)
-%           Declare that the handler processes all of the given
-%           methods.  If this option appears multiple times, the
-%           methods are combined.
+%     - condition(:Goal)
+%       If present, the handler is ignored if Goal does not succeed.
 %
-%           * prefix
-%           Call Pred on any location that is a specialisation of
-%           Path.  If multiple handlers match, the one with the
-%           longest path is used.  Options defined with a prefix
-%           handler are the default options for paths that start
-%           with this prefix.  Note that the handler acts as a
-%           fallback handler for the tree below it:
+%     - content_type(+Term)
+%       Specifies the content-type of the reply. This value is currently
+%       not used by this library. It enhances the reflexive capabilities
+%       of this library through http_current_handler/3.
 %
-%             ==
-%             :- http_handler(/, http_404([index('index.html')]),
-%                             [spawn(my_pool),prefix]).
-%             ==
+%     - id(+Term)
+%       Identifier of the handler. The default identifier is the
+%       predicate name. Used by http_location_by_id/2.
 %
-%           * priority(+Integer)
-%           If two handlers handle the same path, the one with the
-%           highest priority is used.  If equal, the last registered
-%           is used.  Please be aware that the order of clauses in
-%           multifile predicates can change due to reloading files.
-%           The default priority is 0 (zero).
+%     - hide_children(+Bool)
+%       If =true= on a prefix-handler (see prefix), possible children
+%       are masked. This can be used to (temporary) overrule part of the
+%       tree.
 %
-%           * spawn(+SpawnOptions)
-%           Run the handler in a seperate thread.  If SpawnOptions
-%           is an atom, it is interpreted as a thread pool name
-%           (see create_thread_pool/3).  Otherwise the options
-%           are passed to http_spawn/2 and from there to
-%           thread_create/3.  These options are typically used to
-%           set the stack limits.
+%     - method(+Method)
+%       Declare that the handler processes Method. This is equivalent to
+%       methods([Method]). Using method(*) allows for all methods.
 %
-%           * time_limit(+Spec)
-%           One of =infinite=, =default= or a positive number
-%           (seconds).  If =default=, the value from the setting
-%           =http:time_limit= is taken. The default of this
-%           setting is 300 (5 minutes).  See setting/2.
+%     - methods(+ListOfMethods)
+%       Declare that the handler processes all of the given methods. If
+%       this option appears multiple times, the methods are combined.
 %
-%   Note that http_handler/3 is normally invoked  as a directive and
-%   processed using term-expansion.  Using   term-expansion  ensures
-%   proper update through make/0 when the specification is modified.
-%   We do not expand when the  cross-referencer is running to ensure
-%   proper handling of the meta-call.
+%     - prefix
+%       Call Pred on any location that is a specialisation of Path. If
+%       multiple handlers match, the one with the longest path is used.
+%       Options defined with a prefix handler are the default options
+%       for paths that start with this prefix. Note that the handler
+%       acts as a fallback handler for the tree below it:
+%
+%       ==
+%       :- http_handler(/, http_404([index('index.html')]),
+%                       [spawn(my_pool),prefix]).
+%       ==
+%
+%     - priority(+Integer)
+%       If two handlers handle the same path, the one with the highest
+%       priority is used. If equal, the last registered is used. Please
+%       be aware that the order of clauses in multifile predicates can
+%       change due to reloading files. The default priority is 0 (zero).
+%
+%     - spawn(+SpawnOptions)
+%       Run the handler in a seperate thread. If SpawnOptions is an
+%       atom, it is interpreted as a thread pool name (see
+%       create_thread_pool/3). Otherwise the options are passed to
+%       http_spawn/2 and from there to thread_create/3. These options
+%       are typically used to set the stack limits.
+%
+%     - time_limit(+Spec)
+%       One of =infinite=, =default= or a positive number (seconds). If
+%       =default=, the value from the setting =http:time_limit= is
+%       taken. The default of this setting is 300 (5 minutes). See
+%       setting/2.
+%
+%   Note that http_handler/3 is normally  invoked   as  a  directive and
+%   processed using term-expansion. Using  term-expansion ensures proper
+%   update through make/0 when the specification  is modified. We do not
+%   expand  when  the  cross-referencer  is  running  to  ensure  proper
+%   handling of the meta-call.
 %
 %   @error  existence_error(http_location, Location)
+%   @error  permission_error(http_method, Method, Location)
 %   @see    http_reply_file/3 and http_redirect/3 are generic
 %           handlers to serve files and achieve redirects.
 
@@ -193,6 +212,7 @@ write_index(Request) :-
     http_handler(+, :, +),
     http_current_handler(?, :),
     http_current_handler(?, :, ?),
+    http_request_expansion(3, +),
     http_switch_protocol(2, +).
 
 http_handler(Path, Pred, Options) :-
@@ -261,24 +281,29 @@ current_generation(G) :-
 current_generation(0).
 
 
-%!  compile_handler(+Path, :Pred, +Options) is det.
+%!  compile_handler(+Path, :Pred, +Options, -Clause) is det.
 %
-%   Compile a handler specification. For now we this is a no-op, but
-%   in the feature can make this more efficiently, especially in the
-%   presence of one or multiple prefix declarations. We can also use
-%   this to detect conflicts.
+%   Compile a handler specification.
 
 compile_handler(Path, Pred, Options0,
                 http_dispatch:handler(Path1, Pred, IsPrefix, Options)) :-
-    check_path(Path, Path1),
-    (   select(prefix, Options0, Options1)
+    check_path(Path, Path1, PathOptions),
+    (   memberchk(segment_pattern(_), PathOptions)
+    ->  IsPrefix = true,
+        Options1 = Options0
+    ;   select(prefix, Options0, Options1)
     ->  IsPrefix = true
     ;   IsPrefix = false,
         Options1 = Options0
     ),
+    partition(ground, Options1, Options2, QueryOptions),
     Pred = M:_,
-    maplist(qualify_option(M), Options1, Options2),
-    combine_methods(Options2, Options).
+    maplist(qualify_option(M), Options2, Options3),
+    combine_methods(Options3, Options4),
+    (   QueryOptions == []
+    ->  append(PathOptions, Options4, Options)
+    ;   append(PathOptions, ['$extract'(QueryOptions)|Options4], Options)
+    ).
 
 qualify_option(M, condition(Pred), condition(M:Pred)) :-
     Pred \= _:_, !.
@@ -336,77 +361,178 @@ method(options).
 method(trace).
 
 
-%!  check_path(+PathSpecIn, -PathSpecOut) is det.
+%!  check_path(+PathSpecIn, -PathSpecOut, -Options) is det.
 %
 %   Validate the given path specification.  We want one of
 %
-%           * AbsoluteLocation
-%           * Alias(Relative)
+%     - AbsoluteLocation
+%     - Alias(Relative)
 %
-%   Similar  to  absolute_file_name/3,  Relative  can    be  a  term
-%   _|Component/Component/...|_
+%   Similar  to  absolute_file_name/3,   Relative   can    be   a   term
+%   ``Component/Component/...``. Relative may be a `/` separated list of
+%   path segments, some of which may   be  variables. A variable patches
+%   any segment and its binding can be passed  to the handler. If such a
+%   pattern     is     found      Options       is      unified     with
+%   `[segment_pattern(SegmentList)]`.
 %
 %   @error  domain_error, type_error
 %   @see    http_absolute_location/3
 
-check_path(Path, Path) :-
+check_path(Path, Path, []) :-
     atom(Path),
     !,
     (   sub_atom(Path, 0, _, _, /)
     ->  true
     ;   domain_error(absolute_http_location, Path)
     ).
-check_path(Alias, AliasOut) :-
+check_path(Alias, AliasOut, Options) :-
     compound(Alias),
     Alias =.. [Name, Relative],
     !,
-    to_atom(Relative, Local),
+    local_path(Relative, Local, Options),
     (   sub_atom(Local, 0, _, _, /)
     ->  domain_error(relative_location, Relative)
     ;   AliasOut =.. [Name, Local]
     ).
-check_path(PathSpec, _) :-
+check_path(PathSpec, _, _) :-
     type_error(path_or_alias, PathSpec).
 
-to_atom(Atom, Atom) :-
+local_path(Atom, Atom, []) :-
     atom(Atom),
     !.
-to_atom(Path, Atom) :-
+local_path(Path, Atom, Options) :-
     phrase(path_to_list(Path), Components),
     !,
-    atomic_list_concat(Components, '/', Atom).
-to_atom(Path, _) :-
+    (   maplist(atom, Components)
+    ->  atomic_list_concat(Components, '/', Atom),
+        Options = []
+    ;   append(Pre, [Var|Rest], Components),
+        var(Var)
+    ->  append(Pre, [''], PreSep),
+        atomic_list_concat(PreSep, '/', Atom),
+        Options = [segment_pattern([Var|Rest])]
+    ).
+local_path(Path, _, _) :-
     ground(Path),
     !,
     type_error(relative_location, Path).
-to_atom(Path, _) :-
+local_path(Path, _, _) :-
     instantiation_error(Path).
 
 path_to_list(Var) -->
-    { var(Var),
-      !,
-      fail
-    }.
+    { var(Var) },
+    !,
+    [Var].
 path_to_list(A/B) -->
+    !,
     path_to_list(A),
     path_to_list(B).
 path_to_list(Atom) -->
     { atom(Atom) },
+    !,
     [Atom].
-
+path_to_list(Value) -->
+    { must_be(atom, Value) }.
 
 
 %!  http_dispatch(Request) is det.
 %
-%   Dispatch a Request using http_handler/3 registrations.
+%   Dispatch a Request using http_handler/3   registrations. It performs
+%   the following steps:
+%
+%     1. Find a matching handler based on the `path` member of Request.
+%        If multiple handlers match due to the `prefix` option or
+%        variables in path segments (see http_handler/3), the longest
+%        specification is used.  If multiple specifications of equal
+%        length match the one with the highest priority is used.
+%     2. Check that the handler matches the `method` member of the
+%        Request or throw permission_error(http_method, Method, Location)
+%     3. Expand the request using expansion hooks registered by
+%        http_request_expansion/3.  This may add fields to the request,
+%        such the authenticated user, parsed parameters, etc.  The
+%        hooks may also throw exceptions, notably using http_redirect/3
+%        or by throwing `http_reply(Term, ExtraHeader, Context)`
+%        exceptions.
+%     4. Extract possible fields from the Request using e.g.
+%        method(Method) as one of the options.
+%     5. Call the registered _closure_, optionally spawning the
+%        request to a new thread or enforcing a time limit.
 
 http_dispatch(Request) :-
     memberchk(path(Path), Request),
-    find_handler(Path, Pred, Options),
+    find_handler(Path, Closure, Options),
     supports_method(Request, Options),
-    authentication(Options, Request, Fields),
-    append(Fields, Request, AuthRequest),
-    action(Pred, AuthRequest, Options).
+    expand_request(Request, Request1, Options),
+    extract_from_request(Request1, Options),
+    action(Closure, Request1, Options).
+
+extract_from_request(Request, Options) :-
+    memberchk('$extract'(Fields), Options),
+    !,
+    extract_fields(Fields, Request).
+extract_from_request(_, _).
+
+extract_fields([], _).
+extract_fields([H|T], Request) :-
+    memberchk(H, Request),
+    extract_fields(T, Request).
+
+
+%!  http_request_expansion(:Goal, +Rank:number)
+%
+%   Register Goal for expanding the HTTP request handler. Goal is called
+%   as below. If Goal fail the request   is passed to the next expansion
+%   unmodified.
+%
+%       call(Goal, Request0, Request, Options)
+%
+%   If multiple goals are  registered  they   expand  the  request  in a
+%   pipeline starting with the expansion hook with the lowest rank.
+%
+%   Besides rewriting the request, for example   by  validating the user
+%   identity based on HTTP authentication or  cookies and adding this to
+%   the request, the hook may raise HTTP exceptions to indicate a bad
+%   request, permission error, etc.  See http_status_reply/4.
+%
+%   Initially, auth_expansion/3 is registered with   rank  `100` to deal
+%   with the older http:authenticate/3 hook.
+
+http_request_expansion(Goal, Rank) :-
+    throw(error(context_error(nodirective, http_request_expansion(Goal, Rank)), _)).
+
+:- multifile
+    request_expansion/2.
+
+system:term_expansion((:- http_request_expansion(Goal, Rank)),
+                      http_dispatch:request_expansion(M:Callable, Rank)) :-
+    must_be(number, Rank),
+    prolog_load_context(module, M0),
+    strip_module(M0:Goal, M, Callable),
+    must_be(callable, Callable).
+
+request_expanders(Closures) :-
+    findall(Rank-Closure, request_expansion(Closure, Rank), Pairs),
+    keysort(Pairs, Sorted),
+    pairs_values(Sorted, Closures).
+
+%!  expand_request(+Request0, -Request, +Options)
+%
+%   Expand an HTTP request.  Options  is   a  list  of  combined options
+%   provided with the handler registration (see http_handler/3).
+
+expand_request(Request0, Request, Options) :-
+    request_expanders(Closures),
+    expand_request(Closures, Request0, Request, Options).
+
+expand_request([], Request, Request, _).
+expand_request([H|T], Request0, Request, Options) :-
+    expand_request1(H, Request0, Request1, Options),
+    expand_request(T, Request1, Request, Options).
+
+expand_request1(Closure, Request0, Request, Options) :-
+    call(Closure, Request0, Request, Options),
+    !.
+expand_request1(_, Request, Request, _).
 
 
 %!  http_current_handler(+Location, :Closure) is semidet.
@@ -614,6 +740,9 @@ html_write:expand_attribute_value(location_by_id(ID)) -->
 %   http_authenticate.pl provides an implementation thereof.
 %
 %   @error  permission_error(access, http_location, Location)
+%   @deprecated This hook predates the extensible request
+%   expansion provided by http_request_expansion/2. New hooks should use
+%   http_request_expansion/2 instead of http:authenticate/3.
 
 :- multifile
     http:authenticate/3.
@@ -630,6 +759,18 @@ authentication([authentication(Type)|Options], Request, Fields) :-
 authentication([_|Options], Request, Fields) :-
     authentication(Options, Request, Fields).
 
+:- http_request_expansion(auth_expansion, 100).
+
+%!  auth_expansion(+Request0, -Request, +Options) is semidet.
+%
+%   Connect  the  HTTP  authentication  infrastructure    by   means  of
+%   http_request_expansion/2.
+%
+%   @see http:authenticate/3, http_digest.pl and http_authenticate.pl
+
+auth_expansion(Request0, Request, Options) :-
+    authentication(Options, Request0, Extra),
+    append(Extra, Request, Request0).
 
 %!  find_handler(+Path, -Action, -Options) is det.
 %
@@ -667,7 +808,12 @@ find_handler([node(prefix(Prefix), PAction, POptions, Children)|_],
     (   option(hide_children(false), POptions, false),
         find_handler(Children, Path, Action, Options)
     ->  true
-    ;   Action = PAction,
+    ;   member(segment_pattern(Pattern, PatAction, PatOptions), POptions),
+        copy_term(t(Pattern,PatAction,PatOptions), t(Pattern2,Action,Options)),
+        match_segments(After, Path, Pattern2)
+    ->  true
+    ;   PAction \== nop
+    ->  Action = PAction,
         path_info(After, Path, POptions, Options)
     ).
 find_handler([node(Path, Action, Options, _)|_], Path, Action, Options) :- !.
@@ -679,6 +825,23 @@ path_info(0, _, Options,
 path_info(After, Path, Options,
           [path_info(PathInfo),prefix(true)|Options]) :-
     sub_atom(Path, _, After, 0, PathInfo).
+
+match_segments(After, Path, [Var]) :-
+    !,
+    sub_atom(Path, _, After, 0, Var).
+match_segments(After, Path, Pattern) :-
+    sub_atom(Path, _, After, 0, PathInfo),
+    split_string(PathInfo, "/", "", Segments),
+    match_segment_pattern(Pattern, Segments).
+
+match_segment_pattern([], []).
+match_segment_pattern([Var], Segments) :-
+    !,
+    atomic_list_concat(Segments, '/', Var).
+match_segment_pattern([H0|T0], [H|T]) :-
+    atom_string(H0, H),
+    match_segment_pattern(T0, T).
+
 
 eval_condition(Options) :-
     (   memberchk(condition(Cond), Options)
@@ -846,9 +1009,9 @@ http_reply_file(File, Options, Request) :-
         )
     ;   Reply = tmp_file(Type, Path)
     ),
-    (   option(mime_type(Type), Options)
-    ->  true
-    ;   file_mime_type(Path, Type)
+    (   option(mime_type(MediaType), Options)
+    ->  file_content_type(Path, MediaType, Type)
+    ;   file_content_type(Path, Type)
     ->  true
     ;   Type = text/plain           % fallback type
     ),
@@ -1030,14 +1193,22 @@ path_tree(Tree) :-
     nb_setval(http_dispatch_tree, G-Tree).
 
 path_tree_nocache(Tree) :-
-    findall(Prefix, prefix_handler(Prefix, _, _), Prefixes0),
+    findall(Prefix, prefix_handler(Prefix, _, _, _), Prefixes0),
     sort(Prefixes0, Prefixes),
     prefix_tree(Prefixes, [], PTree),
     prefix_options(PTree, [], OPTree),
     add_paths_tree(OPTree, Tree).
 
-prefix_handler(Prefix, Action, Options) :-
+prefix_handler(Prefix, Action, Options, Priority-PLen) :-
     handler(Spec, Action, true, Options),
+    (   memberchk(priority(Priority), Options)
+    ->  true
+    ;   Priority = 0
+    ),
+    (   memberchk(segment_pattern(Pattern), Options)
+    ->  length(Pattern, PLen)
+    ;   PLen = 0
+    ),
     Error = error(existence_error(http_alias,_),_),
     catch(http_absolute_location(Spec, Prefix, []), Error,
           (   print_message(warning, Error),
@@ -1069,13 +1240,36 @@ insert_prefix(Prefix, Tree, [Prefix-[]|Tree]).
 %   @tbd    What to do if there are more?
 
 prefix_options([], _, []).
-prefix_options([P-C|T0], DefOptions,
-               [node(prefix(P), Action, Options, Children)|T]) :-
-    once(prefix_handler(P, Action, Options0)),
+prefix_options([Prefix-C|T0], DefOptions,
+               [node(prefix(Prefix), Action, PrefixOptions, Children)|T]) :-
+    findall(h(A,O,P), prefix_handler(Prefix,A,O,P), Handlers),
+    sort(3, >=, Handlers, Handlers1),
+    Handlers1 = [h(_,_,P0)|_],
+    same_priority_handlers(Handlers1, P0, Same),
+    option_patterns(Same, SegmentPatterns, Action),
+    last(Same, h(_, Options0, _-_)),
     merge_options(Options0, DefOptions, Options),
-    delete(Options, id(_), InheritOpts),
+    append(SegmentPatterns, Options, PrefixOptions),
+    exclude(no_inherit, Options, InheritOpts),
     prefix_options(C, InheritOpts, Children),
     prefix_options(T0, DefOptions, T).
+
+no_inherit(id(_)).
+no_inherit('$extract'(_)).
+
+same_priority_handlers([H|T0], P, [H|T]) :-
+    H = h(_,_,P0-_),
+    P = P0-_,
+    !,
+    same_priority_handlers(T0, P, T).
+same_priority_handlers(_, _, []).
+
+option_patterns([], [], nop).
+option_patterns([h(A,_,_-0)|_], [], A) :-
+    !.
+option_patterns([h(A,O,_)|T0], [segment_pattern(P,A,O)|T], AF) :-
+    memberchk(segment_pattern(P), O),
+    option_patterns(T0, T, AF).
 
 
 %!  add_paths_tree(+OPTree, -Tree) is det.

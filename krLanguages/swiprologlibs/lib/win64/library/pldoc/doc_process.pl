@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -39,7 +40,8 @@
             is_structured_comment/2,    % +Comment, -Prefixes
             parse_comment/3,            % +Comment, +FilePos, -Parsed
             process_comments/3,         % +Comments, +StartTermPos, +File
-            doc_file_name/3             % +Source, -Doc, +Options
+            doc_file_name/3,            % +Source, -Doc, +Options
+            doc_clean/1                 % +Module
           ]).
 
 :- dynamic   user:file_search_path/2.
@@ -204,7 +206,8 @@ doc_file_name(Source, Doc, Options) :-
 doc_file_has_comments(Source) :-
     source_file_property(Source, module(M)),
     locally_defined(M:'$pldoc'/4),
-    M:'$pldoc'(_, _, _, _).
+    M:'$pldoc'(_, _, _, _),
+    !.
 
 
 %!  doc_comment(?Objects, -Pos,
@@ -256,10 +259,10 @@ doc_comment(Name/Arity, Pos, Summary, Comment) :-
 
 
 locally_defined(M:Name/Arity) :-
-    current_module(M),
     current_predicate(M:Name/Arity),
     functor(Head, Name, Arity),
-    \+ predicate_property(M:Head, imported_from(_)).
+%   \+ predicate_property(M:Head, imported_from(_)).
+    \+ '$get_predicate_attribute'(M:Head, imported, _).
 
 
 qualify(M, H, H) :- system_module(M), !.
@@ -447,6 +450,15 @@ decl_module([H0|T0], M, [H|T]) :-
     ;   H = H0
     ),
     decl_module(T0, M, T).
+
+%!  doc_clean(+Module) is det.
+%
+%   Clean documentation for Module.
+
+doc_clean(Module) :-
+    abolish(Module:'$mode'/2),
+    abolish(Module:'$pldoc'/4),
+    abolish(Module:'$pldoc_link'/2).
 
 
                  /*******************************

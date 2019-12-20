@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2015, University of Amsterdam
+    Copyright (c)  2007-2018, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -33,7 +33,6 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- if(current_predicate(is_dict/1)).
 :- module(http_json,
           [ reply_json/1,               % +JSON
             reply_json/2,               % +JSON, Options
@@ -42,20 +41,14 @@
             http_read_json/2,           % +Request, -JSON
             http_read_json/3,           % +Request, -JSON, +Options
             http_read_json_dict/2,      % +Request, -Dict
-            http_read_json_dict/3       % +Request, -Dict, +Options
+            http_read_json_dict/3,      % +Request, -Dict, +Options
+
+            is_json_content_type/1      % +HeaderValue
           ]).
-:- else.
-:- module(http_json,
-          [ reply_json/1,               % +JSON
-            reply_json/2,               % +JSON, Options
-            http_read_json/2,           % +Request, -JSON
-            http_read_json/3            % +Request, -JSON, +Options
-          ]).
-:- endif.
-:- use_module(http_client).
-:- use_module(http_header).
-:- use_module(http_stream).
-:- use_module(json).
+:- use_module(library(http/http_client)).
+:- use_module(library(http/http_header)).
+:- use_module(library(http/http_stream)).
+:- use_module(library(http/json)).
 :- use_module(library(option)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
@@ -87,9 +80,26 @@
 
 /** <module> HTTP JSON Plugin module
 
-This  module  inserts  the  JSON  parser  for  documents  of  MIME  type
-=|application/jsonrequest|= and =|application/json|=   requested through
-the http_client.pl library.
+This module adds hooks to several parts   of  the HTTP libraries, making
+them JSON-aware.  Notably:
+
+  - Make http_read_data/3 convert `application/json` and
+    `application/jsonrequest` content to a JSON term.
+  - Cause http_open/3 to accept post(json(Term)) to issue a POST
+    request with JSON content.
+  - Provide HTTP server and client utility predicates for reading
+    and replying JSON:
+    - http_read_json/2
+    - http_read_json/3
+    - http_read_json_dict/2
+    - http_read_json_dict/3
+    - reply_json/1
+    - reply_json/2
+    - reply_json_dict/1
+    - reply_json_dict/2
+  - Reply to exceptions in the server using an JSON document rather
+    then HTML if the =|Accept|= header prefers application/json over
+    text/html.
 
 Typically JSON is used by Prolog HTTP  servers. This module supports two
 JSON  representations:  the  classical  representation    and   the  new
@@ -144,7 +154,7 @@ terms.
 
 http_client:http_convert_data(In, Fields, Data, Options) :-
     memberchk(content_type(Type), Fields),
-    is_json_type(Type),
+    is_json_content_type(Type),
     !,
     (   memberchk(content_length(Bytes), Fields)
     ->  setup_call_cleanup(
@@ -158,18 +168,21 @@ http_client:http_convert_data(In, Fields, Data, Options) :-
     ).
 
 
-is_json_type(String) :-
+%!  is_json_content_type(+ContentType) is semidet.
+%
+%   True  if  ContentType  is  a  header  value  (either  parsed  or  as
+%   atom/string) that denotes a JSON value.
+
+is_json_content_type(String) :-
     http_parse_header_value(content_type, String,
                             media(Type, _Attributes)),
     json_type(Type),
     !.
 
-:- if(current_predicate(is_dict/1)).
 json_read_to(In, Data, Options) :-
     memberchk(json_object(dict), Options),
     !,
     json_read_dict(In, Data, Options).
-:- endif.
 json_read_to(In, Data, Options) :-
     json_read(In, Data, Options).
 
@@ -205,13 +218,11 @@ json_type(application/json).
 %
 %   @tbd avoid creation of intermediate data using chunked output.
 
-:- if(current_predicate(is_dict/1)).
 http:post_data_hook(json(Dict), Out, HdrExtra) :-
     is_dict(Dict),
     !,
     http:post_data_hook(json(Dict, [json_object(dict)]),
                         Out, HdrExtra).
-:- endif.
 http:post_data_hook(json(Term), Out, HdrExtra) :-
     http:post_data_hook(json(Term, []), Out, HdrExtra).
 http:post_data_hook(json(Term, Options), Out, HdrExtra) :-
@@ -231,12 +242,10 @@ http:post_data_hook(json(Term, Options), Out, HdrExtra) :-
         http_post_data(cgi_stream(RdHandle), Out, HdrExtra),
         close(RdHandle)).
 
-:- if(current_predicate(is_dict/1)).
 json_write_to(Out, Term, Options) :-
     memberchk(json_object(dict), Options),
     !,
     json_write_dict(Out, Term, Options).
-:- endif.
 json_write_to(Out, Term, Options) :-
     json_write(Out, Term, Options).
 
@@ -254,8 +263,8 @@ json_write_to(Out, Term, Options) :-
 %
 %   @error  domain_error(mimetype, Found) if the mimetype is
 %           not known (see json_type/1).
-%   @error  domain_error(method, Method) if the request is not
-%           a =POST= or =PUT= request.
+%   @error  domain_error(method, Method) if the request method is not
+%           a =POST=, =PUT= or =PATCH=.
 
 http_read_json(Request, JSON) :-
     http_read_json(Request, JSON, []).
@@ -275,7 +284,7 @@ request_to_json(Request, JSON, Options) :-
     ->  true
     ;   domain_error(method, Method)
     ),
-    (   is_json_type(Type)
+    (   is_json_content_type(Type)
     ->  true
     ;   domain_error(mimetype, Type)
     ),
@@ -284,8 +293,6 @@ request_to_json(Request, JSON, Options) :-
 data_method(post).
 data_method(put).
 data_method(patch).
-
-:- if(current_predicate(is_dict/1)).
 
 %!  http_read_json_dict(+Request, -Dict) is det.
 %!  http_read_json_dict(+Request, -Dict, +Options) is det.
@@ -299,8 +306,6 @@ http_read_json_dict(Request, Dict) :-
 http_read_json_dict(Request, Dict, Options) :-
     merge_options([json_object(dict)], Options, Options1),
     http_read_json(Request, Dict, Options1).
-
-:- endif.
 
 %!  reply_json(+JSONTerm) is det.
 %!  reply_json(+JSONTerm, +Options) is det.
@@ -324,22 +329,18 @@ http_read_json_dict(Request, Dict, Options) :-
 %       to use the new dict representation.  If omitted and Term
 %       is a dict, =dict= is assumed.  SWI-Prolog Version 7.
 
-:- if(current_predicate(is_dict/1)).
 reply_json(Dict) :-
     is_dict(Dict),
     !,
     reply_json_dict(Dict).
-:- endif.
 reply_json(Term) :-
     format('Content-type: application/json; charset=UTF-8~n~n'),
     json_write(current_output, Term).
 
-:- if(current_predicate(is_dict/1)).
 reply_json(Dict, Options) :-
     is_dict(Dict),
     !,
     reply_json_dict(Dict, Options).
-:- endif.
 reply_json(Term, Options) :-
     reply_json2(Term, Options).
 
@@ -352,7 +353,6 @@ reply_json(Term, Options) :-
 %   of   objects   correctly   and     provides   consistency   with
 %   http_read_json_dict/2 and friends.
 
-:- if(current_predicate(is_dict/1)).
 reply_json_dict(Dict) :-
     format('Content-type: application/json; charset=UTF-8~n~n'),
     json_write_dict(current_output, Dict).
@@ -360,8 +360,6 @@ reply_json_dict(Dict) :-
 reply_json_dict(Dict, Options) :-
     merge_options([json_object(dict)], Options, Options1),
     reply_json2(Dict, Options1).
-:- endif.
-
 
 reply_json2(Term, Options) :-
     select_option(content_type(Type), Options, Rest0, 'application/json'),
@@ -371,3 +369,92 @@ reply_json2(Term, Options) :-
     ),
     format('Content-type: ~w~n~n', [Type]),
     json_write_to(current_output, Term, Rest).
+
+
+		 /*******************************
+		 *       STATUS HANDLING	*
+		 *******************************/
+
+:- multifile
+    http:status_reply/3,
+    http:serialize_reply/2.
+
+http:serialize_reply(json(Term), body(application/json, utf8, Content)) :-
+    with_output_to(string(Content),
+                   json_write_dict(current_output, Term, [])).
+
+http:status_reply(Term, json(Reply), Options) :-
+    prefer_json(Options.get(accept)),
+    json_status_reply(Term, Lines, Extra),
+    phrase(txt_message_lines(Lines), Codes),
+    string_codes(Message, Codes),
+    Reply = _{code:Options.code, message:Message}.put(Extra).
+
+txt_message_lines([]) -->
+    [].
+txt_message_lines([nl|T]) -->
+    !,
+    "\n",
+    txt_message_lines(T).
+txt_message_lines([flush]) -->
+    !.
+txt_message_lines([FmtArgs|T]) -->
+    dcg_format(FmtArgs),
+    txt_message_lines(T).
+
+dcg_format(Fmt-Args, List, Tail) :-
+    !,
+    format(codes(List,Tail), Fmt, Args).
+dcg_format(Fmt, List, Tail) :-
+    format(codes(List,Tail), Fmt, []).
+
+%!  prefer_json(+Accept)
+%
+%   True when the accept encoding prefers JSON.
+
+prefer_json(Accept) :-
+    memberchk(media(application/json, _, JSONP,  []), Accept),
+    (   member(media(text/html, _, HTMLP,  []), Accept)
+    ->  JSONP > HTMLP
+    ;   true
+    ).
+
+%!  json_status_reply(+Term, -MsgLines, -ExtraJSON) is semidet.
+
+json_status_reply(created(Location),
+                  [ 'Created: ~w'-[Location] ],
+                  _{location:Location}).
+json_status_reply(moved(Location),
+                  [ 'Moved to: ~w'-[Location] ],
+                  _{location:Location}).
+json_status_reply(moved_temporary(Location),
+                  [ 'Moved temporary to: ~w'-[Location] ],
+                  _{location:Location}).
+json_status_reply(see_other(Location),
+                  [ 'See: ~w'-[Location] ],
+                  _{location:Location}).
+json_status_reply(bad_request(ErrorTerm), Lines, _{}) :-
+    '$messages':translate_message(ErrorTerm, Lines, []).
+json_status_reply(authorise(Method),
+                  [ 'Authorization (~p) required'-[Method] ],
+                  _{}).
+json_status_reply(forbidden(Location),
+                  [ 'You have no permission to access: ~w'-[Location] ],
+                  _{location:Location}).
+json_status_reply(not_found(Location),
+                  [ 'Path not found: ~w'-[Location] ],
+                  _{location:Location}).
+json_status_reply(method_not_allowed(Method,Location),
+                  [ 'Method not allowed: ~w'-[UMethod] ],
+                  _{location:Location, method:UMethod}) :-
+    upcase_atom(Method, UMethod).
+json_status_reply(not_acceptable(Why),
+                  [ 'Request is not aceptable: ~p'-[Why]
+                  ],
+                  _{}).
+json_status_reply(server_error(ErrorTerm), Lines, _{}) :-
+    '$messages':translate_message(ErrorTerm, Lines, []).
+json_status_reply(service_unavailable(Why),
+                  [ 'Service unavailable: ~p'-[Why]
+                  ],
+                  _{}).

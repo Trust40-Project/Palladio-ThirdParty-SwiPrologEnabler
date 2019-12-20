@@ -15,9 +15,9 @@
 	<description>Knowledge representation technologies that support the KR interface defined in the Knowledge Representation Tools project.</description>
 	
 	<modules>
-		<module>swiprolog</module>
 		<module>swiprologlibs</module>
-		<!--<module>jason</module> 
+		<!--<module>swiprolog</module>
+		<module>jason</module> 
 		<module>owlrepo</module> 
 		<module>tuprolog</module> -->
 	</modules>

@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2017, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -40,19 +41,19 @@
             summary_from_lines/2,       % +Lines, -Codes
             indented_lines/3,           % +Text, +PrefixChars, -Lines
             strip_leading_par/2,        % +DOM0, -DOM
-            normalise_white_space/3,    % -Text, //
             autolink_extension/2,       % ?Extension, ?Type
             autolink_file/2             % +FileName, -Type
           ]).
 :- use_module(library(lists)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
-:- use_module(library(memfile)).
 :- use_module(library(pairs)).
 :- use_module(library(option)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/basics)).
+
+:- use_module(doc_util).
 
 
 /** <module> PlDoc wiki parser
@@ -314,32 +315,26 @@ term_item(li(Tokens),
         ;   TermTokens = Tokens,
             Descr = []
         )
-    ->  setup_call_cleanup(
-            ( new_memory_file(MemFile),
-              open_memory_file(MemFile, write, Out)
-            ),
-            ( forall(member(T, TermTokens),
-                     write_token(Out, T)),
-              write(Out, ' .\n')
-            ),
-            close(Out)),
+    ->  with_output_to(string(Tmp),
+                       ( forall(member(T, TermTokens),
+                                write_token(T)),
+                         write(' .\n'))),
+        E = error(_,_),
         catch(setup_call_cleanup(
-                  open_memory_file(MemFile, read, In,
-                                   [ free_on_close(true)
-                                   ]),
+                  open_string(Tmp, In),
                   ( read_dt_term(In, Term, Bindings),
                     read_dt_term(In, end_of_file, []),
-                    memory_file_to_atom(MemFile, Text)
+                    atom_string(Text, Tmp)
                   ),
                   close(In)),
-              _, fail)
+              E, fail)
     ).
 
-write_token(Out, w(X)) :-
+write_token(w(X)) :-
     !,
-    write(Out, X).
-write_token(Out, X) :-
-    write(Out, X).
+    write(X).
+write_token(X) :-
+    write(X).
 
 read_dt_term(In, Term, Bindings) :-
     read_term(In, Term,
@@ -794,6 +789,8 @@ verbatim_term(\term(_,_,_)).
 %   True when Goal runs successfully on the DCG input and Input
 %   is the list of matched tokens.
 
+:- meta_predicate matches(2, -, -, ?, ?).
+
 matches(Goal, Input, Last, List, Rest) :-
     call(Goal, List, Rest),
     input(List, Rest, Input, Last).
@@ -902,17 +899,23 @@ wiki_face(code(Code), _, _) -->
 wiki_face(code(Code), _, _) -->
     [=,'|'], wiki_words(Code), ['|',=],
     !.
+wiki_face(code(Code), _, _) -->
+    ['`','`'], wiki_words(Code), ['`','`'],
+    !.
 wiki_face(Code, _, _) -->
-    ['`'], code_words(Words), ['`'],
-    { atomic_list_concat(Words, Text),
-      catch(atom_to_term(Text, Term, Vars), _, fail),
-      !,
-      code_face(Text, Term, Vars, Code)
-    }.
+    (   ['`'], code_words(Words), ['`']
+    ->  { atomic_list_concat(Words, Text),
+          E = error(_,_),
+          catch(atom_to_term(Text, Term, Vars), E, fail),
+          !,
+          code_face(Text, Term, Vars, Code)
+        }
+    ).
 wiki_face(Face, _, _) -->
     [ w(Name) ], arg_list(List),
     { atomic_list_concat([Name|List], Text),
-      catch(atom_to_term(Text, Term, Vars), _, fail),
+      E = error(_,_),
+      catch(atom_to_term(Text, Term, Vars), E, fail),
       term_face(Text, Term, Vars, Face)
     },
     !.
@@ -1094,7 +1097,8 @@ emphasis_term('**',  Term, strong(Term)).
 emph_markdown(_, [w(_)]) :- !.
 emph_markdown(Last, Tokens) :-
     \+ emphasis_after_sep(Last),
-    catch(b_getval(pldoc_object, Obj), _, Obj = '??'),
+    E = error(_,_),
+    catch(b_getval(pldoc_object, Obj), E, Obj = '??'),
     debug(markdown(emphasis), '~q: additionally emphasis: ~p',
           [Obj, Tokens]).
 
@@ -1315,7 +1319,8 @@ wiki_link(a(href(Ref), Label), Options) -->
       ->  Term =.. [Alias,'.']
       ;   Term =.. [Alias,Local]
       ),
-      catch(expand_url_path(Term, Ref), _, fail),
+      E = error(_,_),
+      catch(expand_url_path(Term, Ref), E, fail),
       option(label(Label), Options, Ref)
     }.
 wiki_link(a(href(Ref), Label), Options) -->
@@ -1352,6 +1357,24 @@ file_name(FileBase, Extension) -->
     ['.'], file_extension(Extension),
     !,
     { atomic_list_concat([S1|List], '/', FileBase) }.
+file_name(FileBase, Extension) -->
+    [w(Alias), '('],
+    { once(user:file_search_path(Alias, _)) },
+    segment(S1),
+    segments(List),
+    [')'],
+    !,
+    { atomic_list_concat([S1|List], '/', Base),
+      Spec =.. [Alias,Base],
+      absolute_file_name(Spec, Path,
+                         [ access(read),
+                           extensions([pl]),
+                           file_type(prolog),
+                           file_errors(fail)
+                         ]),
+      file_name_extension(FileBase, Extension, Path)
+    }.
+
 
 segment(..) -->
     ['.','.'],
@@ -1390,7 +1413,8 @@ resolve_file(_, Options, Options).
 
 
 existing_file(Name, Options, Rest) :-
-    catch(existing_file_p(Name, Options, Rest), _, fail).
+    E = error(_,_),
+    catch(existing_file_p(Name, Options, Rest), E, fail).
 
 existing_file_p(Name, Options, Rest) :-
     nb_current(pldoc_file, RelativeTo),
@@ -1416,7 +1440,8 @@ existing_file_p(Name, Options, Rest) :-
 
 arity(Arity) -->
     [ w(Word) ],
-    { catch(atom_number(Word, Arity), _, fail),
+    { E = error(_,_),
+      catch(atom_number(Word, Arity), E, fail),
       Arity >= 0, Arity < 20
     }.
 
@@ -1535,26 +1560,6 @@ section_line(\section(Type, Title)) -->
     { atom_codes(Type, Codes),
       atom_codes(Title, TitleCodes)
     }.
-
-
-%!  normalise_white_space(-Text)// is det.
-%
-%   Text is input after deleting leading   and  trailing white space
-%   and mapping all internal white space to a single space.
-
-normalise_white_space(Text) -->
-    ws,
-    normalise_white_space2(Text).
-
-normalise_white_space2(Text) -->
-    non_ws(Text, Tail),
-    ws,
-    (   eos
-    ->  { Tail = [] }
-    ;   { Tail = [0'\s|T2] },
-        normalise_white_space2(T2)
-    ).
-
 
                  /*******************************
                  *           TOKENIZER          *
@@ -2046,20 +2051,6 @@ ws -->
 space -->
     [C],
     {code_type(C, space)}.
-
-%!  non_ws(-Text, ?Tail) is det.
-%
-%   True if the  difference  list  Text-Tail   is  the  sequence  of
-%   non-white-space characters.
-
-non_ws([H|T0], T) -->
-    [H],
-    { \+ code_type(H, space) },
-    !,
-    non_ws(T0, T).
-non_ws(T, T) -->
-    [].
-
 
 %!  nl//
 %

@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2002-2016, University of Amsterdam
+    Copyright (c)  2002-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -59,10 +60,12 @@
 
 :- predicate_options(http_server/2, 2,
                      [ port(any),
+                       entry_page(atom),
                        tcp_socket(any),
                        workers(positive_integer),
                        timeout(number),
                        keep_alive_timeout(number),
+                       silent(boolean),
                        ssl(list(any)),  % if http/http_ssl_plugin is loaded
                        pass_to(system:thread_create/3, 3)
                      ]).
@@ -128,6 +131,10 @@ self-signed SSL certificate.
 %     Host:Port. The port may be a variable, causing the system
 %     to select a free port.  See tcp_bind/2.
 %
+%     * entry_page(+URI)
+%     Affects the message printed while the server is started.
+%     Interpreted as a URI relative to the server root.
+%
 %     * tcp_socket(+Socket)
 %     If provided, use this socket instead of the creating one and
 %     binding it to an address.  The socket must be bound to an
@@ -139,7 +146,7 @@ self-signed SSL certificate.
 %     a higher number.
 %
 %     * timeout(+Seconds)
-%     Max time of inactivity trying to read the request after a
+%     Maximum time of inactivity trying to read the request after a
 %     connection has been opened.  Default is 60 seconds.  See
 %     set_stream/1 using the _timeout_ option.
 %
@@ -147,14 +154,15 @@ self-signed SSL certificate.
 %     Time to keep `Keep alive' connections alive.  Default is
 %     2 seconds.
 %
-%     * local(+Kbytes)
-%     * global(+Kbytes)
-%     * trail(+Kbytes)
-%     Stack sizes to use for the workers.  The default is inherited
-%     from the `main` thread. As of version 5.9 stacks are no longer
-%     _pre-allocated_ and the given sizes only act as a limit.
-%     If you need to control resource usage look at the `spawn`
-%     option of http_handler/3 and library(thread_pool).
+%     * stack_limit(+Bytes)
+%     Stack limit to use for the workers.  The default is inherited
+%     from the `main` thread.
+%     If you need to control resource usage you may consider the
+%     `spawn` option of http_handler/3 and library(thread_pool).
+%
+%     * silent(Bool)
+%     If `true` (default `false`), do not print an informational
+%     message that the server was started.
 %
 %   A  typical  initialization  for  an    HTTP   server  that  uses
 %   http_dispatch/1 to relay requests to predicates is:
@@ -178,8 +186,11 @@ http_server(Goal, M:Options0) :-
     make_socket(Port, M:Options0, Options),
     create_workers(Options),
     create_server(Goal, Port, Options),
-    print_message(informational,
-                  httpd_started_server(Port)).
+    (   option(silent(true), Options0)
+    ->  true
+    ;   print_message(informational,
+                      httpd_started_server(Port, Options0))
+    ).
 http_server(_Goal, _Options) :-
     existence_error(option, port).
 
@@ -393,8 +404,8 @@ accept_server3(Goal, Options) :-
     memberchk(queue(Queue), Options),
     tcp_accept(Socket, Client, Peer),
     debug(http(connection), 'New HTTP connection from ~p', [Peer]),
-    http_enough_workers(Queue, accept, Peer),
-    thread_send_message(Queue, tcp_client(Client, Goal, Peer)).
+    thread_send_message(Queue, tcp_client(Client, Goal, Peer)),
+    http_enough_workers(Queue, accept, Peer).
 
 accept_rethrow_error(http_stop).
 accept_rethrow_error('$aborted').
@@ -453,7 +464,9 @@ http_enough_workers(Queue, Why, Peer) :-
         catch(http:schedule_workers(_{port:Port,
                                       reason:Why,
                                       peer:Peer,
-                                      waiting:Size}),
+                                      waiting:Size,
+                                      queue:Queue
+                                     }),
               Error,
               print_message(error, Error))
     ->  true
@@ -479,6 +492,8 @@ enough(1, keep_alive).                  % I will be ready myself
 %     Identify the other end of the connection
 %     - waiting:Size
 %     Number of messages waiting in the queue.
+%     - queue:Queue
+%     Message queue used to dispatch accepted messages.
 %
 %   Note that, when called with `reason:accept`,   we  are called in
 %   the time critical main accept loop.   An  implementation of this
@@ -669,12 +684,12 @@ check_keep_alive_connection(In, TMO, Peer, In, Out) :-
 
 done_worker :-
     thread_self(Self),
+    thread_detach(Self),
     retract(queue_worker(Queue, Self)),
     thread_property(Self, status(Status)),
     !,
     (   catch(recreate_worker(Status, Queue), _, fail)
-    ->  thread_detach(Self),
-        print_message(informational,
+    ->  print_message(informational,
                       httpd_restarted_worker(Self))
     ;   done_status_message_level(Status, Level),
         print_message(Level,
@@ -715,17 +730,18 @@ recreate_worker(exception(Error), Queue) :-
 recreate_on_error('$aborted').
 recreate_on_error(time_limit_exceeded).
 
-%       thread_httpd:message_level(+Exception, -Level)
+%!  thread_httpd:message_level(+Exception, -Level)
 %
-%       Determine the message stream used for  exceptions that may occur
-%       during server_loop/5. Being multifile, clauses   can be added by
-%       the   application   to   refine   error   handling.   See   also
-%       message_hook/3 for further programming error handling.
+%   Determine the message stream used  for   exceptions  that  may occur
+%   during server_loop/5. Being multifile, clauses can   be added by the
+%   application to refine error handling.   See  also message_hook/3 for
+%   further programming error handling.
 
 :- multifile
     message_level/2.
 
 message_level(error(io_error(read, _), _),      silent).
+message_level(error(socket_error(epipe,_), _),	silent).
 message_level(error(timeout_error(read, _), _), informational).
 message_level(keep_alive_timeout,               silent).
 
@@ -893,9 +909,9 @@ create_pool(Pool) :-
 :- multifile
     prolog:message/3.
 
-prolog:message(httpd_started_server(Port)) -->
+prolog:message(httpd_started_server(Port, Options)) -->
     [ 'Started server at '-[] ],
-    http_root(Port).
+    http_root(Port, Options).
 prolog:message(httpd_stopped_worker(Self, Status)) -->
     [ 'Stopped worker ~p: ~p'-[Self, Status] ].
 prolog:message(httpd_restarted_worker(Self)) -->
@@ -907,17 +923,28 @@ prolog:message(httpd(created_pool(Pool))) -->
       'pool that fits the usage-profile.'
     ].
 
-http_root(Host:Port) -->
+http_root(Address, Options) -->
+    { landing_page(Address, URI, Options) },
+    [ '~w'-[URI] ].
+
+landing_page(Host:Port, URI, Options) :-
+    must_be(atom, Host),
+    http_server_property(Port, scheme(Scheme)),
+    (   default_port(Scheme, Port)
+    ->  format(atom(Base), '~w://~w', [Scheme, Host])
+    ;   format(atom(Base), '~w://~w:~w', [Scheme, Host, Port])
+    ),
+    entry_page(Base, URI, Options).
+landing_page(Port, URI, Options) :-
+    landing_page(localhost:Port, URI, Options).
+
+default_port(http, 80).
+default_port(https, 443).
+
+entry_page(Base, URI, Options) :-
+    option(entry_page(Entry), Options),
     !,
-    http_scheme(Port),
-    { http_absolute_location(root(.), URI, []) },
-    [ '~w:~w~w'-[Host, Port, URI] ].
-http_root(Port) -->
-    http_scheme(Port),
-    { http_absolute_location(root(.), URI, []) },
-    [ 'localhost:~w~w'-[Port, URI] ].
-
-http_scheme(Port) -->
-    { http_server_property(Port, scheme(Scheme)) },
-    [ '~w://'-[Scheme] ].
-
+    uri_resolve(Entry, Base, URI).
+entry_page(Base, URI, _) :-
+    http_absolute_location(root(.), Entry, []),
+    uri_resolve(Entry, Base, URI).

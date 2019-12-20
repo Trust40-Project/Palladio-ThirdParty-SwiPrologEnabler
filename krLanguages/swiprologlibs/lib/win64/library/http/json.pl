@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2016, University of Amsterdam
+    Copyright (c)  2007-2019, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -69,6 +70,7 @@
 :- use_module(library(memfile)).
 :- use_module(library(error)).
 :- use_module(library(option)).
+:- use_module(library(debug)).
 
 :- use_foreign_library(foreign(json)).
 
@@ -90,6 +92,7 @@
                      ]).
 :- predicate_options(json_read_dict/3, 3,
                      [ tag(atom),
+                       default_tag(atom),
                        pass_to(json_read/3, 3)
                      ]).
 :- predicate_options(json_write_dict/3, 3,
@@ -129,14 +132,16 @@ supported in SWI-Prolog version 7 and later):
 terms.
 */
 
-:- record json_options(null:ground = @(null),
-                   true:ground = @(true),
-                   false:ground = @(false),
-                   value_string_as:oneof([atom,string]) = atom,
-                   tag:atom = '').
+:- record json_options(
+              null:ground = @(null),
+              true:ground = @(true),
+              false:ground = @(false),
+              value_string_as:oneof([atom,string]) = atom,
+              tag:atom = '',
+              default_tag:atom).
 
 default_json_dict_options(
-    json_options(null, true, false, string, '')).
+    json_options(null, true, false, string, '', _)).
 
 
                  /*******************************
@@ -283,13 +288,11 @@ json_term(0'", Stream, String, Next, Options) :-
     get_code(Stream, Next).
 json_term(0'-, Stream, Number, Next, _Options) :-
     !,
-    json_number_codes(Stream, Codes, Next),
-    number_codes(Number, [0'-|Codes]).
+    json_read_number(Stream, 0'-, Number, Next).
 json_term(D, Stream, Number, Next, _Options) :-
     between(0'0, 0'9, D),
     !,
-    json_number_codes(Stream, Codes, Next),
-    number_codes(Number, [D|Codes]).
+    json_read_number(Stream, D, Number, Next).
 json_term(C, Stream, Constant, Next, Options) :-
     get_code(Stream, C1),
     json_identifier_codes(C1, Stream, Codes, Next),
@@ -375,26 +378,6 @@ escape(0'u, Stream, C) :-
     code_type(C4, xdigit(D4)),
     C is D1<<12+D2<<8+D3<<4+D4.
 
-json_number_codes(Stream, Codes, Next) :-
-    get_code(Stream, C1),
-    json_number_codes(C1, Stream, Codes, Next).
-
-json_number_codes(C1, Stream, [C1|Codes], Next) :-
-    number_code(C1),
-    !,
-    get_code(Stream, C2),
-    json_number_codes(C2, Stream, Codes, Next).
-json_number_codes(C, _, [], C).
-
-number_code(C) :-
-    between(0'0, 0'9, C),
-    !.
-number_code(0'.).
-number_code(0'-).
-number_code(0'+).
-number_code(0'e).
-number_code(0'E).
-
 json_identifier_codes(C1, Stream, [C1|T], Next) :-
     between(0'a, 0'z, C1),
     !,
@@ -421,32 +404,10 @@ json_constant(null, Constant, Options) :-
 
 ws(Stream, Next) :-
     get_code(Stream, C0),
-    ws(C0, Stream, Next).
+    json_skip_ws(Stream, C0, Next).
 
-ws(C0, Stream, C) :-
-    ws(C0),
-    !,
-    get_code(Stream, C1),
-    ws(C1, Stream, C).
-ws(0'/, Stream, C) :-
-    !,
-    get_code(Stream, Cmt1),
-    !,
-    expect(Cmt1, 0'/, Stream),
-    skip(Stream, 0'\n),
-    get_code(Stream, C0),
-    ws(C0, Stream, C).
-ws(C, _, C).
-
-ws(0' ).
-ws(0'\t).
-ws(0'\n).
-ws(0'\r).
-
-expect(C, C, _) :- !.
-expect(_, 0'/, Stream) :-
-    !,
-    syntax_error(illegal_comment, Stream).
+ws(C0, Stream, Next) :-
+    json_skip_ws(Stream, C0, Next).
 
 syntax_error(Message, Stream) :-
     stream_error_context(Stream, Context),
@@ -490,13 +451,21 @@ stream_error_context(Stream, stream(Stream, Line, LinePos, CharNo)) :-
 %   _stringified_ if it is not an atom or string. Stringification is
 %   based on term_string/2.
 %
-%   The version 7 _dict_ type is supported as well. If the dicts has
-%   a _tag_, a property "type":"tag" is   added  to the object. This
-%   behaviour can be changed using the =tag= option (see below). For
-%   example:
+%   The version 7 _dict_ type is supported as well.  Optionally,  if
+%   the dict has a _tag_,  a property  "type":"tag"  can be added to
+%   the object.  This behaviour can be controlled using the  =tag=
+%   option (see below). For example:
 %
 %     ==
 %     ?- json_write(current_output, point{x:1,y:2}).
+%     {
+%       "x":1,
+%       "y":2
+%     }
+%     ==
+%
+%     ==
+%     ?- json_write(current_output, point{x:1,y:2}, [tag(type)]).
 %     {
 %       "type":"point",
 %       "x":1,
@@ -904,7 +873,7 @@ is_json_pair(Options, Name=Value) :-
 %     * JSON =true=, =false= and =null= are represented using these
 %       Prolog atoms.
 %     * JSON objects are mapped to dicts.
-%     * By default, a =type= field in an object assigns a tag for
+%     * Optionally, a =type= field in an object assigns a tag for
 %       the dict.
 %
 %   The predicate json_read_dict/3 processes  the   same  options as
@@ -917,16 +886,21 @@ is_json_pair(Options, Name=Value) :-
 %       attribute to the dict _tag_. No mapping is performed if Name
 %       is the empty atom ('', default). See json_read_dict/2 and
 %       json_write_dict/2.
+%     * default_tag(+Tag)
+%       Provide the default tag if the above `tag` option does not
+%       apply.
 %     * null(+NullTerm)
-%     Default the atom `null`.
+%       Default the atom `null`.
 %     * true(+TrueTerm)
-%     Default the atom `true`.
+%       Default the atom `true`.
 %     * false(+FalseTerm)
-%     Default the atom `false`
+%       Default the atom `false`
+%     * end_of_file(+ErrorOrTerm)
+%       Action on reading end-of-file. See json_read/3 for details.
 %     * value_string_as(+Type)
-%     Prolog type used for strings used as value.  Default
-%     is =string=.  The alternative is =atom=, producing a
-%     packed string object.
+%       Prolog type used for strings used as value.  Default
+%       is `string`.  The alternative is `atom`, producing a
+%       packed string object.
 
 json_read_dict(Stream, Dict) :-
     json_read_dict(Stream, Dict, []).
@@ -946,7 +920,12 @@ term_to_dict(json(Pairs), Dict, Options) :-
         select(TagName = Tag0, Pairs, NVPairs),
         to_atom(Tag0, Tag)
     ->  json_dict_pairs(NVPairs, DictPairs, Options)
-    ;   json_dict_pairs(Pairs, DictPairs, Options)
+    ;   json_options_default_tag(Options, DefTag),
+        (   var(DefTag)
+        ->  true
+        ;   Tag = DefTag
+        ),
+        json_dict_pairs(Pairs, DictPairs, Options)
     ),
     dict_create(Dict, Tag, DictPairs).
 term_to_dict(Value0, Value, _Options) :-
@@ -954,8 +933,16 @@ term_to_dict(Value0, Value, _Options) :-
     !,
     Value = Value0.
 term_to_dict(List0, List, Options) :-
-    assertion(is_list(List0)),
+    is_list(List0),
+    !,
     terms_to_dicts(List0, List, Options).
+term_to_dict(Special, Special, Options) :-
+    (   json_options_true(Options, Special)
+    ;   json_options_false(Options, Special)
+    ;   json_options_null(Options, Special)
+    ;   json_options_end_of_file(Options, Special)
+    ),
+    !.
 
 json_dict_pairs([], [], _).
 json_dict_pairs([Name=Value0|T0], [Name=Value|T], Options) :-

@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2000-2016, University of Amsterdam
+    Copyright (c)  2000-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -45,6 +46,7 @@
             tcp_listen/2,               % +Socket, +BackLog
             tcp_fcntl/3,                % +Socket, +Command, ?Arg
             tcp_setopt/2,               % +Socket, +Option
+            tcp_getopt/2,               % +Socket, ?Option
             tcp_host_to_address/2,      % ?HostName, ?Ip-nr
             tcp_select/3,               % +Inputs, -Ready, +Timeout
             gethostname/1,              % -HostName
@@ -144,6 +146,24 @@ in case of failure or exceptions.
   handle_service(StreamPair) :-
           ...
   ==
+
+## Socket exceptions			{#socket-exceptions}
+
+Errors that are trapped by  the  low-level   library  are  mapped  to an
+exception of the shape below. In this term,  `Code` is a lower case atom
+that corresponds to the C macro name,   e.g., `epipe` for a broken pipe.
+`Message` is the human readable string for   the  error code returned by
+the OS or  the  same  as  `Code`  if   the  OS  does  not  provide  this
+functionality. Note that `Code` is derived from   a static set of macros
+that may or may not be defines for the   target OS. If the macro name is
+not known, `Code` is =|ERROR_nnn|=, where _nnn_ is an integer.
+
+    error(socket_error(Code, Message), _)
+
+Note that on Windows `Code` is a ``wsa*``   code  which makes it hard to
+write portable code that handles specific   socket errors. Even on POSIX
+systems the exact set of errors  produced   by  the network stack is not
+defined.
 
 ## TCP socket predicates                {#socket-predicates}
 */
@@ -376,15 +396,17 @@ tcp_connect_direct(Address, Socket, StreamPair):-
 
 %!  tcp_select(+ListOfStreams, -ReadyList, +TimeOut)
 %
-%   Same as the built-in  wait_for_input/3,   but  integrates better
-%   with event processing and the  various   options  of sockets for
-%   Windows.   On   non-windows   systems     this    simply   calls
-%   wait_for_input/3.
+%   Same as the built-in wait_for_input/3. Used  to allow for interrupts
+%   and timeouts on Windows. A redesign  of the Windows socket interface
+%   makes  it  impossible  to  do  better  than  Windows  select()  call
+%   underlying wait_for_input/3. As input multiplexing typically happens
+%   in a background thread anyway we  accept   the  loss of timeouts and
+%   interrupts.
+%
+%   @deprecated Use wait_for_input/3
 
-:- if(\+predicate_property(tcp_select(_,_,_), defined)).
 tcp_select(ListOfStreams, ReadyList, TimeOut) :-
     wait_for_input(ListOfStreams, ReadyList, TimeOut).
-:- endif.
 
 
                  /*******************************
@@ -509,6 +531,15 @@ try_proxy(socks(Host, Port), Address, Socket, StreamPair) :-
 %     matching the address. The address is normally the address of
 %     the local subnet (i.e. 192.168.1.255).  See udp_send/4.
 %
+%     - ip_add_membership(+MultiCastGroup)
+%     - ip_add_membership(+MultiCastGroup, +LocalInterface)
+%     - ip_add_membership(+MultiCastGroup, +LocalInterface, +InterfaceIndex)
+%     - ip_drop_membership(+MultiCastGroup)
+%     - ip_drop_membership(+MultiCastGroup, +LocalInterface)
+%     - ip_drop_membership(+MultiCastGroup, +LocalInterface, +InterfaceIndex)
+%     Join/leave a multicast group.  Calls setsockopt() with the
+%     corresponding arguments.
+%
 %     - dispatch(+Boolean)
 %     In GUI environments (using XPCE or the Windows =swipl-win.exe=
 %     executable) this flags defines whether or not any events are
@@ -533,6 +564,15 @@ try_proxy(socks(Host, Port), Address, Socket, StreamPair) :-
 tcp_fcntl(Socket, setfl, nonblock) :-
     !,
     tcp_setopt(Socket, nonblock).
+
+%!  tcp_getopt(+Socket, ?Option) is semidet.
+%
+%   Get  information  about  Socket.  Defined    properties  are  below.
+%   Requesting an unknown option results in a `domain_error` exception.
+%
+%     - file_no(-File)
+%     Get the OS file handle as an integer.  This may be used for
+%     debugging and integration.
 
 %!  tcp_host_to_address(?HostName, ?Address) is det.
 %
@@ -627,13 +667,13 @@ negotiate_socks_connection(Host:Port, StreamPair):-
 The C-layer generates exceptions of the  following format, where Message
 is extracted from the operating system.
 
-        error(socket_error(Message), _)
+        error(socket_error(Code, Message), _)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 :- multifile
     prolog:error_message//1.
 
-prolog:error_message(socket_error(Message)) -->
+prolog:error_message(socket_error(_Code, Message)) -->
     [ 'Socket error: ~w'-[Message] ].
 prolog:error_message(socks_error(Error)) -->
     socks_error(Error).

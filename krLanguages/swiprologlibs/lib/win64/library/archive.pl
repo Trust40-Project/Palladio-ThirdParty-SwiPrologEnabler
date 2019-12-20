@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker and Matt Lilley
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2012-2016, VU University Amsterdam
+    Copyright (c)  2012-2019, VU University Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -45,18 +45,23 @@
             archive_extract/3,          % +Archive, +Dir, +Options
 
             archive_entries/2,          % +Archive, -Entries
-            archive_data_stream/3       % +Archive, -DataStream, +Options
+            archive_data_stream/3,      % +Archive, -DataStream, +Options
+            archive_foldl/4             % :Goal, +Archive, +State0, -State
           ]).
 :- use_module(library(error)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(filesex)).
+
+:- meta_predicate
+    archive_foldl(4, +, +, -).
 
 /** <module> Access several archive formats
 
 This library uses _libarchive_ to access   a variety of archive formats.
 The following example lists the entries in an archive:
 
-  ==
+  ```
   list_archive(File) :-
         archive_open(File, Archive, []),
         repeat,
@@ -66,9 +71,24 @@ The following example lists the entries in an archive:
            ;   !,
                archive_close(Archive)
            ).
-  ==
+  ```
 
-@see http://code.google.com/p/libarchive/
+Here is another example which counts the files in the archive and prints
+file  type  information.  It  uses    archive_foldl/4,  a  higher  level
+predicate:
+
+  ```
+  print_entry(Path, Handle, Cnt0, Cnt1) :-
+      archive_header_property(Handle, filetype(Type)),
+      format('File ~w is of type ~w~n', [Path, Type]),
+      Cnt1 is Cnt0 + 1.
+
+  list_archive(File) :-
+      archive_foldl(print_entry, File, 0, FileCount),
+      format('We have ~w files', [FileCount]).
+  ```
+
+@see https://github.com/libarchive/libarchive/
 */
 
 :- use_foreign_library(foreign(archive4pl)).
@@ -125,12 +145,12 @@ archive_open(Stream, Archive, Options) :-
 %     multiple times to support multiple formats in read mode.
 %     In write mode, you must supply a single format. If no format
 %     options are provided, =all= is assumed for read mode. Note that
-%     =all= does *not* include =raw=. To open both archive
+%     =all= does *not* include =raw= and =mtree=. To open both archive
 %     and non-archive files, _both_ format(all) and
-%     format(raw) must be specified. Supported values are: =all=,
-%     =7zip=, =ar=, =cab=, =cpio=, =empty=, =gnutar=, =iso9660=,
-%     =lha=, =mtree=, =rar=, =raw=, =tar=, =xar= and =zip=. The
-%     value =all= is default for read.
+%     format(raw) and/or format(mtree) must be specified. Supported
+%     values are: =all=, =7zip=, =ar=, =cab=, =cpio=, =empty=, =gnutar=,
+%     =iso9660=, =lha=, =mtree=, =rar=, =raw=, =tar=, =xar= and =zip=.
+%     The value =all= is default for read.
 %
 %   Note that the actually supported   compression types and formats
 %   may vary depending on the version   and  installation options of
@@ -283,10 +303,18 @@ header_property(permissions(_)).
 %   options:
 %
 %     * remove_prefix(+Prefix)
-%     Strip Prefix from all entries before extracting
+%     Strip Prefix from all entries before extracting. If Prefix
+%     is a list, then each prefix is tried in order, succeding at
+%     the first one that matches. If no prefixes match, an error
+%     is reported. If Prefix is an atom, then that prefix is removed.
 %     * exclude(+ListOfPatterns)
 %     Ignore members that match one of the given patterns.
 %     Patterns are handed to wildcard_match/2.
+%     * include(+ListOfPatterns)
+%     Include members that match one of the given patterns.
+%     Patterns are handed to wildcard_match/2. The `exclude`
+%     options takes preference if a member matches both the `include`
+%     and the `exclude` option.
 %
 %   @error  existence_error(directory, Dir) if Dir does not exist
 %           or is not a directory.
@@ -307,16 +335,13 @@ archive_extract(Archive, Dir, Options) :-
 extract(Archive, Dir, Options) :-
     archive_next_header(Archive, Path),
     !,
+    option(include(InclPatterns), Options, ['*']),
+    option(exclude(ExclPatterns), Options, []),
     (   archive_header_property(Archive, filetype(file)),
-        \+ excluded(Path, Options)
+        \+ matches(ExclPatterns, Path),
+        matches(InclPatterns, Path)
     ->  archive_header_property(Archive, permissions(Perm)),
-        (   option(remove_prefix(Remove), Options)
-        ->  (   atom_concat(Remove, ExtractPath, Path)
-            ->  true
-            ;   domain_error(path_prefix(Remove), Path)
-            )
-        ;   ExtractPath = Path
-        ),
+        remove_prefix(Options, Path, ExtractPath),
         directory_file_path(Dir, ExtractPath, Target),
         file_directory_name(Target, FileDir),
         make_directory_path(FileDir),
@@ -333,14 +358,36 @@ extract(Archive, Dir, Options) :-
     extract(Archive, Dir, Options).
 extract(_, _, _).
 
-excluded(Path, Options) :-
-    option(exclude(Patterns), Options),
+%!  matches(+Patterns, +Path) is semidet.
+%
+%   True when Path matches a pattern in Patterns.
+
+matches([], _Path) :-
+    !,
+    fail.
+matches(Patterns, Path) :-
     split_string(Path, "/", "/", Parts),
     member(Segment, Parts),
     Segment \== "",
     member(Pattern, Patterns),
-    wildcard_match(Pattern, Segment).
+    wildcard_match(Pattern, Segment),
+    !.
 
+remove_prefix(Options, Path, ExtractPath) :-
+    (   option(remove_prefix(Remove), Options)
+    ->  (   is_list(Remove)
+        ->  (   member(P, Remove),
+                atom_concat(P, ExtractPath, Path)
+            ->  true
+            ;   domain_error(path_prefix(Remove), Path)
+            )
+        ;   (   atom_concat(Remove, ExtractPath, Path)
+            ->  true
+            ;   domain_error(path_prefix(Remove), Path)
+            )
+        )
+    ;   ExtractPath = Path
+    ).
 
 %!  set_permissions(+Perm:integer, +Target:atom)
 %
@@ -523,3 +570,39 @@ archive_create_2(Archive, Base, Filename) :-
 entry_name('.', Name, Name) :- !.
 entry_name(Base, Name, EntryName) :-
     directory_file_path(Base, EntryName, Name).
+
+%!  archive_foldl(:Goal, +Archive, +State0, -State).
+%
+%   Operates like foldl/4 but for the entries   in the archive. For each
+%   member of the archive, Goal called   as `call(:Goal, +Path, +Handle,
+%   +S0,  -S1).  Here,  `S0`  is  current  state  of  the  _accumulator_
+%   (starting  with  State0)  and  `S1`  is    the  next  state  of  the
+%   accumulator, producing State after the last member of the archive.
+%
+%   @see archive_header_property/2, archive_open/4.
+%
+%   @arg Archive File name or stream to be given to archive_open/[3,4].
+
+archive_foldl(Goal, Archive, State0, State) :-
+    setup_call_cleanup(
+        archive_open(Archive, Handle, [close_parent(true)]),
+        archive_foldl_(Goal, Handle, State0, State),
+        archive_close(Handle)
+    ).
+
+archive_foldl_(Goal, Handle, State0, State) :-
+    (   archive_next_header(Handle, Path)
+    ->  call(Goal, Path, Handle, State0, State1),
+        archive_foldl_(Goal, Handle, State1, State)
+    ;   State = State0
+    ).
+
+
+		 /*******************************
+		 *           MESSAGES		*
+		 *******************************/
+
+:- multifile prolog:error_message//1.
+
+prolog:error_message(archive_error(Code, Message)) -->
+    [ 'Archive error (code ~p): ~w'-[Code, Message] ].
